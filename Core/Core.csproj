@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<Description>A fluent Given-When-Then specification framework for xUnit. Write behavior definitions as unit tests with built-in auto-mocking and data generation</Description>
+		<VersionPrefix></VersionPrefix>
+		<Authors>Joakim Sigvald</Authors>
+		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<AssemblyName>TSpec</AssemblyName>
+		<RootNamespace>TSpec</RootNamespace>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<IsPackable>true</IsPackable>
+		<PackageTags>unit test specification given when then fluent mock xunit moq automock</PackageTags>
+		<PackageIconUrl></PackageIconUrl>
+		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec.git</PackageProjectUrl>
+		<PackageLicenseUrl></PackageLicenseUrl>
+		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageVersion>1.0.0</PackageVersion>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
+		<PackageIcon>icon.png</PackageIcon>
+		<PackageReleaseNotes>
+			Migrated from TSpec
+		</PackageReleaseNotes>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Moq" Version="4.20.72" />
+		<PackageReference Include="xunit.v3.extensibility.core" Version="3.2.2" />
+		<PackageReference Include="xunit.v3.assert" Version="3.2.2" />
+		<None Include="..\README.md" Pack="true" PackagePath="\" />
+		<None Include="..\icon.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+</Project>

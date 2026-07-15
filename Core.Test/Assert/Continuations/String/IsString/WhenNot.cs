@@ -1,0 +1,25 @@
+﻿using TSpec.Assert;
+
+namespace TSpec.Test.Assert.Continuations.String.IsString;
+
+public class WhenNot : StringSpec
+{
+    [Theory]
+    [InlineData(null, "")]
+    [InlineData("", null)]
+    [InlineData("", "abc")]
+    [InlineData("abc", "abcd")]
+    [InlineData("abc", "ABC")]
+    public void GivenNotSameString_ThenDoesNotThrow(string? actual, string? expected)
+        => actual.Is().Not(expected).and.Does().not.Contain("XXX");
+
+    [Theory]
+    [InlineData(null, null)]
+    [InlineData("", "")]
+    [InlineData("abc", "abc")]
+    public void GivenSameString_ThenGetException(string? actual, string? expected)
+    {
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => actual.Is().Not(expected));
+        ex.HasMessage($"Expected actual to be not {Describe(expected)} but found {Describe(actual)}", "Actual is not expected");
+    }
+}

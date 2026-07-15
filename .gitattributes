@@ -1,0 +1,16 @@
+# Normalize all text files to LF in the repo and in the working tree.
+# Repo blobs are already LF, so this is zero-churn for history and makes
+# line endings deterministic for every tool and machine.
+* text=auto eol=lf
+
+# Binary files: never convert.
+*.png binary
+*.ico binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.dll binary
+*.exe binary
+*.pdf binary
+*.zip binary
+*.snk binary

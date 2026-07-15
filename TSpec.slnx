@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Assets/">
+    <File Path="icon.png" />
+    <File Path="README.md" />
+    <File Path="TODO.txt" />
+  </Folder>
+  <Project Path="Core.Test/Core.Test.csproj" />
+  <Project Path="Core/Core.csproj" />
+</Solution>

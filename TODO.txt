@@ -1,0 +1,16 @@
+* auto-convert look for first public static method with one argument of type TSource that returns TTarget
+* Sequence uniqueness check: fixed spacings now use an O(1) check; the collect-all-values check
+  remains only for step-function sequences (Spaced with lambda). If users generate large numbers
+  of values through step functions, provide an opt-out hook
+--- before Xspec
+* Only show first five items with ellipsis if not all from collection
+* Provide custom data generator for Enums and bools to get random values
+* CollectionFixture om man vill dela mellan fler klasser
+* Separate ClassFixture class from Spec and only allow Arrange on fixture, not when/Then
+* Productivity: Auto-generate test classes from Visual Studio
+  - rightclick method and generate test class "When..." in the correct folder structure (configurable)
+* Documentation: Produce "Javadoc" from code comments
+* Documentation: handle nested new(...) in argument list: 
+  "=> When(_ => _.AddNewItem(A<CartId>(), new(A<Sku>(), A<ProductType>(), A<Price>(), A<Vat>()), A<string>()));"
+* Cast (Result.As<MyType>().MyProperty.Is(123))
+  - seems impossible in current C# version
