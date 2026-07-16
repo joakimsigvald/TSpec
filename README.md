@@ -1,4 +1,4 @@
-# ![TSpec](https://raw.githubusercontent.com/joakimsigvald/TSpec/main/logo-small.png) Fluent, specification-style unit testing for .NET
+# TSpec — Fluent, specification-style unit testing for .NET
 
 TSpec is a fluent, specification-oriented testing framework for .NET that builds on xUnit.
 It follows the Given–When–Then pattern and integrates seamlessly with Moq.
