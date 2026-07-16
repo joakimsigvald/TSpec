@@ -17,12 +17,13 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>1.1.1</PackageVersion>
+		<PackageVersion>1.1.2</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			Package cleanup and icon touch up
+			Added TSpec-agent-reference.md — condensed reference for AI coding agents, shipped in the package
+			fixed error in README and code comment
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
@@ -31,6 +32,7 @@
 		<PackageReference Include="xunit.v3.extensibility.core" Version="3.2.2" />
 		<PackageReference Include="xunit.v3.assert" Version="3.2.2" />
 		<None Include="..\README.md" Pack="true" PackagePath="\" />
+		<None Include="..\TSpec-agent-reference.md" Pack="true" PackagePath="\" />
 		<None Include="..\icon.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 

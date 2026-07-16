@@ -21,7 +21,7 @@ public class WhenPlaceOrder : Spec<ShoppingService>
         => When(_ => _.PlaceOrder(The(cartId)))
            .Given<ICartRepository>()
            .That(_ => _.GetCart(The(cartId)))
-           .Returns(A<Cart>());
+           .Returns(A<Cart>);
 
     [Fact] public void ThenCreatesOrder()
         => Then<IOrderService>(_ => _.CreateOrder(The<Cart>()));
@@ -30,6 +30,11 @@ public class WhenPlaceOrder : Spec<ShoppingService>
 
 The example highlights how TSpec reduces boilerplate by handling test data, dependency mocking, and interaction verification declaratively.
 In real-world usage, this typically yields substantially smaller and more readable tests than plain xUnit with Moq.
+
+**Using an AI coding agent?** A condensed reference optimized for agents is shipped with the package
+and available as [TSpec-agent-reference.md](https://github.com/joakimsigvald/TSpec/blob/main/TSpec-agent-reference.md).
+Point your agent to it by adding a line to your repository's agent instructions (e.g. `CLAUDE.md` or `AGENTS.md`):
+*"For TSpec test syntax, see TSpec-agent-reference.md in the TSpec repository, also found in the NuGet package folder."*
 
 ## Table of Contents
 
@@ -437,7 +442,7 @@ public class WhenPlaceOrder : Spec<MyProject.ShoppingService>
 ```
 
 The built-in mocking capabilities of TSpec cover almost all scenarios that Moq covers. 
-Should you need a feature that TSpec does not provide, create the mock explicitly with Moq and supply it to the pipeline using `Given(myMock.Object)`.
+Should you need a feature that TSpec does not provide, create the mock explicitly with Moq and supply it to the pipeline using `Using(myMock.Object)`.
 
 ## 5. Asserting Results
 
@@ -595,6 +600,13 @@ is expected; `because` explains *why*. The reason can only be provided once per 
 in line with one logical assertion per test method, and covers all technical assertions
 chained after it (with `and`, `either`/`or` etc.).
 
+`Because(reason)` is syntactic sugar for `Then(because: reason)`:
+
+```csharp
+[Fact] public void ThenCircumferenceIsAroundSixPi()
+    => Because("the world is round").Result.Is().Around(Math.PI * 6, 0.001);
+```
+
 ## 6. Guidelines
 
 ### 6.1 Recommended test structure
@@ -620,7 +632,7 @@ public abstract class WhenPlaceOrder : Spec<ShoppingService>
     public abstract class GivenCartExists : WhenPlaceOrder 
     { 
         protected GivenCartExists()
-            => Given<ICartRepository>().That(_ => _.GetCart(The(cartId))).Returns(A<Cart>());
+            => Given<ICartRepository>().That(_ => _.GetCart(The(cartId))).Returns(A<Cart>);
 
         public class WithItems : GivenCartExists 
         {

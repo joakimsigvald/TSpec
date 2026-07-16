@@ -8,7 +8,7 @@ namespace TSpec;
 public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
 {
     /// <summary>
-    /// Syntactic sugar for Then(because: reason). Run the test-pipeline, while providing a reson for the expected result, and return the result
+    /// Syntactic sugar for Then(because: reason). Run the test-pipeline, while providing a reason for the expected result, and return the result
     /// </summary>
     /// <param name="reason">A rationale justifying the expected outcome, included in the generated specification after the assertion.
     /// Phrase it to read naturally after the word "because". It can only be provided once per test method and covers all assertions chained after it</param>
