@@ -17,13 +17,12 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>1.1.2</PackageVersion>
+		<PackageVersion>1.1.3</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			Added TSpec-agent-reference.md — condensed reference for AI coding agents, shipped in the package
-			fixed error in README and code comment
+			Changed license from GPL-3.0-only to MIT
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
