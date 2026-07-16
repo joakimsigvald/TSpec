@@ -15,12 +15,13 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
     private protected readonly Context _context = null!;
     private protected readonly SpecFixture<TSUT> _fixture = null!;
     private protected readonly Arranger _arranger = new();
+    private protected readonly DisposalTracker _disposalTracker = new();
     private protected Command? _methodUnderTest;
 
     protected Fixture()
     {
         _fixture = new(this);
-        _context = new(this);
+        _context = new(this, _disposalTracker);
         Specification = SpecificationContext.Create();
     }
 
@@ -28,9 +29,22 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
 
     public void TearDown()
     {
-        if (_fixture.IsSetUp)
-            _fixture.Dispose();
-        SpecificationContext.Release();
+        try
+        {
+            if (_fixture.IsSetUp)
+                _fixture.Dispose();
+        }
+        finally
+        {
+            try
+            {
+                _disposalTracker.DisposeAll();
+            }
+            finally
+            {
+                SpecificationContext.Release();
+            }
+        }
     }
 
     internal void SetDefault<TModel>(

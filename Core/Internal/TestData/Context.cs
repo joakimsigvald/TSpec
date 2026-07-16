@@ -4,9 +4,9 @@ using TSpec.Internal.TestData.Generation.Strategies;
 
 namespace TSpec.Internal.TestData;
 
-internal class Context(ISpecificationProvider specificationProvider)
+internal class Context(ISpecificationProvider specificationProvider, DisposalTracker disposalTracker)
 {
-    private readonly Repository _repository = new(specificationProvider);
+    private readonly Repository _repository = new(specificationProvider, disposalTracker);
     private readonly Dictionary<Type, Dictionary<object, int>> _tagIndices = [];
 
     internal TClass Instantiate<TClass>()

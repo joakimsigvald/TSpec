@@ -42,7 +42,16 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     public SpecificationText Specification => new(_lazySpecification);
 
     /// <summary>
-    /// Runs the teardown of the test pipeline (the steps provided with Until)
+    /// Runs the teardown of the test pipeline (the steps provided with Until).
+    /// After all Until-steps have run, any disposable objects that TSpec created for the
+    /// subject-under-test graph (the subject itself and concrete dependencies it was constructed with)
+    /// are disposed, in reverse order of creation. Instances provided with Using, mocks and
+    /// generated input data are not disposed. To manage the subject's lifetime yourself,
+    /// provide your own instance with Using.
     /// </summary>
-    public void Dispose() => Pipeline.TearDown();
+    public void Dispose()
+    {
+        Pipeline.TearDown();
+        GC.SuppressFinalize(this);
+    }
 }

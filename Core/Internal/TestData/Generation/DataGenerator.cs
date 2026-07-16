@@ -7,7 +7,8 @@ internal class DataGenerator(
     Counter counter,
     TypeConversionStrategy typeConversionStrategy,
     DefaultStrategy defaultStrategy,
-    MockingStrategy mockingStrategy)
+    MockingStrategy mockingStrategy,
+    DisposalTracker disposalTracker)
 {
     private static readonly StackStrategy _stackStrategy = new();
     private static readonly NullableStrategy _nullableStrategy = new();
@@ -37,7 +38,16 @@ internal class DataGenerator(
         object? val = null;
         foreach (var strategy in _strategies)
             if (strategy.TryGenerate(request, ref val))
+            {
+                if (ShouldBeAutoDisposed(strategy))
+                    disposalTracker.Track(val);
                 return val;
+            }
         return val;
+
+        // Objects TSpec constructs for the subject-under-test graph are TSpec-owned
+        // and disposed on teardown. Values from earlier strategies (user-provided
+        // defaults, mocks, converted values) are not owned by TSpec.
+        bool ShouldBeAutoDisposed(IGenerationStrategy strategy) => ReferenceEquals(strategy, _objectStrategy) && request.Scope.HasFlag(For.Subject);
     }
 }

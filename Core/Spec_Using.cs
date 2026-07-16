@@ -23,6 +23,8 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
 
     /// <summary>
     /// Instructs the test pipeline to use the specified instance when resolving dependencies or generating test data.
+    /// The instance remains owned by the caller: TSpec will not dispose it on teardown,
+    /// unlike disposable objects TSpec creates itself for the subject-under-test graph.
     /// </summary>
     /// <typeparam name="TValue">The type of the value being provided.</typeparam>
     /// <param name="value">The specific instance to use.</param>
@@ -40,6 +42,8 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
 
     /// <summary>
     /// Instructs the test pipeline to use a factory method to resolve the value when generating test data or resolving dependencies.
+    /// Factory-created instances remain owned by the caller: TSpec will not dispose them on teardown,
+    /// unlike disposable objects TSpec creates itself for the subject-under-test graph.
     /// </summary>
     /// <typeparam name="TValue">The type of the value being provided.</typeparam>
     /// <param name="factory">A function that creates the value.</param>

@@ -20,12 +20,12 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>1.0.0</PackageVersion>
+		<PackageVersion>1.1.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			Migrated from TSpec
+			Auto-dispose objects created by the pipeline for (and including) Subject under test
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>

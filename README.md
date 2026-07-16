@@ -213,6 +213,13 @@ Teardown is executed in order of declaration when the test class and pipeline ar
 Example:
 `When(A).Until(B).Until(C)` will result in the execution order: A -> B -> C.
 
+After all `Until`-steps have run, TSpec disposes any disposable objects it created for the
+subject-under-test graph: the subject itself and any concrete dependencies TSpec constructed
+and injected into it, in reverse order of creation (subject first). This applies to both
+`IDisposable` and `IAsyncDisposable`. Objects you provide with `Using` (as value or factory),
+mocks, and generated input data are never disposed by TSpec — so to manage the subject's
+lifetime yourself, provide your own instance with `Using`.
+
 ### 2.5 Sync vs. Async Execution
 
 TSpec supports testing synchronous and asynchronous code using the same test pipeline.
