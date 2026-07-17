@@ -71,21 +71,30 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
         _context.Use(defaultValue, scope);
     }
 
-    internal void Using<TValue>(TValue defaultValue, For scope, string defaultValuesExpr)
+    internal void Using<TValue>(TValue defaultValue, For scope, string defaultValuesExpr, bool owned = false)
     {
         if (!string.IsNullOrEmpty(defaultValuesExpr))
-            Specification.AddUsing(defaultValuesExpr, scope);
+            Specification.AddUsing(defaultValuesExpr, scope, owned);
         AssertIsNotSetUp();
+        if (owned)
+            _disposalTracker.Track(defaultValue);
         _context.Use(defaultValue, scope);
     }
 
-    internal void Using<TValue>(Func<TValue> defaultFactory, For scope, string defaultFactoryExpr)
+    internal void Using<TValue>(Func<TValue> defaultFactory, For scope, string defaultFactoryExpr, bool owned = false)
     {
         if (!string.IsNullOrEmpty(defaultFactoryExpr))
-            Specification.AddUsing(defaultFactoryExpr, scope);
+            Specification.AddUsing(defaultFactoryExpr, scope, owned);
         AssertIsNotSetUp();
-        _context.Use(defaultFactory, scope);
+        _context.Use(owned ? TrackCreated(defaultFactory) : defaultFactory, scope);
     }
+
+    private Func<TValue> TrackCreated<TValue>(Func<TValue> factory) => () =>
+    {
+        var value = factory();
+        _disposalTracker.Track(value);
+        return value;
+    };
 
     internal void PrependSetUp(Delegate setUp, string setUpExpr)
     {

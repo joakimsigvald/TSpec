@@ -94,20 +94,23 @@ internal abstract class TestPipeline<TSUT, TResult, TParent>(TParent parent) whe
     public IUsingTestPipeline<TSUT, TResult> Using<TValue>(
         TValue defaultValue,
         For scope = For.All,
+        bool owned = false,
         [CallerArgumentExpression(nameof(defaultValue))] string? defaultValueExpr = null)
-        => Parent.Using(defaultValue, scope, defaultValueExpr!);
+        => Parent.Using(defaultValue, scope, owned, defaultValueExpr!);
 
     public IUsingTestPipeline<TSUT, TResult> Using<TValue>(
         Func<TValue> defaultValue,
         For scope = For.All,
+        bool owned = false,
         [CallerArgumentExpression(nameof(defaultValue))] string? defaultValueExpr = null)
-        => Parent.Using(defaultValue, scope, defaultValueExpr!);
+        => Parent.Using(defaultValue, scope, owned, defaultValueExpr!);
 
     public IUsingTestPipeline<TSUT, TResult> Using<TValue>(
             Tag<TValue> tag,
             For scope = For.All,
+            bool owned = false,
             [CallerArgumentExpression(nameof(tag))] string? tagExpr = null)
-            => Parent.Using(tag, scope, tagExpr!);
+            => Parent.Using(tag, scope, owned, tagExpr!);
 
     public ITestResultWithSUT<TSUT, TResult> Then(Ignore _ = default, string? because = null) => Parent.Then(because: because);
 

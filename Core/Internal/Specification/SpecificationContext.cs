@@ -39,7 +39,8 @@ internal class SpecificationContext : IAssertSpecificationContext
 
     internal void AddGiven(string valueExpr, For scope) => _builder.Add(() => _builder.AddGiven(valueExpr, scope));
 
-    internal void AddUsing(string valueExpr, For scope) => _builder.Add(() => _builder.AddUsing(valueExpr, scope));
+    internal void AddUsing(string valueExpr, For scope, bool owned = false)
+        => _builder.Add(() => _builder.AddUsing(valueExpr, scope, owned));
 
     internal void AddUsing(Func<bool> shouldRender, string valueExpr, For scope)
         => _builder.Add(() =>

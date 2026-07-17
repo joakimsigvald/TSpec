@@ -23,20 +23,23 @@ internal class UsingTestPipeline<TSUT, TResult> :
     public IUsingTestPipeline<TSUT, TResult> And<TValue>(
         TValue value,
         For scope = For.All,
+        bool owned = false,
         [CallerArgumentExpression(nameof(value))] string? valueExpr = null)
-        => Parent.Using(value, scope, valueExpr!);
+        => Parent.Using(value, scope, owned, valueExpr!);
 
     /// <inheritdoc />
     public IUsingTestPipeline<TSUT, TResult> And<TValue>(
         Func<TValue> factory,
         For scope = For.All,
+        bool owned = false,
         [CallerArgumentExpression(nameof(factory))] string? factoryExpr = null)
-        => Parent.Using(factory, scope, factoryExpr!);
+        => Parent.Using(factory, scope, owned, factoryExpr!);
 
     /// <inheritdoc />
     public IUsingTestPipeline<TSUT, TResult> And<TValue>(
         Tag<TValue> tag,
         For scope = For.All,
+        bool owned = false,
         [CallerArgumentExpression(nameof(tag))] string? tagExpr = null)
-        => Parent.Using(tag, scope, tagExpr!);
+        => Parent.Using(tag, scope, owned, tagExpr!);
 }

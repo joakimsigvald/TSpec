@@ -114,7 +114,7 @@ internal class SpecificationBuilder
         }
     }
 
-    internal void AddUsing(string valueExpr, For scope)
+    internal void AddUsing(string valueExpr, For scope, bool owned = false)
     {
         _currentMockSetup = null;
         _textBuilder.AddPhraseOrSentence(string.Join(' ', GetWords()));
@@ -122,6 +122,8 @@ internal class SpecificationBuilder
         IEnumerable<string> GetWords()
         {
             yield return Using;
+            if (owned)
+                yield return "owned";
             yield return valueExpr.ParseValue();
             if (scope != For.All)
                 yield return $"for {scope}";

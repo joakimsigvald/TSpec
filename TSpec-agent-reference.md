@@ -25,7 +25,7 @@ Full human documentation: [README.md](https://github.com/joakimsigvald/TSpec#rea
 | `Given().A(value)` / `Given(tag).Is(v)` | Provide input test data | Applies to Input only; also `Given().ASecond(value)`…, `Given().One(v)`/`Some(values)`/`Two<T>()` for collections |
 | `Given<TService>().That(_ => _.Call(...)).Returns(...)` | Mock dependency behavior | See Mocking |
 | `Given<TModel>(m => m.X = 1)` / `Given((int i) => i + 1)` | Setup/transform generated values of a type | Applied most-recent-first |
-| `Using(value)` / `Using(() => value)` / `Using(tag)` | Register default value/factory for a type | Optional scope: `For.Input`, `For.Subject`, `For.All` (default) |
+| `Using(value)` / `Using(() => value)` / `Using(tag)` | Register default value/factory for a type | Optional scope: `For.Input`, `For.Subject`, `For.All` (default); `owned: true` = pipeline disposes it on teardown |
 | `Using<TTarget>().From<TSource>()` | Type conversion for generation | See Conversions |
 | `Having(_ => _.Setup())` | Setup on the SUT before `When` | Reverse declaration order |
 | `Until(_ => _.Cleanup())` | Teardown after the test | Declaration order |
@@ -93,7 +93,8 @@ Combinators (lowercase): `.and.`, `.not.`, `.either. ... .or.`, `.that.`, `.but.
 ## Lifecycle and ownership
 
 - Teardown order after the test method: `Until` steps (declaration order), then TSpec disposes disposable objects **it created** for the SUT graph (SUT first, then its constructed dependencies), supporting `IDisposable` and `IAsyncDisposable`.
-- Never disposed by TSpec: instances provided via `Using` (value or factory), mocks, and generated input data. To manage the SUT's lifetime yourself, provide it with `Using(new MySut(...))`.
+- Never disposed by TSpec: instances provided via `Using` (value, factory, or tag), mocks, and generated input data. To manage the SUT's lifetime yourself, provide it with `Using(new MySut(...))`.
+- Exception: `Using(..., owned: true)` transfers ownership to the pipeline — the provided/created object is disposed with the TSpec-created graph. Idiom for integration tests: `Using(CreateClient, owned: true)` in the base spec constructor gives every test a fresh `HttpClient`, disposed after the test (replaces per-test `using` statements).
 
 ## Common errors → causes
 

@@ -292,11 +292,13 @@ public interface ITestPipeline<TSUT, TResult>
     /// <typeparam name="TValue">The type of the default value</typeparam>
     /// <param name="defaultValue">A function providing the default value for the given type</param>
     /// <param name="scope">Determines whether the value is used for Subject Under Test construction (Subject), ambient test data (Input), or both (All). Defaults to All.</param>
+    /// <param name="owned">When true, the pipeline takes ownership of the created value and disposes it on teardown, after any Until-steps. Defaults to false (caller-owned).</param>
     /// <param name="defaultValueExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to provide further infrastructure and test data arrangement.</returns>
     IUsingTestPipeline<TSUT, TResult> Using<TValue>(
         Func<TValue> defaultValue,
         For scope = For.All,
+        bool owned = false,
         [CallerArgumentExpression(nameof(defaultValue))] string? defaultValueExpr = null);
 
     /// <summary>
@@ -305,11 +307,13 @@ public interface ITestPipeline<TSUT, TResult>
     /// <typeparam name="TValue">The type of the default value</typeparam>
     /// <param name="defaultValue">The default value for the given type</param>
     /// <param name="scope">Determines whether the value is used for Subject Under Test construction (Subject), ambient test data (Input), or both (All). Defaults to All.</param>
+    /// <param name="owned">When true, the pipeline takes ownership of the value and disposes it on teardown, after any Until-steps. Defaults to false (caller-owned).</param>
     /// <param name="defaultValueExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to provide further infrastructure and test data arrangement.</returns>
     IUsingTestPipeline<TSUT, TResult> Using<TValue>(
         TValue defaultValue,
         For scope = For.All,
+        bool owned = false,
         [CallerArgumentExpression(nameof(defaultValue))] string? defaultValueExpr = null);
 
     /// <summary>
@@ -318,10 +322,12 @@ public interface ITestPipeline<TSUT, TResult>
     /// <typeparam name="TValue">The type of the value associated with the tag.</typeparam>
     /// <param name="tag">The tag used to identify the specific value instance.</param>
     /// <param name="scope">Determines whether the tag's value is used for Subject Under Test construction (Subject), ambient test data (Input), or both (All). Defaults to All.</param>
+    /// <param name="owned">When true, the pipeline takes ownership of the tag's value and disposes it on teardown, after any Until-steps. Defaults to false (caller-owned).</param>
     /// <param name="tagExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to provide further infrastructure and test data arrangement.</returns>
     IUsingTestPipeline<TSUT, TResult> Using<TValue>(
         Tag<TValue> tag,
         For scope = For.All,
+        bool owned = false,
         [CallerArgumentExpression(nameof(tag))] string? tagExpr = null);
 }

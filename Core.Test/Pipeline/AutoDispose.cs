@@ -48,6 +48,62 @@ public class AutoDispose
     }
 
     [Fact]
+    public void GivenSutProvidedAsOwnedFactory_ThenDisposeIt()
+    {
+        var mySut = new DisposableSubject();
+        var spec = new DisposableSutSpec();
+        var sut = spec.Using(() => mySut, owned: true).When(_ => _.GetValue()).Then().SubjectUnderTest;
+        Xunit.Assert.Same(mySut, sut);
+        spec.Specification.Is(
+            """
+            Using owned mySut
+            When _.GetValue()
+            Then
+            """);
+        spec.Dispose();
+        Xunit.Assert.Equal(1, mySut.DisposeCount);
+    }
+
+    [Fact]
+    public void GivenSutProvidedAsOwnedValue_ThenDisposeIt()
+    {
+        var mySut = new DisposableSubject();
+        var spec = new DisposableSutSpec();
+        var sut = spec.Using(mySut, owned: true).When(_ => _.GetValue()).Then().SubjectUnderTest;
+        Xunit.Assert.Same(mySut, sut);
+        spec.Specification.Is(
+            """
+            Using owned mySut
+            When _.GetValue()
+            Then
+            """);
+        spec.Dispose();
+        Xunit.Assert.Equal(1, mySut.DisposeCount);
+    }
+
+    [Fact]
+    public void GivenOwnedFactoryForDependency_ThenDisposeProductAfterUntil()
+    {
+        var log = new DisposalLog();
+        var spec = new OrderedSutSpec();
+        spec.Using(log, For.Subject)
+            .And(() => new OrderedDependency(log), owned: true)
+            .When(_ => _.GetValue())
+            .Until(_ => log.Entries.Add("until"))
+            .Then();
+        spec.Specification.Is(
+            """
+            Using log for Subject
+              and owned new OrderedDependency(log)
+            When _.GetValue()
+            Before log.Entries.Add("until")
+            Then
+            """);
+        spec.Dispose();
+        Xunit.Assert.Equal(["until", "subject", "dependency"], log.Entries);
+    }
+
+    [Fact]
     public void GivenAsyncDisposableSut_ThenDisposeItAsynchronously()
     {
         var spec = new AsyncDisposableSutSpec();

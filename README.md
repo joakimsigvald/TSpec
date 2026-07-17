@@ -34,7 +34,11 @@ In real-world usage, this typically yields substantially smaller and more readab
 **Using an AI coding agent?** A condensed reference optimized for agents is shipped with the package
 and available as [TSpec-agent-reference.md](https://github.com/joakimsigvald/TSpec/blob/main/TSpec-agent-reference.md).
 Point your agent to it by adding a line to your repository's agent instructions (e.g. `CLAUDE.md` or `AGENTS.md`):
-*"For TSpec test syntax, see TSpec-agent-reference.md in the TSpec repository, also found in the NuGet package folder."*
+
+```markdown
+Tests use TSpec — reference: `~/.nuget/packages/tspec/<version>/TSpec-agent-reference.md` (highest version),
+or https://raw.githubusercontent.com/joakimsigvald/TSpec/main/TSpec-agent-reference.md
+```
 
 ## Table of Contents
 
@@ -221,9 +225,27 @@ Example:
 After all `Until`-steps have run, TSpec disposes any disposable objects it created for the
 subject-under-test graph: the subject itself and any concrete dependencies TSpec constructed
 and injected into it, in reverse order of creation (subject first). This applies to both
-`IDisposable` and `IAsyncDisposable`. Objects you provide with `Using` (as value or factory),
+`IDisposable` and `IAsyncDisposable`. Objects you provide with `Using` (as value, factory, or tag),
 mocks, and generated input data are never disposed by TSpec — so to manage the subject's
 lifetime yourself, provide your own instance with `Using`.
+
+To instead transfer ownership of a provided object to the pipeline, pass `owned: true` —
+TSpec then disposes it together with the objects it created itself.
+A typical use is an `HttpClient` factory in integration tests, replacing a `using` statement in every test
+with a single line in the shared base spec:
+
+```csharp
+public abstract class ApiSpec<TResult> : Spec<MyApiClient, TResult>
+{
+    protected ApiSpec() => Using(CreateClient, owned: true);
+
+    private static HttpClient CreateClient() => _webAppFactory.CreateClient();
+}
+```
+
+The factory is invoked at most once per test (each test builds its own pipeline),
+and the created client is disposed when the test is torn down.
+Ownership is reflected in the generated specification: `Using owned CreateClient`.
 
 ### 2.5 Sync vs. Async Execution
 
