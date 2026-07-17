@@ -93,7 +93,7 @@ Combinators (lowercase): `.and.`, `.not.`, `.either. ... .or.`, `.that.`, `.but.
 ## Lifecycle and ownership
 
 - Teardown order after the test method: `Until` steps (declaration order), then TSpec disposes disposable objects **it created** for the SUT graph (SUT first, then its constructed dependencies), supporting `IDisposable` and `IAsyncDisposable`.
-- Never disposed by TSpec: instances provided via `Using` (value, factory, or tag), mocks, and generated input data. To manage the SUT's lifetime yourself, provide it with `Using(new MySut(...))`.
+- Not disposed by TSpec: instances provided via `Using` (value, factory, or tag), mocks, and generated input data. To manage the SUT's lifetime yourself, provide it with `Using(new MySut(...))`.
 - Exception: `Using(..., owned: true)` transfers ownership to the pipeline — the provided/created object is disposed with the TSpec-created graph. Idiom for integration tests: `Using(CreateClient, owned: true)` in the base spec constructor gives every test a fresh `HttpClient`, disposed after the test (replaces per-test `using` statements).
 
 ## Common errors → causes
