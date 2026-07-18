@@ -14,48 +14,40 @@ internal static class PrimaryRule
     {
         int save = ts.Pos;
         var t = ts.Peek();
-
-        if (t.Kind == TokenKind.Word)
+        return (t.Kind, t.Text) switch
         {
-            if (t.Text == "new")
-                return NewExprRule.Parse(ts);
+            (TokenKind.Word, "new") => NewExprRule.Parse(ts),
+            (TokenKind.Word, "true" or "false" or "null" or "default") => Consume(ts, new Literal(t.Text)),
+            (TokenKind.Word, _) => Consume(ts, new Identifier(t.Text)),
+            (TokenKind.Number or TokenKind.Char, _) => Consume(ts, new Literal(t.Text)),
+            (TokenKind.String, _) => Consume(ts, StringLiteral(t.Text)),
+            (TokenKind.Symbol, "(") => ParseParenOrTuple(ts, save),
+            (TokenKind.Symbol, "[") => ParseArrayLit(ts, save),
+            (TokenKind.Symbol, "-" or "+" or "!" or "~") => UnaryRule.Parse(ts),
+            _ => Consume(ts, new Unknown(t.Text)),
+        };
+    }
 
-            ts.Advance();
-            if (t.Text is "true" or "false" or "null" or "default")
-                return new Literal(t.Text);
-
-            return new Identifier(t.Text);
-        }
-        if (t.Kind is TokenKind.Number or TokenKind.Char)
-        {
-            ts.Advance();
-            return new Literal(t.Text);
-        }
-        if (t.Kind == TokenKind.String)
-        {
-            ts.Advance();
-            bool interpolated = t.Text.StartsWith('$')
-                || (t.Text.Length > 1 && t.Text[0] is '@' or '$' && t.Text[1] == '$');
-            return interpolated ? new InterpolatedString(t.Text) : new Literal(t.Text);
-        }
-        if (t.Kind == TokenKind.Symbol)
-        {
-            if (t.Text == "(")
-                return ParseParenOrTuple(ts, save);
-
-            if (t.Text == "[")
-            {
-                ts.Advance();
-                if (!ts.TryParse("]", out var items))
-                    return new Unknown(ts.RawFrom(save));
-
-                return new ArrayLit(ts.RawFrom(save), items);
-            }
-            if (t.Text is "-" or "+" or "!" or "~")
-                return UnaryRule.Parse(ts);
-        }
+    private static Expr Consume(TokenStream ts, Expr expr)
+    {
         ts.Advance();
-        return new Unknown(t.Text);
+        return expr;
+    }
+
+    private static Expr StringLiteral(string text)
+    {
+        bool interpolated = text.StartsWith('$')
+            || (text.Length > 1 && text[0] is '@' or '$' && text[1] == '$');
+        return interpolated ? new InterpolatedString(text) : new Literal(text);
+    }
+
+    private static Expr ParseArrayLit(TokenStream ts, int save)
+    {
+        ts.Advance();                                       // consume '['
+        if (!ts.TryParse("]", out var items))
+            return new Unknown(ts.RawFrom(save));
+
+        return new ArrayLit(ts.RawFrom(save), items);
     }
 
     /// Empty <c>()</c> is the unit tuple; a single item in parens unwraps to

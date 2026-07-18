@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using TSpec.Internal.Specification.ExpressionParsing.Tokenize;
 using TSpec.Internal.Specification.ExpressionParsing.Expressions;
 
@@ -11,24 +12,30 @@ internal static class UnaryRule
     public static Expr Parse(TokenStream ts)
     {
         int save = ts.Pos;
-        if (ts.Peek().Kind == TokenKind.Symbol &&
-            ts.Peek().Text is "!" or "-" or "+" or "~" or "++" or "--")
+        if (ts.Peek() is { Kind: TokenKind.Symbol, Text: "!" or "-" or "+" or "~" or "++" or "--" } op)
         {
-            string op = ts.Peek().Text;
             ts.Advance();
-            return new Unary(ts.RawFrom(save), op, Parse(ts));
+            return new Unary(ts.RawFrom(save), op.Text, Parse(ts));
         }
-        if (ts.IsSym("(") && LooksLikeCast(ts))
-        {
-            int castSave = ts.Pos;
-            ts.Advance();                                   // consume '('
-            string typeName = TypeRefRule.ConsumeTypeRef(ts);
-            if (ts.AcceptSym(")")) 
-                return new Cast(ts.RawFrom(castSave), typeName, Parse(ts));
+        if (ts.IsSym("(") && LooksLikeCast(ts) && TryParseCast(ts, out var cast))
+            return cast;
 
-            ts.Pos = castSave;
-        }
         return PostfixRule.Parse(ts);
+    }
+
+    private static bool TryParseCast(TokenStream ts, [NotNullWhen(true)] out Expr? cast)
+    {
+        cast = null;
+        int save = ts.Pos;
+        ts.Advance();                                       // consume '('
+        string typeName = TypeRefRule.ConsumeTypeRef(ts);
+        if (!ts.AcceptSym(")"))
+        {
+            ts.Pos = save;
+            return false;
+        }
+        cast = new Cast(ts.RawFrom(save), typeName, Parse(ts));
+        return true;
     }
 
     private static bool LooksLikeCast(TokenStream ts) => ts.PeekAhead(stream =>
@@ -38,7 +45,7 @@ internal static class UnaryRule
             return false;
 
         stream.ScanBalanced(t => t.Kind == TokenKind.Symbol && t.Text is ")" or ",");
-        if (!stream.IsSym(")")) 
+        if (!stream.IsSym(")"))
             return false;
 
         stream.Advance();                                   // consume ')'

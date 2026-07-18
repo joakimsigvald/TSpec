@@ -30,31 +30,35 @@ internal static class BinaryRule
         var left = UnaryRule.Parse(ts);
         while (true)
         {
-            if ((ts.IsWord("is") || ts.IsWord("as")) && _relationalPrecedence >= minPrec)
+            if (IsTypeOp(ts) && _relationalPrecedence >= minPrec)
             {
-                string op = ts.Peek().Text;
-                ts.Advance();
-                left = new IsAs(ts.RawFrom(save), op, left, TypeRefRule.ConsumeTypeRef(ts));
+                left = ParseIsAs(ts, save, left);
                 continue;
             }
-            var matched = Match(ts.Peek(), minPrec);
-            if (matched is null) 
-                break;
+            if (Match(ts.Peek(), minPrec) is not (var op, var prec, var rightAssoc))
+                return left;
 
             ts.Advance();
-            int nextMin = matched.Value.RightAssoc ? matched.Value.Prec : matched.Value.Prec + 1;
-            left = new Binary(ts.RawFrom(save), matched.Value.Op, left, Parse(ts, nextMin));
+            left = new Binary(ts.RawFrom(save), op, left, Parse(ts, rightAssoc ? prec : prec + 1));
         }
-        return left;
+    }
+
+    private static bool IsTypeOp(TokenStream ts) => ts.IsWord("is") || ts.IsWord("as");
+
+    private static IsAs ParseIsAs(TokenStream ts, int save, Expr left)
+    {
+        string op = ts.Peek().Text;
+        ts.Advance();
+        return new(ts.RawFrom(save), op, left, TypeRefRule.ConsumeTypeRef(ts));
     }
 
     private static (string Op, int Prec, bool RightAssoc)? Match(Token t, int minPrec)
     {
-        if (t.Kind != TokenKind.Symbol) 
+        if (t.Kind != TokenKind.Symbol)
             return null;
 
         foreach (var op in _ops)
-            if (op.Op == t.Text && op.Prec >= minPrec) 
+            if (op.Op == t.Text && op.Prec >= minPrec)
                 return op;
 
         return null;

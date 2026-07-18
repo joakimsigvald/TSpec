@@ -35,15 +35,14 @@ internal static class ParseList
     /// start of an item — a ternary's colon is always preceded by <c>?</c>.
     private static Expr ParseItem(TokenStream ts)
     {
-        if (ts.Peek().Kind != TokenKind.Word
-            || ts.Peek(1).Kind != TokenKind.Symbol || ts.Peek(1).Text != ":")
+        if (ts.Peek() is not { Kind: TokenKind.Word } name
+            || ts.Peek(1) is not { Kind: TokenKind.Symbol, Text: ":" })
             return LambdaRule.Parse(ts);
 
         int save = ts.Pos;
-        var name = ts.Peek().Text;
         ts.Advance();
         ts.Advance();
         var value = LambdaRule.Parse(ts);
-        return new NamedArg(ts.RawFrom(save), name, value);
+        return new NamedArg(ts.RawFrom(save), name.Text, value);
     }
 }

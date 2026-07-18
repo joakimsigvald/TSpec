@@ -16,11 +16,10 @@ internal static class AssignmentRule
     {
         int save = ts.Pos;
         var left = ConditionalRule.Parse(ts);
-        if (ts.Peek().Kind != TokenKind.Symbol || !_ops.Contains(ts.Peek().Text))
+        if (ts.Peek() is not { Kind: TokenKind.Symbol } op || !_ops.Contains(op.Text))
             return left;
 
-        string op = ts.Peek().Text;
         ts.Advance();
-        return new Assign(ts.RawFrom(save), op, left, Parse(ts));
+        return new Assign(ts.RawFrom(save), op.Text, left, Parse(ts));
     }
 }

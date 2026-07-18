@@ -47,10 +47,10 @@ internal static class LambdaRule
     private static bool TrySingleParam(TokenStream ts, out IReadOnlyList<string> ps)
     {
         ps = [];
-        if (ts.Peek().Kind != TokenKind.Word || ts.Peek(1).Text != "=>") 
+        if (ts.Peek() is not { Kind: TokenKind.Word } param || ts.Peek(1).Text != "=>")
             return false;
 
-        ps = [ts.Peek().Text];
+        ps = [param.Text];
         ts.Advance();
         return true;
     }
@@ -68,20 +68,23 @@ internal static class LambdaRule
         var list = new List<string>();
         while (!ts.IsSym(")"))
         {
-            if (ts.Peek().Kind != TokenKind.Word) 
-            { 
-                ts.Pos = save; 
-                return false; 
+            if (ts.Peek() is not { Kind: TokenKind.Word } param)
+            {
+                ts.Pos = save;
+                return false;
             }
-            list.Add(ts.Peek().Text);
+
+            list.Add(param.Text);
             ts.Advance();
-            if (!ts.AcceptSym(",")) break;
+            if (!ts.AcceptSym(","))
+                break;
         }
-        if (!ts.AcceptSym(")") || !ts.IsSym("=>")) 
-        { 
-            ts.Pos = save; 
-            return false; 
+        if (!ts.AcceptSym(")") || !ts.IsSym("=>"))
+        {
+            ts.Pos = save;
+            return false;
         }
+
         ps = list;
         return true;
     }

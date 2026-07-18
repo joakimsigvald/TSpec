@@ -49,21 +49,19 @@ internal static class PostfixRule
 
     private static Step? TryMember(TokenStream ts, int save, Expr expr)
     {
-        if (ts.Peek().Kind != TokenKind.Symbol || ts.Peek().Text is not ("." or "?."))
+        if (ts.Peek() is not { Kind: TokenKind.Symbol, Text: "." or "?." } dot)
             return null;
 
-        bool nullConditional = ts.Peek().Text == "?.";
         int memberSave = ts.Pos;
         ts.Advance();
-        if (ts.Peek().Kind != TokenKind.Word)
+        if (ts.Peek() is not { Kind: TokenKind.Word } name)
         {
             ts.Pos = memberSave;
             return null;
         }
 
-        string name = ts.Peek().Text;
         ts.Advance();
-        return Step.More(new Member(ts.RawFrom(save), expr, name, nullConditional));
+        return Step.More(new Member(ts.RawFrom(save), expr, name.Text, dot.Text == "?."));
     }
 
     private static Step? TryGeneric(TokenStream ts, int save, Expr expr)
@@ -100,12 +98,11 @@ internal static class PostfixRule
 
     private static Step? TryPostfixOp(TokenStream ts, int save, Expr expr)
     {
-        if (ts.Peek().Kind != TokenKind.Symbol || ts.Peek().Text is not ("++" or "--" or "!"))
+        if (ts.Peek() is not { Kind: TokenKind.Symbol, Text: "++" or "--" or "!" } op)
             return null;
 
-        string op = ts.Peek().Text;
         ts.Advance();
-        return Step.More(new Postfix(ts.RawFrom(save), op, expr));
+        return Step.More(new Postfix(ts.RawFrom(save), op.Text, expr));
     }
 
     private static Step? TryBracketed(TokenStream ts, int save, string open, string close,
