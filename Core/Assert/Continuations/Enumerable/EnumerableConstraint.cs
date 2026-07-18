@@ -17,14 +17,14 @@ public abstract record EnumerableConstraint<TItem, TContinuation> : Constraint<I
 
     private protected static string Express<TValue>(string? valueExpr, TValue value)
     {
-        var valueStr = value.ParseValue();
+        var valueStr = value.FormatValue();
         return valueExpr is null || valueExpr == valueStr ? valueStr : $"'{valueExpr.ParseValue()}' = {value}";
     }
 
     private static string DescribeAtMostFive(IEnumerable<TItem>? value) 
         => value?.Count() > 5
-            ? '[' + string.Join(", ", value.Take(4).Select(it => it.ParseValue()).Append("...")) + ']'
-            : value.ParseValue();
+            ? '[' + string.Join(", ", value.Take(4).Select(it => it.FormatValue()).Append("...")) + ']'
+            : value.FormatValue();
 
     private protected static Action<IEnumerable<TItem>?> NotEmptyAnd(Action<IEnumerable<TItem>> assert)
         => actual =>

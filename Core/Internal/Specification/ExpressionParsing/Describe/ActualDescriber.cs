@@ -20,67 +20,76 @@ internal sealed class ActualDescriber(string? subject = null) : Describer
         public string Separator => NullConditional ? "?." : ".";
     }
 
+    /// What the collected chain is anchored in, at its left end.
+    private enum Anchor
+    {
+        /// A plain expression, rendered as the chain's root.
+        Expression,
+        /// A Then/And/Because wrapper call, replaced by the registered subject.
+        ResultWrapper,
+        /// A binding-word continuation property (and, that) — everything left
+        /// of it belongs to a previous step.
+        BindingWord,
+    }
+
     public override string Describe(Expr expr)
     {
-        var tail = new List<Segment>();
+        var chain = new List<Segment>();
+        var (anchor, root) = CollectChain(expr, chain);
+        chain.Reverse(); // collected rightmost-first
+
+        return anchor switch
+        {
+            Anchor.BindingWord => Combine(null, chain),
+            Anchor.ResultWrapper => Combine(subject, chain),
+            _ when chain.Count == 0 => Value.Describe(expr),
+            // Chains not anchored in Then/And keep the user's wording: the root
+            // and call segments render the source verbatim, never value-described
+            _ => DescribeRoot(root) + chain[0].Separator + Stitch(chain),
+        };
+    }
+
+    private static (Anchor Kind, Expr Root) CollectChain(Expr expr, List<Segment> chain)
+    {
         var cur = expr;
         while (true)
-        {
-            if (cur is Member m)
+            switch (cur)
             {
-                // A binding-word continuation property (and, that) starts a
-                // fresh value path: everything to its left is a previous step
-                if (IsBindingWord(m.Name))
-                    return Combine(null, Chain());
-                tail.Add(new(m.Name, m.NullConditional));
-                cur = m.Target;
-                continue;
+                case Member m when IsBindingWord(m.Name):
+                    return (Anchor.BindingWord, m);
+                case Member m:
+                    chain.Add(new(m.Name, m.NullConditional));
+                    cur = m.Target;
+                    continue;
+                case Call c when _ignoreBeforeResult.Contains(c.MethodName):
+                    return (Anchor.ResultWrapper, c);
+                case Call { Target: Member m } c:
+                    chain.Add(new($"{m.Name}({string.Join(", ", c.Args.Select(a => a.Raw))})", m.NullConditional));
+                    cur = m.Target;
+                    continue;
+                default:
+                    return (Anchor.Expression, cur);
             }
-            if (cur is not Call c)
-                break;
-
-            if (_ignoreBeforeResult.Contains(c.MethodName))
-                return Combine(subject, Chain());
-
-            if (c.Target is not Member memCall)
-                break;
-
-            tail.Add(new($"{memCall.Name}({string.Join(", ", c.Args.Select(a => a.Raw))})", memCall.NullConditional));
-            cur = memCall.Target;
-        }
-
-        if (tail.Count == 0)
-            return Value.Describe(expr);
-
-        // Chains not anchored in Then/And keep the user's wording: the root
-        // and call segments render the source verbatim, never value-described
-        var root = cur is Identifier id ? id.Name : cur.Raw;
-        var chain = Chain();
-        return root + chain[0].Separator + Stitch(chain);
-
-        List<Segment> Chain()
-        {
-            tail.Reverse(); // collected rightmost-first
-            return tail;
-        }
     }
+
+    private static string DescribeRoot(Expr root) => root is Identifier id ? id.Name : root.Raw;
 
     /// Connect the subject to the chain: an identifier joins the path with
     /// dots, while a prose subject (e.g. "the Checkout") reads possessively:
     /// "the Checkout's IsOpen".
-    private static string Combine(string? subject, List<Segment> tail)
+    private static string Combine(string? subject, List<Segment> chain)
     {
-        if (tail.Count == 0)
+        if (chain.Count == 0)
             return subject ?? string.Empty;
         if (string.IsNullOrEmpty(subject))
-            return Stitch(tail);
+            return Stitch(chain);
         return IsIdentifier(subject)
-            ? subject + tail[0].Separator + Stitch(tail)
-            : $"{subject}'s {Stitch(tail)}";
+            ? subject + chain[0].Separator + Stitch(chain)
+            : $"{subject}'s {Stitch(chain)}";
     }
 
-    private static string Stitch(List<Segment> tail)
-        => tail[0].Name + string.Concat(tail.Skip(1).Select(s => s.Separator + s.Name));
+    private static string Stitch(List<Segment> chain)
+        => chain[0].Name + string.Concat(chain.Skip(1).Select(s => s.Separator + s.Name));
 
     private static bool IsIdentifier(string s) => s.All(char.IsLetterOrDigit);
 

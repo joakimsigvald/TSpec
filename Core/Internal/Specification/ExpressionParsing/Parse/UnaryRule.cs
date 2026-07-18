@@ -34,7 +34,9 @@ internal static class UnaryRule
     private static bool LooksLikeCast(TokenStream ts) => ts.PeekAhead(stream =>
     {
         stream.Advance();                                   // consume '('
-        if (stream.Peek().Kind != TokenKind.Word) return false;
+        if (stream.Peek().Kind != TokenKind.Word)
+            return false;
+
         stream.ScanBalanced(t => t.Kind == TokenKind.Symbol && t.Text is ")" or ",");
         if (!stream.IsSym(")")) 
             return false;

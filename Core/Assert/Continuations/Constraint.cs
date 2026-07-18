@@ -174,7 +174,7 @@ public abstract record Constraint<TActual, TContinuation>
             .TrimEnd();
     }
 
-    private protected virtual string Describe(TActual? value, string? methodName = null) => value.ParseValue();
+    private protected virtual string Describe(TActual? value, string? methodName = null) => value.FormatValue();
 
     internal ContinueWith<TContinuation> And() => new(Continue());
     internal ContinueWithThat<TContinuation, TThat> AndThat<TThat>(TThat that) => new(Continue(), that);

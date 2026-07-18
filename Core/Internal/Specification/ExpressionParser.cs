@@ -1,17 +1,17 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
-using System.Text.RegularExpressions;
 using TSpec.Internal.Specification.ExpressionParsing.Describe;
 using TSpec.Internal.Specification.ExpressionParsing.Expressions;
 using TSpec.Internal.Specification.ExpressionParsing.Parse;
-using TSpec.Internal.Specification.ExpressionParsing.Tokenize;
 
 namespace TSpec.Internal.Specification;
 
-internal static partial class ExpressionParser
+/// <summary>
+/// Facade over the expression-parsing pipeline: preprocess the source
+/// (<see cref="SourcePreprocessor.ToSingleLine"/>), parse it into an
+/// <see cref="Expr"/> tree, and describe the tree in the mode the caller
+/// needs (value, call, or actual).
+/// </summary>
+internal static class ExpressionParser
 {
-    private static readonly char[] _lineBreakCues = ['.', '(', '['];
-
     public static string ParseValue(this string? expr)
         => string.IsNullOrWhiteSpace(expr) ? string.Empty
         : Describer.Value.Describe(Parser.Parse(expr.ToSingleLine()));
@@ -42,51 +42,4 @@ internal static partial class ExpressionParser
         Call c => IsTrainwreck(c.Target),
         _ => false,
     };
-
-    [return: NotNullIfNotNull(nameof(str))]
-    public static string? ToSingleLine(this string? str)
-        => string.IsNullOrEmpty(str) ? str : MergeLines([.. ToLines(str)]);
-
-    private static IEnumerable<string> ToLines(string str)
-        => LineBreakRegex()
-        .Split(str)
-        .Select(StripLineComment)
-        .Where(s => !string.IsNullOrWhiteSpace(s))
-        .Select(s => s.Trim());
-
-    private static string MergeLines(this string[] lines)
-    {
-        StringBuilder sb = new();
-        bool addSpace = false;
-        foreach (var line in lines)
-        {
-            if (addSpace && !line.StartsWith('.'))
-                sb.Append(' ');
-            sb.Append(line);
-            addSpace = !_lineBreakCues.Contains(line[^1]);
-        }
-        return sb.ToString();
-    }
-
-    private static string StripLineComment(string line)
-    {
-        for (var i = 0; i < line.Length; i = Advance(line, i))
-            if (line[i..].StartsWith("//"))
-                return line[..i];
-        return line;
-    }
-
-    /// Skips past any string or char literal at <paramref name="i"/>. If
-    /// there's no literal here, advances one character.
-    private static int Advance(string line, int i)
-    {
-        int charEnd = LiteralScanner.TryFindCharEnd(line, i);
-        if (charEnd >= 0) return charEnd;
-        int strEnd = LiteralScanner.TryFindStringEnd(line, i);
-        if (strEnd >= 0) return strEnd;
-        return i + 1;
-    }
-
-    [GeneratedRegex(@"(\r|\n)+")]
-    private static partial Regex LineBreakRegex();
 }

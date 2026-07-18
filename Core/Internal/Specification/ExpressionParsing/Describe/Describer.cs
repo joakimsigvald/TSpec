@@ -4,14 +4,11 @@ namespace TSpec.Internal.Specification.ExpressionParsing.Describe;
 
 /// <summary>
 /// Base for the three description modes. Subclasses override
-/// <see cref="Describe"/> for their mode-specific rendering, and inherit
-/// Mention detection and <c>new</c>-expression rendering — both of which
-/// always describe sub-expressions in value mode via <see cref="Value"/>.
+/// <see cref="Describe"/> for their mode-specific rendering; sub-expressions
+/// are always described in value mode via <see cref="Value"/>.
 /// </summary>
 internal abstract class Describer
 {
-    /// Singleton value-mode describer, used wherever a sub-expression should
-    /// be described as a value regardless of the outer context.
     public static readonly ValueDescriber Value = new();
 
     public abstract string Describe(Expr expr);
@@ -20,41 +17,33 @@ internal abstract class Describer
         string.Join(", ", exprs.Select(Value.Describe));
 
     /// Render TSpec's <c>A&lt;T&gt;</c> / <c>An&lt;T&gt;</c> / <c>The&lt;T&gt;</c>
-    /// factory shapes. Three sub-cases: plain mention, with constraints, or
-    /// with member-access drilldown. Detection lives on <see cref="Expr.AsMention"/>;
-    /// this method shapes the result into text.
-    protected static bool TryDescribeMention(Expr expr, out string description)
+    /// factory shapes, or null if <paramref name="expr"/> is no mention.
+    protected static string? DescribeMention(Expr expr)
     {
-        description = string.Empty;
-        if (expr.AsMention() is not { } m) return false;
+        if (expr.AsMention() is not { } m)
+            return null;
 
         string head = $"{m.Verb.AsWords()} {m.TypeArgs}";
-
-        if (m.Constraints is { Count: > 0 })
-        {
-            description = $"{head} {{ {DescribeAll(m.Constraints)} }}";
-            return true;
-        }
-        if (expr.Raw.Length > m.Boundary.Length && expr.Raw.StartsWith(m.Boundary))
-        {
-            string suffix = expr.Raw[m.Boundary.Length..].TrimStart().TrimStart('!');
-            if (suffix.Length == 0)
-            {
-                description = head;
-                return true;
-            }
-            if (!suffix.StartsWith('.')) 
-                return false;
-            description = $"{head}'s {suffix[1..]}";
-            return true;
-        }
-        description = head;
-        return true;
+        return m.Constraints is { Count: > 0 }
+            ? $"{head} {{ {DescribeAll(m.Constraints)} }}"
+            : DescribeWithDrilldown(head, expr.Raw, m.Boundary);
     }
 
-    /// Render a <c>new</c> expression. With an init block, the user-written
-    /// prefix is preserved verbatim (covers <c>new T()</c>, <c>new int[]</c>,
-    /// <c>new T&lt;U&gt;()</c>, etc.); inits are always value-described.
+    /// A member-access drilldown after the mention (<c>The&lt;Cart&gt;().Foo</c>)
+    /// reads possessively: "the Cart's Foo". Any other suffix means the
+    /// expression is more than a mention — not describable here (null).
+    private static string? DescribeWithDrilldown(string head, string raw, string boundary)
+    {
+        if (raw.Length <= boundary.Length || !raw.StartsWith(boundary))
+            return head;
+
+        string suffix = raw[boundary.Length..].TrimStart().TrimStart('!');
+        if (suffix.Length == 0)
+            return head;
+
+        return suffix.StartsWith('.') ? $"{head}'s {suffix[1..]}" : null;
+    }
+
     protected static string DescribeNew(New n)
     {
         string head = NewHead(n);
@@ -62,16 +51,16 @@ internal abstract class Describer
         return head + init;
     }
 
-    /// The <c>new TypeName(args)</c> or <c>new TypeName</c> portion before any
-    /// init block. When an init block is present, the user's literal text up to
-    /// the <c>{</c> is preserved verbatim so <c>new T()</c>, <c>new int[]</c>,
+    /// When an init block is present, the user's literal text up to the
+    /// <c>{</c> is preserved verbatim so <c>new T()</c>, <c>new int[]</c>,
     /// <c>new T&lt;U&gt;()</c> all render as written.
     private static string NewHead(New n)
     {
         if (n.Init is not null)
         {
             int braceIdx = n.Raw.IndexOf('{');
-            if (braceIdx > 0) return n.Raw[..braceIdx].TrimEnd();
+            if (braceIdx > 0)
+                return n.Raw[..braceIdx].TrimEnd();
         }
         var prefix = string.IsNullOrEmpty(n.TypeName) ? "new" : $"new {n.TypeName}";
         bool omitArgs = n.Init is not null && n.Args.Count == 0;

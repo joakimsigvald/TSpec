@@ -20,7 +20,7 @@ internal sealed class CallDescriber(bool skipSubjectRef) : Describer
             Lambda l => DescribeLambda(l),
             New n => DescribeNew(n),
             Call c => $"{c.Target.AsPath()}({DescribeAll(c.Args)})",
-            _ when TryDescribeMention(expr, out var m) => m,
+            _ when DescribeMention(expr) is { } m => m,
             _ => Value.Describe(expr),
         };
 

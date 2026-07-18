@@ -25,14 +25,23 @@ internal sealed class TokenStream(string source)
     }
     public bool IsSym(string s) => Peek().Kind == TokenKind.Symbol && Peek().Text == s;
     public bool IsWord(string s) => Peek().Kind == TokenKind.Word && Peek().Text == s;
-    public bool AcceptSym(string s) { if (!IsSym(s)) return false; Advance(); return true; }
+    public bool AcceptSym(string s)
+    {
+        if (!IsSym(s))
+            return false;
+
+        Advance();
+        return true;
+    }
 
     public int TokenStart(int i) => _tokens[Math.Clamp(i, 0, _tokens.Count - 1)].Start;
     public int TokenEnd(int i) => _tokens[Math.Clamp(i, 0, _tokens.Count - 1)].End;
 
     public string RawFrom(int startTok)
     {
-        if (startTok >= _tokens.Count) return string.Empty;
+        if (startTok >= _tokens.Count)
+            return string.Empty;
+
         int start = _tokens[startTok].Start;
         int end = Pos > 0 ? _tokens[Pos - 1].End : start;
         return end > start ? Source[start..end] : string.Empty;
@@ -58,7 +67,9 @@ internal sealed class TokenStream(string source)
             }
             Advance();
         }
-        if (startTok >= _tokens.Count) return string.Empty;
+        if (startTok >= _tokens.Count)
+            return string.Empty;
+
         int s = _tokens[startTok].Start;
         int e = Pos > startTok ? _tokens[Pos - 1].End : s;
         return e > s ? Source[s..e] : string.Empty;

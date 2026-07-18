@@ -27,7 +27,7 @@ public class WhenDistinct : Spec
     public void GivenDistinctFail(params int[] numbers)
     {
         var ex = Xunit.Assert.Throws<XunitException>(() => numbers.Is().Distinct());
-        ex.Message.Is($"Expected numbers to be distinct but found {numbers.ParseValue()}");
+        ex.Message.Is($"Expected numbers to be distinct but found {numbers.FormatValue()}");
     }
 
     [Theory]
@@ -35,7 +35,7 @@ public class WhenDistinct : Spec
     public void GivenNotDistinctFail(params int[] numbers)
     {
         var ex = Xunit.Assert.Throws<XunitException>(() => numbers.Is().not.Distinct());
-        ex.Message.Is($"Expected numbers to not be distinct but found {numbers.ParseValue()}");
+        ex.Message.Is($"Expected numbers to not be distinct but found {numbers.FormatValue()}");
     }
 
     [Theory]
@@ -51,7 +51,7 @@ public class WhenDistinct : Spec
     public void GivenDistinctPropertyFail(params int[] numbers)
     {
         var ex = Xunit.Assert.Throws<XunitException>(() => numbers.Is().Distinct(it => it % 3));
-        ex.Message.Is($"Expected numbers to be distinct by it => it % 3 but found {numbers.ParseValue()}");
+        ex.Message.Is($"Expected numbers to be distinct by it => it % 3 but found {numbers.FormatValue()}");
     }
 
     [Theory]
@@ -67,7 +67,7 @@ public class WhenDistinct : Spec
     public void GivenDistinctPropertyIndexFail(params int[] numbers)
     {
         var ex = Xunit.Assert.Throws<XunitException>(() => numbers.Is().Distinct((it, i) => it + i));
-        ex.Message.Is($"Expected numbers to be distinct by (it, i) => it + i but found {numbers.ParseValue()}");
+        ex.Message.Is($"Expected numbers to be distinct by (it, i) => it + i but found {numbers.FormatValue()}");
     }
 
     [Theory]

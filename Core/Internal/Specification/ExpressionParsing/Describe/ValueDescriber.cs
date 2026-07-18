@@ -11,7 +11,9 @@ internal sealed class ValueDescriber : Describer
 {
     public override string Describe(Expr expr)
     {
-        if (TryDescribeMention(expr, out var mention)) return mention;
+        if (DescribeMention(expr) is { } mention)
+            return mention;
+
         return expr switch
         {
             Lambda l when l.Params.Count <= 2 && l.AsParamRefAssign() is { } pa

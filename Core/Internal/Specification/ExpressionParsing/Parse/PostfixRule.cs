@@ -37,8 +37,12 @@ internal static class PostfixRule
                 ?? TryIndexing(ts, save, expr)
                 ?? TryWith(ts, save, expr)
                 ?? TryPostfixOp(ts, save, expr);
-            if (step is null) return expr;
-            if (step.Final) return step.Result;
+            if (step is null)
+                return expr;
+
+            if (step.Final)
+                return step.Result;
+
             expr = step.Result;
         }
     }
@@ -49,9 +53,13 @@ internal static class PostfixRule
             return null;
 
         bool nullConditional = ts.Peek().Text == "?.";
+        int memberSave = ts.Pos;
         ts.Advance();
         if (ts.Peek().Kind != TokenKind.Word)
+        {
+            ts.Pos = memberSave;
             return null;
+        }
 
         string name = ts.Peek().Text;
         ts.Advance();
@@ -75,7 +83,8 @@ internal static class PostfixRule
 
     private static Step? TryWith(TokenStream ts, int save, Expr expr)
     {
-        if (!ts.IsWord("with")) return null;
+        if (!ts.IsWord("with"))
+            return null;
 
         int withSave = ts.Pos;
         ts.Advance();
@@ -102,7 +111,9 @@ internal static class PostfixRule
     private static Step? TryBracketed(TokenStream ts, int save, string open, string close,
         Func<string, Expr, IReadOnlyList<Expr>, Expr> build, Expr expr)
     {
-        if (!ts.AcceptSym(open)) return null;
+        if (!ts.AcceptSym(open))
+            return null;
+
         bool closed = ts.TryParse(close, out var args);
         var next = build(ts.RawFrom(save), expr, args);
         return closed ? Step.More(next) : Step.Stop(next);

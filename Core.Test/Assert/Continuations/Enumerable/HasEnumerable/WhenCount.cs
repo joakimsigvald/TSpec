@@ -50,7 +50,7 @@ public class WhenCount : Spec
     public void GivenAtLeastFail()
     {
         var ex = Xunit.Assert.Throws<XunitException>(() => Two<int>().Has().Count().AtLeast(3));
-        ex.Message.Is($"Expected two int to have at least 3 items but found {Two<int>().ParseValue()}");
+        ex.Message.Is($"Expected two int to have at least 3 items but found {Two<int>().FormatValue()}");
     }
 
     [Theory]

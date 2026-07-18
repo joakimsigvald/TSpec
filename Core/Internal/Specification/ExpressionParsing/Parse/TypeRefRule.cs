@@ -12,16 +12,24 @@ internal static class TypeRefRule
 {
     public static bool CanBeGenericApplication(TokenStream ts, Expr target)
     {
-        if (target is not Identifier and not Member) return false;
+        if (target is not Identifier and not Member)
+            return false;
+
         return ts.PeekAhead(stream =>
         {
-            if (!stream.AcceptSym("<")) return false;
+            if (!stream.AcceptSym("<"))
+                return false;
+
             stream.ScanBalanced(t => t.Kind == TokenKind.Symbol &&
                 t.Text is ">" or ";" or "{" or "}");
-            if (!stream.IsSym(">")) return false;
+            if (!stream.IsSym(">"))
+                return false;
+
             stream.Advance();
             var follow = stream.Peek();
-            if (follow.Kind == TokenKind.EndOfInput) return true;
+            if (follow.Kind == TokenKind.EndOfInput)
+                return true;
+
             return follow.Kind == TokenKind.Symbol
                 && follow.Text is "(" or "." or "," or ")" or "]" or ";" or "?" or ":" or "==" or "!=";
         });
@@ -30,7 +38,10 @@ internal static class TypeRefRule
     public static bool TryParseGenericArgs(TokenStream ts, out IReadOnlyList<Expr> typeArgs)
     {
         int save = ts.Pos;
-        if (!ts.AcceptSym("<")) { typeArgs = []; return false; }
+        typeArgs = [];
+        if (!ts.AcceptSym("<"))
+            return false;
+
         var list = new List<Expr>();
         if (!ts.IsSym(">"))
         {
@@ -41,7 +52,11 @@ internal static class TypeRefRule
                 if (!ts.AcceptSym(",")) break;
             }
         }
-        if (!ts.AcceptSym(">")) { ts.Pos = save; typeArgs = []; return false; }
+        if (!ts.AcceptSym(">"))
+        {
+            ts.Pos = save;
+            return false;
+        }
         typeArgs = list;
         return true;
     }

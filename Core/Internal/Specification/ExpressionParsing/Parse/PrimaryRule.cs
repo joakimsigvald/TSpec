@@ -17,9 +17,13 @@ internal static class PrimaryRule
 
         if (t.Kind == TokenKind.Word)
         {
-            if (t.Text == "new") return NewExprRule.Parse(ts);
+            if (t.Text == "new")
+                return NewExprRule.Parse(ts);
+
             ts.Advance();
-            if (t.Text is "true" or "false" or "null" or "default") return new Literal(t.Text);
+            if (t.Text is "true" or "false" or "null" or "default")
+                return new Literal(t.Text);
+
             return new Identifier(t.Text);
         }
         if (t.Kind is TokenKind.Number or TokenKind.Char)
@@ -36,14 +40,19 @@ internal static class PrimaryRule
         }
         if (t.Kind == TokenKind.Symbol)
         {
-            if (t.Text == "(") return ParseParenOrTuple(ts, save);
+            if (t.Text == "(")
+                return ParseParenOrTuple(ts, save);
+
             if (t.Text == "[")
             {
                 ts.Advance();
-                if (!ts.TryParse("]", out var items)) return new Unknown(ts.RawFrom(save));
+                if (!ts.TryParse("]", out var items))
+                    return new Unknown(ts.RawFrom(save));
+
                 return new ArrayLit(ts.RawFrom(save), items);
             }
-            if (t.Text is "-" or "+" or "!" or "~") return UnaryRule.Parse(ts);
+            if (t.Text is "-" or "+" or "!" or "~")
+                return UnaryRule.Parse(ts);
         }
         ts.Advance();
         return new Unknown(t.Text);
@@ -54,7 +63,9 @@ internal static class PrimaryRule
     private static Expr ParseParenOrTuple(TokenStream ts, int save)
     {
         ts.Advance();                                       // consume '('
-        if (!ts.TryParse(")", out var items)) return new Unknown(ts.RawFrom(save));
+        if (!ts.TryParse(")", out var items))
+            return new Unknown(ts.RawFrom(save));
+
         return items.Count == 1 ? items[0] : new TupleExpr(ts.RawFrom(save), items);
     }
 }

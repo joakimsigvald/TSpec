@@ -1,8 +1,14 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using Xunit.Sdk;
 
 namespace TSpec.Internal.Specification;
 
+/// <summary>
+/// Thread-bound facade over the specification machinery: forwards each
+/// pipeline step to its phrase class (which records it for deferred
+/// rendering), tracks tagged value assignments, and reports assertion
+/// failures with the full specification attached.
+/// </summary>
 internal class SpecificationContext : IAssertSpecificationContext
 {
     [ThreadStatic]
@@ -10,15 +16,21 @@ internal class SpecificationContext : IAssertSpecificationContext
 
     internal static IAssertSpecificationContext Current => _currentAssertionContext!;
 
+    private readonly SpecificationRecording _recording;
+    private readonly SetupPhrases _setup;
+    private readonly ActionPhrases _action;
+    private readonly AssertionPhrases _assertion;
+    private readonly SpecificationAssignments _assignments = new();
+    private string? _subjectDescription;
+
     private SpecificationContext()
     {
+        var textBuilder = new TextBuilder();
+        _recording = new(textBuilder);
+        _setup = new(_recording, textBuilder);
+        _action = new(_recording, textBuilder);
+        _assertion = new(_recording, textBuilder);
     }
-
-    private readonly SpecificationBuilder _builder = new();
-
-    private readonly SpecificationAssignments _assignments = new();
-
-    private string? _subjectDescription;
 
     /// <summary>
     /// Register the subject of the current assertion chain, as declared by the
@@ -29,70 +41,61 @@ internal class SpecificationContext : IAssertSpecificationContext
 
     internal static string? PendingSubject => _currentAssertionContext?._subjectDescription;
 
-    public override string ToString() => _builder.ToString();
+    public override string ToString() => _recording.ToString();
 
-    internal void AddWhen(string actExpr) => _builder.Add(() => _builder.AddWhen(actExpr));
+    internal void AddWhen(string actExpr) => _action.AddWhen(actExpr);
 
-    internal void AddAfter(string setUpExpr) => _builder.Add(() => _builder.AddAfter(setUpExpr));
+    internal void AddAfter(string setUpExpr) => _action.AddAfter(setUpExpr);
 
-    internal void AddBefore(string tearDownExpr) => _builder.Add(() => _builder.AddBefore(tearDownExpr));
+    internal void AddBefore(string tearDownExpr) => _action.AddBefore(tearDownExpr);
 
-    internal void AddGiven(string valueExpr, For scope) => _builder.Add(() => _builder.AddGiven(valueExpr, scope));
+    internal void AddTap(string expr) => _action.AddTap(expr);
+
+    internal void AddGiven(string valueExpr, For scope) => _setup.AddGiven(valueExpr, scope);
 
     internal void AddUsing(string valueExpr, For scope, bool owned = false)
-        => _builder.Add(() => _builder.AddUsing(valueExpr, scope, owned));
+        => _setup.AddUsing(valueExpr, scope, owned);
 
     internal void AddUsing(Func<bool> shouldRender, string valueExpr, For scope)
-        => _builder.Add(() =>
-        {
-            if (shouldRender())
-                _builder.AddUsing(valueExpr, scope);
-        });
+        => _setup.AddUsing(shouldRender, valueExpr, scope);
 
     internal void AddUsingConversion<TTarget, TSource>(For scope, Func<string> describeSequence)
-        => _builder.Add(() => _builder.AddUsingConversion<TTarget, TSource>(scope, describeSequence));
+        => _setup.AddUsingConversion<TTarget, TSource>(scope, describeSequence);
 
     internal void AddUsingFactory<TTarget>(For scope, string generateExpr)
-        => _builder.Add(() => _builder.AddUsingFactory<TTarget>(scope, generateExpr));
+        => _setup.AddUsingFactory<TTarget>(scope, generateExpr);
 
     internal void AddGiven<TValue>(string setupExpr, bool isCustomExpression, string? article = null)
-        => _builder.Add(() => _builder.AddGiven<TValue>(setupExpr, isCustomExpression, article));
+        => _setup.AddGiven<TValue>(setupExpr, isCustomExpression, article);
 
-    internal void AddGivenCount<TModel>(string count)
-        => _builder.Add(() => _builder.AddGivenCount<TModel>(count));
+    internal void AddGivenCount<TModel>(string count) => _setup.AddGivenCount<TModel>(count);
 
     internal void AddGivenThat(string customArrangementExpr)
-        => _builder.Add(() => _builder.AddGivenThat(customArrangementExpr));
+        => _setup.AddGivenThat(customArrangementExpr);
 
-    internal void AddMockSetup<TService>(string callExpr)
-        => _builder.Add(() => _builder.AddMockSetup<TService>(callExpr));
+    internal void AddMockSetup<TService>(string callExpr) => _setup.AddMockSetup<TService>(callExpr);
 
-    internal void AddMockReturns(string? returnsExpr = null)
-        => _builder.Add(() => _builder.AddMockReturns(returnsExpr));
+    internal void AddMockReturns(string? returnsExpr = null) => _setup.AddMockReturns(returnsExpr);
 
     internal void AddMockThrowsDefault<TService, TError>()
-        => _builder.Add(_builder.AddMockThrowsDefault<TService, TError>);
+        => _setup.AddMockThrowsDefault<TService, TError>();
 
     internal void AddMockThrowsDefault<TService>(string expectedExpr)
-        => _builder.Add(() => _builder.AddMockThrowsDefault<TService>(expectedExpr));
+        => _setup.AddMockThrowsDefault<TService>(expectedExpr);
 
-    internal void AddMockThrows<TError>()
-        => _builder.Add(_builder.AddMockThrows<TError>);
+    internal void AddMockThrows<TError>() => _setup.AddMockThrows<TError>();
 
-    internal void AddMockThrows(string expectedExpr)
-        => _builder.Add(() => _builder.AddMockThrows(expectedExpr));
+    internal void AddMockThrows(string expectedExpr) => _setup.AddMockThrows(expectedExpr);
 
     internal void AddMockReturnsDefault<TService>(string returnsExpr)
-         => _builder.Add(() => _builder.AddMockReturnsDefault<TService>(returnsExpr));
-
-    internal void AddTap(string expr) => _builder.Add(() => _builder.AddTap(expr));
+        => _setup.AddMockReturnsDefault<TService>(returnsExpr);
 
     internal void TagIndex(Type type, int index, string tagName)
          => _assignments.TagIndex(type, index, tagName);
 
     internal void Assign(Type type, int index, object? value) => _assignments.Assign(type, index, value);
 
-    //---------------- Assertion
+    internal void AddBecause(string reason) => _recording.SetBecause(reason);
 
     public void Assert(
     Action assert,
@@ -100,12 +103,12 @@ internal class SpecificationContext : IAssertSpecificationContext
     string? expected,
     string verb)
     {
-        _builder.Add(() => _builder.AddAssert(actual, verb, expected));
+        _assertion.AddAssert(actual, verb, expected);
         try
         {
-            _builder.SuppressRecording();
+            _recording.SuppressRecording();
             assert();
-            _builder.InciteRecording();
+            _recording.InciteRecording();
         }
         catch (XunitException ex)
         {
@@ -115,31 +118,25 @@ internal class SpecificationContext : IAssertSpecificationContext
                 message = $"{message}{Environment.NewLine}{innerTSpecTEx.Message}";
             var assignmentList = _assignments.ListAssignments();
             var specMessage = string.Join(
-                Environment.NewLine, string.Empty, _builder, "----", assignmentList);
+                Environment.NewLine, string.Empty, _recording, "----", assignmentList);
             throw new XunitException(message, new XunitException(specMessage));
         }
     }
 
-    public void AddThen() => _builder.Add(_builder.AddThen);
+    public void AddThen() => _assertion.AddThen();
 
-    internal void AddBecause(string reason) => _builder.SetBecause(reason);
+    public void AddThat() => _assertion.AddThat();
 
-    public void AddVerify<TService>(string expressionExpr)
-        => _builder.Add(() => _builder.AddVerify<TService>(expressionExpr));
+    public void AddVerify<TService>(string expressionExpr) => _assertion.AddVerify<TService>(expressionExpr);
 
-    public void AddAssertThrows<TError>(string? binder = null)
-        => _builder.Add(() => _builder.AddAssertThrows<TError>(binder));
+    public void AddAssertThrows<TError>(string? binder = null) => _assertion.AddAssertThrows<TError>(binder);
 
-    public void AddAssertThrows(string expectedExpr)
-        => _builder.Add(() => _builder.AddAssertThrows(expectedExpr));
+    public void AddAssertThrows(string expectedExpr) => _assertion.AddAssertThrows(expectedExpr);
 
     public void AddAssert([CallerMemberName] string? assertName = null)
-         => _builder.Add(() => _builder.AddAssert(assertName!));
+         => _assertion.AddAssert(assertName!);
 
-    public void AddAssertConjunction(string conjunction)
-         => _builder.Add(() => _builder.AddAssertConjunction(conjunction));
-
-    public void AddThat() => _builder.Add(_builder.AddThat);
+    public void AddAssertConjunction(string conjunction) => _assertion.AddAssertConjunction(conjunction);
 
     // ----------- Lifecycle
 

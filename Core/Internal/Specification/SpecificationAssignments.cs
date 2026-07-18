@@ -29,7 +29,7 @@ internal class SpecificationAssignments
     }
 
     private string DescribeAssignment(Type type, int index, object? value) 
-        => $"{type.Alias()}:{GetIdentifier(type, index)} = {value.ParseValue()}";
+        => $"{type.Alias()}:{GetIdentifier(type, index)} = {value.FormatValue()}";
 
     private string GetIdentifier(Type type, int index)
         => _tagNames.TryGetValue(type, out var typedTagNames)

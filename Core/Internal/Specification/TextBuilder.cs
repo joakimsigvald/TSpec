@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 
 namespace TSpec.Internal.Specification;
 
@@ -7,7 +7,8 @@ namespace TSpec.Internal.Specification;
 /// </summary>
 internal class TextBuilder(int maxLineLength = 80, int indentationSize = 2)
 {
-    private const int _maxIndentation = 3;
+    private const int _wrapIndentation = 3;
+    private static readonly char[] _breakAfterCues = ['.', '(', '[', '{'];
     private readonly StringBuilder _sb = new();
     private int _currentLineLength;
 
@@ -15,63 +16,31 @@ internal class TextBuilder(int maxLineLength = 80, int indentationSize = 2)
     {
         if (char.IsUpper(phrase[0]))
             AddSentence(phrase);
-        else AddPhrase(phrase);
+        else
+            AddPhrase(phrase);
     }
 
-    internal void AddPhrase(string phrase, int indentation = 1)
-        => AddIndentedLine(phrase, indentation);
+    internal void AddSentence(string phrase) => AddLine(phrase.Capitalize(), 0);
 
-    internal void AddSentence(string phrase)
-        => AddCapitalizedLine(phrase);
+    internal void AddPhrase(string phrase, int indentation = 1) => AddLine(phrase, indentation);
 
     internal void AddWord(string word, string binder = " ")
     {
-        if (string.IsNullOrEmpty(word))
-            return;
-        AddText($"{binder}{word}");
-    }
-
-    internal StringBuilder AddCapitalizedLine(string line) => AddIndentedLine(line.Capitalize(), 0);
-
-    internal StringBuilder AddIndentedLine(string line, int indentation)
-    {
-        _sb.Append(Environment.NewLine);
-        _sb.Append(new string(' ', _currentLineLength = indentation * indentationSize));
-        AddText(line);
-        return _sb;
+        if (!string.IsNullOrEmpty(word))
+            AddText($"{binder}{word}");
     }
 
     internal StringBuilder AddText(string? text)
     {
         if (text is null)
             return _sb;
+
         var (first, rest) = IsExceedingMaxLineLength(text) ? BreakLine(text) : (text, null);
         _sb.Append(first);
         _currentLineLength += first.Length;
-        return rest is null ? _sb : AddIndentedLine(rest, _maxIndentation);
-    }
-
-    private bool IsExceedingMaxLineLength(string text)
-        => text.Length + _currentLineLength > maxLineLength;
-
-    private (string first, string rest) BreakLine(string text)
-    {
-        var fitInLine = text[..(maxLineLength - _currentLineLength)];
-        var nextChar = ' ';
-        char[] chars = [..fitInLine
-            .Reverse()
-            .SkipWhile(c =>
-            {
-                var possibleLineBreak = IsLineBreakPossibleAfter(c, nextChar);
-                nextChar = c;
-                return !possibleLineBreak;
-            })
-            .Reverse()];
-        var first = new string(chars).TrimEnd();
-        if (string.IsNullOrEmpty(first))
-            first = fitInLine.Length < maxLineLength / 2 ? string.Empty : fitInLine;
-        var rest = text[first.Length..].Trim();
-        return (first, rest);
+        if (rest is not null)
+            AddLine(rest, _wrapIndentation);
+        return _sb;
     }
 
     /// <summary>
@@ -80,11 +49,46 @@ internal class TextBuilder(int maxLineLength = 80, int indentationSize = 2)
     /// <returns>The built text, trimmed and capitalized</returns>
     public override string ToString() => _sb.ToString().Trim().Capitalize();
 
-    private static readonly char[] _lineBreakCues = ['.', '(', '[', '{'];
+    private void AddLine(string line, int indentation)
+    {
+        _sb.Append(Environment.NewLine);
+        _sb.Append(new string(' ', _currentLineLength = indentation * indentationSize));
+        AddText(line);
+    }
+
+    private bool IsExceedingMaxLineLength(string text)
+        => text.Length + _currentLineLength > maxLineLength;
+
+    private (string first, string? rest) BreakLine(string text)
+    {
+        var fitInLine = text[..(maxLineLength - _currentLineLength)];
+        var first = BreakableStart(fitInLine) ?? UnbreakableStart(fitInLine);
+        return (first, text[first.Length..].Trim());
+    }
+
+    private static string? BreakableStart(string segment)
+    {
+        for (int i = segment.Length - 1; i >= 0; i--)
+        {
+            char next = i + 1 < segment.Length ? segment[i + 1] : ' ';
+            if (!IsLineBreakPossibleAfter(segment[i], next))
+                continue;
+
+            var start = segment[..(i + 1)].TrimEnd();
+            return start.Length > 0 ? start : null;
+        }
+        return null;
+    }
+
+    /// A segment without break position stays on the line (breaking mid-word),
+    /// unless the line is already more than half used — then everything moves
+    /// to the continuation line.
+    private string UnbreakableStart(string segment)
+        => segment.Length < maxLineLength / 2 ? string.Empty : segment;
 
     private static bool IsLineBreakPossibleAfter(char c, char next)
         => char.IsWhiteSpace(c)
-        || _lineBreakCues.Contains(c) && !IsFalseLineBreak(c, next);
+        || _breakAfterCues.Contains(c) && !IsFalseLineBreak(c, next);
 
     private static bool IsFalseLineBreak(char c, char next)
         => c == '.' && (next == '.' || char.IsDigit(next));

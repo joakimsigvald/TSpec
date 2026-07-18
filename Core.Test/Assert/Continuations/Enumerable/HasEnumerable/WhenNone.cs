@@ -18,7 +18,7 @@ public class WhenNone : Spec
     {
         int[] arr = [1, 4];
         var ex = Xunit.Assert.Throws<XunitException>(() => arr.Has().None(it => it > 3));
-        ex.HasMessage($"Expected arr to not have some element satisfying the condition but found {arr.ParseValue()}", "Arr has not some it > 3");
+        ex.HasMessage($"Expected arr to not have some element satisfying the condition but found {arr.FormatValue()}", "Arr has not some it > 3");
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class WhenNone : Spec
     {
         int[] arr = [1, 3];
         var ex = Xunit.Assert.Throws<XunitException>(() => arr.Has().None((it, i) => it == i + 1));
-        ex.HasMessage($"Expected arr to not have some element satisfying the condition but found {arr.ParseValue()}", "Arr has not some (it, i) => it == i + 1");
+        ex.HasMessage($"Expected arr to not have some element satisfying the condition but found {arr.FormatValue()}", "Arr has not some (it, i) => it == i + 1");
     }
 
     [Fact]
