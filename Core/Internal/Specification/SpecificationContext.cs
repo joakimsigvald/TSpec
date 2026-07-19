@@ -11,10 +11,9 @@ namespace TSpec.Internal.Specification;
 /// </summary>
 internal class SpecificationContext : IAssertSpecificationContext
 {
-    [ThreadStatic]
-    private static SpecificationContext? _currentAssertionContext;
+    private static readonly AsyncLocal<SpecificationContext?> _currentAssertionContext = new();
 
-    internal static IAssertSpecificationContext Current => _currentAssertionContext!;
+    internal static IAssertSpecificationContext Current => _currentAssertionContext.Value!;
 
     private readonly SpecificationRecording _recording;
     private readonly SetupPhrases _setup;
@@ -39,7 +38,7 @@ internal class SpecificationContext : IAssertSpecificationContext
     /// </summary>
     public void SetSubject(string? subjectExpr) => _subjectDescription = subjectExpr?.ParseValue();
 
-    internal static string? PendingSubject => _currentAssertionContext?._subjectDescription;
+    internal static string? PendingSubject => _currentAssertionContext.Value?._subjectDescription;
 
     public override string ToString() => _recording.ToString();
 
@@ -140,9 +139,9 @@ internal class SpecificationContext : IAssertSpecificationContext
 
     // ----------- Lifecycle
 
-    internal static SpecificationContext Create() => _currentAssertionContext = new();
+    internal static SpecificationContext Create() => _currentAssertionContext.Value = new();
 
-    internal static void Release() => _currentAssertionContext = null;
+    internal static void Release() => _currentAssertionContext.Value = null;
 
     private static XunitException? GetExpectedException(XunitException? ex)
         => ex is null || ex.Message.StartsWith("Expected")

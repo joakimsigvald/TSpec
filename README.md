@@ -253,7 +253,8 @@ TSpec supports testing synchronous and asynchronous code using the same test pip
 
 When the behavior under test is asynchronous (returns `Task` or `Task<T>`), TSpec waits for completion and captures the outcome in the same way as for synchronous code.
 The only difference is the lambda signature provided to `When`, `Having`, `Until`, and mock setup methods.
-Test methods themselves do not need to be `async`.
+Test methods themselves do not need to be `async`, but they may be — the test pipeline and
+specification follow the test's async flow, so it is safe to await other work before asserting.
 
 ## 3. Using Test Data
 
