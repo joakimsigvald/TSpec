@@ -21,10 +21,12 @@ public interface ITestResult<TResult>
     IAndThen<TResult> Throws<TError>();
 
     /// <summary>
-    /// Asserts that the test-run threw an error that is equal to the return value of the given function
+    /// Asserts that the test-run threw the error instance provided by the given function (compared by reference).
+    /// Pass a mention (e.g. The&lt;MyException&gt;) to verify that the error configured in the arrangement was propagated.
+    /// To assert by type or content, use Throws&lt;TError&gt;() or Throws&lt;TError&gt;(condition).
     /// </summary>
     /// <typeparam name="TError">The type of the expected error</typeparam>
-    /// <param name="expected">A function providing the expected error</param>
+    /// <param name="expected">A function providing the expected error instance</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to apply additional assertions on the test result</returns>
     IAndThen<TResult> Throws<TError>(

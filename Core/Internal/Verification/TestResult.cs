@@ -57,7 +57,9 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
     }
 
     /// <summary>
-    /// Assert that the method under test threw a specific exception (expected)
+    /// Assert that the method under test threw a specific exception instance (compared by reference).
+    /// Pass a mention (e.g. The&lt;MyException&gt;) to verify that the exception configured in the arrangement
+    /// was propagated. To assert by type or content, use Throws&lt;TError&gt;() or Throws&lt;TError&gt;(condition).
     /// </summary>
     /// <typeparam name="TError"></typeparam>
     /// <param name="expected"></param>
@@ -168,9 +170,14 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
         where TError : Exception
     {
         var actual = AssertError<TError>();
-        if (expected != actual)
-            throw new XunitException(
-                $"Expected the exception {expected}, but {actual} was thrown");
+        if (ReferenceEquals(expected, actual))
+            return;
+
+        throw new XunitException(IsLookalike()
+            ? "Expected the exact exception instance, but a different instance with the same type and message was thrown"
+            : $"Expected the exception {expected}, but {actual} was thrown");
+
+        bool IsLookalike() => expected.GetType() == actual.GetType() && expected.Message == actual.Message;
     }
 
     private void AssertError<TError>(Action<TError> assert)

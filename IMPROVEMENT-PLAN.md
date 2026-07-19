@@ -48,7 +48,7 @@ Baseline version: **1.2.0** (current `PackageVersion` in `Core/Core.csproj`).
 - **Tests:** an `async Task` test method with `await Task.Delay(1)` (or `Task.Yield`) before `Then()` and before an `Is()` assertion; assert the spec text is still produced correctly.
 
 ### P4. `Throws(Func<TError>)` compares thrown exception by reference
-- [ ] Fix (or document as intended)
+- [x] Fixed 2026-07-19: contract decision — reference equality is **kept** (it meaningfully verifies the arranged instance propagated); when the actual is a same-type/same-message lookalike, the failure now explains the identity contract and points to the type/condition overloads. XML docs (ITestResult + TestResult), README §2.2.3 and agent reference document the semantics. Tests: `WhenThrowsExpectedInstance`. Suite (1210) green on net8/9/10.
 - **Problem:** `Core/Internal/Verification/TestResult.cs:167-174` uses `expected != actual` (reference equality). Works when the func is a mention (`An<ArgumentException>` yields the same cached instance the mock threw), but `Then().Throws(() => new ArgumentException("x"))` can never pass, and the failure message prints two identical-looking strings.
 - **Suggested fix:** keep reference equality as the primary check, but when it fails and `expected.GetType() == actual.GetType() && expected.Message == actual.Message`, either pass or produce a message explaining the identity mismatch ("same type and message but different instance — did you mean Throws<T>() or a mention?"). Decide and document.
 - **Tests:** mention-instance pass; new-instance behavior per the chosen contract.

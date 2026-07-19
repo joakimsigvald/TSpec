@@ -32,7 +32,7 @@ Full human documentation: [README.md](https://github.com/joakimsigvald/TSpec#rea
 | `Then()` | Run pipeline, start assertion | `Then(because: "reason")` adds rationale (once per test) |
 | `Because(reason)` | Sugar for `Then(because: reason)` | `Because("...").Result.Is(...)` |
 | `Then().Result` | The captured return value | Assert with `.Is(...)` etc. |
-| `Then().Throws<TEx>()` / `Throws()` | Assert thrown exception | Also `Throws<TEx>(e => condition)`, `DoesNotThrow()`, `DoesNotThrow<TEx>()` |
+| `Then().Throws<TEx>()` / `Throws()` | Assert thrown exception | Also `Throws<TEx>(e => condition)`, `DoesNotThrow()`, `DoesNotThrow<TEx>()`. `Throws(func)` compares by **reference** — pass a mention (`The<TEx>`) to verify the arranged instance propagated; use the type/condition overloads to assert by content |
 | `Then<TService>(_ => _.Call(...))` | Verify a mock was called | Optional `Times` argument |
 
 ## Test data: mentions and tags

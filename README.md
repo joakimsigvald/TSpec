@@ -205,6 +205,9 @@ The lambda provided with `When()` will be executed right after setup.
 The outcome of a pipeline execution is either a return value or a thrown exception.
 If a value is returned, it must match the declared return type and is exposed for assertion through the `Result` property.
 If an exception is thrown, it becomes the captured outcome and can be asserted using the `Then().Throws` overloads.
+`Throws<TError>()` asserts by type and `Throws<TError>(condition)` by content, while `Throws(expected)`
+compares by reference — pass a mention (e.g. `The<TimeoutException>`) to verify that the exact
+exception instance configured in the arrangement was propagated.
 
 Accessing `Result` will implicitly execute the pipeline if it has not already been executed.
 
