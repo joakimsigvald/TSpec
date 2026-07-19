@@ -82,6 +82,7 @@ Verification (in test methods): `Then<IOrderService>(_ => _.CreateOrder(The<Cart
 
 Called directly on values; every assertion returns a chainable continuation.
 Combinators (lowercase): `.and.`, `.not.`, `.either. ... .or.`, `.that.`, `.but.`.
+Also works standalone in plain xUnit tests (no `Spec` base class required), as a replacement for FluentAssertions.
 
 - Any value: `Is(x)`, `Is().EqualTo(x)`, `Is().Not(x)`, `Is().Null()`, `Is().Like(obj)`/`EquivalentTo(obj)` (structural), `Has(_ => _.Id == 3)`, `Has().Type<T>()`
 - Numeric: `Is().GreaterThan(x)`, `LessThan(x)`, `Around(x, tolerance)`, `Even()`, `OneOf(values)`, `True()`, `False()`

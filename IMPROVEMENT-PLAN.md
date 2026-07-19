@@ -29,7 +29,7 @@ Baseline version: **1.2.0** (current `PackageVersion` in `Core/Core.csproj`).
 ## R1 — 1.2.1 (correctness patch)
 
 ### P1. Standalone `TSpec.Assert` throws NullReferenceException ✅ verified by repro
-- [ ] Fix
+- [x] Fixed 2026-07-19: `SpecificationContext.Current` now lazily creates a detached context (`??= new()`); standalone tests in `Core.Test/Assert/WhenStandalone.cs`; console repro passes; full suite (1207) green on net8/9/10. Failure messages keep the same format incl. assertion-chain spec block.
 - **Problem:** README §5 claims TSpec.Assert "can be used on its own as an alternative to FluentAssertions", but every assertion routes through `SpecificationContext.Current.Assert(...)` (`Core/Assert/Continuations/Constraint.cs:190`), and `Current` is `_currentAssertionContext!` (`Core/Internal/Specification/SpecificationContext.cs:17`) — null unless a `Spec` ctor ran on the current thread. Verified repro: `3.Is().GreaterThan(2)` in a plain console app → NRE. Other call sites that would NRE the same way: `ContinueWith.Continue` (AddAssertConjunction), `ContinueWithThat.that` (AddThat), `AssertionExtensions.And` (AddThen/SetSubject).
 - **Suggested fix:** make `SpecificationContext.Current` lazily create a detached, no-op-recording context when none exists (assertions still throw proper `XunitException`s; the spec-text block is simply empty/omitted). Alternative (lesser): correct the README claim. Prefer the code fix — the standalone story is a selling point.
 - **Tests:** new test that clears the context (or a separate non-Spec test class) and asserts `3.Is().GreaterThan(2)` passes and a failing assertion produces a clean `XunitException` without the `----` spec section.

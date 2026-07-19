@@ -13,7 +13,11 @@ internal class SpecificationContext : IAssertSpecificationContext
 {
     private static readonly AsyncLocal<SpecificationContext?> _currentAssertionContext = new();
 
-    internal static IAssertSpecificationContext Current => _currentAssertionContext.Value!;
+    /// <summary>
+    /// The context of the executing test. Created by the Spec constructor; when TSpec.Assert
+    /// is used standalone (without a Spec), a detached context is created on first use.
+    /// </summary>
+    internal static IAssertSpecificationContext Current => _currentAssertionContext.Value ??= new();
 
     private readonly SpecificationRecording _recording;
     private readonly SetupPhrases _setup;
