@@ -23,7 +23,7 @@ public class WhenDeferredEnumerable
         var calls = 0;
         var seq = Enumerable.Range(0, 3).Select(_ => ++calls); // re-enumeration would yield 4, 5, 6
         var ex = Xunit.Assert.Throws<XunitException>(() => seq.Has().Count(4));
-        ex.Message.Does().Contain("found [1, 2, 3]");
+        ex.Message.Does().Contain("found 3: [1, 2, 3]");
     }
 
     [Fact]

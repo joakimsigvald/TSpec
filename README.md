@@ -568,6 +568,10 @@ produced at most once, so chained assertions and failure descriptions all see th
 and short-circuiting assertions (such as `Does().Contain`) work even on infinite sequences.
 Already-materialized collections are asserted as-is.
 
+Failure descriptions stay readable regardless of collection size: the actual count is stated,
+at most five elements are listed (then an ellipsis), and each element is rendered by its
+`ToString` capped at 50 characters — so records and tuples read naturally.
+
 #### 5.5.1 Is
 
 | Assertion | Example |

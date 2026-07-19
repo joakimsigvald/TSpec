@@ -25,7 +25,7 @@ public class WhenCount : Spec
     [Theory]
     [InlineData(2, "Expected numbers to have count 2 but found 1: [1]", 1)]
     [InlineData(1, "Expected numbers to have count 1 but found 2: [1, 3]", 1, 3)]
-    [InlineData(3, "Expected numbers to have count 3 but found 6: [1, 2, 3, 4, ...]", 1, 2, 3, 4, 5, 6)]
+    [InlineData(3, "Expected numbers to have count 3 but found 6: [1, 2, 3, 4, 5, ...]", 1, 2, 3, 4, 5, 6)]
     public void GivenCountFail(int count, string errorMessage, params int[] numbers)
     {
         var ex = Xunit.Assert.Throws<XunitException>(() => numbers.Has().Count(count));
@@ -50,7 +50,7 @@ public class WhenCount : Spec
     public void GivenAtLeastFail()
     {
         var ex = Xunit.Assert.Throws<XunitException>(() => Two<int>().Has().Count().AtLeast(3));
-        ex.Message.Is($"Expected two int to have at least 3 items but found {Two<int>().FormatValue()}");
+        ex.Message.Is($"Expected two int to have at least 3 items but found 2: {Two<int>().FormatValue()}");
     }
 
     [Theory]
@@ -128,6 +128,6 @@ public class WhenCount : Spec
     {
         int[] oneAndTwo = [1, 2];
         var ex = Xunit.Assert.Throws<XunitException>(() => oneAndTwo.Has().Count(it => it < 0).InRange(1, 2));
-        ex.Message.Is("Expected oneAndTwo to have between 1 and 2 items where it => it < 0 but found [1, 2]");
+        ex.Message.Is("Expected oneAndTwo to have between 1 and 2 items where it => it < 0 but found 0: [1, 2]");
     }
 }

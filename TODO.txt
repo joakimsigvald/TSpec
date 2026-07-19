@@ -3,7 +3,6 @@
   remains only for step-function sequences (Spaced with lambda). If users generate large numbers
   of values through step functions, provide an opt-out hook
 --- before Xspec
-* Only show first five items with ellipsis if not all from collection
 * Provide custom data generator for Enums and bools to get random values
 * CollectionFixture om man vill dela mellan fler klasser
 * Separate ClassFixture class from Spec and only allow Arrange on fixture, not when/Then

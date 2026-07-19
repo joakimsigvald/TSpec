@@ -11,20 +11,15 @@ public abstract record EnumerableConstraint<TItem, TContinuation> : Constraint<I
     static readonly string[] _methodsWithCount = ["Single", "Count", "OneItem", "TwoItems", "ThreeItems", "FourItems", "FiveItems"];
 
     private protected override string Describe(IEnumerable<TItem>? value, string? methodName = null)
-        => value is ICollection<TItem> col && _methodsWithCount.Contains(methodName)
-            ? $"{col.Count}: {DescribeAtMostFive(col)}"
-            : DescribeAtMostFive(value);
+        => value is not null && _methodsWithCount.Contains(methodName)
+            ? $"{value.Count()}: {value.FormatValue()}"
+            : value.FormatValue();
 
     private protected static string Express<TValue>(string? valueExpr, TValue value)
     {
         var valueStr = value.FormatValue();
         return valueExpr is null || valueExpr == valueStr ? valueStr : $"'{valueExpr.ParseValue()}' = {value}";
     }
-
-    private static string DescribeAtMostFive(IEnumerable<TItem>? value) 
-        => value?.Count() > 5
-            ? '[' + string.Join(", ", value.Take(4).Select(it => it.FormatValue()).Append("...")) + ']'
-            : value.FormatValue();
 
     private protected static Action<IEnumerable<TItem>?> NotEmptyAnd(Action<IEnumerable<TItem>> assert)
         => actual =>

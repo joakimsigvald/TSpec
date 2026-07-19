@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using TSpec.Internal.Specification;
 
 namespace TSpec.Assert.Continuations.Enumerable;
 
@@ -94,6 +95,11 @@ public record CountContinuation<TItem> : EnumerableConstraint<TItem, HasEnumerab
     }
 
     internal override HasEnumerableContinuation<TItem> Continue() => _parent.Continue();
+
+    /// The count in the failure description is the number of counted items,
+    /// i.e. the number of matching items when a condition is given
+    private protected override string Describe(IEnumerable<TItem>? value, string? methodName = null)
+        => value is null ? "null" : $"{Count(value)}: {value.FormatValue()}";
 
     private string ExpressExpectation(int expected, string expectedExpr) 
         => ExpressExpectation($"{Express(expectedExpr, expected)} items");
