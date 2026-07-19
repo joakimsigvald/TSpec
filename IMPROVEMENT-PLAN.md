@@ -58,7 +58,7 @@ Baseline version: **1.2.0** (current `PackageVersion` in `Core/Core.csproj`).
 - [x] Done 2026-07-19: finalizer and `Dispose(bool)` pattern removed from `SpecFixture`; `Dispose()` is now a plain idempotent teardown. Suite (1221) green on net8/9/10.
 - [x] Done 2026-07-19: `Spec_When.AddDelay` reformatted (early-return + blank line).
 - [x] Done 2026-07-19: `Spec_Given` array-overload now assigns the first five values with a plain guarded for-loop instead of discarded side-effecting LINQ. Suite (1221) green on net8/9/10.
-- **Docs:** uniqueness claim in README §3.1 is overstated for narrow types: `PrimitiveStrategy` casts a shared counter, so `byte` wraps at 256, `char` cycles at 94, `bool` has 2 values, `Semantic Age` wraps at 120 — no duplicate guard outside sequences. Either scope the claim ("unique where the value space allows") or add guards. Also note: `bool` generation depends on counter *parity* (`counter.Next % 2 == 1`, `PrimitiveStrategy.cs:29`), so adding an unrelated mention flips every generated bool — TODO.txt already tracks random bools/enums; consider fixing here.
+- ~~Docs: uniqueness claim~~ **Dropped from 1.2.1** (decision 2026-07-19): no doc stopgap; the uniqueness question is resolved properly by [P13b](#p13b-mention-uniqueness-redesign-from-the-p5h-discussion-2026-07-19) (mention-layer guarantee, per-type counters, ownership boundary).
 
 ---
 
@@ -109,6 +109,15 @@ Baseline version: **1.2.0** (current `PackageVersion` in `Core/Core.csproj`).
 ### P13. Auto-convert via static factory scan (from TODO.txt)
 - [ ] Implement
 - **Detail:** TODO line 1: "look for first public static method with one argument of type TSource that returns TTarget". `TypeConversionStrategy.TryGenerate` already probes implicit operators, single-param ctors, and static methods on the *target* (`TypeConversionStrategy.cs:37-64`) — the missing half is scanning without an explicit `Using<TTarget>().From<TSource>()` registration. While in there: cache the `GetMethods` reflection scans (currently re-run per generated value).
+
+### P13b. Mention uniqueness redesign (from the P5h discussion, 2026-07-19)
+- [ ] Implement (behavior change in generated values → minor release; pairs with TODO's random-enums/bools item)
+- **Principle: uniqueness is a property of the mention system, not the generator.**
+  1. Guarantee: distinct mentions of a type get distinct values up to the type's cardinality; beyond that throw `ValuesExhausted` (consistent with sequence semantics) — e.g. `AThird<bool>()` throws. Enforce at the repository/mention layer: retry generation while the value collides with an already-stored mention of that type.
+  2. Exemption: anonymous generation (object-property fills in `ObjectStrategy`, `Any`/`Another`, internal fills) must NOT demand uniqueness — an object with three bool properties must construct. This falls out of putting the guard at the mention layer, not in the generator.
+  3. Per-type counters (replace the single shared `Counter`): fixes value *stability* — today an unrelated mention flips every downstream bool and shifts all values. `A<bool>()` becomes deterministically true, `ASecond<bool>()` false. "Equivalent types" (nullable/Task/semantic/converted) keep shared sequences automatically because they delegate to the underlying type's generator.
+  4. Ownership boundary: built-in generation guarantees mention-distinctness (or throws); once a user-supplied source/conversion/transform is in play, the user owns the value space and the guarantee ends (generalizes the existing generator-function doc note; avoids the re-roll rabbit hole for transforms like `x => x % 2`). Nuance: for *conversions* the mention guard may retry by pulling the next source value, surfacing the source's `ValuesExhausted` when exhausted.
+- Note: the docs-only stopgap (P5h) was dropped from 1.2.1 — this item is the sole resolution of the uniqueness question.
 
 ### P14. `Result.As<T>()` (from TODO.txt)
 - [ ] Re-evaluate

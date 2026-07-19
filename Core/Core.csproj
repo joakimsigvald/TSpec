@@ -17,12 +17,18 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>1.2.0</PackageVersion>
+		<PackageVersion>1.2.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			Added owned parameter to Using: pass owned: true to let the pipeline dispose the provided value/factory-product on teardown
+			Bug-fix release:
+			- Async test methods fully supported (the specification context now follows the test's async flow)
+			- TSpec.Assert works standalone, without a Spec base class
+			- Deferred sequences are lazily cached during assertion: each element produced at most once, infinite sequences supported
+			- Readable failure descriptions: actual count stated, at most five elements shown, elements rendered by ToString capped at 50 characters
+			- Throws() and DoesNotThrow are included in the generated specification; clearer failure when Throws(expected) receives a look-alike exception instance
+			- SetupFailed instead of NotImplementedException for unsupported mock setups
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
