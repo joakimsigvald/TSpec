@@ -1,5 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.Pipelines;
 
@@ -9,8 +8,6 @@ internal class SpecFixture<TSUT>(ISpecificationProvider specificationProvider) :
     private Lazy<TSUT>? _sut;
     private readonly List<Command> _setUp = [];
     private readonly List<Command> _tearDown = [];
-
-    ~SpecFixture() => Dispose(false);
 
     internal void After(Command setUp) => _setUp.Insert(0, setUp);
     internal void Before(Command tearDown) => _tearDown.Add(tearDown);
@@ -82,25 +79,13 @@ internal class SpecFixture<TSUT>(ISpecificationProvider specificationProvider) :
     }
 
     /// <summary>
-    /// Runs the teardown of the fixture
+    /// Runs the teardown of the fixture (the steps provided with Before), at most once
     /// </summary>
     public void Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    /// <summary>
-    /// Calls any teardown methods provided in the test pipeline with the method `Before`.
-    /// Override this method to perform custom teardown in your test class.
-    /// </summary>
-    /// <param name="disposing">True when called from Dispose, false when called from a finalizer</param>
-    protected void Dispose(bool disposing)
-    {
         if (_disposed)
             return;
-        if (disposing)
-            TearDown();
         _disposed = true;
+        TearDown();
     }
 }
