@@ -106,7 +106,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
             return;
         else if (Continuation is Moq.Language.ISetupSequentialResult<Task<TReturns?>> sequentialAsyncContinuation)
             sequentialAsyncContinuation.Returns(Task.FromResult(default(TReturns)));
-        else throw new NotImplementedException();
+        else throw UnsupportedContinuation("Returns");
     }
 
     private void SetupReturns(Func<TReturns?> returns, string returnsExpr)
@@ -121,7 +121,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
             sequentialContinuation.Returns(returns);
         else if (Continuation is Moq.Language.ISetupSequentialResult<Task<TReturns?>> sequentialAsyncContinuation)
             sequentialAsyncContinuation.ReturnsAsync(returns);
-        else throw new NotImplementedException();
+        else throw UnsupportedContinuation("Returns");
     }
 
     private void SetupThrows<TException>()
@@ -139,7 +139,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
             sequentialAsyncContinuation.ThrowsAsync(It.IsAny<TException>());
         else if (Continuation is Moq.Language.Flow.ISetup<TService> setupContinuation)
             setupContinuation.Throws<TException>();
-        else throw new NotImplementedException();
+        else throw UnsupportedContinuation("Throws");
     }
 
     private void SetupThrows(Func<Exception> expected, string expectedExpr)
@@ -158,8 +158,11 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
             sequentialAsyncContinuation.ThrowsAsync(expected());
         else if (Continuation is Moq.Language.Flow.ISetup<TService> setupContinuation)
             setupContinuation.Throws(expected());
-        else throw new NotImplementedException();
+        else throw UnsupportedContinuation("Throws");
     }
+
+    private SetupFailed UnsupportedContinuation(string setup)
+        => new($"Cannot apply {setup} to '{_callExpr}': unhandled mock continuation {Continuation.GetType().Name}");
 
     private void SpecifyMock()
     {

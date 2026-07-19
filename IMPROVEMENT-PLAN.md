@@ -8,8 +8,8 @@ Baseline version: **1.2.0** (current `PackageVersion` in `Core/Core.csproj`).
 
 | Release | Version | Content | Bump rationale (per CLAUDE.md: docs/packaging = patch, new functionality = minor) |
 |---|---|---|---|
-| R1 | **1.2.1** | P1–P5: correctness fixes, no new API surface | Bug fixes only → patch |
-| R2 | **1.3.0** | P6–P10: assert-library API additions | New functionality → minor |
+| R1 | **1.2.1** | P1, P3–P5: correctness fixes, no new API surface | Bug fixes only → patch |
+| R2 | **1.3.0** | P6–P10: assert-library API additions (P6 also fixes the P2 bug) | New functionality → minor |
 | R3 | **1.4.0** | P11–P14: pipeline/generation features | New functionality → minor |
 | — | (no release) | P15–P19: internal refactors | Ship with whichever release comes next; no standalone release needed |
 
@@ -36,10 +36,7 @@ Baseline version: **1.2.0** (current `PackageVersion` in `Core/Core.csproj`).
 - **Docs:** README §5 wording; agent reference if it repeats the claim.
 
 ### P2. `Has().Order<TItemComp>()` broken when type argument ≠ TItem ✅ verified by repro
-- [ ] Fix
-- **Problem:** `Core/Assert/Continuations/Enumerable/HasEnumerable.cs:268-278` does `(this as HasEnumerable<TItemComp>)!` — records aren't covariant, so the cast is null whenever `TItemComp != TItem`; `Actual as IEnumerable<TItemComp>` is also null for e.g. `object[]`. Verified: `((object[])[1,2,3]).Has().Order<int>().Ascending()` fails with misleading "Expected numbers to be ascending but found null"; if the assertion passed, chaining `.and` would NRE (`OrderContinuation.Continue()` → `_parent.Continue()` with null `_parent`, `OrderContinuation.cs:65`).
-- **Suggested fix:** fold into P6 (redesign `Order` with a `TKey` selector, keeping `TItem` fixed — removes the cast entirely). If P6 is deferred, minimum patch: throw `SetupFailed` when the cast fails, and use `Actual.Cast<TItemComp>()` semantics or constrain the API.
-- **Tests:** ordered/unordered/derived-element-type cases; chaining `.and` after `Order`.
+- [x] Folded into P6 (decision 2026-07-19): the P6 redesign deletes the broken casts, so no separate 1.2.1 patch. 1.2.1 ships with the misleading behavior intact; the bug details and tests move to P6.
 
 ### P3. Thread-static specification context vs async test methods
 - [x] Fixed 2026-07-19: `[ThreadStatic]` → `AsyncLocal` (3-line change in SpecificationContext.cs); regression test `WhenAsyncTestMethod` verified to fail under ThreadStatic; full suite green on net8/9/10.
@@ -54,8 +51,8 @@ Baseline version: **1.2.0** (current `PackageVersion` in `Core/Core.csproj`).
 - **Tests:** mention-instance pass; new-instance behavior per the chosen contract.
 
 ### P5. Small correctness/consistency fixes (batch into R1)
-- [ ] `Throws()` (untyped) and `DoesNotThrow<TError>()` don't record to the specification while all sibling overloads do — `TestResult.cs:109-124` (missing `SpecificationContext.Current.AddAssert...` calls). Spec text silently omits those assertions.
-- [ ] `NotImplementedException` surfaced to users in the Moq-flow sniffing chains — `GivenThatCommonContinuation.cs:109,124,142,161` and `DataProvider.GetDefaults`/`TypeConversionStrategy.GetRelays` scope switches. Replace with `SetupFailed` naming the unexpected continuation/scope so users get an actionable message. **Caution:** in `SetupReturns()` the branch order matters (`ISetupSequentialResult<TReturns>` is tested before `ISetupSequentialResult<Task<TReturns?>>`) — don't reorder while refactoring.
+- [x] Done 2026-07-19: `Throws()` (untyped) and `DoesNotThrow<TError>()` now record to the specification ("Then throws" / "Then does not throw InvalidOperationException"); new `AddAssertDoesNotThrow<TError>` phrase; spec-text tests in `WhenThrowsExpectedInstance`. Suite (1212) green on net8/9/10.
+- [x] Done 2026-07-19: Moq-flow chains and `DataProvider` scope switches now throw `SetupFailed` (`Cannot apply Returns/Throws to '<callExpr>': unhandled mock continuation <type>` / `Unsupported scope: <scope>`); branch order untouched. Test: `WhenUsingScopeNone` (For.None is user-reachable via Using). `TypeConversionStrategy.GetRelays` deliberately keeps `NotImplementedException` — a failure there is a missing framework case, not user error. Suite (1213) green on net8/9/10.
 - [ ] Lazy enumerables re-enumerated during assertion + failure description: `EnumerableConstraint.DescribeAtMostFive` (`EnumerableConstraint.cs:24-27`) calls `Count()` then `Take(4)`; count assertions enumerate again. If the SUT returned deferred LINQ, asserts re-execute it. Materialize `Actual` once (e.g. on first assertion in the enumerable constraint).
 - [ ] `CountContinuation.At/AtLeast/AtMost/InRange` use `Xunit.Assert.True(bool)` — inner failure lacks the actual count. Use `Assert.Equal`/explicit message so "found 3" appears.
 - [ ] Pointless finalizer `~SpecFixture()` (`SpecFixture.cs:13`) — nothing unmanaged; remove finalizer + `GC.SuppressFinalize` dance.
@@ -67,10 +64,12 @@ Baseline version: **1.2.0** (current `PackageVersion` in `Core/Core.csproj`).
 
 ## R2 — 1.3.0 (assert-library API additions)
 
-### P6. Generalize `Order(by)` to arbitrary comparable keys
+### P6. Generalize `Order(by)` to arbitrary comparable keys (includes the P2 bug fix)
 - [ ] Implement
-- **Problem:** selector is `Func<TItemComp, int>` — can't order by string/DateTime/decimal keys. This limitation is also the root cause of P2's cast.
-- **Suggested API:** `Order()` (requires `TItem : IComparable<TItem>` — keep via extension method on `HasEnumerable<TItem>` with a constraint, so no type-argument trickery) and `Order<TKey>(Func<TItem, TKey> by) where TKey : IComparable<TKey>`. `TItem` stays fixed → delete the `(this as HasEnumerable<TItemComp>)!` cast and `OrderContinuation`'s `TItem : IComparable<TItem>` constraint (compare keys, not items).
+- **Problem 1 (API gap):** selector is `Func<TItemComp, int>` — can't order by string/DateTime/decimal keys.
+- **Problem 2 (P2 bug, ✅ verified):** `Core/Assert/Continuations/Enumerable/HasEnumerable.cs:268-278` does `(this as HasEnumerable<TItemComp>)!` — records aren't covariant, so the cast is null whenever `TItemComp != TItem`; `Actual as IEnumerable<TItemComp>` is also null for e.g. `object[]`. Verified: `((object[])[1,2,3]).Has().Order<int>().Ascending()` fails with misleading "Expected numbers to be ascending but found null"; if the assertion passed, chaining `.and` would NRE (`OrderContinuation.Continue()` → `_parent.Continue()` with null `_parent`, `OrderContinuation.cs:65`). The type parameter exists only to smuggle in the `IComparable` constraint; the one scenario it was designed for (non-comparable `TItem`, comparable subtype) is exactly the scenario the casts break.
+- **Suggested API:** `Order()` (requires `TItem : IComparable<TItem>` — via extension method on `HasEnumerable<TItem>` with a constraint, so no type-argument trickery) and `Order<TKey>(Func<TItem, TKey> by) where TKey : IComparable<TKey>`. `TItem` stays fixed → delete the `(this as HasEnumerable<TItemComp>)!` cast and `OrderContinuation`'s `TItem : IComparable<TItem>` constraint (compare keys, not items).
+- **Tests:** ordered/unordered by string/DateTime keys; non-comparable item type with key selector; chaining `.and` after `Order`.
 - **Breaking-change note:** signature change from `Order<TItemComp>(Func<TItemComp,int>?)`; source-compatible for the common calls (`Order()`, `Order(it => it.IntProp)`). Acceptable in a 1.x minor; call it out in release notes.
 
 ### P7. Dictionary assertions

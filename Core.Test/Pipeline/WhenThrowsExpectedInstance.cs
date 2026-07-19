@@ -30,4 +30,26 @@ public class WhenThrowsExpectedInstance : Spec<MyStateService, int>
             () => Then().Throws(() => new ArgumentException("other")));
         ex.Message.Does().StartWith("Expected the exception System.ArgumentException: other");
     }
+
+    [Fact]
+    public void GivenUntypedThrows_ThenSpecificationIncludesAssertion()
+    {
+        Then().Throws();
+        Specification.Is(
+            """
+            When Throw()
+            Then throws
+            """);
+    }
+
+    [Fact]
+    public void GivenDoesNotThrowOtherType_ThenSpecificationIncludesAssertion()
+    {
+        Then().DoesNotThrow<InvalidOperationException>();
+        Specification.Is(
+            """
+            When Throw()
+            Then does not throw InvalidOperationException
+            """);
+    }
 }

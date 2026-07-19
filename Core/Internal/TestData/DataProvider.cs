@@ -46,7 +46,7 @@ internal class DataProvider
             For.Input => _inputDefaults,
             For.Subject => _subjectDefaults,
             For.All => _generalDefaults,
-            _ => throw new NotImplementedException($"{scope}")
+            _ => throw new SetupFailed($"Unsupported scope: {scope}")
         };
 
     public bool TryGetValue(Type type, For scope, out object? val)
@@ -57,7 +57,7 @@ internal class DataProvider
         {
             For.Input => TryGetValue(_inputDefaults, type, out val) || TryGetValue(_generalDefaults, type, out val),
             For.Subject => TryGetValue(_subjectDefaults, type, out val) || TryGetValue(_generalDefaults, type, out val),
-            _ => throw new NotImplementedException($"{scope}")
+            _ => throw new SetupFailed($"Unsupported scope: {scope}")
         };
 
     private bool TryGetValueOfTask(Type type, For scope, out object? val)

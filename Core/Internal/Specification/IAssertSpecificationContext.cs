@@ -10,6 +10,7 @@ internal interface IAssertSpecificationContext
     void AddVerify<TService>(string expressionExpr);
     void AddAssertThrows<TError>(string? binder = null);
     void AddAssertThrows(string expectedExpr);
+    void AddAssertDoesNotThrow<TError>();
     void AddAssert([CallerMemberName] string? assertName = null);
     void AddAssertConjunction(string conjunction);
     void AddThat();

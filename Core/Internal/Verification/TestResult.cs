@@ -110,6 +110,7 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
     /// <returns></returns>
     public IAndThen<TResult> Throws()
     {
+        SpecificationContext.Current.AddAssert();
         AssertError<Exception>();
         return And();
     }
@@ -121,6 +122,7 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
     /// <returns></returns>
     public IAndThen<TResult> DoesNotThrow<TError>()
     {
+        SpecificationContext.Current.AddAssertDoesNotThrow<TError>();
         AssertNoError<TError>();
         return And();
     }
