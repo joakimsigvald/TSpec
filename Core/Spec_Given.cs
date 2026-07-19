@@ -71,7 +71,9 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         [CallerArgumentExpression(nameof(defaultValues))] string? defaultValuesExpr = null)
     {
         Pipeline.SetDefault(defaultValues, For.All, defaultValuesExpr!);
-        defaultValues?.Take(5).Select((value, i) => Pipeline.Assign(i, value)).ToArray();
+        if (defaultValues is not null)
+            for (var i = 0; i < defaultValues.Length && i < 5; i++)
+                Pipeline.Assign(i, defaultValues[i]);
         return new GivenTestPipeline<TSUT, TResult>(this);
     }
 

@@ -147,7 +147,8 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     {
         if (delayMs is null)
             return;
-            PrependSetUp((Func<TSUT, Task>)(_ => Task.Delay(delayMs())), $"wait {delayExpr} ms");
+
+        PrependSetUp((Func<TSUT, Task>)(_ => Task.Delay(delayMs())), $"wait {delayExpr} ms");
     }
 
     private Spec<TSUT, TResult> SetAction(Delegate act, string expr)
