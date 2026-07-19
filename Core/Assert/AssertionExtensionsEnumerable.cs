@@ -37,7 +37,7 @@ public static class AssertionExtensionsEnumerable
         this IEnumerable<TItem>? actual,
         Ignore _ = default,
         [CallerArgumentExpression(nameof(actual))] string? actualExpr = null)
-        => IsEnumerable<TItem>.Create(actual, actualExpr!);
+        => IsEnumerable<TItem>.Create(Stabilize(actual), actualExpr!);
 
     /// <summary>
     /// Get available assertions for the given enumerable
@@ -49,7 +49,7 @@ public static class AssertionExtensionsEnumerable
     public static DoesEnumerable<TItem> Does<TItem>(
         this IEnumerable<TItem>? actual,
         [CallerArgumentExpression(nameof(actual))] string? actualExpr = null)
-        => DoesEnumerable<TItem>.Create(actual, actualExpr!);
+        => DoesEnumerable<TItem>.Create(Stabilize(actual), actualExpr!);
 
     /// <summary>
     /// Get available assertions for enumerable
@@ -63,5 +63,43 @@ public static class AssertionExtensionsEnumerable
         this IEnumerable<TItem>? actual,
         Ignore _ = default,
         [CallerArgumentExpression(nameof(actual))] string? actualExpr = null)
-        => HasEnumerable<TItem>.Create(actual, actualExpr!);
+        => HasEnumerable<TItem>.Create(Stabilize(actual), actualExpr!);
+
+    /// Deferred sequences are wrapped in a lazily-caching sequence, so that each element is
+    /// produced at most once and assertion, chaining and failure description all see the same
+    /// elements, while short-circuiting assertions still work on infinite sequences.
+    /// Already-materialized collections are passed through by reference, preserving SameAs semantics.
+    private static IEnumerable<TItem>? Stabilize<TItem>(IEnumerable<TItem>? actual)
+        => actual is null or ICollection<TItem> or IReadOnlyCollection<TItem>
+            ? actual
+            : new CachedSequence<TItem>(actual);
+
+    private sealed class CachedSequence<TItem>(IEnumerable<TItem> source) : IEnumerable<TItem>
+    {
+        private readonly List<TItem> _cache = [];
+        private IEnumerator<TItem>? _source = source.GetEnumerator();
+
+        public IEnumerator<TItem> GetEnumerator()
+        {
+            for (var i = 0; i < _cache.Count || TryPull(); i++)
+                yield return _cache[i];
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+
+        private bool TryPull()
+        {
+            if (_source is null)
+                return false;
+
+            if (_source.MoveNext())
+            {
+                _cache.Add(_source.Current);
+                return true;
+            }
+            _source.Dispose();
+            _source = null;
+            return false;
+        }
+    }
 }

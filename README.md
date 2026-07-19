@@ -563,6 +563,11 @@ Values of any type can be verified with the extension methods `Is` and `Has`
 
 ### 5.5 Collections
 
+Deferred sequences (e.g. LINQ queries) are lazily cached during assertion: each element is
+produced at most once, so chained assertions and failure descriptions all see the same elements,
+and short-circuiting assertions (such as `Does().Contain`) work even on infinite sequences.
+Already-materialized collections are asserted as-is.
+
 #### 5.5.1 Is
 
 | Assertion | Example |

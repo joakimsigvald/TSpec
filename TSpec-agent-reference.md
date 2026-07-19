@@ -88,7 +88,7 @@ Also works standalone in plain xUnit tests (no `Spec` base class required), as a
 - Numeric: `Is().GreaterThan(x)`, `LessThan(x)`, `Around(x, tolerance)`, `Even()`, `OneOf(values)`, `True()`, `False()`
 - Strings: `Is().Like("abc")` (case/whitespace-insensitive), `Empty()`, `NullOrEmpty()`, `NullOrWhitespace()`; `Does().Contain/StartWith/EndWith(s)`
 - Time: `Is().Before/After(t)`, `CloseTo(t, tolerance)`; TimeSpan: `Positive()/Negative()`
-- Collections: `Is().EqualTo(list)` (same order), `Like(list)` (any order), `SameAs(list)`, `Empty()`, `Distinct()`; `Does().Contain(x)`; `Has().Count(n)`, `Count().AtLeast/AtMost/InRange(...)`, `Count(predicate).At(n)`, `Order().Ascending()/Descending()`, `OneItem()`…`FiveItems()` (assert count, returns items: `list.Has().OneItem().that.Age.Is(3)`), `All(predicate)`, `Some(predicate)`, `None(predicate)`
+- Collections (deferred sequences are lazily cached at `Is()`/`Has()`/`Does()` — each element produced at most once): `Is().EqualTo(list)` (same order), `Like(list)` (any order), `SameAs(list)`, `Empty()`, `Distinct()`; `Does().Contain(x)`; `Has().Count(n)`, `Count().AtLeast/AtMost/InRange(...)`, `Count(predicate).At(n)`, `Order().Ascending()/Descending()`, `OneItem()`…`FiveItems()` (assert count, returns items: `list.Has().OneItem().that.Age.Is(3)`), `All(predicate)`, `Some(predicate)`, `None(predicate)`
 - **No trainwrecks in `Then`/`And` subject expressions** — `Then(_.A.B.C)` throws `SetupFailed`; chain properties after the assertion continuation instead.
 
 ## Lifecycle and ownership
