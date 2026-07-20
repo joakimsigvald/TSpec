@@ -11,16 +11,16 @@ public class WhenNotContain : StringSpec
     [InlineData("", "abc")]
     [InlineData("abc", "abcd")]
     [InlineData("Abc", "abc")]
-    public void GivenNotContainString_ThenDoesNotThrow(string? actual, string? expected)
-        => actual.Does().not.Contain(expected).and.not.Contain(expected);
+    public void GivenNotContainString_ThenDoesNotThrow(string? text, string? expected)
+        => text.Does().not.Contain(expected).and.not.Contain(expected);
 
     [Theory]
     [InlineData("", "")]
     [InlineData("abc", "abc")]
     [InlineData("xabcyz", "abc")]
-    public void GivenContainString_ThenGetException(string actual, string expected)
+    public void GivenContainString_ThenGetException(string text, string expected)
     {
-        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => actual.Does().not.Contain(expected));
-        ex.HasMessage($"Expected actual to not contain {Describe(expected)} but found {Describe(actual)}", "Actual does not contain expected");
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => text.Does().not.Contain(expected));
+        ex.HasMessage($"Expected text to not contain {Describe(expected)} but found {Describe(text)}", "Text does not contain expected");
     }
 }

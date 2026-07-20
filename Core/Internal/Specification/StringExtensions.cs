@@ -12,6 +12,9 @@ internal static class StringExtensions
                 words[0] = $"{firstWord[..^1]}ies";
             else if (firstWord.EndsWith("ve"))
                 words[0] = $"{firstWord[..^2]}s";
+            else if (firstWord.EndsWith('s') || firstWord.EndsWith('x') || firstWord.EndsWith('z')
+                || firstWord.EndsWith("ch") || firstWord.EndsWith("sh"))
+                words[0] = $"{firstWord}es";
             else
                 words[0] = $"{firstWord}s";
         }

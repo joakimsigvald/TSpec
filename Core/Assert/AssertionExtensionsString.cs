@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using TSpec.Assert.Continuations;
 using TSpec.Assert.Continuations.String;
+using TSpec.Internal.Specification;
 
 namespace TSpec.Assert;
 
@@ -49,4 +50,21 @@ public static class AssertionExtensionsString
         Ignore _ = default,
         [CallerArgumentExpression(nameof(actual))] string? actualExpr = null)
         => DoesString.Create(actual, actualExpr!);
+
+    /// <summary>
+    /// Get available assertions for the characteristics of the given string, such as its length
+    /// </summary>
+    /// <param name="actual">The value to assert on</param>
+    /// <param name="_">Ignore this parameter — it exists only to distinguish overloads</param>
+    /// <param name="actualExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for making further assertions on the value</returns>
+    public static HasString Has(
+        this string? actual,
+        Ignore _ = default,
+        [CallerArgumentExpression(nameof(actual))] string? actualExpr = null)
+        => new()
+        {
+            Actual = actual,
+            ActualExpr = actualExpr!.ParseActual(SpecificationContext.PendingSubject),
+        };
 }

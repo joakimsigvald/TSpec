@@ -28,6 +28,7 @@
 			- Breaking (compile-time only): explicit type-argument calls like Order&lt;Person&gt;(p => p.Age) must drop the type argument; Order&lt;int&gt;() on int-collections still compiles
 			- Dictionary assertions (on IReadOnlyDictionary): Has().Key(k), Has().Value(v), inverted with no (dict.Has().no.Key(k) reads "has no key"), and dict.Has(key).that for asserting the value under a key; failures list the dictionary's key-value pairs and key lookups respect the dictionary's comparer
 			- Accessing 'that' after an inverted assertion (e.g. not.OneItem().that) now throws SetupFailed instead of yielding a meaningless default value
+			- String assertions: Does().Match(pattern) for regex (also accepts a Regex for custom options); StringComparison overloads on Does().Contain/StartWith/EndWith (the comparison renders in the specification, e.g. "contains "bc" ignoring case"); Has().Length(n) and Has().Length().AtLeast/AtMost/InRange
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>

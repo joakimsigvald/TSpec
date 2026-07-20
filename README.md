@@ -549,6 +549,23 @@ Values of any type can be verified with the extension methods `Is` and `Has`
 | Contain | `"ABC".Does().Contain("AB")` |
 | StartWith | `"ABC".Does().StartWith("AB")` |
 | EndWith | `"ABC".Does().EndWith("BC")` |
+| Contain / StartWith / EndWith with a `StringComparison` | `"ABC".Does().Contain("bc", StringComparison.OrdinalIgnoreCase)` |
+| Match — regular expression (string pattern or `Regex` for custom options) | `"abc123".Does().Match(@"[a-c]+\d+")` |
+| | `"abc".Does().Match(new Regex("^ABC$", RegexOptions.IgnoreCase))` |
+
+The comparison renders in the specification, e.g. "contains "bc" ignoring case".
+
+#### 5.3.3 Has
+
+| Assertion | Example |
+|---|---|
+| Length | `"ABC".Has().Length(3)` |
+| Length at least / at most / in range | `"ABC".Has().Length().AtLeast(2)` |
+| | `"ABC".Has().Length().AtMost(5)` |
+| | `"ABC".Has().Length().InRange(2, 4)` |
+
+`Has()` on a string also offers the char-collection assertions (`Count`, `All`, ...) from
+[section 5.5.3](#553-has); failure messages state the actual length before the string.
 
 ### 5.4 Time
 

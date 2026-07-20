@@ -8,8 +8,8 @@ public class WhenEndWith : StringSpec
     [InlineData("", "")]
     [InlineData("abc", "abc")]
     [InlineData("xabcyz", "cyz")]
-    public void GivenEndWithString_ThenDoesNotThrow(string actual, string expected) 
-        => actual.Does().EndWith(expected).and.EndWith(expected);
+    public void GivenEndWithString_ThenDoesNotThrow(string text, string expected) 
+        => text.Does().EndWith(expected).and.EndWith(expected);
 
     [Theory]
     [InlineData(null, null)]
@@ -18,9 +18,9 @@ public class WhenEndWith : StringSpec
     [InlineData("", "abc")]
     [InlineData("abc", "ab")]
     [InlineData("abc", "Bc")]
-    public void GivenNotEndWithString_ThenGetException(string? actual, string? expected)
+    public void GivenNotEndWithString_ThenGetException(string? text, string? expected)
     {
-        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => actual.Does().EndWith(expected));
-        ex.HasMessage($"Expected actual to end with {Describe(expected)} but found {Describe(actual)}", "Actual ends with expected");
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => text.Does().EndWith(expected));
+        ex.HasMessage($"Expected text to end with {Describe(expected)} but found {Describe(text)}", "Text ends with expected");
     }
 }

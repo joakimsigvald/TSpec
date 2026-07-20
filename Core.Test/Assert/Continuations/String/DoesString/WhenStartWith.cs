@@ -8,8 +8,8 @@ public class WhenStartWith : StringSpec
     [InlineData("", "")]
     [InlineData("abc", "abc")]
     [InlineData("xabcyz", "xab")]
-    public void GivenStartWithString_ThenDoesNotThrow(string actual, string expected) 
-        => actual.Does().StartWith(expected).and.StartWith(expected);
+    public void GivenStartWithString_ThenDoesNotThrow(string text, string expected) 
+        => text.Does().StartWith(expected).and.StartWith(expected);
 
     [Theory]
     [InlineData(null, null)]
@@ -18,10 +18,10 @@ public class WhenStartWith : StringSpec
     [InlineData("", "abc")]
     [InlineData("abc", "bc")]
     [InlineData("abc", "Ab")]
-    public void GivenNotStartWithString_ThenGetException(string? actual, string? expected)
+    public void GivenNotStartWithString_ThenGetException(string? text, string? expected)
     {
-        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => actual.Does().StartWith(expected));
-        ex.HasMessage($"Expected actual to start with {Describe(expected)} but found {Describe(actual)}",
-            "Actual starts with expected");
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => text.Does().StartWith(expected));
+        ex.HasMessage($"Expected text to start with {Describe(expected)} but found {Describe(text)}",
+            "Text starts with expected");
     }
 }

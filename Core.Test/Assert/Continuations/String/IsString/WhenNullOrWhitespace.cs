@@ -8,8 +8,8 @@ public class WhenNullOrWhitespace : StringSpec
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public void GivenNullOrWhitespace_ThenDoesNotThrow(string? actual)
-        => actual.Is().NullOrWhitespace().and.NullOrWhitespace();
+    public void GivenNullOrWhitespace_ThenDoesNotThrow(string? text)
+        => text.Is().NullOrWhitespace().and.NullOrWhitespace();
 
     [Fact]
     public void GivenNotNullOrWhitespace_ThenGetException()

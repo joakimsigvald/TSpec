@@ -6,8 +6,8 @@ Work the items top-down; each item is self-contained. Tick the checkbox when don
 **Status 2026-07-19:** R1 (1.2.1) is **code-complete** — `PackageVersion` bumped to 1.2.1 and
 `PackageReleaseNotes` written in `Core/Core.csproj`; suite at 1221 green on net8/9/10.
 Remaining for R1: commit, pack, push to nuget.org, tag `v1.2.1` (user does this).
-**Status 2026-07-20:** R2 in progress — P6 and P7 done (suite at 1251 green on net8/9/10, version 1.3.0).
-**Next up:** P8 (string assertion gaps), then P9–P10. P15 (source generator) remains deferred; it gained added scope from P7 (CRTP generalization of the enumerable constraints).
+**Status 2026-07-20:** R2 in progress — P6, P7 and P8 done (suite at 1274 green on net8/9/10, version 1.3.0).
+**Next up:** P9 (exception-message sugar on Throws), then P10. P15 (source generator) remains deferred; it gained added scope from P7 (CRTP generalization of the enumerable constraints).
 
 ## Release train
 
@@ -91,9 +91,7 @@ Remaining for R1: commit, pack, push to nuget.org, tag `v1.2.1` (user does this)
 - **Included fix (2026-07-20):** `.that` after an inverted assertion — `list.Has().not.OneItem().that` compiles today and hands back a meaningless `default` value on the inverted-pass path (same for TwoItems…FiveItems). Simple solution decided: `ContinueWithThat` learns whether the producing assertion was inverted and `.that` throws `SetupFailed` in that case. Dictionary `Has(key).that` is unaffected (no inverted path reaches it) but uses the same guard.
 
 ### P8. String assertion gaps
-- [ ] Implement
-- **Gap:** no regex `Matches`, no `Contain`/`StartWith`/`EndWith` with `StringComparison`, no string length assertion.
-- **Suggested API:** `s.Does().Match(pattern)`, comparison overloads on existing `DoesString` methods, `s.Has().Length(n)` (reuse `CountContinuation` mechanics for AtLeast/AtMost/InRange).
+- [x] Done 2026-07-20: `Does().Match(pattern)` + `Match(Regex)` overload (custom options); `StringComparison` overloads on `Contain`/`StartWith`/`EndWith` (separate overloads, fully non-breaking; comparison renders as " ignoring case" / " using invariant culture" etc. in both spec text and failure message via `DescribeComparison`); `s.Has()` → new `HasString : HasEnumerable<char>` (same pattern/degradation as P7's `HasDictionary`) with `Length(n)` and `Length()` → dedicated `LengthContinuation` ("has length at least 3" phrasing; failure shows actual length: `found 3: "abc"`). `Length` added to `_methodsWithCount`. Drive-by fix: `AsWords` `PresentSingularS` pluralization now handles sibilants (`Match` → "matches", was "matchs"); no existing spec text affected. Tests: `WhenMatch`/`WhenCompareWithComparison`/`WhenLength` (23). README §5.3.2–§5.3.3 + agent reference + release notes updated. Suite 1274 green on net8/9/10.
 
 ### P9. Exception-message sugar on Throws
 - [ ] Implement

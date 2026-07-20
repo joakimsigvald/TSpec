@@ -8,7 +8,7 @@ namespace TSpec.Assert.Continuations.Enumerable;
 public abstract record EnumerableConstraint<TItem, TContinuation> : Constraint<IEnumerable<TItem>, TContinuation>
     where TContinuation : EnumerableConstraint<TItem, TContinuation>, new()
 {
-    static readonly string[] _methodsWithCount = ["Single", "Count", "OneItem", "TwoItems", "ThreeItems", "FourItems", "FiveItems"];
+    static readonly string[] _methodsWithCount = ["Single", "Count", "Length", "OneItem", "TwoItems", "ThreeItems", "FourItems", "FiveItems"];
 
     private protected override string Describe(IEnumerable<TItem>? value, string? methodName = null)
         => value is not null && _methodsWithCount.Contains(methodName)

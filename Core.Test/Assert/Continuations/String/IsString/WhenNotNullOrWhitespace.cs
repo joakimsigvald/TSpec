@@ -12,10 +12,10 @@ public class WhenNotNullOrWhitespace : StringSpec
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public void GivenNullOrWhitespace_ThenGetException(string? actual)
+    public void GivenNullOrWhitespace_ThenGetException(string? text)
     {
-        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => actual.Is().not.NullOrWhitespace());
-        ex.HasMessage($"Expected actual to not be null or whitespace but found {Describe(actual)}",
-            "Actual is not null or whitespace");
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => text.Is().not.NullOrWhitespace());
+        ex.HasMessage($"Expected text to not be null or whitespace but found {Describe(text)}",
+            "Text is not null or whitespace");
     }
 }

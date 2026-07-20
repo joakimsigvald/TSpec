@@ -9,18 +9,18 @@ public class WhenNotEquivalentTo : StringSpec
     [InlineData("", null)]
     [InlineData("", "abc")]
     [InlineData("abc", "abcd")]
-    public void GivenNotEquivalentToString_ThenDoesNotThrow(string? actual, string? expected)
-        => actual.Is().not.EquivalentTo(expected).and.not.EquivalentTo(expected);
+    public void GivenNotEquivalentToString_ThenDoesNotThrow(string? text, string? expected)
+        => text.Is().not.EquivalentTo(expected).and.not.EquivalentTo(expected);
 
     [Theory]
     [InlineData(null, null)]
     [InlineData("", "")]
     [InlineData("abc", "abc")]
     [InlineData("abc", "ABC")]
-    public void GivenEquivalentToString_ThenGetException(string? actual, string? expected)
+    public void GivenEquivalentToString_ThenGetException(string? text, string? expected)
     {
-        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => actual.Is().not.EquivalentTo(expected));
-        ex.HasMessage($"Expected actual to not be equivalent to {Describe(expected)} but found {Describe(actual)}",
-            "Actual is not equivalent to expected");
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => text.Is().not.EquivalentTo(expected));
+        ex.HasMessage($"Expected text to not be equivalent to {Describe(expected)} but found {Describe(text)}",
+            "Text is not equivalent to expected");
     }
 }

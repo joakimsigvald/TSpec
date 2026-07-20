@@ -11,9 +11,9 @@ public class WhenEmpty : StringSpec
     [Theory]
     [InlineData(null)]
     [InlineData("abc")]
-    public void GivenNotEmpty_ThenGetException(string? actual)
+    public void GivenNotEmpty_ThenGetException(string? text)
     {
-        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => actual.Is().Empty());
-        ex.HasMessage($"Expected actual to be empty but found {Describe(actual)}", "Actual is empty");
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => text.Is().Empty());
+        ex.HasMessage($"Expected text to be empty but found {Describe(text)}", "Text is empty");
     }
 }

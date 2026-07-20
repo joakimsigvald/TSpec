@@ -8,8 +8,8 @@ public class WhenContain : StringSpec
     [InlineData("", "")]
     [InlineData("abc", "abc")]
     [InlineData("xabcyz", "abc")]
-    public void GivenContainString_ThenDoesNotThrow(string actual, string expected)
-        => actual.Does().Contain(expected).and.Is().not.Null();
+    public void GivenContainString_ThenDoesNotThrow(string text, string expected)
+        => text.Does().Contain(expected).and.Is().not.Null();
 
     [Theory]
     [InlineData(null, null)]
@@ -18,9 +18,9 @@ public class WhenContain : StringSpec
     [InlineData("", "abc")]
     [InlineData("abc", "abcd")]
     [InlineData("abc", "Abc")]
-    public void GivenNotContainString_ThenGetException(string? actual, string? expected)
+    public void GivenNotContainString_ThenGetException(string? text, string? expected)
     {
-        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => actual.Does().Contain(expected));
-        ex.HasMessage($"Expected actual to contain {Describe(expected)} but found {Describe(actual)}", "Actual contains expected");
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => text.Does().Contain(expected));
+        ex.HasMessage($"Expected text to contain {Describe(expected)} but found {Describe(text)}", "Text contains expected");
     }
 }
