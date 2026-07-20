@@ -2,7 +2,12 @@
 
 Origin: full code review 2026-07-19 (all 1201 tests green on net10.0, zero warnings).
 Work the items top-down; each item is self-contained. Tick the checkbox when done.
-Baseline version: **1.2.0** (current `PackageVersion` in `Core/Core.csproj`).
+
+**Status 2026-07-19:** R1 (1.2.1) is **code-complete** — `PackageVersion` bumped to 1.2.1 and
+`PackageReleaseNotes` written in `Core/Core.csproj`; suite at 1221 green on net8/9/10.
+Remaining for R1: commit, pack, push to nuget.org, tag `v1.2.1` (user does this).
+**Status 2026-07-20:** R2 in progress — P6 done (suite at 1230 green on net8/9/10, version bumped to 1.3.0).
+**Next up:** P7 (dictionary assertions), then P8–P10. P15 (source generator) was deferred — P6 didn't touch the ordinal boilerplate; reconsider before P7 if it starts adding ordinal methods.
 
 ## Release train
 
@@ -45,7 +50,7 @@ Baseline version: **1.2.0** (current `PackageVersion` in `Core/Core.csproj`).
 - **Tests:** an `async Task` test method with `await Task.Delay(1)` (or `Task.Yield`) before `Then()` and before an `Is()` assertion; assert the spec text is still produced correctly.
 
 ### P4. `Throws(Func<TError>)` compares thrown exception by reference
-- [x] Fixed 2026-07-19: contract decision — reference equality is **kept** (it meaningfully verifies the arranged instance propagated); when the actual is a same-type/same-message lookalike, the failure now explains the identity contract and points to the type/condition overloads. XML docs (ITestResult + TestResult), README §2.2.3 and agent reference document the semantics. Tests: `WhenThrowsExpectedInstance`. Suite (1210) green on net8/9/10.
+- [x] Fixed 2026-07-19: contract decision — reference equality is **kept** (it meaningfully verifies the arranged instance propagated); when the actual is a same-type/same-message lookalike, the failure says exactly "Expected the exact exception instance, but a different instance with the same type and message was thrown" (user trimmed it — no overload hints in the message; guidance lives in the XML docs, README §2.2.3 and agent reference instead). Tests: `WhenThrowsExpectedInstance`. Suite green on net8/9/10.
 - **Problem:** `Core/Internal/Verification/TestResult.cs:167-174` uses `expected != actual` (reference equality). Works when the func is a mention (`An<ArgumentException>` yields the same cached instance the mock threw), but `Then().Throws(() => new ArgumentException("x"))` can never pass, and the failure message prints two identical-looking strings.
 - **Suggested fix:** keep reference equality as the primary check, but when it fails and `expected.GetType() == actual.GetType() && expected.Message == actual.Message`, either pass or produce a message explaining the identity mismatch ("same type and message but different instance — did you mean Throws<T>() or a mention?"). Decide and document.
 - **Tests:** mention-instance pass; new-instance behavior per the chosen contract.
@@ -65,7 +70,7 @@ Baseline version: **1.2.0** (current `PackageVersion` in `Core/Core.csproj`).
 ## R2 — 1.3.0 (assert-library API additions)
 
 ### P6. Generalize `Order(by)` to arbitrary comparable keys (includes the P2 bug fix)
-- [ ] Implement
+- [x] Done 2026-07-20: `Order()` is now an extension on `HasEnumerable<TItem>` (`TItem : IComparable<TItem>`, in `AssertionExtensionsEnumerable`); `Order<TKey>(Func<TItem,TKey> by)` (`TKey : IComparable<TKey>`) replaces `Order<TItemComp>` — `TItem` stays fixed, keys compared via `Comparer<TKey>.Default` (null-key safe), broken casts deleted, `OrderContinuation` constraint dropped (holds a compare delegate). Old `Order<int>()`/`Order<int>(it => ...)` calls where the type arg equals the item type still compile (extension fallback / TKey binding); type-arg ≠ item-type now a compile error (was the P2 runtime bug). Tests: `WhenOrder` (18) incl. string/DateTime keys, non-comparable items, null keys, `.and` chaining, explicit-type-arg compat. Version bumped to 1.3.0 with release notes; README §5.5.3 + agent reference updated. Suite 1230 green on net8/9/10.
 - **Problem 1 (API gap):** selector is `Func<TItemComp, int>` — can't order by string/DateTime/decimal keys.
 - **Problem 2 (P2 bug, ✅ verified):** `Core/Assert/Continuations/Enumerable/HasEnumerable.cs:268-278` does `(this as HasEnumerable<TItemComp>)!` — records aren't covariant, so the cast is null whenever `TItemComp != TItem`; `Actual as IEnumerable<TItemComp>` is also null for e.g. `object[]`. Verified: `((object[])[1,2,3]).Has().Order<int>().Ascending()` fails with misleading "Expected numbers to be ascending but found null"; if the assertion passed, chaining `.and` would NRE (`OrderContinuation.Continue()` → `_parent.Continue()` with null `_parent`, `OrderContinuation.cs:65`). The type parameter exists only to smuggle in the `IComparable` constraint; the one scenario it was designed for (non-comparable `TItem`, comparable subtype) is exactly the scenario the casts break.
 - **Suggested API:** `Order()` (requires `TItem : IComparable<TItem>` — via extension method on `HasEnumerable<TItem>` with a constraint, so no type-argument trickery) and `Order<TKey>(Func<TItem, TKey> by) where TKey : IComparable<TKey>`. `TItem` stays fixed → delete the `(this as HasEnumerable<TItemComp>)!` cast and `OrderContinuation`'s `TItem : IComparable<TItem>` constraint (compare keys, not items).
@@ -150,11 +155,15 @@ Baseline version: **1.2.0** (current `PackageVersion` in `Core/Core.csproj`).
 - `Repository.TryGetDefault` (`Repository.cs:54-65`): a Try-getter that generates and mutates state — rename or split.
 - `ObjectStrategy.cs:38-47`: silent fallback to parameterless ctor when the greedy ctor throws can mask arrangement errors — record a warning into the specification text (keep the fallback).
 - Naming pass over the internal chain `Pipeline → Fixture → SpecFixture` / `Context → Repository → DataProvider/Mutator/DataGenerator` — six nouns whose roles aren't discoverable from the names. Rename opportunistically while touching files; no big-bang rename.
+- Open questions from the P5b session (user's principle: user setup error → `SetupFailed`; missing framework case → `NotImplementedException`):
+  - `DataProvider.TryGetValueOfType` (`DataProvider.cs:60`) currently throws `SetupFailed` for unknown scope but is only reachable from framework code (callers always pass Input/Subject) — by the principle it should arguably revert to `NotImplementedException` (its sibling `GetDefaults` is user-reachable via `Using(x, For.None)` and stays `SetupFailed`).
+  - `Using<TTarget>(For.None).From<TSource>()` slips past `TypeConversionStrategy.Register`'s overlap guard (None never "overlaps") and reaches `GetRelays` → `NotImplementedException`, though it is user error — a `For.None` check in `Register` would classify it correctly.
+  - Should `Using(x, For.None)` be an error at all, or a silent no-op ("applies neither to Input nor Subject" per the enum doc)? Currently throws `SetupFailed` (test `WhenUsingScopeNone`).
 
 ---
 
 ## Verification baseline (for every item)
 
 - Build: `dotnet build Core.Test -f net10.0` (also net8.0/net9.0 before release).
-- Run: `Core.Test/bin/Debug/net10.0/TSpec.Test.exe` (filter: `-class Namespace.ClassName`). Baseline: 1201 passed / 0 failed.
+- Run: `Core.Test/bin/Debug/net10.0/TSpec.Test.exe` (filter: `-class Namespace.ClassName`). Baseline after R1: 1221 passed / 0 failed.
 - Standalone repro harness used in the review: console app referencing `Core/Core.csproj` calling `3.Is().GreaterThan(2)` without a `Spec` — useful for P1/P3 regression tests.

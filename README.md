@@ -600,8 +600,9 @@ at most five elements are listed (then an ellipsis), and each element is rendere
 | | `list.Has().Count().InRange(2, 4)` |
 | Count with condition — counts only matching items | `list.Has().Count(it => it > 3).At(2)` |
 | | `list.Has().Count(it => it > 3).AtLeast(2)` |
-| Order — ascending or descending, optionally by a given property | `list.Has().Order().Ascending()` |
+| Order — ascending or descending; `Order()` requires comparable items, `Order(by)` accepts any comparable key (int, string, DateTime, ...) and works on non-comparable items | `list.Has().Order().Ascending()` |
 | | `list.Has().Order(it => it.Age).Descending()` |
+| | `patients.Has().Order(p => p.Name).Ascending()` |
 | [One/Two/Three/Four/Five]Items — asserts the count and returns the items as an n-tuple | `numbers.Has().OneItem().that.Is(3)` |
 | | `patients.Has().OneItem().that.Age.Is(3)` |
 | | `patients.Has().OneItem(it => it.Age == 3).that.Gender.Is('F')` |

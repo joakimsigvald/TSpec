@@ -260,18 +260,22 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
         };
 
     /// <summary>
-    /// Continuations to make order-related assertions on the collection
+    /// Continuations to make order-related assertions on the collection, ordered by the given key
     /// </summary>
-    /// <param name="by">function that collection should be ordered by</param>
+    /// <typeparam name="TKey">The comparable type of the key to order by</typeparam>
+    /// <param name="by">function selecting the key that the collection should be ordered by</param>
     /// <param name="byExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the value</returns>
-    public OrderContinuation<TItemComp> Order<TItemComp>(
-        Func<TItemComp, int>? by = null,
+    public OrderContinuation<TItem> Order<TKey>(
+        Func<TItem, TKey> by,
         [CallerArgumentExpression(nameof(by))] string? byExpr = null)
-        where TItemComp : TItem, IComparable<TItemComp>
-        => new((this as HasEnumerable<TItemComp>)!, by, byExpr)
-    {
-            Actual = Actual as IEnumerable<TItemComp>,
+        where TKey : IComparable<TKey>
+        => CreateOrder((a, b) => Comparer<TKey>.Default.Compare(by(a), by(b)), byExpr);
+
+    internal OrderContinuation<TItem> CreateOrder(Func<TItem, TItem, int> compare, string? byExpr)
+        => new(this, compare, byExpr)
+        {
+            Actual = Actual,
             ActualExpr = ActualExpr,
             AuxiliaryVerb = AuxiliaryVerb,
             State = State,

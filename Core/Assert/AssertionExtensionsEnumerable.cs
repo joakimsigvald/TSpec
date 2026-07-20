@@ -65,6 +65,16 @@ public static class AssertionExtensionsEnumerable
         [CallerArgumentExpression(nameof(actual))] string? actualExpr = null)
         => HasEnumerable<TItem>.Create(Stabilize(actual), actualExpr!);
 
+    /// <summary>
+    /// Continuations to make order-related assertions on the collection, ordered by the items themselves
+    /// </summary>
+    /// <typeparam name="TItem">The comparable type of the elements in the enumerable</typeparam>
+    /// <param name="has">The continuation to assert order on</param>
+    /// <returns>A continuation for making further assertions on the value</returns>
+    public static OrderContinuation<TItem> Order<TItem>(this HasEnumerable<TItem> has)
+        where TItem : IComparable<TItem>
+        => has.CreateOrder(Comparer<TItem>.Default.Compare, null);
+
     /// Deferred sequences are wrapped in a lazily-caching sequence, so that each element is
     /// produced at most once and assertion, chaining and failure description all see the same
     /// elements, while short-circuiting assertions still work on infinite sequences.
