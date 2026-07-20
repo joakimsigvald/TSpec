@@ -93,10 +93,14 @@ Remaining for R1: commit, pack, push to nuget.org, tag `v1.2.1` (user does this)
 ### P8. String assertion gaps
 - [x] Done 2026-07-20: `Does().Match(pattern)` + `Match(Regex)` overload (custom options); `StringComparison` overloads on `Contain`/`StartWith`/`EndWith` (separate overloads, fully non-breaking; comparison renders as " ignoring case" / " using invariant culture" etc. in both spec text and failure message via `DescribeComparison`); `s.Has()` → new `HasString : HasEnumerable<char>` (same pattern/degradation as P7's `HasDictionary`) with `Length(n)` and `Length()` → dedicated `LengthContinuation` ("has length at least 3" phrasing; failure shows actual length: `found 3: "abc"`). `Length` added to `_methodsWithCount`. Drive-by fix: `AsWords` `PresentSingularS` pluralization now handles sibilants (`Match` → "matches", was "matchs"); no existing spec text affected. Tests: `WhenMatch`/`WhenCompareWithComparison`/`WhenLength` (23). README §5.3.2–§5.3.3 + agent reference + release notes updated. Suite 1274 green on net8/9/10.
 
-### P9. Exception-message sugar on Throws
+### P9. Expose the thrown exception via `that` (redesign of "exception-message sugar", decided 2026-07-20)
 - [ ] Implement
-- **Gap:** message assertion today requires the condition form `Throws<T>(e => e.Message.Contains(...))`.
-- **Suggested API:** `Then().Throws<T>().WithMessage("...")` (+ `WithMessageContaining`), returning the existing `IAndThen<TResult>` continuation. Renders better in spec text too (`AssertionPhrases`).
+- **Gap:** message assertion today requires the condition form `Throws<T>(e => e.Message.Contains(...))` — lambda soup in spec text, and the failure ("didn't satisfy \<expr\>") doesn't show the actual message.
+- **Rejected:** the original `WithMessage("...")` / `WithMessageContaining(...)` sketch — combinatorial method-name growth (`Containing`, `Matching`, `StartingWith`, ...) against TSpec's composition philosophy, and a `WithMessage().Matching(...)` form would need a parallel participle grammar shadowing the indicative assert vocabulary.
+- **Decided API:** `Then().Throws<TError>()` and untyped `Throws()` return `IThrowsThen<TResult, TError>` (`: IAndThen<TResult>`, untyped binds `TError = Exception`) adding `TError that` — the caught exception, following the `OneItem().that` convention. The entire existing assert vocabulary (incl. P8's additions) then applies with zero new grammar: `.that.Message.Is("...")`, `.that.Message.Does().Match(pattern)`, `.that.ParamName.Is(...)`, inner exceptions, custom properties.
+- **Spec text** rides existing machinery: `that` records `AddThat`, and `ParseActual` already strips chains up to `that.` (how `FourItems().that.fourth.Is(...)` renders) → "Then throws ArgumentException that message is "Invalid cart"". Verify `ActualDescriber` handles this pipeline-side chain shape during implementation.
+- **Scope:** the condition/action/instance `Throws` overloads keep returning `IAndThen` unchanged. One message assertion style everywhere — no `WithMessage` sugar at all.
+- **Breaking note:** `ITestResult.Throws<TError>()`/`Throws()` return-type change — source-compatible for consumers (derived interface), binary-breaking, acceptable in the 1.x minor per the P6 precedent; release-notes line.
 
 ### P10. `VerifyNoOtherCalls` equivalent
 - [ ] Implement

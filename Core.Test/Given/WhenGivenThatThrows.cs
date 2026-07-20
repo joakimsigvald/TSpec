@@ -80,6 +80,20 @@ public class WhenGivenThatThrows : Spec<MyService, MyModel>
     }
 
     [Fact]
+    public void GivenSpecificException_ThenThrowsExceptionWithMessage()
+    {
+        When(_ => _.GetModel())
+            .Given<IMyRepository>().That(_ => _.GetModel()).Throws(() => new Exception(A<string>()))
+            .Then().Throws<Exception>().that.Message.Is(The<string>());
+        Specification.Is(
+            """
+            Given IMyRepository.GetModel() throws new Exception(a string)
+            When _.GetModel()
+            Then throws Exception that Message is the string
+            """);
+    }
+
+    [Fact]
     public void GivenExceptionWithProperties_ThenThrowsExceptionWithThoseProperties()
     {
         When(_ => _.GetModel())

@@ -14,11 +14,13 @@ public interface ITestResult<TResult>
     TResult Result { get; }
 
     /// <summary>
-    /// Asserts that the test-run threw an error of the given type
+    /// Asserts that the test-run threw an error of the given type.
+    /// The thrown error is exposed through 'that' for further assertions,
+    /// e.g. Throws&lt;ArgumentException&gt;().that.Message.Is("Invalid cart")
     /// </summary>
     /// <typeparam name="TError">The type of the expected error</typeparam>
-    /// <returns>A continuation to apply additional assertions on the test result</returns>
-    IAndThen<TResult> Throws<TError>();
+    /// <returns>A continuation to apply additional assertions on the thrown error or the test result</returns>
+    IThrowsThen<TResult, TError> Throws<TError>();
 
     /// <summary>
     /// Asserts that the test-run threw the error instance provided by the given function (compared by reference).
@@ -53,10 +55,11 @@ public interface ITestResult<TResult>
         [CallerArgumentExpression(nameof(condition))] string? conditionExpr = null);
 
     /// <summary>
-    /// Asserts that the test-run threw an error
+    /// Asserts that the test-run threw an error.
+    /// The thrown error is exposed through 'that' for further assertions.
     /// </summary>
-    /// <returns>A continuation to apply additional assertions on the test result</returns>
-    IAndThen<TResult> Throws();
+    /// <returns>A continuation to apply additional assertions on the thrown error or the test result</returns>
+    IThrowsThen<TResult, Exception> Throws();
 
     /// <summary>
     /// Asserts that the test-run did not throw an error of the given type

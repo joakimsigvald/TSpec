@@ -45,15 +45,16 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
     public TSUT SubjectUnderTest { get; }
 
     /// <summary>
-    /// Assert that the method under test threw a specific type of exception
+    /// Assert that the method under test threw a specific type of exception.
+    /// The thrown exception is exposed through 'that' for further assertions.
     /// </summary>
     /// <typeparam name="TError"></typeparam>
     /// <returns></returns>
-    public IAndThen<TResult> Throws<TError>()
+    public IThrowsThen<TResult, TError> Throws<TError>()
     {
         SpecificationContext.Current.AddAssertThrows<TError>();
-        AssertError<TError>();
-        return And();
+        var error = AssertError<TError>();
+        return new ThrowsThen<TSUT, TResult, TError>(this, error);
     }
 
     /// <summary>
@@ -105,14 +106,15 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
     }
 
     /// <summary>
-    /// Assert that the method under test threw an exception
+    /// Assert that the method under test threw an exception.
+    /// The thrown exception is exposed through 'that' for further assertions.
     /// </summary>
     /// <returns></returns>
-    public IAndThen<TResult> Throws()
+    public IThrowsThen<TResult, Exception> Throws()
     {
         SpecificationContext.Current.AddAssert();
-        AssertError<Exception>();
-        return And();
+        var error = AssertError<Exception>();
+        return new ThrowsThen<TSUT, TResult, Exception>(this, error);
     }
 
     /// <summary>
