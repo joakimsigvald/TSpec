@@ -612,6 +612,29 @@ at most five elements are listed (then an ellipsis), and each element is rendere
 | Some — at least one item matches | `list.Has().Some(it => it.Age > 3)` |
 | None — no item matches | `list.Has().None(it => it.Age > 3)` |
 
+Note: accessing `that` after an inverted assertion (e.g. `not.OneItem().that`) throws `SetupFailed` —
+there is no meaningful item to expose when the assertion states its absence.
+
+#### 5.5.4 Dictionaries
+
+Dictionary assertions bind to `IReadOnlyDictionary<TKey, TValue>` (covers `Dictionary`,
+`FrozenDictionary`, `ImmutableDictionary`, ...). Key lookups respect the dictionary's own key comparer.
+
+| Assertion | Example |
+|---|---|
+| Key — the dictionary contains the given key | `dict.Has().Key("a")` |
+| Value — the dictionary contains the given value | `dict.Has().Value(3)` |
+| no — inverts the following assertion (the possession-flavored `not`) | `dict.Has().no.Key("c")` |
+| | `dict.Has().no.Value(3)` |
+| Has(key) — asserts the key exists and exposes its value through `that` | `dict.Has("a").that.Is(3)` |
+
+Failure messages list the dictionary's key-value pairs (capped at five elements). Notes:
+
+- The enumerable-of-pairs assertions (`Count`, `OneItem`, `All`, ...) remain available on dictionaries,
+  but after chaining into one of them (e.g. `dict.Has().Count(2).and`) the continuation is the plain
+  enumerable one — the dictionary-specific `Key`/`Value`/`no` are not available further down that chain.
+- Variables *declared* as `IDictionary<TKey, TValue>` bind to the enumerable-of-pairs assertions only.
+
 ### 5.6 Justifying assertions with because
 
 Each test method contains exactly one logical assertion. To document *why* the expected outcome

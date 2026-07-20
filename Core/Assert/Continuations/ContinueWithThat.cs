@@ -13,9 +13,13 @@ public class ContinueWithThat<TContinuation, TThat> : ContinueWith<TContinuation
     where TContinuation : Constraint
 {
     private readonly TThat _that;
+    private readonly bool _inverted;
 
-    internal ContinueWithThat(TContinuation continuation, TThat that) : base(continuation)
-        => _that = that;
+    internal ContinueWithThat(TContinuation continuation, TThat that, bool inverted = false) : base(continuation)
+    {
+        _that = that;
+        _inverted = inverted;
+    }
 
     /// <summary>
     /// Continuation to apply assertions on the element
@@ -25,6 +29,8 @@ public class ContinueWithThat<TContinuation, TThat> : ContinueWith<TContinuation
     {
         get
         {
+            if (_inverted)
+                throw new SetupFailed("Cannot access 'that' after an inverted assertion");
             SpecificationContext.Current.AddThat();
             return _that;
         }

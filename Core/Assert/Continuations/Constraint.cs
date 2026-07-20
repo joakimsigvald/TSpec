@@ -28,6 +28,7 @@ public record Constraint
     internal string? AuxiliaryVerb { get; set; }
     internal ConstraintState State { get; set; } = default;
     internal Exception? Exception { get; set; }
+    internal bool WasInverted { get; set; }
 }
 
 /// <summary>
@@ -177,7 +178,8 @@ public abstract record Constraint<TActual, TContinuation>
     private protected virtual string Describe(TActual? value, string? methodName = null) => value.FormatValue();
 
     internal ContinueWith<TContinuation> And() => new(Continue());
-    internal ContinueWithThat<TContinuation, TThat> AndThat<TThat>(TThat that) => new(Continue(), that);
+    internal ContinueWithThat<TContinuation, TThat> AndThat<TThat>(TThat that)
+        => new(Continue(), that, WasInverted || State.HasFlag(ConstraintState.Inverted));
     internal virtual TContinuation Continue() => (TContinuation)this;
 
     private protected TContinuation Assert(
@@ -188,6 +190,8 @@ public abstract record Constraint<TActual, TContinuation>
     {
         var verb = $"{AuxiliaryVerb} {methodName.AsWords(verbalizationStrategy)}".Trim();
         SpecificationContext.Current.Assert(assert, ActualExpr, expected, verb);
-        return Continue();
+        var continuation = Continue();
+        continuation.WasInverted = State.HasFlag(ConstraintState.Inverted);
+        return continuation;
     }
 }

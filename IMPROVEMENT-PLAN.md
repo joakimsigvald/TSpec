@@ -6,8 +6,8 @@ Work the items top-down; each item is self-contained. Tick the checkbox when don
 **Status 2026-07-19:** R1 (1.2.1) is **code-complete** — `PackageVersion` bumped to 1.2.1 and
 `PackageReleaseNotes` written in `Core/Core.csproj`; suite at 1221 green on net8/9/10.
 Remaining for R1: commit, pack, push to nuget.org, tag `v1.2.1` (user does this).
-**Status 2026-07-20:** R2 in progress — P6 done (suite at 1230 green on net8/9/10, version bumped to 1.3.0).
-**Next up:** P7 (dictionary assertions), then P8–P10. P15 (source generator) was deferred — P6 didn't touch the ordinal boilerplate; reconsider before P7 if it starts adding ordinal methods.
+**Status 2026-07-20:** R2 in progress — P6 and P7 done (suite at 1251 green on net8/9/10, version 1.3.0).
+**Next up:** P8 (string assertion gaps), then P9–P10. P15 (source generator) remains deferred; it gained added scope from P7 (CRTP generalization of the enumerable constraints).
 
 ## Release train
 
@@ -78,9 +78,17 @@ Remaining for R1: commit, pack, push to nuget.org, tag `v1.2.1` (user does this)
 - **Breaking-change note:** signature change from `Order<TItemComp>(Func<TItemComp,int>?)`; source-compatible for the common calls (`Order()`, `Order(it => it.IntProp)`). Acceptable in a 1.x minor; call it out in release notes.
 
 ### P7. Dictionary assertions
-- [ ] Implement
-- **Gap:** no `ContainKey` / `ContainValue` / key-indexed access; dictionaries fall back to enumerable-of-KVP assertions which read poorly.
-- **Suggested API:** `dict.Does().ContainKey(k)`, `.ContainValue(v)`, `dict.Has().Value(k).that.Is(...)` (follow the existing `ContinueWithThat` pattern from `OneItem().that`).
+- [x] Done 2026-07-20: `HasDictionary<TKey,TValue> : HasEnumerable<KVP>` with `Key`/`Value`/`no` (in `HasDictionary.cs` + `HasDictionaryContinuation.cs`), entry points `Has()`/`Has(key)` on `IReadOnlyDictionary` in `AssertionExtensionsDictionary.cs`. `Key`/`Value` return `ContinueWith<HasDictionaryContinuation>` so dictionary chains (`Key(a).and.Key(b)`) keep the dictionary vocabulary; only chains through inherited enumerable assertions degrade (as accepted). Key lookup/`Has(key)` respect the dictionary's own comparer (pattern-match to `ContainsKey`/`TryGetValue`, enumeration fallback). Bonus: `dict.Has().not.Key(...)` doesn't even compile (`not` returns the plain enumerable continuation), so `no` is the only negation. Included fix shipped: `ContinueWithThat` carries a `WasInverted` flag (propagated via a new `Constraint.WasInverted` since `Continue()` resets `State`) and `.that` throws `SetupFailed` after inverted assertions. Tests: `WhenKey`/`WhenValue`/`WhenValueForKey`/`WhenThatAfterInverted` (21). README §5.5.4 + agent reference + release notes updated. Suite 1251 green on net8/9/10.
+- **Gap:** no key/value/indexed-access assertions; dictionaries fall back to enumerable-of-KVP assertions which read poorly in spec text and failure messages.
+- **API (decided 2026-07-20, supersedes the original `Does().ContainKey/ContainValue` sketch — everything lives under `Has`):**
+  - `dict.Has().Key(k)` / `dict.Has().Value(v)` — containment, continue asserting on the dictionary.
+  - `dict.Has().no.Key(k)` / `dict.Has().no.Value(v)` — `no` is a synonym for `not` (same inversion state, possession-correct grammar: "has no key"), available **only** on the dictionary `Has()` continuation. The inherited general `not` still compiles there; `no` is the documented form.
+  - `dict.Has(key).that.Is(...)` — asserts the key exists, exposes the value via `.that` (existing `ContinueWithThat` pattern from `OneItem().that`). Spec phrasing: "Dict has value for key "a" that is 3" (not "has key "a" that is 3" — the value is what `.that` refers to).
+- **Receiver:** single overload set on `IReadOnlyDictionary<TKey,TValue>` (offering `IDictionary` too makes calls on a concrete `Dictionary` ambiguous — it implements both). The dictionary `Has()` wins over the enumerable `Has()` by specificity, no `Ignore` trick needed. Doc note: variables *declared* `IDictionary<K,V>` fall back to the KVP-enumerable assertions.
+- **Failure messages:** show the entire dictionary as key-value pairs in both `Key` and `Value` failures (the existing `FormatValue` 5-element cap + ellipsis applies).
+- **Structure:** `HasDictionary<TKey,TValue>` derives `HasEnumerable<KeyValuePair<TKey,TValue>>` so `Count`/`OneItem`/etc. keep working on dictionaries. Accepted trade-off for P7: after an inherited enumerable assertion, `.and` returns the *enumerable* continuation (no `.Key`) — the fixed-`TContinuation` limitation. Proper fix is the CRTP generalization noted under [P15](#p15-collapse-the-ordinalfluent-boilerplate-with-a-source-generator); document the degradation in README until then.
+- **Tests:** Key/Value pass+fail (+`no` forms incl. spec text "has no key"), `Has(key).that` chained value assertions, non-string key types, failure messages show full pair listing, mixed chain `Has().Key(k).and.Count(n)`, concrete `Dictionary`/`FrozenDictionary` receivers compile.
+- **Included fix (2026-07-20):** `.that` after an inverted assertion — `list.Has().not.OneItem().that` compiles today and hands back a meaningless `default` value on the inverted-pass path (same for TwoItems…FiveItems). Simple solution decided: `ContinueWithThat` learns whether the producing assertion was inverted and `.that` throws `SetupFailed` in that case. Dictionary `Has(key).that` is unaffected (no inverted path reaches it) but uses the same guard.
 
 ### P8. String assertion gaps
 - [ ] Implement
@@ -136,6 +144,7 @@ Remaining for R1: commit, pack, push to nuget.org, tag `v1.2.1` (user does this)
 - [ ] Implement
 - **Scope:** `IGivenContinuation.cs` (511 lines), `GivenContinuation.cs` (254), `Spec_Value.cs` (320), `Spec_Values.cs` (304), plus full-API delegation in `TestPipeline.cs` (156) — ~1,700 hand-written lines of A/An/ASecond…AFifth × {value, setup, transform} × interface/impl/delegate. Inconsistencies already hide in it (e.g. `GivenContinuation.A<TValue>(Action…)` forwards to `_spec.A` while `An` forwards to `_spec.An` — harmless only because they're aliases). Use an incremental source generator (or T4) with one template over five ordinals × three shapes. Do this **before** P6–P14 if possible — it makes every subsequent API addition much cheaper.
 - **Caution:** keep XML doc comments in the generated output (`GenerateDocumentationFile` is on; `TreatWarningsAsErrors` will catch omissions).
+- **Added scope (from P7, 2026-07-20):** generalize the enumerable constraints CRTP-style — introduce `HasEnumerable<TItem, TContinuation>` (and siblings as needed) so subclasses like `HasDictionary<TKey,TValue>` can close the continuation type over themselves. Removes the accepted P7 degradation where chaining `.and` after an inherited enumerable assertion on a dictionary returns the plain enumerable continuation (losing `.Key`/`.Value`/`no`); update the README note about that degradation when done.
 
 ### P16. Rework the `Constraint` assertion state machine
 - [ ] Implement
