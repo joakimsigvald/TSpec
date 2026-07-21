@@ -11,6 +11,17 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
     internal AndVerify(TestResult<TSUT, TResult> parent) : base(parent) { }
 
     /// <summary>
+    /// Continuation to assert on the aggregate invocations of a mocked service
+    /// </summary>
+    /// <typeparam name="TObject"></typeparam>
+    /// <returns></returns>
+    public IVerifyService<TResult> And<TObject>() where TObject : class
+    {
+        SpecificationContext.Current.AddThen();
+        return Parent.VerifyService<TObject>();
+    }
+
+    /// <summary>
     /// Continuation to verify a mock was invoked
     /// </summary>
     /// <typeparam name="TObject"></typeparam>

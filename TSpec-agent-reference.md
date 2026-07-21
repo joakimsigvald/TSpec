@@ -32,7 +32,7 @@ Full human documentation: [README.md](https://github.com/joakimsigvald/TSpec#rea
 | `Then()` | Run pipeline, start assertion | `Then(because: "reason")` adds rationale (once per test) |
 | `Because(reason)` | Sugar for `Then(because: reason)` | `Because("...").Result.Is(...)` |
 | `Then().Result` | The captured return value | Assert with `.Is(...)` etc. |
-| `Then().Throws<TEx>()` / `Throws()` | Assert thrown exception | Also `Throws<TEx>(e => condition)`, `DoesNotThrow()`, `DoesNotThrow<TEx>()`. `Throws(func)` compares by **reference** — pass a mention (`The<TEx>`) to verify the arranged instance propagated; use the type/condition overloads to assert by content |
+| `Then().Throws<TEx>()` / `Throws()` | Assert thrown exception | Exposes the caught exception via `.that`: `Throws<TEx>().that.Message.Is("...")`, `.that.Message.Does().Match(p)`, `.that.ParamName.Is(...)` — full assert vocabulary, renders "throws TEx that Message is ...". Also `Throws<TEx>(e => condition)`, `DoesNotThrow()`, `DoesNotThrow<TEx>()`. `Throws(func)` compares by **reference** — pass a mention (`The<TEx>`) to verify the arranged instance propagated; use the type/condition overloads to assert by content |
 | `Then<TService>(_ => _.Call(...))` | Verify a mock was called | Optional `Times` argument |
 
 ## Test data: mentions and tags
@@ -77,6 +77,7 @@ Given<IMyInterface>().That(_ => _.Get(An<int>())).Tap<int>(i => _captured = i).R
 Unmocked interface methods return auto-generated defaults (no strict-mock failures). For Moq features TSpec lacks, build a `Mock<T>` manually and supply `Using(myMock.Object)`.
 
 Verification (in test methods): `Then<IOrderService>(_ => _.CreateOrder(The<Cart>()));` — optionally with `Times`: `Then<IOrderService>(_ => _.CreateOrder(The<Cart>()), Times.Once())`. Note: mentions in verify expressions match by value — a fresh `Any<T>()` matches nothing; use `The<T>()`/`The(tag)` to match arguments used in the test.
+Aggregate invocation count (any method/property): parameterless `Then<TService>()`/`And<TService>()` + `WasInvoked()` (≥1), `WasInvoked(Times)`, `WasInvoked(Func<Times>)`. With `using static Moq.Times;`: `Then<IEmailSender>().WasInvoked(Never)`, `.And<IOrderService>().WasInvoked(Once)`. Counts all invocations incl. property gets/sets; composes with a specific verification to mean "this call and no other".
 
 ## Assertions (`TSpec.Assert`)
 

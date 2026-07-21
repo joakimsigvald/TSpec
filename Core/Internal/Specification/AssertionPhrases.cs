@@ -58,5 +58,17 @@ internal class AssertionPhrases(SpecificationRecording recording, TextBuilder te
     internal void AddVerify<TService>(string expressionExpr)
         => recording.Record(() => textBuilder.AddWord($"{typeof(TService).Alias()}.{expressionExpr.ParseCall(true)}"));
 
+    internal void AddWasInvoked<TService>(string? timesExpr)
+        => recording.Record(() => textBuilder.AddWord($"{typeof(TService).Alias()} {DescribeInvocation(timesExpr)}"));
+
+    private static string DescribeInvocation(string? timesExpr)
+        => timesExpr.NormalizeTimes() switch
+        {
+            "" => "was invoked",
+            "Never" => "was not invoked",
+            "Once" => "was invoked once",
+            var normalized => $"was invoked {normalized}",
+        };
+
     private string NextThenWord() => 0 == _thenCount++ ? "Then" : "and";
 }

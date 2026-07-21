@@ -118,6 +118,9 @@ internal abstract class TestPipeline<TSUT, TResult, TParent>(TParent parent) whe
         [CallerArgumentExpression(nameof(subject))] string? subjectExpr = null)
         => Parent.Then(subject, subjectExpr);
 
+    public IVerifyService<TResult> Then<TService>() where TService : class
+        => Parent.Then<TService>();
+
     public IAndVerify<TResult> Then<TService>(
         Expression<Action<TService>> expression,
         [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null)

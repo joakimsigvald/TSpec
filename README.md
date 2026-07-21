@@ -467,6 +467,37 @@ public class WhenPlaceOrder : Spec<MyProject.ShoppingService>
 }
 ```
 
+Verify how many times a specific call was made by passing a `Moq.Times`:
+```csharp
+Then<IOrderService>(_ => _.CreateOrder(The<Cart>()), Times.Once());
+```
+
+#### 4.6.1 Aggregate invocation assertions
+
+To assert on a service's invocations *in aggregate* — rather than a specific method — use the
+parameterless `Then<TService>()` / `And<TService>()` followed by `WasInvoked`:
+
+```csharp
+using static Moq.Times;   // enables the paren-free method-group form
+
+Then<IOrderService>().WasInvoked()            // at least once
+    .And<IShoppingService>().WasInvoked(Once) // exactly once
+    .And<IEmailSender>().WasInvoked(Never);   // never touched
+```
+
+`WasInvoked(times)` checks the service's total invocation count against the `Times`. This is the
+readable way to assert a collaborator was **not** used (`WasInvoked(Never)`), and it composes with a
+specific verification to express "this call and no other" as independent facts:
+
+```csharp
+Then<IOrderService>().WasInvoked(Once).And<IOrderService>(_ => _.CreateOrder(The<Cart>()));
+```
+
+Note: `WasInvoked` counts *every* interaction recorded by Moq — method calls **and** property
+gets/sets and indexer access — so a property read counts. `WasInvoked(Never)` therefore asserts the
+service was untouched in any way. The `using static Moq.Times;` idiom lets you write `Once`/`Never`
+paren-free (they bind as method groups); without it, use `WasInvoked(Times.Once())`.
+
 The built-in mocking capabilities of TSpec cover almost all scenarios that Moq covers. 
 Should you need a feature that TSpec does not provide, create the mock explicitly with Moq and supply it to the pipeline using `Using(myMock.Object)`.
 
@@ -682,6 +713,54 @@ chained after it (with `and`, `either`/`or` etc.).
 [Fact] public void ThenCircumferenceIsAroundSixPi()
     => Because("the world is round").Result.Is().Around(Math.PI * 6, 0.001);
 ```
+
+### 5.7 Asserting exceptions
+
+When the behavior under test is expected to throw, assert the thrown exception through the
+`Then().Throws` overloads rather than `Result` (accessing `Result` after a throw fails the test).
+
+| Assertion | Meaning |
+|---|---|
+| `Then().Throws<TError>()` | threw an exception assignable to `TError` |
+| `Then().Throws()` | threw any exception |
+| `Then().Throws<TError>(e => e.Code == 42)` | threw `TError` satisfying a predicate |
+| `Then().Throws<TError>(e => e.Message.Is("Nope"))` | threw `TError` satisfying inline assertions |
+| `Then().Throws(The<TError>)` | threw *this exact instance* (by reference — pass a mention of the arranged exception) |
+| `Then().DoesNotThrow<TError>()` / `Then().DoesNotThrow()` | did not throw `TError` / did not throw at all |
+
+```csharp
+[Fact] public void ThenRejectsEmptyCart()
+    => Then().Throws<InvalidOperationException>();
+```
+
+```csharp
+When _.Checkout(an empty Cart)
+Then throws InvalidOperationException
+```
+
+#### Asserting on the thrown exception with `that`
+
+`Then().Throws<TError>()` (and the untyped `Then().Throws()`) expose the caught exception through
+`that`, so the full assertion vocabulary — including everything in this chapter — applies to it, its
+`Message`, or any other property:
+
+```csharp
+Then().Throws<ArgumentException>().that.Message.Is("Invalid cart");
+Then().Throws<ArgumentException>().that.Message.Does().Match(@"cart \d+");
+Then().Throws<ArgumentException>().that.ParamName.Is("cartId");
+```
+
+This reads naturally in the generated specification:
+
+```csharp
+When _.Create(an invalid Cart)
+Then throws ArgumentException that Message is "Invalid cart"
+```
+
+`that` is the idiomatic replacement for the older predicate form `Throws<TError>(e => e.Message.Contains(...))`,
+which records the raw lambda into the specification and hides the actual message on failure.
+The predicate and inline-assertion overloads remain available for conditions that don't decompose
+into a single property.
 
 ## 6. Guidelines
 

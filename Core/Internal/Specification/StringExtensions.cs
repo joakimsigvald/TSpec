@@ -29,6 +29,21 @@ internal static class StringExtensions
     internal static string NormalizeLineEndings(this string str)
         => str.Replace("\r\n", "\n").Replace('\r', '\n');
 
+    /// Reduce a captured Times expression to its bare factory name, so that both the
+    /// `using static Moq.Times;` form (`Once`) and the qualified form (`Times.Once()`)
+    /// render alike: "Once", "Never", "Exactly(2)".
+    internal static string NormalizeTimes(this string? expr)
+    {
+        if (string.IsNullOrWhiteSpace(expr))
+            return string.Empty;
+        var trimmed = expr.Trim();
+        if (trimmed.StartsWith("Times."))
+            trimmed = trimmed["Times.".Length..];
+        if (trimmed.EndsWith("()"))
+            trimmed = trimmed[..^2];
+        return trimmed;
+    }
+
     internal static string Capitalize(this string str)
         => string.IsNullOrWhiteSpace(str)
         ? string.Empty

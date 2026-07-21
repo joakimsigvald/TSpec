@@ -140,6 +140,40 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
         return And();
     }
 
+    internal IVerifyService<TResult> VerifyService<TService>() where TService : class
+        => new VerifyService<TSUT, TResult, TService>(this);
+
+    internal IAndVerify<TResult> VerifyInvoked<TService>(Times times, string? timesExpr)
+        where TService : class
+    {
+        var expectation = DescribeInvocationTimes(timesExpr);
+        try
+        {
+            SpecificationContext.Current.SetSubject(null);
+            SpecificationContext.Current.AddWasInvoked<TService>(timesExpr);
+            var count = Mocked<TService>().Invocations.Count;
+            if (!times.Validate(count))
+                throw new XunitException(
+                    $"Expected {typeof(TService).Alias()} to be invoked {expectation} but was invoked {count} times");
+            return new AndVerify<TSUT, TResult>(this);
+        }
+        catch (Exception ex)
+        {
+            if (_error is null)
+                throw;
+            throw new AggregateException(ex, _error);
+        }
+    }
+
+    internal static string DescribeInvocationTimes(string? timesExpr)
+        => timesExpr.NormalizeTimes() switch
+        {
+            "" => "at least once",
+            "Never" => "never",
+            "Once" => "once",
+            var normalized => normalized,
+        };
+
     internal IAndVerify<TResult> Verify<TService>(
         Expression<Action<TService>> expression, string expressionExpr)
         where TService : class

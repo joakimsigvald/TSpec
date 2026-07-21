@@ -11,6 +11,13 @@ namespace TSpec.Continuations;
 public interface IAndVerify<TResult> : IAndThen<TResult>
 {
     /// <summary>
+    /// Continue with an aggregate invocation assertion on the given mocked service, e.g. And&lt;IEmailSender&gt;().WasInvoked(Never)
+    /// </summary>
+    /// <typeparam name="TObject">The mocked type to assert invocations on</typeparam>
+    /// <returns>A continuation to assert on the aggregate invocations of the service</returns>
+    public IVerifyService<TResult> And<TObject>() where TObject : class;
+
+    /// <summary>
     /// Assert that a mock invocation satisfies the given expression
     /// </summary>
     /// <typeparam name="TObject">The mocked type to verify an invocation on</typeparam>

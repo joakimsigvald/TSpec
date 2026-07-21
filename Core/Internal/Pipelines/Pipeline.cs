@@ -27,6 +27,9 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         return subject;
     }
 
+    internal IVerifyService<TResult> Then<TService>() where TService : class
+        => TestResult.VerifyService<TService>();
+
     internal IAndVerify<TResult> Then<TService>(
         Expression<Action<TService>> expression, string expressionExpr)
         where TService : class

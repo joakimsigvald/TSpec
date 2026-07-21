@@ -36,6 +36,21 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         => Pipeline.Then(subject, subjectExpr!);
 
     /// <summary>
+    /// Run the test-pipeline and continue with an aggregate invocation assertion on the given mocked service.
+    /// </summary>
+    /// <typeparam name="TService">The mocked type to assert invocations on</typeparam>
+    /// <returns>A continuation to assert on the aggregate invocations of the service</returns>
+    /// <example>
+    /// Verify the subject did not touch a collaborator, or bounded its calls:
+    /// <code>
+    /// Then&lt;IEmailSender&gt;().WasInvoked(Never);   // using static Moq.Times;
+    /// Then&lt;IOrderService&gt;().WasInvoked(Once);
+    /// </code>
+    /// </example>
+    public IVerifyService<TResult> Then<TService>() where TService : class
+        => Pipeline.Then<TService>();
+
+    /// <summary>
     /// Run the test-pipeline and verify that the given mock invocation was made.
     /// </summary>
     /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>

@@ -49,6 +49,13 @@ public interface ITestPipeline<TSUT, TResult>
         where TService : class;
 
     /// <summary>
+    /// Run the test-pipeline and continue with an aggregate invocation assertion on the given mocked service.
+    /// </summary>
+    /// <typeparam name="TService">The mocked type to assert invocations on</typeparam>
+    /// <returns>A continuation to assert on the aggregate invocations of the service</returns>
+    IVerifyService<TResult> Then<TService>() where TService : class;
+
+    /// <summary>
     /// Run the test-pipeline and verify that the given mock invocation was made the given number of times.
     /// </summary>
     /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
