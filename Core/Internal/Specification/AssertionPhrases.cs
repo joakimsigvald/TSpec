@@ -61,6 +61,9 @@ internal class AssertionPhrases(SpecificationRecording recording, TextBuilder te
     internal void AddWasInvoked<TService>(string? timesExpr)
         => recording.Record(() => textBuilder.AddWord($"{typeof(TService).Alias()} {DescribeInvocation(timesExpr)}"));
 
+    internal void AddWasInvoked<TService>(string method, string? timesExpr)
+        => recording.Record(() => textBuilder.AddWord($"{typeof(TService).Alias()}.{method} {DescribeInvocation(timesExpr)}"));
+
     private static string DescribeInvocation(string? timesExpr)
         => timesExpr.NormalizeTimes() switch
         {

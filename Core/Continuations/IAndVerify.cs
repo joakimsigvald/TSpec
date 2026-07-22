@@ -18,6 +18,30 @@ public interface IAndVerify<TResult> : IAndThen<TResult>
     public IVerifyService<TResult> And<TObject>() where TObject : class;
 
     /// <summary>
+    /// Verify how many times a named method of the mocked service was invoked, ignoring arguments.
+    /// Matches any invocation of the named method regardless of arguments — ideal for asserting a method was not called.
+    /// </summary>
+    /// <typeparam name="TObject">The mocked type to verify an invocation on</typeparam>
+    /// <param name="method">The name of the method to count invocations of, e.g. nameof(IEventQueue.MarkFailed)</param>
+    /// <param name="times">The number of times the method is expected to have been invoked</param>
+    /// <param name="timesExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation to apply additional assertions on the test result</returns>
+    public IAndVerify<TResult> And<TObject>(string method, Times times,
+        [CallerArgumentExpression(nameof(times))] string? timesExpr = null) where TObject : class;
+
+    /// <summary>
+    /// Verify how many times a named method of the mocked service was invoked, ignoring arguments.
+    /// Matches any invocation of the named method regardless of arguments — ideal for asserting a method was not called.
+    /// </summary>
+    /// <typeparam name="TObject">The mocked type to verify an invocation on</typeparam>
+    /// <param name="method">The name of the method to count invocations of, e.g. nameof(IEventQueue.MarkFailed)</param>
+    /// <param name="times">A function providing the number of times the method is expected to have been invoked</param>
+    /// <param name="timesExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation to apply additional assertions on the test result</returns>
+    public IAndVerify<TResult> And<TObject>(string method, Func<Times> times,
+        [CallerArgumentExpression(nameof(times))] string? timesExpr = null) where TObject : class;
+
+    /// <summary>
     /// Assert that a mock invocation satisfies the given expression
     /// </summary>
     /// <typeparam name="TObject">The mocked type to verify an invocation on</typeparam>

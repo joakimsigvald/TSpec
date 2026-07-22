@@ -9,6 +9,7 @@ internal interface IAssertSpecificationContext
     void SetSubject(string? subjectExpr);
     void AddVerify<TService>(string expressionExpr);
     void AddWasInvoked<TService>(string? timesExpr);
+    void AddWasInvoked<TService>(string method, string? timesExpr);
     void AddAssertThrows<TError>(string? binder = null);
     void AddAssertThrows(string expectedExpr);
     void AddAssertDoesNotThrow<TError>();

@@ -56,6 +56,30 @@ public interface ITestPipeline<TSUT, TResult>
     IVerifyService<TResult> Then<TService>() where TService : class;
 
     /// <summary>
+    /// Run the test-pipeline and verify how many times a named method of the mocked service was invoked, ignoring arguments.
+    /// Matches any invocation of the named method regardless of arguments — ideal for asserting a method was not called.
+    /// </summary>
+    /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
+    /// <param name="method">The name of the method to count invocations of, e.g. nameof(IEventQueue.MarkFailed)</param>
+    /// <param name="times">The number of times the method is expected to have been invoked</param>
+    /// <param name="timesExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation to apply additional assertions on the test result</returns>
+    IAndVerify<TResult> Then<TService>(string method, Times times,
+        [CallerArgumentExpression(nameof(times))] string? timesExpr = null) where TService : class;
+
+    /// <summary>
+    /// Run the test-pipeline and verify how many times a named method of the mocked service was invoked, ignoring arguments.
+    /// Matches any invocation of the named method regardless of arguments — ideal for asserting a method was not called.
+    /// </summary>
+    /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
+    /// <param name="method">The name of the method to count invocations of, e.g. nameof(IEventQueue.MarkFailed)</param>
+    /// <param name="times">A function providing the number of times the method is expected to have been invoked</param>
+    /// <param name="timesExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation to apply additional assertions on the test result</returns>
+    IAndVerify<TResult> Then<TService>(string method, Func<Times> times,
+        [CallerArgumentExpression(nameof(times))] string? timesExpr = null) where TService : class;
+
+    /// <summary>
     /// Run the test-pipeline and verify that the given mock invocation was made the given number of times.
     /// </summary>
     /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>

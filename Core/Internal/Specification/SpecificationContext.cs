@@ -134,6 +134,8 @@ internal class SpecificationContext : IAssertSpecificationContext
 
     public void AddWasInvoked<TService>(string? timesExpr) => _assertion.AddWasInvoked<TService>(timesExpr);
 
+    public void AddWasInvoked<TService>(string method, string? timesExpr) => _assertion.AddWasInvoked<TService>(method, timesExpr);
+
     public void AddAssertThrows<TError>(string? binder = null) => _assertion.AddAssertThrows<TError>(binder);
 
     public void AddAssertThrows(string expectedExpr) => _assertion.AddAssertThrows(expectedExpr);

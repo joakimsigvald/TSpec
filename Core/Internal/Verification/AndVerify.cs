@@ -22,6 +22,26 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
     }
 
     /// <summary>
+    /// Continuation to verify how many times a named method of the mocked service was invoked, ignoring arguments
+    /// </summary>
+    public IAndVerify<TResult> And<TObject>(string method, Times times,
+        [CallerArgumentExpression(nameof(times))] string? timesExpr = null) where TObject : class
+    {
+        SpecificationContext.Current.AddThen();
+        return Parent.VerifyInvoked<TObject>(method, times, timesExpr!);
+    }
+
+    /// <summary>
+    /// Continuation to verify how many times a named method of the mocked service was invoked, ignoring arguments
+    /// </summary>
+    public IAndVerify<TResult> And<TObject>(string method, Func<Times> times,
+        [CallerArgumentExpression(nameof(times))] string? timesExpr = null) where TObject : class
+    {
+        SpecificationContext.Current.AddThen();
+        return Parent.VerifyInvoked<TObject>(method, times(), timesExpr!);
+    }
+
+    /// <summary>
     /// Continuation to verify a mock was invoked
     /// </summary>
     /// <typeparam name="TObject"></typeparam>

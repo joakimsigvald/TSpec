@@ -17,12 +17,12 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>1.4.0</PackageVersion>
+		<PackageVersion>1.4.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			Type-narrowing assertion: Is().A&lt;T&gt;() (synonym Is().An&lt;T&gt;()) asserts the object is of type T (subtypes accepted) and exposes it, strongly typed, through 'that' — `var encounter = one.Is().A&lt;EncounterComposition&gt;().that;` — combining the type check and cast in one step. Renders as "one is a EncounterComposition"; 'that' after an inverted `not.A&lt;T&gt;()` throws SetupFailed. Has().Type&lt;T&gt;() is now deprecated in favor of Is().A&lt;T&gt;()
+			Named-method invocation assertion: Then&lt;TService&gt;(nameof(TService.Method), Times) and .And&lt;TService&gt;(nameof(...), Times) verify how many times a named method was invoked, ignoring arguments — `.And&lt;IEventQueue&gt;(nameof(IEventQueue.MarkFailed), Never)` asserts it was never called with any args, without spelling out It.IsAny&lt;&gt;() per parameter. Matches any invocation of that name (aggregates across overloads); renders as "IEventQueue.MarkFailed was not invoked"
 	</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>

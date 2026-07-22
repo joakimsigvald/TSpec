@@ -30,6 +30,12 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
     internal IVerifyService<TResult> Then<TService>() where TService : class
         => TestResult.VerifyService<TService>();
 
+    internal IAndVerify<TResult> Then<TService>(string method, Times times, string timesExpr) where TService : class
+        => TestResult.VerifyInvoked<TService>(method, times, timesExpr);
+
+    internal IAndVerify<TResult> Then<TService>(string method, Func<Times> times, string timesExpr) where TService : class
+        => TestResult.VerifyInvoked<TService>(method, times(), timesExpr);
+
     internal IAndVerify<TResult> Then<TService>(
         Expression<Action<TService>> expression, string expressionExpr)
         where TService : class

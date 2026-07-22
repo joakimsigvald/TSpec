@@ -498,6 +498,28 @@ gets/sets and indexer access — so a property read counts. `WasInvoked(Never)` 
 service was untouched in any way. The `using static Moq.Times;` idiom lets you write `Once`/`Never`
 paren-free (they bind as method groups); without it, use `WasInvoked(Times.Once())`.
 
+#### 4.6.2 Named-method invocation assertions
+
+When you only care *whether* a named method was called — not with what arguments — pass the method
+name (as a `Times`-qualified `Then<TService>` / `And<TService>`) instead of a full expression. This
+is the concise way to assert a method was **not** called, without spelling out `It.IsAny<>()` for
+every parameter:
+
+```csharp
+using static Moq.Times;
+
+Then<IEventQueue>(_ => _.MarkRejected(42, It.IsAny<string>(), It.IsAny<CancellationToken>()), Once)
+    .And<IEventQueue>(nameof(IEventQueue.MarkFailed), Never);   // MarkFailed never called, any args
+```
+
+Use `nameof(IEventQueue.MarkFailed)` so the name stays refactor-safe (a plain `"MarkFailed"` string
+also works). It matches **any** invocation of that method regardless of arguments, rendering in the
+specification as `IEventQueue.MarkFailed was not invoked`.
+
+Because it matches by name, on an **overloaded** method the count aggregates across all overloads —
+ideal for `Never`; when a specific overload or argument values matter, use the expression form
+(`_ => _.MarkFailed(...)`) instead.
+
 The built-in mocking capabilities of TSpec cover almost all scenarios that Moq covers. 
 Should you need a feature that TSpec does not provide, create the mock explicitly with Moq and supply it to the pipeline using `Using(myMock.Object)`.
 

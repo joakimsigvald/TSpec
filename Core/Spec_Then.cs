@@ -51,6 +51,45 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         => Pipeline.Then<TService>();
 
     /// <summary>
+    /// Run the test-pipeline and verify how many times a named method of the mocked service was invoked, ignoring arguments.
+    /// </summary>
+    /// <remarks>
+    /// Matches any invocation of the named method regardless of arguments — ideal for asserting a method was not called
+    /// (<c>Never</c>). Prefer <c>nameof</c> for a refactor-safe name. On an overloaded method the count aggregates across
+    /// all overloads; use the expression form when a specific overload or argument values matter.
+    /// </remarks>
+    /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
+    /// <param name="method">The name of the method to count invocations of, e.g. <c>nameof(IEventQueue.MarkFailed)</c></param>
+    /// <param name="times">The number of times the method is expected to have been invoked</param>
+    /// <param name="timesExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for further verification or assertions of the test result</returns>
+    /// <example>
+    /// <code>
+    /// Then&lt;IEventQueue&gt;(nameof(IEventQueue.MarkFailed), Never); // using static Moq.Times;
+    /// </code>
+    /// </example>
+    public IAndVerify<TResult> Then<TService>(string method, Times times,
+        [CallerArgumentExpression(nameof(times))] string? timesExpr = null) where TService : class
+        => Pipeline.Then<TService>(method, times, timesExpr!);
+
+    /// <summary>
+    /// Run the test-pipeline and verify how many times a named method of the mocked service was invoked, ignoring arguments.
+    /// </summary>
+    /// <remarks>
+    /// Matches any invocation of the named method regardless of arguments — ideal for asserting a method was not called
+    /// (<c>Never</c>). Prefer <c>nameof</c> for a refactor-safe name. On an overloaded method the count aggregates across
+    /// all overloads; use the expression form when a specific overload or argument values matter.
+    /// </remarks>
+    /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
+    /// <param name="method">The name of the method to count invocations of, e.g. <c>nameof(IEventQueue.MarkFailed)</c></param>
+    /// <param name="times">A function providing the number of times the method is expected to have been invoked</param>
+    /// <param name="timesExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for further verification or assertions of the test result</returns>
+    public IAndVerify<TResult> Then<TService>(string method, Func<Times> times,
+        [CallerArgumentExpression(nameof(times))] string? timesExpr = null) where TService : class
+        => Pipeline.Then<TService>(method, times, timesExpr!);
+
+    /// <summary>
     /// Run the test-pipeline and verify that the given mock invocation was made.
     /// </summary>
     /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>

@@ -78,6 +78,7 @@ Unmocked interface methods return auto-generated defaults (no strict-mock failur
 
 Verification (in test methods): `Then<IOrderService>(_ => _.CreateOrder(The<Cart>()));` — optionally with `Times`: `Then<IOrderService>(_ => _.CreateOrder(The<Cart>()), Times.Once())`. Note: mentions in verify expressions match by value — a fresh `Any<T>()` matches nothing; use `The<T>()`/`The(tag)` to match arguments used in the test.
 Aggregate invocation count (any method/property): parameterless `Then<TService>()`/`And<TService>()` + `WasInvoked()` (≥1), `WasInvoked(Times)`, `WasInvoked(Func<Times>)`. With `using static Moq.Times;`: `Then<IEmailSender>().WasInvoked(Never)`, `.And<IOrderService>().WasInvoked(Once)`. Counts all invocations incl. property gets/sets; composes with a specific verification to mean "this call and no other".
+Named-method invocation count (ignoring arguments): `Then<TService>(nameof(TService.Method), Times)` / `.And<TService>(nameof(...), Times)` — e.g. `.And<IEventQueue>(nameof(IEventQueue.MarkFailed), Never)` asserts the method was never called with any args (avoids `It.IsAny<>()` for every parameter). Matches any invocation of that name; on overloads the count aggregates across all overloads (use the expression form when a specific overload/arg values matter). Renders as `IEventQueue.MarkFailed was not invoked`.
 
 ## Assertions (`TSpec.Assert`)
 

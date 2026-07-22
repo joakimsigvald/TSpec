@@ -1,4 +1,5 @@
 ﻿using Moq;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using TSpec.Continuations;
@@ -155,6 +156,28 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
             if (!times.Validate(count))
                 throw new XunitException(
                     $"Expected {typeof(TService).Alias()} to be invoked {expectation} but was invoked {count} times");
+            return new AndVerify<TSUT, TResult>(this);
+        }
+        catch (Exception ex)
+        {
+            if (_error is null)
+                throw;
+            throw new AggregateException(ex, _error);
+        }
+    }
+
+    internal IAndVerify<TResult> VerifyInvoked<TService>(string method, Times times, string? timesExpr)
+        where TService : class
+    {
+        var expectation = DescribeInvocationTimes(timesExpr);
+        try
+        {
+            SpecificationContext.Current.SetSubject(null);
+            SpecificationContext.Current.AddWasInvoked<TService>(method, timesExpr);
+            var count = Mocked<TService>().Invocations.Count(i => i.Method.Name == method);
+            if (!times.Validate(count))
+                throw new XunitException(
+                    $"Expected {typeof(TService).Alias()}.{method} to be invoked {expectation} but was invoked {count} times");
             return new AndVerify<TSUT, TResult>(this);
         }
         catch (Exception ex)
