@@ -60,11 +60,11 @@ public class AfterWhenBefore : Spec<MyStateService, int>
             .When(_ => A<MyModel>())
             .Until(_ => throw new InvalidOperationException("Unexpected exception"))
             .Then());
-        ex.InnerException.Has().Type<ApplicationException>();
+        ex.InnerException.Is().A<ApplicationException>();
         Specification.Is(
             """
             Given a MyModel is throw new ApplicationException()
-            Ex.InnerException has type ApplicationException
+            Ex.InnerException is a ApplicationException
             """);
     }
 

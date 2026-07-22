@@ -85,7 +85,7 @@ Called directly on values; every assertion returns a chainable continuation.
 Combinators (lowercase): `.and.`, `.not.`, `.either. ... .or.`, `.that.`, `.but.`.
 Also works standalone in plain xUnit tests (no `Spec` base class required), as a replacement for FluentAssertions.
 
-- Any value: `Is(x)`, `Is().EqualTo(x)`, `Is().Not(x)`, `Is().Null()`, `Is().Like(obj)`/`EquivalentTo(obj)` (structural), `Has(_ => _.Id == 3)`, `Has().Type<T>()`
+- Any value: `Is(x)`, `Is().EqualTo(x)`, `Is().Not(x)`, `Is().Null()`, `Is().Like(obj)`/`EquivalentTo(obj)` (structural), `Has(_ => _.Id == 3)`, `Is().A<T>().that`/`Is().An<T>().that` (asserts type and returns the value strongly typed as `T`; `A`/`An` are synonyms; subtypes accepted; `that` after `not.A<T>()` throws `SetupFailed`). `Has().Type<T>()` is deprecated — use `Is().A<T>()`
 - Numeric: `Is().GreaterThan(x)`, `LessThan(x)`, `Around(x, tolerance)`, `Even()`, `OneOf(values)`, `True()`, `False()`
 - Strings: `Is().Like("abc")` (case/whitespace-insensitive), `Empty()`, `NullOrEmpty()`, `NullOrWhitespace()`; `Does().Contain/StartWith/EndWith(s)` (each with an optional `StringComparison` overload), `Does().Match(pattern)` (regex; also takes a `Regex`), `Has().Length(n)`, `Has().Length().AtLeast/AtMost/InRange(...)`
 - Time: `Is().Before/After(t)`, `CloseTo(t, tolerance)`; TimeSpan: `Positive()/Negative()`

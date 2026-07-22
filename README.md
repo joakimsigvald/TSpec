@@ -546,6 +546,8 @@ Values of any type can be verified with the extension methods `Is` and `Has`
 | | `Result.Is().EquivalentTo(new MyObject {Id = 3})` |
 | Not equal | `Result.Is().Not(3)` |
 | Null | `Result.Is().Null()` |
+| A / An — assert the type and expose the value, strongly typed, through `that` (subtypes accepted; `A`/`An` are synonyms — pick the article that reads best) | `var enc = one.Is().A<EncounterComposition>().that;` |
+| | `var order = one.Is().An<Order>().that;` |
 | Greater / less than | `3.Is().GreaterThan(2)` |
 | | `2.Is().LessThan(3)` |
 | Around — approximately equal, with tolerance | `Result.Is().Around(3, 0.1)` |
@@ -559,7 +561,7 @@ Values of any type can be verified with the extension methods `Is` and `Has`
 | Assertion | Example |
 |---|---|
 | Condition | `Result.Has(_ => _.Id == 3)` |
-| Type | `Result.Has().Type<MyModel>()` |
+| Type — **deprecated**, use `Is().A<T>()` instead (asserts the type *and* exposes the value through `that`) | `Result.Has().Type<MyModel>()` |
 
 ### 5.3 Strings
 

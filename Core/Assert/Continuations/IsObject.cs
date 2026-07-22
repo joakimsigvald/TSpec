@@ -9,6 +9,41 @@ namespace TSpec.Assert.Continuations;
 public record IsObject : Constraint<object, IsObject>
 {
     /// <summary>
+    /// Asserts that the object is of the given type and exposes it, strongly typed, through 'that'
+    /// </summary>
+    /// <typeparam name="TObject">The type the object is expected to be (subtypes are accepted)</typeparam>
+    /// <returns>A continuation exposing the object as <typeparamref name="TObject"/> through 'that'</returns>
+    /// <example>
+    /// <code>
+    /// var encounter = one.Is().A&lt;EncounterComposition&gt;().that;
+    /// </code>
+    /// </example>
+    public ContinueWithThat<IsObject, TObject> A<TObject>()
+        => Assert(
+            typeof(TObject).Name,
+            actual => IsType<TObject>(actual, exactMatch: false),
+            typeof(TObject).Name)
+        .AndThat(Actual is TObject it ? it : default!);
+
+    /// <summary>
+    /// Asserts that the object is of the given type and exposes it, strongly typed, through 'that'
+    /// </summary>
+    /// <remarks>Synonymous with <see cref="A"/> — reads better for vowel-initial type names (e.g. "is an Order")</remarks>
+    /// <typeparam name="TObject">The type the object is expected to be (subtypes are accepted)</typeparam>
+    /// <returns>A continuation exposing the object as <typeparamref name="TObject"/> through 'that'</returns>
+    /// <example>
+    /// <code>
+    /// var order = one.Is().An&lt;Order&gt;().that;
+    /// </code>
+    /// </example>
+    public ContinueWithThat<IsObject, TObject> An<TObject>()
+        => Assert(
+            typeof(TObject).Name,
+            actual => IsType<TObject>(actual, exactMatch: false),
+            typeof(TObject).Name)
+        .AndThat(Actual is TObject it ? it : default!);
+
+    /// <summary>
     /// Asserts that the object is not the same reference as the given object
     /// </summary>
     /// <param name="expected">The object that actual is expected not to be</param>

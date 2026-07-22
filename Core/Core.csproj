@@ -17,12 +17,12 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>1.3.1</PackageVersion>
+		<PackageVersion>1.4.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			Aggregate mock-invocation assertion: Then&lt;TService&gt;().WasInvoked(Times) (and .And&lt;TService&gt;().WasInvoked(...)) asserts a service's total invocation count; WasInvoked(Never) reads naturally as "was not invoked". Method-group form via `using static Moq.Times;` (WasInvoked(Once)/WasInvoked(Never)). Counts all invocations including property access
+			Type-narrowing assertion: Is().A&lt;T&gt;() (synonym Is().An&lt;T&gt;()) asserts the object is of type T (subtypes accepted) and exposes it, strongly typed, through 'that' — `var encounter = one.Is().A&lt;EncounterComposition&gt;().that;` — combining the type check and cast in one step. Renders as "one is a EncounterComposition"; 'that' after an inverted `not.A&lt;T&gt;()` throws SetupFailed. Has().Type&lt;T&gt;() is now deprecated in favor of Is().A&lt;T&gt;()
 	</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
