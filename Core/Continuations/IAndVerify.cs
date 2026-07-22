@@ -15,19 +15,30 @@ public interface IAndVerify<TResult> : IAndThen<TResult>
     /// </summary>
     /// <typeparam name="TObject">The mocked type to assert invocations on</typeparam>
     /// <returns>A continuation to assert on the aggregate invocations of the service</returns>
+    [Obsolete("Use And<TObject>(wasInvoked: Times) instead, e.g. And<IEmailSender>(wasInvoked: Never).")]
     public IVerifyService<TResult> And<TObject>() where TObject : class;
 
     /// <summary>
-    /// Verify how many times a named method of the mocked service was invoked, ignoring arguments.
-    /// Matches any invocation of the named method regardless of arguments — ideal for asserting a method was not called.
+    /// Verify how many times the mocked service was invoked in aggregate — any method, property get/set or indexer access.
     /// </summary>
-    /// <typeparam name="TObject">The mocked type to verify an invocation on</typeparam>
-    /// <param name="method">The name of the method to count invocations of, e.g. nameof(IEventQueue.MarkFailed)</param>
-    /// <param name="times">The number of times the method is expected to have been invoked</param>
-    /// <param name="timesExpr">Captured automatically by the compiler — do not provide</param>
+    /// <typeparam name="TObject">The mocked type to assert invocations on</typeparam>
+    /// <param name="_">Ignore this parameter — it exists only to force the wasInvoked argument to be named</param>
+    /// <param name="wasInvoked">The number of times the service is expected to have been invoked</param>
+    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to apply additional assertions on the test result</returns>
-    public IAndVerify<TResult> And<TObject>(string method, Times times,
-        [CallerArgumentExpression(nameof(times))] string? timesExpr = null) where TObject : class;
+    public IAndVerify<TResult> And<TObject>(TSpec.Ignore _ = default, Times? wasInvoked = null,
+        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TObject : class;
+
+    /// <summary>
+    /// Verify how many times the mocked service was invoked in aggregate — any method, property get/set or indexer access.
+    /// </summary>
+    /// <typeparam name="TObject">The mocked type to assert invocations on</typeparam>
+    /// <param name="_">Ignore this parameter — it exists only to force the wasInvoked argument to be named</param>
+    /// <param name="wasInvoked">A function providing the number of times the service is expected to have been invoked</param>
+    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation to apply additional assertions on the test result</returns>
+    public IAndVerify<TResult> And<TObject>(TSpec.Ignore _ = default, Func<Times>? wasInvoked = null,
+        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TObject : class;
 
     /// <summary>
     /// Verify how many times a named method of the mocked service was invoked, ignoring arguments.
@@ -35,11 +46,23 @@ public interface IAndVerify<TResult> : IAndThen<TResult>
     /// </summary>
     /// <typeparam name="TObject">The mocked type to verify an invocation on</typeparam>
     /// <param name="method">The name of the method to count invocations of, e.g. nameof(IEventQueue.MarkFailed)</param>
-    /// <param name="times">A function providing the number of times the method is expected to have been invoked</param>
-    /// <param name="timesExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="wasInvoked">The number of times the method is expected to have been invoked</param>
+    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to apply additional assertions on the test result</returns>
-    public IAndVerify<TResult> And<TObject>(string method, Func<Times> times,
-        [CallerArgumentExpression(nameof(times))] string? timesExpr = null) where TObject : class;
+    public IAndVerify<TResult> And<TObject>(string method, Times wasInvoked,
+        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TObject : class;
+
+    /// <summary>
+    /// Verify how many times a named method of the mocked service was invoked, ignoring arguments.
+    /// Matches any invocation of the named method regardless of arguments — ideal for asserting a method was not called.
+    /// </summary>
+    /// <typeparam name="TObject">The mocked type to verify an invocation on</typeparam>
+    /// <param name="method">The name of the method to count invocations of, e.g. nameof(IEventQueue.MarkFailed)</param>
+    /// <param name="wasInvoked">A function providing the number of times the method is expected to have been invoked</param>
+    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation to apply additional assertions on the test result</returns>
+    public IAndVerify<TResult> And<TObject>(string method, Func<Times> wasInvoked,
+        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TObject : class;
 
     /// <summary>
     /// Assert that a mock invocation satisfies the given expression
@@ -58,12 +81,14 @@ public interface IAndVerify<TResult> : IAndThen<TResult>
     /// </summary>
     /// <typeparam name="TObject">The mocked type to verify an invocation on</typeparam>
     /// <param name="expression">An expression specifying the method invocation to verify</param>
-    /// <param name="times">The number of times the invocation is expected to have been made</param>
+    /// <param name="wasInvoked">The number of times the invocation is expected to have been made</param>
     /// <param name="expressionExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to apply additional assertions on the test result</returns>
     public IAndVerify<TResult> And<TObject>(
-        Expression<Action<TObject>> expression, Times times,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null)
+        Expression<Action<TObject>> expression, Times wasInvoked,
+        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
+        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
         where TObject : class;
 
     /// <summary>
@@ -71,12 +96,14 @@ public interface IAndVerify<TResult> : IAndThen<TResult>
     /// </summary>
     /// <typeparam name="TObject">The mocked type to verify an invocation on</typeparam>
     /// <param name="expression">An expression specifying the method invocation to verify</param>
-    /// <param name="times">A function providing the number of times the invocation is expected to have been made</param>
+    /// <param name="wasInvoked">A function providing the number of times the invocation is expected to have been made</param>
     /// <param name="expressionExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to apply additional assertions on the test result</returns>
     public IAndVerify<TResult> And<TObject>(
-        Expression<Action<TObject>> expression, Func<Times> times,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null)
+        Expression<Action<TObject>> expression, Func<Times> wasInvoked,
+        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
+        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
         where TObject : class;
 
     /// <summary>
@@ -98,12 +125,14 @@ public interface IAndVerify<TResult> : IAndThen<TResult>
     /// <typeparam name="TObject">The mocked type to verify an invocation on</typeparam>
     /// <typeparam name="TReturns">The return type of the mocked invocation</typeparam>
     /// <param name="expression">An expression specifying the method invocation to verify</param>
-    /// <param name="times">The number of times the invocation is expected to have been made</param>
+    /// <param name="wasInvoked">The number of times the invocation is expected to have been made</param>
     /// <param name="expressionExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to apply additional assertions on the test result</returns>
     public IAndVerify<TResult> And<TObject, TReturns>(
-        Expression<Func<TObject, TReturns>> expression, Times times,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null)
+        Expression<Func<TObject, TReturns>> expression, Times wasInvoked,
+        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
+        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
         where TObject : class;
 
     /// <summary>
@@ -112,11 +141,13 @@ public interface IAndVerify<TResult> : IAndThen<TResult>
     /// <typeparam name="TObject">The mocked type to verify an invocation on</typeparam>
     /// <typeparam name="TReturns">The return type of the mocked invocation</typeparam>
     /// <param name="expression">An expression specifying the method invocation to verify</param>
-    /// <param name="times">A function providing the number of times the invocation is expected to have been made</param>
+    /// <param name="wasInvoked">A function providing the number of times the invocation is expected to have been made</param>
     /// <param name="expressionExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to apply additional assertions on the test result</returns>
     public IAndVerify<TResult> And<TObject, TReturns>(
-        Expression<Func<TObject, TReturns>> expression, Func<Times> times,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null)
+        Expression<Func<TObject, TReturns>> expression, Func<Times> wasInvoked,
+        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
+        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
         where TObject : class;
 }

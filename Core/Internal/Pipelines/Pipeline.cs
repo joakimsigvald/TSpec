@@ -30,11 +30,17 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
     internal IVerifyService<TResult> Then<TService>() where TService : class
         => TestResult.VerifyService<TService>();
 
-    internal IAndVerify<TResult> Then<TService>(string method, Times times, string timesExpr) where TService : class
-        => TestResult.VerifyInvoked<TService>(method, times, timesExpr);
+    internal IAndVerify<TResult> ThenWasInvoked<TService>(Times wasInvoked, string wasInvokedExpr) where TService : class
+        => TestResult.VerifyInvoked<TService>(wasInvoked, wasInvokedExpr);
 
-    internal IAndVerify<TResult> Then<TService>(string method, Func<Times> times, string timesExpr) where TService : class
-        => TestResult.VerifyInvoked<TService>(method, times(), timesExpr);
+    internal IAndVerify<TResult> ThenWasInvoked<TService>(Func<Times> wasInvoked, string wasInvokedExpr) where TService : class
+        => TestResult.VerifyInvoked<TService>(wasInvoked(), wasInvokedExpr);
+
+    internal IAndVerify<TResult> Then<TService>(string method, Times wasInvoked, string wasInvokedExpr) where TService : class
+        => TestResult.VerifyInvoked<TService>(method, wasInvoked, wasInvokedExpr);
+
+    internal IAndVerify<TResult> Then<TService>(string method, Func<Times> wasInvoked, string wasInvokedExpr) where TService : class
+        => TestResult.VerifyInvoked<TService>(method, wasInvoked(), wasInvokedExpr);
 
     internal IAndVerify<TResult> Then<TService>(
         Expression<Action<TService>> expression, string expressionExpr)
@@ -42,26 +48,26 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         => TestResult.Verify(expression, expressionExpr);
 
     internal IAndVerify<TResult> Then<TService>(
-        Expression<Action<TService>> expression, Times times, string expressionExpr) where TService : class
-        => TestResult.Verify(expression, times, expressionExpr);
+        Expression<Action<TService>> expression, Times wasInvoked, string expressionExpr, string wasInvokedExpr) where TService : class
+        => TestResult.Verify(expression, wasInvoked, expressionExpr, wasInvokedExpr);
 
     internal IAndVerify<TResult> Then<TService>(
-        Expression<Action<TService>> expression, Func<Times> times, string expressionExpr) where TService : class
-        => TestResult.Verify(expression, times, expressionExpr);
+        Expression<Action<TService>> expression, Func<Times> wasInvoked, string expressionExpr, string wasInvokedExpr) where TService : class
+        => TestResult.Verify(expression, wasInvoked, expressionExpr, wasInvokedExpr);
 
     internal IAndVerify<TResult> Then<TService, TReturns>(
         Expression<Func<TService, TReturns>> expression, string expressionExpr) where TService : class
         => TestResult.Verify(expression, expressionExpr);
 
     internal IAndVerify<TResult> Then<TService, TReturns>(
-        Expression<Func<TService, TReturns>> expression, Times times, string expressionExpr)
+        Expression<Func<TService, TReturns>> expression, Times wasInvoked, string expressionExpr, string wasInvokedExpr)
         where TService : class
-        => TestResult.Verify(expression, times, expressionExpr);
+        => TestResult.Verify(expression, wasInvoked, expressionExpr, wasInvokedExpr);
 
     internal IAndVerify<TResult> Then<TService, TReturns>(
-        Expression<Func<TService, TReturns>> expression, Func<Times> times, string expressionExpr)
+        Expression<Func<TService, TReturns>> expression, Func<Times> wasInvoked, string expressionExpr, string wasInvokedExpr)
         where TService : class
-        => TestResult.Verify(expression, times, expressionExpr);
+        => TestResult.Verify(expression, wasInvoked, expressionExpr, wasInvokedExpr);
 
     internal TValue Mention<TValue>(int? index = 0) => _context.Produce<TValue>(index);
 

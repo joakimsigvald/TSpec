@@ -47,7 +47,7 @@ public class WhenPlaceOrderInvocationsByName : ShoppingServiceSpec<object>
     [Fact]
     public void ThenNamedInvocationComposesWithAggregate()
     {
-        Then<IOrderService>().WasInvoked(Once)
+        Then<IOrderService>(wasInvoked: Once)
             .And<IOrderService>(nameof(IOrderService.CreateOrder), AtMost(2));
         Specification.Is(
             """

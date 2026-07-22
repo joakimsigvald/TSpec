@@ -55,19 +55,23 @@ internal class AssertionPhrases(SpecificationRecording recording, TextBuilder te
     internal void AddAssertDoesNotThrow<TError>()
         => recording.Record(() => textBuilder.AddWord($"does not throw {typeof(TError).Alias()}"));
 
-    internal void AddVerify<TService>(string expressionExpr)
-        => recording.Record(() => textBuilder.AddWord($"{typeof(TService).Alias()}.{expressionExpr.ParseCall(true)}"));
+    internal void AddVerify<TService>(string expressionExpr, string? wasInvokedExpr = null)
+        => recording.Record(() =>
+        {
+            var call = $"{typeof(TService).Alias()}.{expressionExpr.ParseCall(true)}";
+            textBuilder.AddWord(wasInvokedExpr is null ? call : $"{call} {DescribeInvocation(wasInvokedExpr)}");
+        });
 
-    internal void AddWasInvoked<TService>(string? timesExpr)
-        => recording.Record(() => textBuilder.AddWord($"{typeof(TService).Alias()} {DescribeInvocation(timesExpr)}"));
+    internal void AddWasInvoked<TService>(string? wasInvokedExpr)
+        => recording.Record(() => textBuilder.AddWord($"{typeof(TService).Alias()} {DescribeInvocation(wasInvokedExpr)}"));
 
-    internal void AddWasInvoked<TService>(string method, string? timesExpr)
-        => recording.Record(() => textBuilder.AddWord($"{typeof(TService).Alias()}.{method} {DescribeInvocation(timesExpr)}"));
+    internal void AddWasInvoked<TService>(string method, string? wasInvokedExpr)
+        => recording.Record(() => textBuilder.AddWord($"{typeof(TService).Alias()}.{method} {DescribeInvocation(wasInvokedExpr)}"));
 
     private static string DescribeInvocation(string? timesExpr)
         => timesExpr.NormalizeTimes() switch
         {
-            "" => "was invoked",
+            "" or "AtLeastOnce" => "was invoked",
             "Never" => "was not invoked",
             "Once" => "was invoked once",
             var normalized => $"was invoked {normalized}",

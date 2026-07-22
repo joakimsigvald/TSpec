@@ -17,12 +17,12 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>1.4.1</PackageVersion>
+		<PackageVersion>1.4.2</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			Named-method invocation assertion: Then&lt;TService&gt;(nameof(TService.Method), Times) and .And&lt;TService&gt;(nameof(...), Times) verify how many times a named method was invoked, ignoring arguments — `.And&lt;IEventQueue&gt;(nameof(IEventQueue.MarkFailed), Never)` asserts it was never called with any args, without spelling out It.IsAny&lt;&gt;() per parameter. Matches any invocation of that name (aggregates across overloads); renders as "IEventQueue.MarkFailed was not invoked"
+			Unified invocation-count grammar via a wasInvoked: argument (a Moq.Times) across all three scopes: expression `Then&lt;IEventQueue&gt;(q =&gt; q.MarkRejected(42, ...), Once)`, named method `.And&lt;IEventQueue&gt;(nameof(IEventQueue.MarkFailed), Never)` (any args; avoids It.IsAny&lt;&gt;() per parameter; aggregates across overloads), and whole service `.And&lt;IEntityWriter&gt;(wasInvoked: Never)`. The bare `Then&lt;TService&gt;(expr)` still verifies ≥1 call. All forms now render the count into the specification (e.g. "IEventQueue.MarkFailed was not invoked"; negative expression assertions previously rendered as if the call happened). The Then&lt;TService&gt;().WasInvoked(Times) / .And&lt;TService&gt;().WasInvoked(Times) continuation is deprecated in favour of Then&lt;TService&gt;(wasInvoked: Times)
 	</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>

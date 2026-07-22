@@ -13,7 +13,7 @@ public class WhenPlaceOrderInvocations : ShoppingServiceSpec<object>
     [Fact]
     public void ThenOrderServiceWasInvoked()
     {
-        Then<IOrderService>().WasInvoked();
+        Then<IOrderService>(wasInvoked: AtLeastOnce);
         Specification.Is(
             """
             When _.PlaceOrder(a ShoppingCart)
@@ -24,7 +24,7 @@ public class WhenPlaceOrderInvocations : ShoppingServiceSpec<object>
     [Fact]
     public void ThenOrderServiceWasInvokedOnce()
     {
-        Then<IOrderService>().WasInvoked(Once);
+        Then<IOrderService>(wasInvoked: Once);
         Specification.Is(
             """
             When _.PlaceOrder(a ShoppingCart)
@@ -35,8 +35,8 @@ public class WhenPlaceOrderInvocations : ShoppingServiceSpec<object>
     [Fact]
     public void ThenOrderServiceWasInvokedExactlyAndAtMost()
     {
-        Then<IOrderService>().WasInvoked(Exactly(1))
-            .And<IOrderService>().WasInvoked(AtMost(2));
+        Then<IOrderService>(wasInvoked: Exactly(1))
+            .And<IOrderService>(wasInvoked: AtMost(2));
         Specification.Is(
             """
             When _.PlaceOrder(a ShoppingCart)
@@ -48,7 +48,7 @@ public class WhenPlaceOrderInvocations : ShoppingServiceSpec<object>
     [Fact]
     public void ThenWasInvokedComposesWithSpecificVerification()
     {
-        Then<IOrderService>().WasInvoked(Once)
+        Then<IOrderService>(wasInvoked: Once)
             .And<IOrderService>(_ => _.CreateOrder(The<ShoppingCart>()));
         Specification.Is(
             """
@@ -62,7 +62,7 @@ public class WhenPlaceOrderInvocations : ShoppingServiceSpec<object>
     public void ThenSpecificVerificationComposesWithWasInvoked()
     {
         Then<IOrderService>(_ => _.CreateOrder(The<ShoppingCart>()))
-            .And<IOrderService>().WasInvoked(Once);
+            .And<IOrderService>(wasInvoked: Once);
         Specification.Is(
             """
             When _.PlaceOrder(a ShoppingCart)
@@ -74,14 +74,14 @@ public class WhenPlaceOrderInvocations : ShoppingServiceSpec<object>
     [Fact]
     public void ThenWasInvokedNeverFails()
     {
-        var ex = Xunit.Assert.Throws<XunitException>(() => Then<IOrderService>().WasInvoked(Never));
+        var ex = Xunit.Assert.Throws<XunitException>(() => Then<IOrderService>(wasInvoked: Never));
         ex.Message.Is("Expected IOrderService to be invoked never but was invoked 1 times");
     }
 
     [Fact]
     public void ThenWasInvokedAtLeastTwiceFails()
     {
-        var ex = Xunit.Assert.Throws<XunitException>(() => Then<IOrderService>().WasInvoked(AtLeast(2)));
+        var ex = Xunit.Assert.Throws<XunitException>(() => Then<IOrderService>(wasInvoked: AtLeast(2)));
         ex.Message.Is("Expected IOrderService to be invoked AtLeast(2) but was invoked 1 times");
     }
 }
@@ -93,7 +93,7 @@ public class WhenCreateCartInvocations : Spec<Subjects.ShoppingService, Shopping
     [Fact]
     public void ThenOrderServiceWasNotInvoked()
     {
-        Then<IOrderService>().WasInvoked(Never);
+        Then<IOrderService>(wasInvoked: Never);
         Specification.Is(
             """
             When _.CreateCart(an int)
@@ -103,12 +103,12 @@ public class WhenCreateCartInvocations : Spec<Subjects.ShoppingService, Shopping
 
     [Fact]
     public void ThenLoggerWasNotInvoked()
-        => Then<ILogger>().WasInvoked(Never);
+        => Then<ILogger>(wasInvoked: Never);
 
     [Fact]
     public void ThenWasInvokedOnceFailsWhenNeverCalled()
     {
-        var ex = Xunit.Assert.Throws<XunitException>(() => Then<IOrderService>().WasInvoked(Once));
+        var ex = Xunit.Assert.Throws<XunitException>(() => Then<IOrderService>(wasInvoked: Once));
         ex.Message.Is("Expected IOrderService to be invoked once but was invoked 0 times");
     }
 }

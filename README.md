@@ -467,58 +467,49 @@ public class WhenPlaceOrder : Spec<MyProject.ShoppingService>
 }
 ```
 
-Verify how many times a specific call was made by passing a `Moq.Times`:
-```csharp
-Then<IOrderService>(_ => _.CreateOrder(The<Cart>()), Times.Once());
-```
+#### 4.6.1 Invocation counts — `wasInvoked:`
 
-#### 4.6.1 Aggregate invocation assertions
-
-To assert on a service's invocations *in aggregate* — rather than a specific method — use the
-parameterless `Then<TService>()` / `And<TService>()` followed by `WasInvoked`:
+To assert *how many times* something was invoked, add `wasInvoked:` — a `Moq.Times`. The same
+argument closes all three scopes, so they read identically; only the *selector* in the parentheses
+changes: a full expression (matches arguments), a method name (any arguments), or nothing (the whole
+service):
 
 ```csharp
 using static Moq.Times;   // enables the paren-free method-group form
 
-Then<IOrderService>().WasInvoked()            // at least once
-    .And<IShoppingService>().WasInvoked(Once) // exactly once
-    .And<IEmailSender>().WasInvoked(Never);   // never touched
+Then<IEventQueue>(q => q.MarkRejected(42, It.IsAny<string>(), It.IsAny<CancellationToken>()), Once)
+    .And<IEventQueue>(nameof(IEventQueue.MarkFailed), Never)   // named method, any args
+    .And<IEntityWriter>(wasInvoked: Never);                    // whole service, any interaction
 ```
 
-`WasInvoked(times)` checks the service's total invocation count against the `Times`. This is the
-readable way to assert a collaborator was **not** used (`WasInvoked(Never)`), and it composes with a
-specific verification to express "this call and no other" as independent facts:
+`wasInvoked:` is optional to name on the first two forms (positional works: `…, Once`); it is
+required on the whole-service form to keep it readable. `wasInvoked: Never` is the concise way to
+assert a collaborator was **not** used, and every form renders the count into the specification —
+e.g. `IEventQueue.MarkFailed was not invoked`.
+
+**Whole service** — counts *every* interaction recorded by Moq (method calls **and** property
+gets/sets and indexer access), so a property read counts; `wasInvoked: Never` asserts the service was
+untouched in any way:
 
 ```csharp
-Then<IOrderService>().WasInvoked(Once).And<IOrderService>(_ => _.CreateOrder(The<Cart>()));
+Then<IOrderService>(wasInvoked: Once)      // exactly one interaction
+    .And<IEmailSender>(wasInvoked: Never); // never touched
 ```
 
-Note: `WasInvoked` counts *every* interaction recorded by Moq — method calls **and** property
-gets/sets and indexer access — so a property read counts. `WasInvoked(Never)` therefore asserts the
-service was untouched in any way. The `using static Moq.Times;` idiom lets you write `Once`/`Never`
-paren-free (they bind as method groups); without it, use `WasInvoked(Times.Once())`.
+**Named method** — `nameof(IEventQueue.MarkFailed)` keeps the name refactor-safe (a plain
+`"MarkFailed"` string also works) and avoids spelling out `It.IsAny<>()` for every parameter. It
+matches **any** invocation of that method regardless of arguments; on an **overloaded** method the
+count aggregates across all overloads (ideal for `Never` — when a specific overload or argument values
+matter, use the expression form).
 
-#### 4.6.2 Named-method invocation assertions
+**Expression** — without `wasInvoked:`, `Then<TService>(expr)` verifies the call was made at least
+once (the common case); add `wasInvoked:` to assert a specific count.
 
-When you only care *whether* a named method was called — not with what arguments — pass the method
-name (as a `Times`-qualified `Then<TService>` / `And<TService>`) instead of a full expression. This
-is the concise way to assert a method was **not** called, without spelling out `It.IsAny<>()` for
-every parameter:
+The `using static Moq.Times;` idiom lets you write `Once`/`Never` paren-free (they bind as method
+groups); without it, use `wasInvoked: Times.Once()`.
 
-```csharp
-using static Moq.Times;
-
-Then<IEventQueue>(_ => _.MarkRejected(42, It.IsAny<string>(), It.IsAny<CancellationToken>()), Once)
-    .And<IEventQueue>(nameof(IEventQueue.MarkFailed), Never);   // MarkFailed never called, any args
-```
-
-Use `nameof(IEventQueue.MarkFailed)` so the name stays refactor-safe (a plain `"MarkFailed"` string
-also works). It matches **any** invocation of that method regardless of arguments, rendering in the
-specification as `IEventQueue.MarkFailed was not invoked`.
-
-Because it matches by name, on an **overloaded** method the count aggregates across all overloads —
-ideal for `Never`; when a specific overload or argument values matter, use the expression form
-(`_ => _.MarkFailed(...)`) instead.
+> **Deprecated:** the older `Then<TService>().WasInvoked(Times)` / `And<TService>().WasInvoked(Times)`
+> continuation still works but is deprecated in favour of `Then<TService>(wasInvoked: Times)`.
 
 The built-in mocking capabilities of TSpec cover almost all scenarios that Moq covers. 
 Should you need a feature that TSpec does not provide, create the mock explicitly with Moq and supply it to the pipeline using `Using(myMock.Object)`.

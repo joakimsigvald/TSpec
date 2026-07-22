@@ -51,21 +51,35 @@ public interface ITestPipeline<TSUT, TResult>
     /// <summary>
     /// Run the test-pipeline and continue with an aggregate invocation assertion on the given mocked service.
     /// </summary>
+    /// <remarks>Deprecated: use <c>Then&lt;TService&gt;(wasInvoked: Times)</c> instead.</remarks>
     /// <typeparam name="TService">The mocked type to assert invocations on</typeparam>
     /// <returns>A continuation to assert on the aggregate invocations of the service</returns>
+    [Obsolete("Use Then<TService>(wasInvoked: Times) instead, e.g. Then<IEmailSender>(wasInvoked: Never).")]
     IVerifyService<TResult> Then<TService>() where TService : class;
 
     /// <summary>
-    /// Run the test-pipeline and verify how many times a named method of the mocked service was invoked, ignoring arguments.
-    /// Matches any invocation of the named method regardless of arguments — ideal for asserting a method was not called.
+    /// Run the test-pipeline and verify how many times the mocked service was invoked in aggregate — any method,
+    /// property get/set or indexer access.
     /// </summary>
-    /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
-    /// <param name="method">The name of the method to count invocations of, e.g. nameof(IEventQueue.MarkFailed)</param>
-    /// <param name="times">The number of times the method is expected to have been invoked</param>
-    /// <param name="timesExpr">Captured automatically by the compiler — do not provide</param>
+    /// <typeparam name="TService">The mocked type to assert invocations on</typeparam>
+    /// <param name="_">Ignore this parameter — it exists only to force the wasInvoked argument to be named</param>
+    /// <param name="wasInvoked">The number of times the service is expected to have been invoked</param>
+    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to apply additional assertions on the test result</returns>
-    IAndVerify<TResult> Then<TService>(string method, Times times,
-        [CallerArgumentExpression(nameof(times))] string? timesExpr = null) where TService : class;
+    IAndVerify<TResult> Then<TService>(Ignore _ = default, Times? wasInvoked = null,
+        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class;
+
+    /// <summary>
+    /// Run the test-pipeline and verify how many times the mocked service was invoked in aggregate — any method,
+    /// property get/set or indexer access.
+    /// </summary>
+    /// <typeparam name="TService">The mocked type to assert invocations on</typeparam>
+    /// <param name="_">Ignore this parameter — it exists only to force the wasInvoked argument to be named</param>
+    /// <param name="wasInvoked">A function providing the number of times the service is expected to have been invoked</param>
+    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation to apply additional assertions on the test result</returns>
+    IAndVerify<TResult> Then<TService>(Ignore _ = default, Func<Times>? wasInvoked = null,
+        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class;
 
     /// <summary>
     /// Run the test-pipeline and verify how many times a named method of the mocked service was invoked, ignoring arguments.
@@ -73,23 +87,37 @@ public interface ITestPipeline<TSUT, TResult>
     /// </summary>
     /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
     /// <param name="method">The name of the method to count invocations of, e.g. nameof(IEventQueue.MarkFailed)</param>
-    /// <param name="times">A function providing the number of times the method is expected to have been invoked</param>
-    /// <param name="timesExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="wasInvoked">The number of times the method is expected to have been invoked</param>
+    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to apply additional assertions on the test result</returns>
-    IAndVerify<TResult> Then<TService>(string method, Func<Times> times,
-        [CallerArgumentExpression(nameof(times))] string? timesExpr = null) where TService : class;
+    IAndVerify<TResult> Then<TService>(string method, Times wasInvoked,
+        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class;
+
+    /// <summary>
+    /// Run the test-pipeline and verify how many times a named method of the mocked service was invoked, ignoring arguments.
+    /// Matches any invocation of the named method regardless of arguments — ideal for asserting a method was not called.
+    /// </summary>
+    /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
+    /// <param name="method">The name of the method to count invocations of, e.g. nameof(IEventQueue.MarkFailed)</param>
+    /// <param name="wasInvoked">A function providing the number of times the method is expected to have been invoked</param>
+    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation to apply additional assertions on the test result</returns>
+    IAndVerify<TResult> Then<TService>(string method, Func<Times> wasInvoked,
+        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class;
 
     /// <summary>
     /// Run the test-pipeline and verify that the given mock invocation was made the given number of times.
     /// </summary>
     /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
     /// <param name="expression">An expression specifying the method invocation to verify</param>
-    /// <param name="times">The number of times the invocation is expected to have been made</param>
+    /// <param name="wasInvoked">The number of times the invocation is expected to have been made</param>
     /// <param name="expressionExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to apply additional assertions on the test result</returns>
     IAndVerify<TResult> Then<TService>(
-        Expression<Action<TService>> expression, Times times,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null)
+        Expression<Action<TService>> expression, Times wasInvoked,
+        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
+        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
         where TService : class;
 
     /// <summary>
@@ -97,12 +125,14 @@ public interface ITestPipeline<TSUT, TResult>
     /// </summary>
     /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
     /// <param name="expression">An expression specifying the method invocation to verify</param>
-    /// <param name="times">A function providing the number of times the invocation is expected to have been made</param>
+    /// <param name="wasInvoked">A function providing the number of times the invocation is expected to have been made</param>
     /// <param name="expressionExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to apply additional assertions on the test result</returns>
     IAndVerify<TResult> Then<TService>(
-        Expression<Action<TService>> expression, Func<Times> times,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null)
+        Expression<Action<TService>> expression, Func<Times> wasInvoked,
+        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
+        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
         where TService : class;
 
     /// <summary>
@@ -124,12 +154,14 @@ public interface ITestPipeline<TSUT, TResult>
     /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
     /// <typeparam name="TReturns">The return type of the mocked invocation</typeparam>
     /// <param name="expression">An expression specifying the method invocation to verify</param>
-    /// <param name="times">The number of times the invocation is expected to have been made</param>
+    /// <param name="wasInvoked">The number of times the invocation is expected to have been made</param>
     /// <param name="expressionExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to apply additional assertions on the test result</returns>
     IAndVerify<TResult> Then<TService, TReturns>(
-        Expression<Func<TService, TReturns>> expression, Times times,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null)
+        Expression<Func<TService, TReturns>> expression, Times wasInvoked,
+        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
+        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
         where TService : class;
 
     /// <summary>
@@ -138,12 +170,14 @@ public interface ITestPipeline<TSUT, TResult>
     /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
     /// <typeparam name="TReturns">The return type of the mocked invocation</typeparam>
     /// <param name="expression">An expression specifying the method invocation to verify</param>
-    /// <param name="times">A function providing the number of times the invocation is expected to have been made</param>
+    /// <param name="wasInvoked">A function providing the number of times the invocation is expected to have been made</param>
     /// <param name="expressionExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to apply additional assertions on the test result</returns>
     IAndVerify<TResult> Then<TService, TReturns>(
-        Expression<Func<TService, TReturns>> expression, Func<Times> times,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null)
+        Expression<Func<TService, TReturns>> expression, Func<Times> wasInvoked,
+        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
+        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
         where TService : class;
 
     /// <summary>

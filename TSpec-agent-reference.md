@@ -76,9 +76,12 @@ Given<IMyInterface>().That(_ => _.Get(An<int>())).Tap<int>(i => _captured = i).R
 
 Unmocked interface methods return auto-generated defaults (no strict-mock failures). For Moq features TSpec lacks, build a `Mock<T>` manually and supply `Using(myMock.Object)`.
 
-Verification (in test methods): `Then<IOrderService>(_ => _.CreateOrder(The<Cart>()));` — optionally with `Times`: `Then<IOrderService>(_ => _.CreateOrder(The<Cart>()), Times.Once())`. Note: mentions in verify expressions match by value — a fresh `Any<T>()` matches nothing; use `The<T>()`/`The(tag)` to match arguments used in the test.
-Aggregate invocation count (any method/property): parameterless `Then<TService>()`/`And<TService>()` + `WasInvoked()` (≥1), `WasInvoked(Times)`, `WasInvoked(Func<Times>)`. With `using static Moq.Times;`: `Then<IEmailSender>().WasInvoked(Never)`, `.And<IOrderService>().WasInvoked(Once)`. Counts all invocations incl. property gets/sets; composes with a specific verification to mean "this call and no other".
-Named-method invocation count (ignoring arguments): `Then<TService>(nameof(TService.Method), Times)` / `.And<TService>(nameof(...), Times)` — e.g. `.And<IEventQueue>(nameof(IEventQueue.MarkFailed), Never)` asserts the method was never called with any args (avoids `It.IsAny<>()` for every parameter). Matches any invocation of that name; on overloads the count aggregates across all overloads (use the expression form when a specific overload/arg values matter). Renders as `IEventQueue.MarkFailed was not invoked`.
+Verification (in test methods): `Then<IOrderService>(_ => _.CreateOrder(The<Cart>()));` verifies the call was made ≥1 time. Note: mentions in verify expressions match by value — a fresh `Any<T>()` matches nothing; use `The<T>()`/`The(tag)` to match arguments used in the test.
+Invocation counts — `wasInvoked:` (a `Moq.Times`) closes all three scopes identically; only the selector in the parens changes. With `using static Moq.Times;`:
+- Expression (matches args): `Then<IEventQueue>(q => q.MarkRejected(42, It.IsAny<string>(), It.IsAny<CancellationToken>()), Once)` — positional `Times`; without it the bare form is ≥1.
+- Named method (any args): `.And<IEventQueue>(nameof(IEventQueue.MarkFailed), Never)` — avoids `It.IsAny<>()` per param; matches any invocation of that name (on overloads the count aggregates across all overloads; use the expression form when a specific overload/arg values matter).
+- Whole service (any method/property incl. gets/sets): `.And<IEntityWriter>(wasInvoked: Never)` — `wasInvoked:` must be named here.
+All three render the count into the spec (e.g. `IEventQueue.MarkFailed was not invoked`). Deprecated: `Then<TService>().WasInvoked(Times)` / `.And<TService>().WasInvoked(Times)` — use `Then<TService>(wasInvoked: Times)`.
 
 ## Assertions (`TSpec.Assert`)
 
