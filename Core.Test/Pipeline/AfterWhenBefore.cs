@@ -58,7 +58,7 @@ public class AfterWhenBefore : Spec<MyStateService, int>
         var ex = Xunit.Assert.Throws<SetupFailed>(() 
             => Given().A<MyModel>(m => throw new ApplicationException())
             .When(_ => A<MyModel>())
-            .Until(_ => throw new InvalidOperationException("Unexpected exception"))
+            .Until(void (_) => throw new InvalidOperationException("Unexpected exception"))
             .Then());
         ex.InnerException.Is().A<ApplicationException>();
         Specification.Is(

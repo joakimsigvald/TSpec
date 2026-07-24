@@ -4,7 +4,7 @@ public abstract class WhenCallAsyncActionTwice : Spec<InterfaceService>
 {
     protected WhenCallAsyncActionTwice()
     {
-        When(async _ =>
+        When(async Task (_) =>
         {
             var task1 = TrySetValue(_, 1);
             await task1;

@@ -49,6 +49,26 @@ internal abstract class TestPipeline<TSUT, TResult, TParent>(TParent parent) whe
         [CallerArgumentExpression(nameof(act))] string? actExpr = null)
         => Parent.When(act, actExpr!);
 
+    public ITestPipeline<TSUT, TResult> When(
+        Func<TSUT, ValueTask> act,
+        [CallerArgumentExpression(nameof(act))] string? actExpr = null, Ignore _ = default)
+        => Parent.When(act, actExpr!);
+
+    public ITestPipeline<TSUT, TResult> When(
+        Func<ValueTask> act,
+        [CallerArgumentExpression(nameof(act))] string? actExpr = null, Ignore _ = default)
+        => Parent.When(act, actExpr!);
+
+    public ITestPipeline<TSUT, TResult> When(
+        Func<TSUT, ValueTask<TResult>> act,
+        [CallerArgumentExpression(nameof(act))] string? actExpr = null, Ignore _ = default)
+        => Parent.When(act, actExpr!);
+
+    public ITestPipeline<TSUT, TResult> When(
+        Func<ValueTask<TResult>> act,
+        [CallerArgumentExpression(nameof(act))] string? actExpr = null, Ignore _ = default)
+        => Parent.When(act, actExpr!);
+
     public ITestPipeline<TSUT, TResult> Having(
         Action<TSUT> setUp,
         Func<int>? delayBeforeNextMs = null,
@@ -63,12 +83,25 @@ internal abstract class TestPipeline<TSUT, TResult, TParent>(TParent parent) whe
         [CallerArgumentExpression(nameof(delayBeforeNextMs))] string? delayExpr = null)
         => Parent.Having(setUp, delayBeforeNextMs, setUpExpr!, delayExpr!);
 
+    public ITestPipeline<TSUT, TResult> Having(
+        Func<TSUT, ValueTask> setUp,
+        Func<int>? delayBeforeNextMs = null,
+        [CallerArgumentExpression(nameof(setUp))] string? setUpExpr = null,
+        [CallerArgumentExpression(nameof(delayBeforeNextMs))] string? delayExpr = null,
+        Ignore _ = default)
+        => Parent.Having(setUp, delayBeforeNextMs, setUpExpr!, delayExpr!);
+
     public ITestPipeline<TSUT, TResult> Until(
         Action<TSUT> tearDown, [CallerArgumentExpression(nameof(tearDown))] string? tearDownExpr = null)
         => Parent.Until(tearDown, tearDownExpr!);
 
     public ITestPipeline<TSUT, TResult> Until(
         Func<TSUT, Task> tearDown, [CallerArgumentExpression(nameof(tearDown))] string? tearDownExpr = null)
+        => Parent.Until(tearDown, tearDownExpr!);
+
+    public ITestPipeline<TSUT, TResult> Until(
+        Func<TSUT, ValueTask> tearDown, [CallerArgumentExpression(nameof(tearDown))] string? tearDownExpr = null,
+        Ignore _ = default)
         => Parent.Until(tearDown, tearDownExpr!);
 
     public IGivenTestPipeline<TSUT, TResult> Given<TValue>(

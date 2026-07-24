@@ -5,9 +5,9 @@ namespace TSpec.Test.AutoMock;
 public abstract class WhenCallAsyncFunctionTwice : Spec<InterfaceService, int>
 {
     protected WhenCallAsyncFunctionTwice()
-        => When(async _ => await TryGetValue(_) + await _.GetServiceValueAsync());
+        => When(async Task<int> (_) => await TryGet(_) + await _.GetServiceValueAsync());
 
-    private async Task<int> TryGetValue(InterfaceService _)
+    private async Task<int> TryGet(InterfaceService _)
     {
         try
         {
@@ -29,7 +29,7 @@ public abstract class WhenCallAsyncFunctionTwice : Spec<InterfaceService, int>
             Specification.Is(
                 """
                 Given IMyService.GetValueAsync() returns 1
-                When async _ => await TryGetValue(_) + await _.GetServiceValueAsync()
+                When async Task<int> (_) => await TryGet(_) + await _.GetServiceValueAsync()
                 Then Result is 2
                 """);
         }
@@ -48,7 +48,7 @@ public abstract class WhenCallAsyncFunctionTwice : Spec<InterfaceService, int>
                 """
                 Given IMyService.GetValueAsync() first returns 1
                   and next returns 2
-                When async _ => await TryGetValue(_) + await _.GetServiceValueAsync()
+                When async Task<int> (_) => await TryGet(_) + await _.GetServiceValueAsync()
                 Then Result is 3
                 """);
         }
@@ -71,7 +71,7 @@ public abstract class WhenCallAsyncFunctionTwice : Spec<InterfaceService, int>
                 Given IMyService.GetValueAsync() first returns 1
                   and next throws an ArgumentException
                   and next returns
-                When async _ => await TryGetValue(_) + await _.GetServiceValueAsync()
+                When async Task<int> (_) => await TryGet(_) + await _.GetServiceValueAsync()
                 Then throws the ArgumentException
                 """);
         }
@@ -90,7 +90,7 @@ public abstract class WhenCallAsyncFunctionTwice : Spec<InterfaceService, int>
                 """
                 Given IMyService.GetValueAsync() first throws an ArgumentException
                   and next returns an int
-                When async _ => await TryGetValue(_) + await _.GetServiceValueAsync()
+                When async Task<int> (_) => await TryGet(_) + await _.GetServiceValueAsync()
                 Then Result is the int
                 """);
         }

@@ -3,20 +3,50 @@
 Origin: full code review 2026-07-19 (all 1201 tests green on net10.0, zero warnings).
 Work the items top-down; each item is self-contained. Tick the checkbox when done.
 
-**Status 2026-07-19:** R1 (1.2.1) is **code-complete** — `PackageVersion` bumped to 1.2.1 and
-`PackageReleaseNotes` written in `Core/Core.csproj`; suite at 1221 green on net8/9/10.
-Remaining for R1: commit, pack, push to nuget.org, tag `v1.2.1` (user does this).
-**Status 2026-07-20:** R2 complete — P6–P10 all done. P6–P9 shipped in 1.3.0; P10 (`WasInvoked`) is on 1.3.1 (user-set version), suite 1285 green on net8/9/10. README now has a full Asserting-exceptions section (§5.7).
-**Remaining for 1.3.1:** run the release procedure (tri-framework run, pack, push, tag) for P10. P15 (source generator) remains deferred; it gained added scope from P7 (CRTP generalization of the enumerable constraints).
+## Status (2026-07-24)
+
+R1 and R2 are **complete**: P1, P3–P5 landed in 1.2.1; P6–P9 in 1.3.0; P10 (`WasInvoked`) in 1.3.1.
+
+Since then, three unplanned releases landed off-plan (they are not P-items):
+
+| Version | Content | Shipped to nuget.org? |
+|---|---|---|
+| 1.4.0 | `Is().A<T>()` / `An<T>()` type-narrowing assertion exposing the value via `that`; deprecates `Has().Type<T>()` | yes |
+| 1.4.1 | Named-method invocation assertion `Then<TService>(nameof(...), Times)` | yes |
+| 1.4.2 | Unified `wasInvoked:` invocation-count grammar across all three scopes; deprecates the `Then<TService>().WasInvoked(Times)` continuation | **no — committed, not yet packed/pushed** |
+
+`PackageVersion` is currently **1.4.2**. No `v*` tags exist in the repo; the release procedure's tagging
+step has not been applied to any release so far.
+
+R3 is renumbered to **1.5.0** because 1.4.x was consumed by the off-plan work above. **P11 (ValueTask)
+is done** (2026-07-24) and `PackageVersion` is now **1.5.0**; since 1.4.2 was never pushed, its release
+notes are folded into the 1.5.0 notes. P12–P14 and all internal refactors (P15–P19) remain open.
+P15 (source generator) gained added scope from P7 (CRTP generalization of the enumerable constraints).
 
 ## Release train
 
 | Release | Version | Content | Bump rationale (per CLAUDE.md: docs/packaging = patch, new functionality = minor) |
 |---|---|---|---|
-| R1 | **1.2.1** | P1, P3–P5: correctness fixes, no new API surface | Bug fixes only → patch |
-| R2 | **1.3.0** | P6–P10: assert-library API additions (P6 also fixes the P2 bug) | New functionality → minor |
-| R3 | **1.4.0** | P11–P14: pipeline/generation features | New functionality → minor |
+| R1 | **1.2.1** ✅ | P1, P3–P5: correctness fixes, no new API surface | Bug fixes only → patch |
+| R2 | **1.3.0 / 1.3.1** ✅ | P6–P10: assert-library API additions (P6 also fixes the P2 bug) | New functionality → minor |
+| — | **1.4.0–1.4.2** | Off-plan assert/verification additions (see status table) | New functionality → minor |
+| R3 | **1.5.0** | P11–P14: pipeline/generation features | New functionality → minor |
 | — | (no release) | P15–P19: internal refactors | Ship with whichever release comes next; no standalone release needed |
+| R4 | **2.0.0** | All/most remaining items done **+ removal of every deprecated member** | Removals are binary- and source-breaking → major |
+
+### 2.0.0 — the destination
+
+2.0.0 is the target once all or most of the plan is done. It is the release that **drops the
+deprecated surface** accumulated in 1.x. Everything currently carrying `[Obsolete]`:
+
+| Deprecated member | Replacement | Deprecated in |
+|---|---|---|
+| `Spec.Then<TService>()` / `ITestPipeline.Then<TService>()` / `TestPipeline.Then<TService>()` (parameterless) | `Then<TService>(wasInvoked: Times)` | 1.4.2 |
+| `IAndVerify.And<TObject>()` / `AndVerify.And<TObject>()` (parameterless) | `And<TObject>(wasInvoked: Times)` | 1.4.2 |
+| `HasObject.Type<TObject>()` | `Is().A<T>()` / `Is().An<T>()` | 1.4.0 |
+
+Removing these also lets `IVerifyService<TResult>` and `VerifyService` go — nothing else produces them.
+Keep this table current: **any new deprecation added in 1.x gets a row here in the same change.**
 
 **Release procedure (every release):**
 1. Update `PackageVersion` and `PackageReleaseNotes` in `Core/Core.csproj`.
@@ -115,12 +145,12 @@ Remaining for R1: commit, pack, push to nuget.org, tag `v1.2.1` (user does this)
 
 ---
 
-## R3 — 1.4.0 (pipeline & generation features)
+## R3 — 1.5.0 (pipeline & generation features)
 
 ### P11. `ValueTask` / `ValueTask<T>` support
-- [ ] Implement
-- **Gap:** `When`/`Having`/`Until` and mock `Returns` only handle `Task`; `ValueTask`-returning methods need manual `.AsTask()` or hit "unexpected signature" (`SpecFixture.Invoke` switch, `SpecFixture.cs:43-58`).
-- **Suggested fix:** add `Func<TSUT, ValueTask>`/`Func<TSUT, ValueTask<TResult>>` (+ subject-less) overloads to `Spec_When`, `TestPipeline`, `ITestPipeline`, and the `Invoke` switch; mock-side `ReturnsAsync` for ValueTask setups in `GivenThatCommonContinuation`.
+- [x] Done 2026-07-24: `ValueTask`/`ValueTask<T>` overloads on `When` (×4: with/without subject, with/without result), `Having` and `Until` in `Spec_When`/`ITestPipeline`/`TestPipeline`, plus the four `SpecFixture.Invoke` switch cases (`.AsTask()` into the existing `AsyncHelper`). Mock side: `That<TReturns>(Expression<Func<TService, ValueTask<TReturns>>>)` overload on `IGivenServiceContinuation` unwraps the value-task like the `Task<T>` one, and `GivenThatCommonContinuation` gained ValueTask branches in all four setup paths (`Returns()`, `Returns(func)`, `Throws<T>()`, `Throws(func)`) incl. `SetupSequence`; `Given<TService>().Returns(...)` also registers a `ValueTask<T>` default. Generation: new `ValueTaskCompiler` (compiled `new ValueTask<T>(value)`), `FluentDefaultProvider` wraps auto-generated results for `ValueTask`/`ValueTask<T>` members (`GetAsyncResult` shared with the Task path), `DataProvider.TryGetValueOfAsync` covers both. Tests: `Core.Test/Pipeline/WhenValueTask.cs` (11) over new subjects `CounterService`/`ICounterStore`. README §2.5 + agent reference updated. Suite 1317 green on net8/9/10.
+- **Breaking (compile-time only, narrow) — 5 call sites in our own 386:** a lambda with no inferable return type (`async _ => ...`, or a `throw` body) is now ambiguous between the Task and ValueTask overloads (CS0121). Fix: state the return type — `When(async Task<int> (_) => ...)`, `Until(void (_) => throw ...)` — or drop the `async` and pass the call directly. **An optional `Ignore` tie-breaker parameter does not work** (tried): Roslyn's optional-parameter tie-break only fires when one candidate has *no* omitted optional parameters, and `[CallerArgumentExpression] expr` is always omitted. Annotating the lambda *parameter* type does not help either — only the return type does. Note the fix changes the recorded specification text (the captured expression now includes the return type), and TSpec wraps spec lines at 80 chars.
+- ~~**Gap:** `When`/`Having`/`Until` and mock `Returns` only handle `Task`~~
 
 ### P12. Global generation extensibility
 - [ ] Implement

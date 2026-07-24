@@ -50,7 +50,7 @@ internal class DataProvider
         };
 
     public bool TryGetValue(Type type, For scope, out object? val)
-        => TryGetValueOfType(type, scope, out val) || TryGetValueOfTask(type, scope, out val);
+        => TryGetValueOfType(type, scope, out val) || TryGetValueOfAsync(type, scope, out val);
 
     private bool TryGetValueOfType(Type type, For scope, out object? val)
         => scope switch
@@ -60,19 +60,24 @@ internal class DataProvider
             _ => throw new SetupFailed($"Unsupported scope: {scope}")
         };
 
-    private bool TryGetValueOfTask(Type type, For scope, out object? val)
+    private bool TryGetValueOfAsync(Type type, For scope, out object? val)
     {
-        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Task<>))
-        {
-            var innerType = type.GetGenericArguments()[0];
-            if (TryGetValue(innerType, scope, out var innerVal))
-            {
-                val = TaskCompiler.GetFromResultMethod(innerType)(innerVal!);
-                return true;
-            }
-        }
         val = null;
-        return false;
+        if (!type.IsGenericType)
+            return false;
+
+        var asyncType = type.GetGenericTypeDefinition();
+        if (asyncType != typeof(Task<>) && asyncType != typeof(ValueTask<>))
+            return false;
+
+        var innerType = type.GetGenericArguments()[0];
+        if (!TryGetValue(innerType, scope, out var innerVal))
+            return false;
+
+        val = asyncType == typeof(Task<>)
+            ? TaskCompiler.GetFromResultMethod(innerType)(innerVal!)
+            : ValueTaskCompiler.GetFromResultMethod(innerType)(innerVal!);
+        return true;
     }
 
     private static bool TryGetValue(Dictionary<Type, Arrangement> arrangements, Type type, out object? val)

@@ -51,7 +51,7 @@ public abstract class WhenGetStateAfterSetStateWithAsyncTaskDelay : Spec<Delayed
     protected WhenGetStateAfterSetStateWithAsyncTaskDelay()
         => Using(() => The(_delay), For.Subject)
         .When(_ => _.State)
-        .Having(async _ =>
+        .Having(async Task (_) =>
         {
             _.SetState(The(_state));
             await Task.Delay(The(_wait));

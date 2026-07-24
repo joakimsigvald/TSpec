@@ -254,10 +254,12 @@ Ownership is reflected in the generated specification: `Using owned CreateClient
 
 TSpec supports testing synchronous and asynchronous code using the same test pipeline.
 
-When the behavior under test is asynchronous (returns `Task` or `Task<T>`), TSpec waits for completion and captures the outcome in the same way as for synchronous code.
+When the behavior under test is asynchronous (returns `Task`, `Task<T>`, `ValueTask` or `ValueTask<T>`), TSpec waits for completion and captures the outcome in the same way as for synchronous code.
 The only difference is the lambda signature provided to `When`, `Having`, `Until`, and mock setup methods.
 Test methods themselves do not need to be `async`, but they may be — the test pipeline and
 specification follow the test's async flow, so it is safe to await other work before asserting.
+
+A lambda that needs its own `async` body — or consists of a `throw` — must state its return type to be unambigous
 
 ## 3. Using Test Data
 

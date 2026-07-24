@@ -254,6 +254,47 @@ public interface ITestPipeline<TSUT, TResult>
         [CallerArgumentExpression(nameof(act))] string? actExpr = null);
 
     /// <summary>
+    /// Provide the async method-under-test to the test-pipeline
+    /// </summary>
+    /// <param name="act">A lambda expression invoking the async method-under-test on the subject under test, without return value</param>
+    /// <param name="actExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="_">Ignore this parameter — it exists only to distinguish the ValueTask overload from the Task overload</param>
+    /// <returns>A continuation for providing further arrangement, or executing the test</returns>
+    ITestPipeline<TSUT, TResult> When(Func<TSUT, ValueTask> act,
+        [CallerArgumentExpression(nameof(act))] string? actExpr = null, Ignore _ = default);
+
+    /// <summary>
+    /// Provide the async method-under-test to the test-pipeline
+    /// </summary>
+    /// <param name="act">A lambda expression invoking the async method-under-test, without subject under test or return value</param>
+    /// <param name="actExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="_">Ignore this parameter — it exists only to distinguish the ValueTask overload from the Task overload</param>
+    /// <returns>A continuation for providing further arrangement, or executing the test</returns>
+    ITestPipeline<TSUT, TResult> When(Func<ValueTask> act,
+        [CallerArgumentExpression(nameof(act))] string? actExpr = null, Ignore _ = default);
+
+    /// <summary>
+    /// Provide the async method-under-test to the test-pipeline
+    /// </summary>
+    /// <param name="act">A lambda expression invoking the async method-under-test on the subject under test and returning the result</param>
+    /// <param name="actExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="_">Ignore this parameter — it exists only to distinguish the ValueTask overload from the Task overload</param>
+    /// <returns>A continuation for providing further arrangement, or executing the test</returns>
+    ITestPipeline<TSUT, TResult> When(Func<TSUT, ValueTask<TResult>> act,
+        [CallerArgumentExpression(nameof(act))] string? actExpr = null, Ignore _ = default);
+
+    /// <summary>
+    /// Provide the async method-under-test to the test-pipeline
+    /// </summary>
+    /// <param name="act">A lambda expression invoking the async method-under-test, without subject under test, returning the result</param>
+    /// <param name="actExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="_">Ignore this parameter — it exists only to distinguish the ValueTask overload from the Task overload</param>
+    /// <returns>A continuation for providing further arrangement, or executing the test</returns>
+    ITestPipeline<TSUT, TResult> When(
+        Func<ValueTask<TResult>> act,
+        [CallerArgumentExpression(nameof(act))] string? actExpr = null, Ignore _ = default);
+
+    /// <summary>
     /// Provide a Setup method that will be called before the method-under-test.
     /// Setup methods are executed in the opposite order that they are provided.
     /// </summary>
@@ -284,6 +325,23 @@ public interface ITestPipeline<TSUT, TResult>
         [CallerArgumentExpression(nameof(delayBeforeNextMs))] string? delayExpr = null);
 
     /// <summary>
+    /// Provide an async Setup method that will be called before the method-under-test.
+    /// Setup methods are executed in the opposite order that they are provided.
+    /// </summary>
+    /// <param name="setUp">the async method to call as setup before executing the method-under-test</param>
+    /// <param name="delayBeforeNextMs">Delay between this method invocation and the next in the pipeline</param>
+    /// <param name="setUpExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="delayExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="_">Ignore this parameter — it exists only to distinguish the ValueTask overload from the Task overload</param>
+    /// <returns>A continuation to provide further arrangement to the test-pipeline</returns>
+    ITestPipeline<TSUT, TResult> Having(
+        Func<TSUT, ValueTask> setUp,
+        Func<int>? delayBeforeNextMs = null,
+        [CallerArgumentExpression(nameof(setUp))] string? setUpExpr = null,
+        [CallerArgumentExpression(nameof(delayBeforeNextMs))] string? delayExpr = null,
+        Ignore _ = default);
+
+    /// <summary>
     /// Provide a Teardown method that will be called on Dispose of the test class/fixture.
     /// Teardown methods are executed in the order that they are provided.
     /// </summary>
@@ -302,6 +360,17 @@ public interface ITestPipeline<TSUT, TResult>
     /// <returns>A continuation to provide further arrangement to the test-pipeline</returns>
     ITestPipeline<TSUT, TResult> Until(Func<TSUT, Task> tearDown,
         [CallerArgumentExpression(nameof(tearDown))] string? tearDownExpr = null);
+
+    /// <summary>
+    /// Provide an async Teardown method that will be called on Dispose of the test class/fixture.
+    /// Teardown methods are executed in the order that they are provided.
+    /// </summary>
+    /// <param name="tearDown">the async method to call as teardown after executing the method-under-test</param>
+    /// <param name="tearDownExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="_">Ignore this parameter — it exists only to distinguish the ValueTask overload from the Task overload</param>
+    /// <returns>A continuation to provide further arrangement to the test-pipeline</returns>
+    ITestPipeline<TSUT, TResult> Until(Func<TSUT, ValueTask> tearDown,
+        [CallerArgumentExpression(nameof(tearDown))] string? tearDownExpr = null, Ignore _ = default);
 
     /// <summary>
     /// Transform any value and use the transformed value as default

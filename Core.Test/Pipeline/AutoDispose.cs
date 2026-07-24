@@ -131,7 +131,7 @@ public class AutoDispose
     {
         var spec = new DisposableSutSpec();
         var sut = spec.When(_ => _.GetValue())
-            .Until(_ => throw new InvalidOperationException())
+            .Until(void (_) => throw new InvalidOperationException())
             .Then().SubjectUnderTest;
         Xunit.Assert.Throws<InvalidOperationException>(spec.Dispose);
         Xunit.Assert.Equal(1, sut.DisposeCount);

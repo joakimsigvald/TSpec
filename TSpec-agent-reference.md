@@ -15,7 +15,7 @@ Full human documentation: [README.md](https://github.com/joakimsigvald/TSpec#rea
 - **Exactly one `When` per spec class.** Put shared `When`/`Given` in an abstract base constructor; specialize with nested subclasses (see Structure below).
 - xUnit creates a new test-class instance per test method, so the whole pipeline is built and torn down per test.
 - The subject under test (SUT) is auto-constructed: interfaces/abstract dependencies become Moq mocks automatically; concrete constructor args are generated. Provide your own with `Using(instance)`.
-- Test methods do **not** need to be `async`, even for async code under test. `When(_ => _.DoAsync())` is awaited internally. Async test methods are supported when needed (e.g. awaiting external setup before asserting).
+- Test methods do **not** need to be `async`, even for async code under test. `When(_ => _.DoAsync())` is awaited internally, for `Task`, `Task<T>`, `ValueTask` and `ValueTask<T>` alike — don't write the lambda `async` yourself; one that is (or is a bare `throw`) must state its return type: `When(async Task<int> (_) => ...)`, `Until(void (_) => throw ...)`. Async test methods are supported when needed (e.g. awaiting external setup before asserting).
 
 ## Pipeline verbs
 
@@ -74,6 +74,7 @@ Given<IMyService>().That(_ => _.GetValueAsync())
 Given<IMyInterface>().That(_ => _.Get(An<int>())).Tap<int>(i => _captured = i).Returns(() => 42)
 ```
 
+Setups are identical whether the member returns `T`, `Task<T>` or `ValueTask<T>` — `Returns(() => 7)` supplies the unwrapped value.
 Unmocked interface methods return auto-generated defaults (no strict-mock failures). For Moq features TSpec lacks, build a `Mock<T>` manually and supply `Using(myMock.Object)`.
 
 Verification (in test methods): `Then<IOrderService>(_ => _.CreateOrder(The<Cart>()));` verifies the call was made ≥1 time. Note: mentions in verify expressions match by value — a fresh `Any<T>()` matches nothing; use `The<T>()`/`The(tag)` to match arguments used in the test.
@@ -116,7 +117,7 @@ Also works standalone in plain xUnit tests (no `Spec` base class required), as a
 | `Because can only be provided once per test method` | One logical assertion (and one `because`) per test method. |
 | `ValuesExhausted` | A `From` sequence/list ran out of unique values; widen the sequence or provide more values. |
 | `InvalidTypeConversion` | No conversion path between registered source and requested target; register `Using<TTarget>().From(...)` with a lambda. |
-| `{Mock} returns a Task<T>. Interface types returned as task must be provided explicitly` | Auto-mock can't fabricate an interface inside a `Task`; set it up: `Given<TheMock>().That(...).Returns(A<TheInterface>)`. |
+| `{Mock} returns a Task<T>. Interface types returned as task must be provided explicitly` | Auto-mock can't fabricate an interface inside a `Task`/`ValueTask`; set it up: `Given<TheMock>().That(...).Returns(A<TheInterface>)`. |
 
 ## Recommended structure
 
