@@ -20,7 +20,8 @@ step has not been applied to any release so far.
 
 R3 is renumbered to **1.5.0** because 1.4.x was consumed by the off-plan work above. **P11 (ValueTask)
 is done** (2026-07-24) and `PackageVersion` is now **1.5.0**; since 1.4.2 was never pushed, its release
-notes are folded into the 1.5.0 notes. P12–P14 and all internal refactors (P15–P19) remain open.
+notes are folded into the 1.5.0 notes. **P14 is resolved** by the already-shipped `Is().A<T>().that`.
+P12, P13, P13b and all internal refactors (P15–P19) remain open.
 P15 (source generator) gained added scope from P7 (CRTP generalization of the enumerable constraints).
 
 ## Release train
@@ -152,14 +153,26 @@ Keep this table current: **any new deprecation added in 1.x gets a row here in t
 - **Breaking (compile-time only, narrow) — 5 call sites in our own 386:** a lambda with no inferable return type (`async _ => ...`, or a `throw` body) is now ambiguous between the Task and ValueTask overloads (CS0121). Fix: state the return type — `When(async Task<int> (_) => ...)`, `Until(void (_) => throw ...)` — or drop the `async` and pass the call directly. **An optional `Ignore` tie-breaker parameter does not work** (tried): Roslyn's optional-parameter tie-break only fires when one candidate has *no* omitted optional parameters, and `[CallerArgumentExpression] expr` is always omitted. Annotating the lambda *parameter* type does not help either — only the return type does. Note the fix changes the recorded specification text (the captured expression now includes the return type), and TSpec wraps spec lines at 80 chars.
 - ~~**Gap:** `When`/`Having`/`Until` and mock `Returns` only handle `Task`~~
 
-### P12. Global generation extensibility
-- [ ] Implement
-- **Gap:** `DataGenerator`'s strategy list is closed (`DataGenerator.cs:19-30`); custom type families (NodaTime, strongly-typed IDs not derived from `Semantic<T>`) can only be intercepted per-test via `Using<T>().From(...)`.
-- **Suggested API:** assembly-level registration in the `Using` vocabulary, e.g. static `TSpecConfig.Using<T>(factory)` / `TSpecConfig.Using(IGenerationStrategy)` consulted between `TypeConversionStrategy` and `DefaultStrategy`. Mind thread-safety (static registry, parallel test collections).
+### P12. Global generation extensibility — **dropped 2026-07-24**
+- Rejected: a static `TSpecConfig.Using<T>(...)` registry buys global mutable state across parallel test
+  collections, initialization-order fragility, and — decisively — arrangement that never appears in the
+  generated specification. The convenience case is already served by calling `Using(...)` in a shared base
+  Spec constructor (as `Core.Test/AutoFixture/WhenSomeOther.cs:7` does), at zero API cost.
+- If a third-party adapter package (NodaTime, strongly-typed IDs) is ever actually wanted, the answer is a
+  public `IGenerationStrategy` hook — revisit then, not speculatively.
+- Cheap alternative worth doing instead: `ObjectStrategy.cs:47`'s `Failed to create value for type {X}` should
+  name the remedy (`Using<X>(...)`), and README §6 should document the shared-base-class pattern.
 
-### P13. Auto-convert via static factory scan (from TODO.txt)
-- [ ] Implement
-- **Detail:** TODO line 1: "look for first public static method with one argument of type TSource that returns TTarget". `TypeConversionStrategy.TryGenerate` already probes implicit operators, single-param ctors, and static methods on the *target* (`TypeConversionStrategy.cs:37-64`) — the missing half is scanning without an explicit `Using<TTarget>().From<TSource>()` registration. While in there: cache the `GetMethods` reflection scans (currently re-run per generated value).
+### P13. Auto-convert via static factory scan (from TODO.txt) — **dropped 2026-07-24**
+- Rejected: `TypeConversionStrategy.TryStatic` already implements TODO line 1 (public static one-arg method on
+  the target returning the target) — it just requires an explicit `Using<TTarget>().From<TSource>()`. Doing the
+  scan *without* a registration would mostly discover `Parse`-shaped factories, which throw on generated input
+  (`Sku.Parse("string1")`), replacing today's clear `SetupFailed` with a `FormatException` from inside a
+  stranger's method. "First public static method" is also reflection-order-dependent, so a type with several
+  `From*` factories could bind differently between runs. Explicit registration is one line and always correct.
+- The trailing perf note (cache the per-value `GetMethods`/`GetConstructor` scans in `TypeConversionStrategy`,
+  which the neighbouring `IlCompilation` classes already do for constructors/operators) moves to [P19](#p19-data-layer-clarity-fixes)
+  as an opportunistic cleanup — worth a measurement first; a typical spec generates a handful of values.
 
 ### P13b. Mention uniqueness redesign (from the P5h discussion, 2026-07-19)
 - [ ] Implement (behavior change in generated values → minor release; pairs with TODO's random-enums/bools item)
@@ -171,8 +184,8 @@ Keep this table current: **any new deprecation added in 1.x gets a row here in t
 - Note: the docs-only stopgap (P5h) was dropped from 1.2.1 — this item is the sole resolution of the uniqueness question.
 
 ### P14. `Result.As<T>()` (from TODO.txt)
-- [ ] Re-evaluate
-- **Detail:** TODO says "seems impossible in current C# version" for `Result.As<MyType>().MyProperty.Is(123)`. The `ContinueWithThat<TContinuation, TThat>`/`that` pattern (used by `OneItem().that`) may now express it: `Then().Result.As<MyType>()` returning the casted value after an implicit type assertion, with `SetSubject` bookkeeping like `AssertionExtensions.And`. Also document the position on `[Theory]`/parameterized tests (nothing prevents calling `Given(...)` inside a theory method before `Then()` — decide whether that's supported or an anti-pattern, and say so in README §6).
+- [x] Resolved 2026-07-24 by `Is().A<T>().that` (shipped 1.4.0) — **no new API needed.** `Then().Result.Is().A<MyType>().that.MyProperty.Is(123)` does exactly what the TODO asked for, and renders as "Then Result is a MyRecord that Name is "Ada"". Verified by `Core.Test/Assert/Continuations/IsObject/WhenResultIsA.cs`. The `ContinueWithThat` route the item speculated about is the one `A<T>()` took; a separate `As<T>()` spelling would only duplicate it. Already documented (README §5 table, agent reference).
+- Dropped from this item: a stray note about documenting the position on `[Theory]` tests. It was filed here by mistake (P14 is the TODO.txt cast idea) and describes no defect — arranging inside a theory method works, the suite does it in three places, and README §6.1 already presents itself as a recommendation rather than a rule.
 
 ---
 
@@ -182,6 +195,7 @@ Keep this table current: **any new deprecation added in 1.x gets a row here in t
 - [ ] Implement
 - **Scope:** `IGivenContinuation.cs` (511 lines), `GivenContinuation.cs` (254), `Spec_Value.cs` (320), `Spec_Values.cs` (304), plus full-API delegation in `TestPipeline.cs` (156) — ~1,700 hand-written lines of A/An/ASecond…AFifth × {value, setup, transform} × interface/impl/delegate. Inconsistencies already hide in it (e.g. `GivenContinuation.A<TValue>(Action…)` forwards to `_spec.A` while `An` forwards to `_spec.An` — harmless only because they're aliases). Use an incremental source generator (or T4) with one template over five ordinals × three shapes. Do this **before** P6–P14 if possible — it makes every subsequent API addition much cheaper.
 - **Caution:** keep XML doc comments in the generated output (`GenerateDocumentationFile` is on; `TreatWarningsAsErrors` will catch omissions).
+- **Note 2026-07-24:** the two halves are independent and should be decided separately — the CRTP generalization below removes a user-visible limitation and is worth doing on its own merits, whether or not the source generator ever happens.
 - **Added scope (from P7, 2026-07-20):** generalize the enumerable constraints CRTP-style — introduce `HasEnumerable<TItem, TContinuation>` (and siblings as needed) so subclasses like `HasDictionary<TKey,TValue>` can close the continuation type over themselves. Removes the accepted P7 degradation where chaining `.and` after an inherited enumerable assertion on a dictionary returns the plain enumerable continuation (losing `.Key`/`.Value`/`no`); update the README note about that degradation when done.
 
 ### P16. Rework the `Constraint` assertion state machine
@@ -189,8 +203,11 @@ Keep this table current: **any new deprecation added in 1.x gets a row here in t
 - **Scope:** `Constraint.cs:121-175` — `[Flags]` enum with pre-declared combined values (`InvertedEither = 3`, `EitherSucceeded = 6`…), `DoAssert` mutating `State`/`Exception` mid-flight, inversion via swallowing `XunitException`. It is the kernel of the assert library and its hardest code. Replace with an explicit evaluation result (Passed / Failed(ex)) plus separate either-tracking; drop the pre-combined enum members. The either/or/not test suite (`Core.Test/Assert/**`) is the safety net — behavior must not change, including `ContinueWith.Continue`'s and/or/but validation rules.
 
 ### P17. Deduplicate `HasEnumerable` OneItem…FiveItems
-- [ ] Implement
-- **Scope:** `HasEnumerable.cs:20-244` — 250 lines of copy-paste across ×5 arities ×2 (with/without condition). Private helper `TItem[] NItems(int n, Func<TItem,bool>? condition, string? expr)` doing the assert, wrapped by five thin tuple-builders → ~60 lines.
+- [x] Done 2026-07-24: all ten methods (×5 arities ×2, with/without condition) are now one-line projections over a single private `NItems<TThat>(int n, Func<TItem[], TThat> project, Func<TItem,bool>? condition, string? conditionExpr, [CallerMemberName] string? methodName)`. **−118 lines** (31 insertions / 149 deletions); XML docs and the ten distinct signatures untouched. Zero test changes — 1317 green on net8/9/10, which also proves spec text and failure messages are byte-identical.
+- **The thing that made it look unextractable:** `Constraint.Assert` takes `[CallerMemberName] string? methodName`, which drives both the verb ("has three items") and the count-prefix in failures via `EnumerableConstraint._methodsWithCount`. A naive extraction renders every one of these as the helper's name. Fix: `[CallerMemberName]` on the helper too, forwarded explicitly as `methodName:` — the attribute chains.
+- **Trap respected:** `var items = new TItem[n]` is allocated *before* the assert, so on inverted/failed paths it stays all-`default` and the projection still builds a well-formed tuple, exactly as the old `TItem? firstItem = default` locals did. Allocating inside the lambda would throw `IndexOutOfRangeException` instead. Covered by `WhenThatAfterInverted` (`not.TwoItems()` on a 1-element array reaches the projection with an untouched array).
+- **Was not a trap:** `OneItem` lost `Xunit.Assert.Single` in favour of `Equal(1, length)`; the message is TSpec's own (`Expected arr to have one item but found 0: []`), so nothing changed.
+- **Note for [P15](#p15-collapse-the-ordinalfluent-boilerplate-with-a-source-generator):** the CRTP generalization still has to rewrite these ten return types (`ContinueWithThat<HasEnumerableContinuation<TItem>, …>` → `ContinueWithThat<TContinuation, …>`), but the bodies are now one line each, so that edit is cheap.
 
 ### P18. Halve the numeric assertion duplication with generic math
 - [ ] Implement

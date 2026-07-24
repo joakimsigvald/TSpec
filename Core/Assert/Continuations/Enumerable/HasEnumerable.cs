@@ -17,101 +17,38 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// Then().Result.Has().OneItem().that.Is().EqualTo(The&lt;Model&gt;())
     /// </code>
     /// </example>
-    public ContinueWithThat<HasEnumerableContinuation<TItem>, TItem> OneItem()
-    {
-        TItem? theItem = default;
-        return Assert("",
-            NotNullAnd(actual => theItem = Xunit.Assert.Single(actual)), auxVerb: "have")
-            .AndThat(theItem!);
-    }
+    public ContinueWithThat<HasEnumerableContinuation<TItem>, TItem> OneItem() 
+        => NItems(1, items => items[0]);
 
     /// <summary>
     /// Asserts that the enumerable contains exactly two items
     /// </summary>
     /// <returns>A continuation for making further assertions on the enumerable or accessing the two items</returns>
-    public ContinueWithThat<HasEnumerableContinuation<TItem>, (TItem first, TItem second)> TwoItems()
-    {
-        TItem? firstItem = default;
-        TItem? secondItem = default;
-        return Assert("",
-            NotNullAnd(actual =>
-            {
-                var items = actual.ToArray();
-                Xunit.Assert.Equal(2, items.Length);
-                firstItem = items[0];
-                secondItem = items[1];
-            }), auxVerb: "have")
-            .AndThat((firstItem!, secondItem!));
-    }
+    public ContinueWithThat<HasEnumerableContinuation<TItem>, (TItem first, TItem second)> TwoItems() 
+        => NItems(2, items => (items[0], items[1]));
 
     /// <summary>
     /// Asserts that the enumerable contains exactly three items
     /// </summary>
     /// <returns>A continuation for making further assertions on the enumerable or accessing the three items</returns>
     public ContinueWithThat<HasEnumerableContinuation<TItem>, (TItem first, TItem second, TItem third)> ThreeItems()
-    {
-        TItem? firstItem = default;
-        TItem? secondItem = default;
-        TItem? thirdItem = default;
-        return Assert("",
-            NotNullAnd(actual =>
-            {
-                var items = actual.ToArray();
-                Xunit.Assert.Equal(3, items.Length);
-                firstItem = items[0];
-                secondItem = items[1];
-                thirdItem = items[2];
-            }), auxVerb: "have")
-            .AndThat((firstItem!, secondItem!, thirdItem!));
-    }
+        => NItems(3, items => (items[0], items[1], items[2]));
 
     /// <summary>
     /// Asserts that the enumerable contains exactly four items
     /// </summary>
     /// <returns>A continuation for making further assertions on the enumerable or accessing the four items</returns>
-    public ContinueWithThat<HasEnumerableContinuation<TItem>, (TItem first, TItem second, TItem third, TItem fourth)> FourItems()
-    {
-        TItem? firstItem = default;
-        TItem? secondItem = default;
-        TItem? thirdItem = default;
-        TItem? fourthItem = default;
-        return Assert("",
-            NotNullAnd(actual =>
-            {
-                var items = actual.ToArray();
-                Xunit.Assert.Equal(4, items.Length);
-                firstItem = items[0];
-                secondItem = items[1];
-                thirdItem = items[2];
-                fourthItem = items[3];
-            }), auxVerb: "have")
-            .AndThat((firstItem!, secondItem!, thirdItem!, fourthItem!));
-    }
+    public ContinueWithThat<HasEnumerableContinuation<TItem>, 
+        (TItem first, TItem second, TItem third, TItem fourth)> FourItems()
+        => NItems(4, items => (items[0], items[1], items[2], items[3]));
 
     /// <summary>
     /// Asserts that the enumerable contains exactly five items
     /// </summary>
     /// <returns>A continuation for making further assertions on the enumerable or accessing the five items</returns>
-    public ContinueWithThat<HasEnumerableContinuation<TItem>, (TItem first, TItem second, TItem third, TItem fourth, TItem fifth)> FiveItems()
-    {
-        TItem? firstItem = default;
-        TItem? secondItem = default;
-        TItem? thirdItem = default;
-        TItem? fourthItem = default;
-        TItem? fifthItem = default;
-        return Assert("",
-            NotNullAnd(actual =>
-            {
-                var items = actual.ToArray();
-                Xunit.Assert.Equal(5, items.Length);
-                firstItem = items[0];
-                secondItem = items[1];
-                thirdItem = items[2];
-                fourthItem = items[3];
-                fifthItem = items[4];
-            }), auxVerb: "have")
-            .AndThat((firstItem!, secondItem!, thirdItem!, fourthItem!, fifthItem!));
-    }
+    public ContinueWithThat<HasEnumerableContinuation<TItem>, 
+        (TItem first, TItem second, TItem third, TItem fourth, TItem fifth)> FiveItems()
+        => NItems(5, items => (items[0], items[1], items[2], items[3], items[4]));
 
     /// <summary>
     /// Asserts that the enumerable contains a single item satisfying the given condition
@@ -121,15 +58,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <returns>A continuation for making further assertions on the enumerable or accessing the single item</returns>
     public ContinueWithThat<HasEnumerableContinuation<TItem>, TItem> OneItem(
         Func<TItem, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
-    {
-        TItem? theItem = default;
-        return Assert(
-                "satisfying the condition",
-                NotNullAnd(actual => theItem = Xunit.Assert.Single(actual, new Predicate<TItem>(condition))),
-                expectedExpr!,
-                "have")
-            .AndThat(theItem!);
-    }
+        => NItems(1, items => items[0], condition, expectedExpr);
 
     /// <summary>
     /// Asserts that the enumerable contains exactly two items satisfying the given condition
@@ -139,22 +68,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <returns>A continuation for making further assertions on the enumerable or accessing the two items</returns>
     public ContinueWithThat<HasEnumerableContinuation<TItem>, (TItem first, TItem second)> TwoItems(
         Func<TItem, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
-    {
-        TItem? firstItem = default;
-        TItem? secondItem = default;
-        return Assert(
-                "satisfying the condition",
-                NotNullAnd(actual =>
-                {
-                    var matchingItems = actual.Where(condition).ToArray();
-                    Xunit.Assert.Equal(2, matchingItems.Length);
-                    firstItem = matchingItems[0];
-                    secondItem = matchingItems[1];
-                }),
-                expectedExpr!,
-                "have")
-            .AndThat((firstItem!, secondItem!));
-    }
+        => NItems(2, items => (items[0], items[1]), condition, expectedExpr);
 
     /// <summary>
     /// Asserts that the enumerable contains exactly three items satisfying the given condition
@@ -164,24 +78,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <returns>A continuation for making further assertions on the enumerable or accessing the three items</returns>
     public ContinueWithThat<HasEnumerableContinuation<TItem>, (TItem first, TItem second, TItem third)> ThreeItems(
         Func<TItem, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
-    {
-        TItem? firstItem = default;
-        TItem? secondItem = default;
-        TItem? thirdItem = default;
-        return Assert(
-                "satisfying the condition",
-                NotNullAnd(actual =>
-                {
-                    var matchingItems = actual.Where(condition).ToArray();
-                    Xunit.Assert.Equal(3, matchingItems.Length);
-                    firstItem = matchingItems[0];
-                    secondItem = matchingItems[1];
-                    thirdItem = matchingItems[2];
-                }),
-                expectedExpr!,
-                "have")
-            .AndThat((firstItem!, secondItem!, thirdItem!));
-    }
+        => NItems(3, items => (items[0], items[1], items[2]), condition, expectedExpr);
 
     /// <summary>
     /// Asserts that the enumerable contains exactly four items satisfying the given condition
@@ -189,28 +86,10 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <param name="condition">The condition that the value is expected to satisfy</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable or accessing the four items</returns>
-    public ContinueWithThat<HasEnumerableContinuation<TItem>, (TItem first, TItem second, TItem third, TItem fourth)> FourItems(
+    public ContinueWithThat<HasEnumerableContinuation<TItem>, 
+        (TItem first, TItem second, TItem third, TItem fourth)> FourItems(
         Func<TItem, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
-    {
-        TItem? firstItem = default;
-        TItem? secondItem = default;
-        TItem? thirdItem = default;
-        TItem? fourthItem = default;
-        return Assert(
-                "satisfying the condition",
-                NotNullAnd(actual =>
-                {
-                    var matchingItems = actual.Where(condition).ToArray();
-                    Xunit.Assert.Equal(4, matchingItems.Length);
-                    firstItem = matchingItems[0];
-                    secondItem = matchingItems[1];
-                    thirdItem = matchingItems[2];
-                    fourthItem = matchingItems[3];
-                }),
-                expectedExpr!,
-                "have")
-            .AndThat((firstItem!, secondItem!, thirdItem!, fourthItem!));
-    }
+        => NItems(4, items => (items[0], items[1], items[2], items[3]), condition, expectedExpr);
 
     /// <summary>
     /// Asserts that the enumerable contains exactly five items satisfying the given condition
@@ -218,29 +97,36 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <param name="condition">The condition that the value is expected to satisfy</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable or accessing the five items</returns>
-    public ContinueWithThat<HasEnumerableContinuation<TItem>, (TItem first, TItem second, TItem third, TItem fourth, TItem fifth)> FiveItems(
+    public ContinueWithThat<HasEnumerableContinuation<TItem>, 
+        (TItem first, TItem second, TItem third, TItem fourth, TItem fifth)> FiveItems(
         Func<TItem, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
+        => NItems(5, items => (items[0], items[1], items[2], items[3], items[4]), condition, expectedExpr);
+
+    /// <summary>
+    /// Asserts that the enumerable contains exactly n items, optionally satisfying the given condition,
+    /// and exposes them through the given projection. The item array is allocated up front, so it stays
+    /// filled with defaults when the assertion is inverted or fails, just as the callers expect.
+    /// </summary>
+    private ContinueWithThat<HasEnumerableContinuation<TItem>, TThat> NItems<TThat>(
+        int n,
+        Func<TItem[], TThat> project,
+        Func<TItem, bool>? condition = null,
+        string? conditionExpr = null,
+        [CallerMemberName] string? methodName = null)
     {
-        TItem? firstItem = default;
-        TItem? secondItem = default;
-        TItem? thirdItem = default;
-        TItem? fourthItem = default;
-        TItem? fifthItem = default;
+        var items = new TItem[n];
         return Assert(
-                "satisfying the condition",
+                condition is null ? "" : "satisfying the condition",
                 NotNullAnd(actual =>
                 {
-                    var matchingItems = actual.Where(condition).ToArray();
-                    Xunit.Assert.Equal(5, matchingItems.Length);
-                    firstItem = matchingItems[0];
-                    secondItem = matchingItems[1];
-                    thirdItem = matchingItems[2];
-                    fourthItem = matchingItems[3];
-                    fifthItem = matchingItems[4];
+                    var matching = (condition is null ? actual : actual.Where(condition)).ToArray();
+                    Xunit.Assert.Equal(n, matching.Length);
+                    matching.CopyTo(items, 0);
                 }),
-                expectedExpr!,
-                "have")
-            .AndThat((firstItem!, secondItem!, thirdItem!, fourthItem!, fifthItem!));
+                conditionExpr,
+                "have",
+                methodName: methodName)
+            .AndThat(project(items));
     }
 
     /// <summary>
@@ -297,7 +183,9 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
         int expected, [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
     {
         var expectedStr = Express(expectedExpr, expected);
-        return Assert(expected, NotNullAnd(actual => Xunit.Assert.Equal(expected, actual.Count())), expectedStr, "have").And();
+        return Assert(expected, NotNullAnd(
+            actual => Xunit.Assert.Equal(expected, actual.Count())), expectedStr, "have")
+            .And();
     }
 
     /// <summary>
@@ -310,7 +198,8 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     public ContinueWith<HasEnumerableContinuation<TItem>> All(
         Func<TItem, int, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
         => Assert("elements satisfying the condition",
-            NotNullAnd(actual => Xunit.Assert.DoesNotContain(actual.Select((it, i) => (it, i)), t => !condition(t.it, t.i))),
+            NotNullAnd(actual => Xunit.Assert.DoesNotContain(actual
+                .Select((it, i) => (it, i)), t => !condition(t.it, t.i))),
             expectedExpr!,
             "have")
         .And();
