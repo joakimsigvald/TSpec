@@ -293,8 +293,8 @@ For collections of generated values:
 For auto-generated values that are not intended to be referenced again:
 `Any`, `Another`
 
-**Uniqueness**
-All values of the same or equivalent types are guaranteed to be unique within a test run.
+**Variation**
+Distinct mentions get distinct values where the type has room for them, deterministically. Small value spaces may repeat
 
 ### 3.2 Tags
 

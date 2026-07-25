@@ -12,7 +12,6 @@ internal class DataGenerator(
 {
     private static readonly StackStrategy _stackStrategy = new();
     private static readonly NullableStrategy _nullableStrategy = new();
-    private static readonly EnumStrategy _enumStrategy = new();
     private static readonly CollectionStrategy _collectionStrategy = new();
     private static readonly ObjectStrategy _objectStrategy = new();
 
@@ -20,7 +19,7 @@ internal class DataGenerator(
         typeConversionStrategy,
         defaultStrategy,
         _nullableStrategy,
-        _enumStrategy,
+        new EnumStrategy(counter),
         new PrimitiveStrategy(counter),
         new SemanticTypeStrategy(counter),
         _collectionStrategy,

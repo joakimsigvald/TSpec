@@ -37,7 +37,7 @@ Full human documentation: [README.md](https://github.com/joakimsigvald/TSpec#rea
 
 ## Test data: mentions and tags
 
-Mentions generate-and-remember values **per type, per test** — the same mention always returns the same value within a test. Generated values of a type are unique within a test.
+Mentions generate-and-remember values **per type, per test** — the same mention always returns the same value within a test. Distinct mentions get distinct values where the type has room for them, deterministically. Small value spaces may repeat
 
 - Single values: `A<T>()`, `An<T>()`, `The<T>()`, `AFirst<T>()`, `TheFirst<T>()`, `ASecond<T>()`, `TheSecond<T>()` … up to `Fifth` (5 numbered slots per type).
 - With inline setup: `A<Cart>(_ => _.Id = 3)`.

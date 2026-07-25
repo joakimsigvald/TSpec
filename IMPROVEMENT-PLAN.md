@@ -21,7 +21,9 @@ step has not been applied to any release so far.
 R3 is renumbered to **1.5.0** because 1.4.x was consumed by the off-plan work above. **P11 (ValueTask)
 is done** (2026-07-24) and `PackageVersion` is now **1.5.0**; since 1.4.2 was never pushed, its release
 notes are folded into the 1.5.0 notes. **P14 is resolved** by the already-shipped `Is().A<T>().that`.
-P12, P13, P13b and all internal refactors (P15–P19) remain open.
+**P13b is resolved** (2026-07-25, also in 1.5.0) as a docs correction plus enum variation — the uniqueness
+guarantee was dropped, not implemented. P12 and P13 are dropped; the internal refactors P15, P16, P18 and
+P19 remain open (P17 done).
 P15 (source generator) gained added scope from P7 (CRTP generalization of the enumerable constraints).
 
 ## Release train
@@ -174,14 +176,17 @@ Keep this table current: **any new deprecation added in 1.x gets a row here in t
   which the neighbouring `IlCompilation` classes already do for constructors/operators) moves to [P19](#p19-data-layer-clarity-fixes)
   as an opportunistic cleanup — worth a measurement first; a typical spec generates a handful of values.
 
-### P13b. Mention uniqueness redesign (from the P5h discussion, 2026-07-19)
-- [ ] Implement (behavior change in generated values → minor release; pairs with TODO's random-enums/bools item)
-- **Principle: uniqueness is a property of the mention system, not the generator.**
-  1. Guarantee: distinct mentions of a type get distinct values up to the type's cardinality; beyond that throw `ValuesExhausted` (consistent with sequence semantics) — e.g. `AThird<bool>()` throws. Enforce at the repository/mention layer: retry generation while the value collides with an already-stored mention of that type.
-  2. Exemption: anonymous generation (object-property fills in `ObjectStrategy`, `Any`/`Another`, internal fills) must NOT demand uniqueness — an object with three bool properties must construct. This falls out of putting the guard at the mention layer, not in the generator.
-  3. Per-type counters (replace the single shared `Counter`): fixes value *stability* — today an unrelated mention flips every downstream bool and shifts all values. `A<bool>()` becomes deterministically true, `ASecond<bool>()` false. "Equivalent types" (nullable/Task/semantic/converted) keep shared sequences automatically because they delegate to the underlying type's generator.
-  4. Ownership boundary: built-in generation guarantees mention-distinctness (or throws); once a user-supplied source/conversion/transform is in play, the user owns the value space and the guarantee ends (generalizes the existing generator-function doc note; avoids the re-roll rabbit hole for transforms like `x => x % 2`). Nuance: for *conversions* the mention guard may retry by pulling the next source value, surfacing the source's `ValuesExhausted` when exhausted.
-- Note: the docs-only stopgap (P5h) was dropped from 1.2.1 — this item is the sole resolution of the uniqueness question.
+### P13b. Mention uniqueness — **resolved 2026-07-25 as a docs fix + enum variation**
+- [x] Done, shipped in 1.5.0.
+- **Verdict: there is no uniqueness guarantee, and there should not be one.** The documentation was wrong, not the implementation. Generation promises *variation* and *determinism*: distinct mentions get distinct values where the type has room for them; small value spaces (`bool`, `char`, enums) repeat once exhausted. `Three<bool>()` is `true, false, true`. Users who need particular values state them (`Given([true, false])`, `Using<bool>().From([...])`) rather than have the generator second-guess them.
+- **Docs corrected** (the false claim lived in four places): README §3.1 (heading "Uniqueness" → "Variation"), `TSpec-agent-reference.md`, and the XML docs on `Spec_Value.A<T>()`/`An<T>()`. The uniqueness claims on `Using<T>().From<T>()` sequences (`UsingFromExtensions`, `ValuesExhausted`, README §3.4) are accurate and stay — an explicit finite sequence is a user-declared value space, so exhausting it is a genuine setup error.
+- **Enum fix (the one real defect):** `EnumStrategy` ignored the counter and returned member 0 for *every* mention, so even a 47-member enum had no variation at all. Now `values.GetValue(counter.Next % values.Length)`, exactly parallel to `bool`'s `counter.Next % 2`; the strategy takes the `Counter` and is instance-constructed in `DataGenerator` (it was `static readonly`, which cannot hold a per-test counter). Sparse enums are indexed by member position, never by numeric value, so `{One=2, Five=5, Ten=10}` cycles correctly; empty enums keep the `Activator.CreateInstance` fallback; `[Flags]` cycles declared members only. Tests: `Core.Test/Given/WhenGivenEnums.cs` (4). Suite 1322 green on net8/9/10.
+- **Rejected, with reasons:**
+  - *`ValuesExhausted` when a type's values run out* — `AThird<bool>()` throwing would break a legitimate arrangement. Exhaustion is only an error for explicitly declared sequences.
+  - *Per-type counters* — the shared counter is a feature: it gives values a rough provenance signature (`String7` and `7` come from different arrangement points), where per-type counters would make every spec's ints `1, 2, 3` and strings `String1, String2`, which read like hand-written literals. The value-shifting it causes only bites tests that hardcode an observed generated value, which the mention idiom exists to prevent.
+  - *Bounded retry at the mention layer* to avoid the collision in `A<bool>(); A<string>(); ASecond<bool>()` — declined: two `false`s in a row is a 25% coincidence, not a bug, and re-rolling second-guesses a generator the user can override in one line.
+  - *Random values for enums/bools* (was `TODO.txt` line 6, now deleted) — randomness makes collisions probabilistic instead of absent and costs determinism.
+  - *Ownership boundary for user-supplied sources/transforms* — moot; there is no guarantee left to bound.
 
 ### P14. `Result.As<T>()` (from TODO.txt)
 - [x] Resolved 2026-07-24 by `Is().A<T>().that` (shipped 1.4.0) — **no new API needed.** `Then().Result.Is().A<MyType>().that.MyProperty.Is(123)` does exactly what the TODO asked for, and renders as "Then Result is a MyRecord that Name is "Ada"". Verified by `Core.Test/Assert/Continuations/IsObject/WhenResultIsA.cs`. The `ContinueWithThat` route the item speculated about is the one `A<T>()` took; a separate `As<T>()` spelling would only duplicate it. Already documented (README §5 table, agent reference).

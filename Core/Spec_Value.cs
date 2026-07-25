@@ -9,7 +9,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <summary>
     /// Yields the first value of the given type (a mention).
     /// Repeated mentions of the same type refer to the same auto-generated (or previously provided) value,
-    /// and generated values are guaranteed to be unique within the test run.
+    /// and distinct mentions get distinct values where the type has room for them — small value spaces may repeat.
     /// Using `A` is synonymous to `An`, `The`, `AFirst` and `TheFirst` — pick the alias that reads best.
     /// </summary>
     /// <typeparam name="TValue">The type of the value</typeparam>
@@ -19,7 +19,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <summary>
     /// Yields the first value of the given type (a mention).
     /// Repeated mentions of the same type refer to the same auto-generated (or previously provided) value,
-    /// and generated values are guaranteed to be unique within the test run.
+    /// and distinct mentions get distinct values where the type has room for them — small value spaces may repeat.
     /// Using `An` is synonymous to `A`, `The`, `AFirst` and `TheFirst` — pick the alias that reads best.
     /// </summary>
     /// <typeparam name="TValue">The type of the value</typeparam>
