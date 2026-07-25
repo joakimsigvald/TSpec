@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using TSpec.Assert.Continuations.Enumerable;
 using TSpec.Internal.Specification;
 
@@ -10,7 +10,7 @@ namespace TSpec.Assert.Continuations.String;
 /// <remarks>Use this class to assert that a string meets specific length-related conditions, such as having
 /// at least, at most, or a range of characters. Methods return a continuation to allow
 /// chaining further assertions on the string.</remarks>
-public record LengthContinuation : EnumerableConstraint<char, HasEnumerableContinuation<char>>
+public record LengthContinuation : EnumerableConstraint<char, HasStringContinuation>
 {
     private readonly HasString _parent;
 
@@ -73,5 +73,5 @@ public record LengthContinuation : EnumerableConstraint<char, HasEnumerableConti
     private protected override string Describe(IEnumerable<char>? value, string? methodName = null)
         => value is null ? "null" : $"{value.Count()}: {value.FormatValue()}";
 
-    internal override HasEnumerableContinuation<char> Continue() => _parent.Continue();
+    internal override HasStringContinuation Continue() => _parent.Continue();
 }

@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 namespace TSpec.Assert.Continuations.Enumerable;
 
@@ -9,14 +9,16 @@ namespace TSpec.Assert.Continuations.Enumerable;
 /// such as descending or ascending order, optionally with a orderBy criteria. Methods return a continuation to allow
 /// chaining further assertions on the enumerable.</remarks>
 /// <typeparam name="TItem">The type of elements contained in the enumerable being asserted.</typeparam>
-public record OrderContinuation<TItem> : EnumerableConstraint<TItem, HasEnumerableContinuation<TItem>>
+/// <typeparam name="TContinuation">The continuation returned when chaining further assertions</typeparam>
+public record OrderContinuation<TItem, TContinuation> : EnumerableConstraint<TItem, TContinuation>
+    where TContinuation : HasEnumerable<TItem, TContinuation>, new()
 {
-    private readonly HasEnumerable<TItem> _parent;
+    private readonly HasEnumerable<TItem, TContinuation> _parent;
     private readonly Func<TItem, TItem, int> _compare;
     private readonly string? _orderByExpr;
 
     internal OrderContinuation(
-        HasEnumerable<TItem> parent,
+        HasEnumerable<TItem, TContinuation> parent,
         Func<TItem, TItem, int> compare,
         string? orderByExpr)
     {
@@ -29,17 +31,17 @@ public record OrderContinuation<TItem> : EnumerableConstraint<TItem, HasEnumerab
     /// Asserts that the enumerable is ordered in descending order
     /// </summary>
     /// <returns>A continuation for making further assertions on the enumerable</returns>
-    public ContinueWith<HasEnumerableContinuation<TItem>> Descending()
+    public ContinueWith<TContinuation> Descending()
         => OrderBy((a, b) => _compare(b, a));
 
     /// <summary>
     /// Asserts that the enumerable is ordered in ascending order
     /// </summary>
     /// <returns>A continuation for making further assertions on the enumerable</returns>
-    public ContinueWith<HasEnumerableContinuation<TItem>> Ascending()
+    public ContinueWith<TContinuation> Ascending()
         => OrderBy(_compare);
 
-    private ContinueWith<HasEnumerableContinuation<TItem>> OrderBy(
+    private ContinueWith<TContinuation> OrderBy(
         Func<TItem, TItem, int> compare, [CallerMemberName] string? methodName = null)
         => Assert(_orderByExpr is null ? Ignore.Me : (object)$"by {_orderByExpr}",
             NotNullAnd(col => AssertOrder(col, compare)),
@@ -53,5 +55,5 @@ public record OrderContinuation<TItem> : EnumerableConstraint<TItem, HasEnumerab
             Xunit.Assert.True(compare(items[i], items[i + 1]) <= 0);
     }
 
-    internal override HasEnumerableContinuation<TItem> Continue() => _parent.Continue();
+    internal override TContinuation Continue() => _parent.Continue();
 }

@@ -6,7 +6,7 @@ namespace TSpec.Assert.Continuations.String;
 /// <summary>
 /// Object that allows assertions to be made on the characteristics of the provided string
 /// </summary>
-public record HasString : HasEnumerable<char>
+public record HasString : HasEnumerable<char, HasStringContinuation>
 {
     /// <summary>
     /// Asserts that the string has the given length

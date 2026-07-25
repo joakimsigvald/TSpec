@@ -41,14 +41,6 @@ public class WhenOrder : Spec
     }
 
     [Fact]
-    public void GivenExplicitTypeArgument()
-    {
-        int[] numbers = [1, 2, 3];
-        numbers.Has().Order<int>().Ascending();
-        numbers.Has().Order<int>(it => it % 4).Ascending();
-    }
-
-    [Fact]
     public void GivenDescendingBy()
     {
         int[] numbers = [2, 1, 3];

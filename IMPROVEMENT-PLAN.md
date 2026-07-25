@@ -3,7 +3,7 @@
 Origin: full code review 2026-07-19 (all 1201 tests green on net10.0, zero warnings).
 Work the items top-down; each item is self-contained. Tick the checkbox when done.
 
-## Status (2026-07-24)
+## Status (2026-07-25)
 
 R1 and R2 are **complete**: P1, P3–P5 landed in 1.2.1; P6–P9 in 1.3.0; P10 (`WasInvoked`) in 1.3.1.
 
@@ -15,16 +15,15 @@ Since then, three unplanned releases landed off-plan (they are not P-items):
 | 1.4.1 | Named-method invocation assertion `Then<TService>(nameof(...), Times)` | yes |
 | 1.4.2 | Unified `wasInvoked:` invocation-count grammar across all three scopes; deprecates the `Then<TService>().WasInvoked(Times)` continuation | **no — committed, not yet packed/pushed** |
 
-`PackageVersion` is currently **1.4.2**. No `v*` tags exist in the repo; the release procedure's tagging
-step has not been applied to any release so far.
+No `v*` tags exist in the repo; the release procedure's tagging step has not been applied to any
+release so far.
 
 R3 is renumbered to **1.5.0** because 1.4.x was consumed by the off-plan work above. **P11 (ValueTask)
 is done** (2026-07-24) and `PackageVersion` is now **1.5.0**; since 1.4.2 was never pushed, its release
 notes are folded into the 1.5.0 notes. **P14 is resolved** by the already-shipped `Is().A<T>().that`.
 **P13b is resolved** (2026-07-25, also in 1.5.0) as a docs correction plus enum variation — the uniqueness
-guarantee was dropped, not implemented. P12 and P13 are dropped; the internal refactors P15, P16, P18 and
-P19 remain open (P17 done).
-P15 (source generator) gained added scope from P7 (CRTP generalization of the enumerable constraints).
+guarantee was dropped, not implemented. P12 and P13 are dropped; P17 and P15a (the CRTP generalization,
+2026-07-25) are done and P15b (source generator) is declined, leaving P16, P18 and P19 open.
 
 ## Release train
 
@@ -33,8 +32,8 @@ P15 (source generator) gained added scope from P7 (CRTP generalization of the en
 | R1 | **1.2.1** ✅ | P1, P3–P5: correctness fixes, no new API surface | Bug fixes only → patch |
 | R2 | **1.3.0 / 1.3.1** ✅ | P6–P10: assert-library API additions (P6 also fixes the P2 bug) | New functionality → minor |
 | — | **1.4.0–1.4.2** | Off-plan assert/verification additions (see status table) | New functionality → minor |
-| R3 | **1.5.0** | P11–P14: pipeline/generation features | New functionality → minor |
-| — | (no release) | P15–P19: internal refactors | Ship with whichever release comes next; no standalone release needed |
+| R3 | **1.5.0** | P11, P13b, P14: pipeline/generation features, plus P15a and P17 | New functionality → minor |
+| — | (no release) | P16, P18, P19: internal refactors (P15a and P17 shipped in 1.5.0) | Ship with whichever release comes next; no standalone release needed |
 | R4 | **2.0.0** | All/most remaining items done **+ removal of every deprecated member** | Removals are binary- and source-breaking → major |
 
 ### 2.0.0 — the destination
@@ -50,6 +49,14 @@ deprecated surface** accumulated in 1.x. Everything currently carrying `[Obsolet
 
 Removing these also lets `IVerifyService<TResult>` and `VerifyService` go — nothing else produces them.
 Keep this table current: **any new deprecation added in 1.x gets a row here in the same change.**
+
+Note on a removal that **could not** be announced with `[Obsolete]`, and so was simply made in 1.5.0: the
+one-type-argument `AssertionExtensionsEnumerable.Order<TItem>(this HasEnumerable<TItem>)` overload. It was
+*also* the better overload-resolution candidate for the ordinary `Order()` call on a plain enumerable (more
+derived parameter type), so attributing it warned on correct code — verified 2026-07-25, it flagged seven
+type-argument-free call sites in the suite. Since the only spelling it uniquely served was the vestigial
+P6-era `Order<int>()` — where naming the item type restates what the receiver already fixes — it was
+deleted outright rather than deprecated. See [P15a](#p15a-crtp-generalization-of-the-enumerable-constraints--done-2026-07-25-shipped-in-150).
 
 **Release procedure (every release):**
 1. Update `PackageVersion` and `PackageReleaseNotes` in `Core/Core.csproj`.
@@ -119,7 +126,7 @@ Keep this table current: **any new deprecation added in 1.x gets a row here in t
   - `dict.Has(key).that.Is(...)` — asserts the key exists, exposes the value via `.that` (existing `ContinueWithThat` pattern from `OneItem().that`). Spec phrasing: "Dict has value for key "a" that is 3" (not "has key "a" that is 3" — the value is what `.that` refers to).
 - **Receiver:** single overload set on `IReadOnlyDictionary<TKey,TValue>` (offering `IDictionary` too makes calls on a concrete `Dictionary` ambiguous — it implements both). The dictionary `Has()` wins over the enumerable `Has()` by specificity, no `Ignore` trick needed. Doc note: variables *declared* `IDictionary<K,V>` fall back to the KVP-enumerable assertions.
 - **Failure messages:** show the entire dictionary as key-value pairs in both `Key` and `Value` failures (the existing `FormatValue` 5-element cap + ellipsis applies).
-- **Structure:** `HasDictionary<TKey,TValue>` derives `HasEnumerable<KeyValuePair<TKey,TValue>>` so `Count`/`OneItem`/etc. keep working on dictionaries. Accepted trade-off for P7: after an inherited enumerable assertion, `.and` returns the *enumerable* continuation (no `.Key`) — the fixed-`TContinuation` limitation. Proper fix is the CRTP generalization noted under [P15](#p15-collapse-the-ordinalfluent-boilerplate-with-a-source-generator); document the degradation in README until then.
+- **Structure:** `HasDictionary<TKey,TValue>` derives `HasEnumerable<KeyValuePair<TKey,TValue>>` so `Count`/`OneItem`/etc. keep working on dictionaries. Accepted trade-off for P7: after an inherited enumerable assertion, `.and` returns the *enumerable* continuation (no `.Key`) — the fixed-`TContinuation` limitation. Fixed 2026-07-25 by [P15a](#p15a-crtp-generalization-of-the-enumerable-constraints--done-2026-07-25-shipped-in-150) — the chain now keeps the dictionary vocabulary.
 - **Tests:** Key/Value pass+fail (+`no` forms incl. spec text "has no key"), `Has(key).that` chained value assertions, non-string key types, failure messages show full pair listing, mixed chain `Has().Key(k).and.Count(n)`, concrete `Dictionary`/`FrozenDictionary` receivers compile.
 - **Included fix (2026-07-20):** `.that` after an inverted assertion — `list.Has().not.OneItem().that` compiles today and hands back a meaningless `default` value on the inverted-pass path (same for TwoItems…FiveItems). Simple solution decided: `ContinueWithThat` learns whether the producing assertion was inverted and `.that` throws `SetupFailed` in that case. Dictionary `Has(key).that` is unaffected (no inverted path reaches it) but uses the same guard.
 
@@ -196,12 +203,17 @@ Keep this table current: **any new deprecation added in 1.x gets a row here in t
 
 ## Internal refactors (no release needed; fold into R2/R3 work)
 
-### P15. Collapse the ordinal/fluent boilerplate with a source generator
-- [ ] Implement
-- **Scope:** `IGivenContinuation.cs` (511 lines), `GivenContinuation.cs` (254), `Spec_Value.cs` (320), `Spec_Values.cs` (304), plus full-API delegation in `TestPipeline.cs` (156) — ~1,700 hand-written lines of A/An/ASecond…AFifth × {value, setup, transform} × interface/impl/delegate. Inconsistencies already hide in it (e.g. `GivenContinuation.A<TValue>(Action…)` forwards to `_spec.A` while `An` forwards to `_spec.An` — harmless only because they're aliases). Use an incremental source generator (or T4) with one template over five ordinals × three shapes. Do this **before** P6–P14 if possible — it makes every subsequent API addition much cheaper.
-- **Caution:** keep XML doc comments in the generated output (`GenerateDocumentationFile` is on; `TreatWarningsAsErrors` will catch omissions).
-- **Note 2026-07-24:** the two halves are independent and should be decided separately — the CRTP generalization below removes a user-visible limitation and is worth doing on its own merits, whether or not the source generator ever happens.
-- **Added scope (from P7, 2026-07-20):** generalize the enumerable constraints CRTP-style — introduce `HasEnumerable<TItem, TContinuation>` (and siblings as needed) so subclasses like `HasDictionary<TKey,TValue>` can close the continuation type over themselves. Removes the accepted P7 degradation where chaining `.and` after an inherited enumerable assertion on a dictionary returns the plain enumerable continuation (losing `.Key`/`.Value`/`no`); update the README note about that degradation when done.
+### P15a. CRTP generalization of the enumerable constraints — **done 2026-07-25** (shipped in 1.5.0)
+- [x] `HasEnumerable<TItem, TContinuation>` (bound `where TContinuation : HasEnumerable<TItem, TContinuation>, new()`) with a one-parameter `HasEnumerable<TItem>` alias closing over `HasEnumerableContinuation<TItem>`, so existing call sites and the `Has()` entry point are untouched. `HasDictionary` and `HasString` re-root onto their own continuations; `CountContinuation` and `OrderContinuation` gained `TContinuation`; `LengthContinuation` retargeted to `HasStringContinuation`. Removes the P7 degradation: `dict.Has().Count(2).and.Key("a")` and `"abc".Has().Count(3).and.Length().AtLeast(2)` now compile. Tests: `WhenChainingAfterInheritedAssertion` (4) — all were compile errors before. Suite 1326 green on net8/9/10, **zero existing tests changed**. README §5.5.4 note inverted; release-notes line added.
+- **Two things worth remembering:** (1) the constraint must bind to `HasEnumerable`, not `EnumerableConstraint` — the looser bound doesn't give `not.Some(...)`, which `None` delegates to. (2) `Order` briefly kept a one-parameter overload so the P6 form `Order<int>()` still bound; it was then **deleted** (decision 2026-07-25) since naming the item type only restates what the receiver fixes. Removing it broke exactly one line in the suite — the `GivenExplicitTypeArgument` assertion that existed solely to lock the P6 promise — which was deleted with it. Source-breaking for `Order<int>()` only; `Order()` and `Order(by)` are unaffected.
+- **Not in scope, still open:** the `Is()`/`Does()` round trip. `HasDictionaryContinuation.Is()` returns `IsEnumerable<KVP>`, so crossing verbs and coming back lands in the plain enumerable vocabulary. Separate problem, no user complaint yet.
+
+### P15b. Collapse the ordinal/fluent boilerplate with a source generator — **declined 2026-07-25**
+- [ ] Not planned. Revisit only if the generated surface starts growing again.
+- **Scope it would have covered:** `IGivenContinuation.cs` (511 lines), `GivenContinuation.cs` (254), `Spec_Value.cs` (320), `Spec_Values.cs` (304), plus full-API delegation in `TestPipeline.cs` (156) — ~1,700 hand-written lines of A/An/ASecond…AFifth × {value, setup, transform} × interface/impl/delegate.
+- **Why not:** the original rationale was "do it before P6–P14 so every later API addition is cheaper" — those are all done, so it has expired. Five ordinals is a closed set and the three shapes are stable, so the remaining code is mechanical and low-defect. Decisive argument (user, 2026-07-25): a generator is automagic that makes the code harder to understand, and that cost is paid on every future read.
+- **Correction on record:** an earlier claim that a generator would degrade go-to-definition *for package users* was wrong. This generator would run in TSpec's own build; consumers get a compiled DLL plus the XML doc file and cannot tell generated members from hand-written ones. All costs are maintainer-side.
+- **What would change the answer:** a sixth ordinal, a fourth mention shape, or P18's numeric duplication turning out not to collapse under `INumber<T>`.
 
 ### P16. Rework the `Constraint` assertion state machine
 - [ ] Implement

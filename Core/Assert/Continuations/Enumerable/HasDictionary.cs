@@ -7,7 +7,8 @@ namespace TSpec.Assert.Continuations.Enumerable;
 /// </summary>
 /// <typeparam name="TKey">The type of the keys in the dictionary</typeparam>
 /// <typeparam name="TValue">The type of the values in the dictionary</typeparam>
-public record HasDictionary<TKey, TValue> : HasEnumerable<KeyValuePair<TKey, TValue>>
+public record HasDictionary<TKey, TValue>
+    : HasEnumerable<KeyValuePair<TKey, TValue>, HasDictionaryContinuation<TKey, TValue>>
 {
     /// <summary>
     /// Invert the following assertion, e.g. Has().no.Key(k)

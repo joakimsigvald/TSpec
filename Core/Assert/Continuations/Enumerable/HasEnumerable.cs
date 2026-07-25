@@ -3,9 +3,14 @@
 namespace TSpec.Assert.Continuations.Enumerable;
 
 /// <summary>
-/// Object that allows assertions to be made on the provided enumerable
+/// Object that allows assertions to be made on the provided enumerable.
+/// Subclasses close <typeparamref name="TContinuation"/> over their own continuation, so that
+/// chaining with `and` after an inherited assertion keeps their specific vocabulary.
 /// </summary>
-public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableContinuation<TItem>>
+/// <typeparam name="TItem">The type of the elements in the enumerable</typeparam>
+/// <typeparam name="TContinuation">The continuation returned when chaining further assertions</typeparam>
+public record HasEnumerable<TItem, TContinuation> : EnumerableConstraint<TItem, TContinuation>
+    where TContinuation : HasEnumerable<TItem, TContinuation>, new()
 {
     /// <summary>
     /// Asserts that the enumerable contains exactly one item
@@ -17,28 +22,28 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// Then().Result.Has().OneItem().that.Is().EqualTo(The&lt;Model&gt;())
     /// </code>
     /// </example>
-    public ContinueWithThat<HasEnumerableContinuation<TItem>, TItem> OneItem() 
+    public ContinueWithThat<TContinuation, TItem> OneItem() 
         => NItems(1, items => items[0]);
 
     /// <summary>
     /// Asserts that the enumerable contains exactly two items
     /// </summary>
     /// <returns>A continuation for making further assertions on the enumerable or accessing the two items</returns>
-    public ContinueWithThat<HasEnumerableContinuation<TItem>, (TItem first, TItem second)> TwoItems() 
+    public ContinueWithThat<TContinuation, (TItem first, TItem second)> TwoItems() 
         => NItems(2, items => (items[0], items[1]));
 
     /// <summary>
     /// Asserts that the enumerable contains exactly three items
     /// </summary>
     /// <returns>A continuation for making further assertions on the enumerable or accessing the three items</returns>
-    public ContinueWithThat<HasEnumerableContinuation<TItem>, (TItem first, TItem second, TItem third)> ThreeItems()
+    public ContinueWithThat<TContinuation, (TItem first, TItem second, TItem third)> ThreeItems()
         => NItems(3, items => (items[0], items[1], items[2]));
 
     /// <summary>
     /// Asserts that the enumerable contains exactly four items
     /// </summary>
     /// <returns>A continuation for making further assertions on the enumerable or accessing the four items</returns>
-    public ContinueWithThat<HasEnumerableContinuation<TItem>, 
+    public ContinueWithThat<TContinuation, 
         (TItem first, TItem second, TItem third, TItem fourth)> FourItems()
         => NItems(4, items => (items[0], items[1], items[2], items[3]));
 
@@ -46,7 +51,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// Asserts that the enumerable contains exactly five items
     /// </summary>
     /// <returns>A continuation for making further assertions on the enumerable or accessing the five items</returns>
-    public ContinueWithThat<HasEnumerableContinuation<TItem>, 
+    public ContinueWithThat<TContinuation, 
         (TItem first, TItem second, TItem third, TItem fourth, TItem fifth)> FiveItems()
         => NItems(5, items => (items[0], items[1], items[2], items[3], items[4]));
 
@@ -56,7 +61,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <param name="condition">The condition that the value is expected to satisfy</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable or accessing the single item</returns>
-    public ContinueWithThat<HasEnumerableContinuation<TItem>, TItem> OneItem(
+    public ContinueWithThat<TContinuation, TItem> OneItem(
         Func<TItem, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
         => NItems(1, items => items[0], condition, expectedExpr);
 
@@ -66,7 +71,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <param name="condition">The condition that the value is expected to satisfy</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable or accessing the two items</returns>
-    public ContinueWithThat<HasEnumerableContinuation<TItem>, (TItem first, TItem second)> TwoItems(
+    public ContinueWithThat<TContinuation, (TItem first, TItem second)> TwoItems(
         Func<TItem, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
         => NItems(2, items => (items[0], items[1]), condition, expectedExpr);
 
@@ -76,7 +81,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <param name="condition">The condition that the value is expected to satisfy</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable or accessing the three items</returns>
-    public ContinueWithThat<HasEnumerableContinuation<TItem>, (TItem first, TItem second, TItem third)> ThreeItems(
+    public ContinueWithThat<TContinuation, (TItem first, TItem second, TItem third)> ThreeItems(
         Func<TItem, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
         => NItems(3, items => (items[0], items[1], items[2]), condition, expectedExpr);
 
@@ -86,7 +91,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <param name="condition">The condition that the value is expected to satisfy</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable or accessing the four items</returns>
-    public ContinueWithThat<HasEnumerableContinuation<TItem>, 
+    public ContinueWithThat<TContinuation, 
         (TItem first, TItem second, TItem third, TItem fourth)> FourItems(
         Func<TItem, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
         => NItems(4, items => (items[0], items[1], items[2], items[3]), condition, expectedExpr);
@@ -97,7 +102,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <param name="condition">The condition that the value is expected to satisfy</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable or accessing the five items</returns>
-    public ContinueWithThat<HasEnumerableContinuation<TItem>, 
+    public ContinueWithThat<TContinuation, 
         (TItem first, TItem second, TItem third, TItem fourth, TItem fifth)> FiveItems(
         Func<TItem, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
         => NItems(5, items => (items[0], items[1], items[2], items[3], items[4]), condition, expectedExpr);
@@ -107,7 +112,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// and exposes them through the given projection. The item array is allocated up front, so it stays
     /// filled with defaults when the assertion is inverted or fails, just as the callers expect.
     /// </summary>
-    private ContinueWithThat<HasEnumerableContinuation<TItem>, TThat> NItems<TThat>(
+    private ContinueWithThat<TContinuation, TThat> NItems<TThat>(
         int n,
         Func<TItem[], TThat> project,
         Func<TItem, bool>? condition = null,
@@ -135,7 +140,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <param name="condition">condition that items have to meet to be counted</param>
     /// <param name="conditionExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the value</returns>
-    public CountContinuation<TItem> Count(
+    public CountContinuation<TItem, TContinuation> Count(
         Func<TItem, bool>? condition = null,
         [CallerArgumentExpression(nameof(condition))] string? conditionExpr = null) => new(this, condition, conditionExpr)
         {
@@ -152,13 +157,13 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <param name="by">function selecting the key that the collection should be ordered by</param>
     /// <param name="byExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the value</returns>
-    public OrderContinuation<TItem> Order<TKey>(
+    public OrderContinuation<TItem, TContinuation> Order<TKey>(
         Func<TItem, TKey> by,
         [CallerArgumentExpression(nameof(by))] string? byExpr = null)
         where TKey : IComparable<TKey>
         => CreateOrder((a, b) => Comparer<TKey>.Default.Compare(by(a), by(b)), byExpr);
 
-    internal OrderContinuation<TItem> CreateOrder(Func<TItem, TItem, int> compare, string? byExpr)
+    internal OrderContinuation<TItem, TContinuation> CreateOrder(Func<TItem, TItem, int> compare, string? byExpr)
         => new(this, compare, byExpr)
         {
             Actual = Actual,
@@ -179,7 +184,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// list.Has().Count().AtLeast(3); // count-related assertions such as AtLeast, AtMost and InRange
     /// </code>
     /// </example>
-    public ContinueWith<HasEnumerableContinuation<TItem>> Count(
+    public ContinueWith<TContinuation> Count(
         int expected, [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
     {
         var expectedStr = Express(expectedExpr, expected);
@@ -195,7 +200,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <param name="condition">The condition that the value is expected to satisfy</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable</returns>
-    public ContinueWith<HasEnumerableContinuation<TItem>> All(
+    public ContinueWith<TContinuation> All(
         Func<TItem, int, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
         => Assert("elements satisfying the condition",
             NotNullAnd(actual => Xunit.Assert.DoesNotContain(actual
@@ -211,7 +216,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <param name="condition">The condition that the value is expected to satisfy</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable</returns>
-    public ContinueWith<HasEnumerableContinuation<TItem>> All(
+    public ContinueWith<TContinuation> All(
         Func<TItem, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
         => Assert(
             "elements satisfying the condition",
@@ -226,7 +231,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <param name="assert">An action applying assertions to the value</param>
     /// <param name="assertExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable</returns>
-    public ContinueWith<HasEnumerableContinuation<TItem>> All(
+    public ContinueWith<TContinuation> All(
         Action<TItem, int> assert, [CallerArgumentExpression(nameof(assert))] string? assertExpr = null)
         => Assert(
             "elements satisfying the assertion",
@@ -240,7 +245,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <param name="assert">An action applying assertions to the value</param>
     /// <param name="assertExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable</returns>
-    public ContinueWith<HasEnumerableContinuation<TItem>> All(
+    public ContinueWith<TContinuation> All(
         Action<TItem> assert, [CallerArgumentExpression(nameof(assert))] string? assertExpr = null)
         => Assert(
             "elements satisfying the assertion",
@@ -254,7 +259,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <param name="condition">The condition that the value is expected to satisfy</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable</returns>
-    public ContinueWith<HasEnumerableContinuation<TItem>> Some(
+    public ContinueWith<TContinuation> Some(
         Func<TItem, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
         => Assert(
             "element satisfying the condition",
@@ -269,7 +274,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <param name="condition">The condition that the value is expected to satisfy</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable</returns>
-    public ContinueWith<HasEnumerableContinuation<TItem>> Some(
+    public ContinueWith<TContinuation> Some(
         Func<TItem, int, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
         => Assert("element satisfying the condition",
             NotEmptyAnd(actual => Xunit.Assert.Contains(actual.Select((it, i) => (it, i)), t => condition(t.it, t.i))),
@@ -284,7 +289,7 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <param name="condition">The condition that the value is expected to satisfy</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable</returns>
-    public ContinueWith<HasEnumerableContinuation<TItem>> None(
+    public ContinueWith<TContinuation> None(
         Func<TItem, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
         => not.Some(condition, expectedExpr);
 
@@ -295,9 +300,15 @@ public record HasEnumerable<TItem> : EnumerableConstraint<TItem, HasEnumerableCo
     /// <param name="condition">The condition that the value is expected to satisfy</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable</returns>
-    public ContinueWith<HasEnumerableContinuation<TItem>> None(
+    public ContinueWith<TContinuation> None(
         Func<TItem, int, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
         => not.Some(condition, expectedExpr);
 
-    internal override HasEnumerableContinuation<TItem> Continue() => Create(Actual, ActualExpr);
+    internal override TContinuation Continue() => Create(Actual, ActualExpr);
 }
+
+/// <summary>
+/// Object that allows assertions to be made on the provided enumerable
+/// </summary>
+/// <typeparam name="TItem">The type of the elements in the enumerable</typeparam>
+public record HasEnumerable<TItem> : HasEnumerable<TItem, HasEnumerableContinuation<TItem>>;

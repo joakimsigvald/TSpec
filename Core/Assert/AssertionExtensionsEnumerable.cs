@@ -69,10 +69,13 @@ public static class AssertionExtensionsEnumerable
     /// Continuations to make order-related assertions on the collection, ordered by the items themselves
     /// </summary>
     /// <typeparam name="TItem">The comparable type of the elements in the enumerable</typeparam>
+    /// <typeparam name="TContinuation">The continuation returned when chaining further assertions</typeparam>
     /// <param name="has">The continuation to assert order on</param>
     /// <returns>A continuation for making further assertions on the value</returns>
-    public static OrderContinuation<TItem> Order<TItem>(this HasEnumerable<TItem> has)
+    public static OrderContinuation<TItem, TContinuation> Order<TItem, TContinuation>(
+        this HasEnumerable<TItem, TContinuation> has)
         where TItem : IComparable<TItem>
+        where TContinuation : HasEnumerable<TItem, TContinuation>, new()
         => has.CreateOrder(Comparer<TItem>.Default.Compare, null);
 
     /// Deferred sequences are wrapped in a lazily-caching sequence, so that each element is

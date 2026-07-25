@@ -695,9 +695,8 @@ Dictionary assertions bind to `IReadOnlyDictionary<TKey, TValue>` (covers `Dicti
 
 Failure messages list the dictionary's key-value pairs (capped at five elements). Notes:
 
-- The enumerable-of-pairs assertions (`Count`, `OneItem`, `All`, ...) remain available on dictionaries,
-  but after chaining into one of them (e.g. `dict.Has().Count(2).and`) the continuation is the plain
-  enumerable one — the dictionary-specific `Key`/`Value`/`no` are not available further down that chain.
+- The enumerable-of-pairs assertions (`Count`, `OneItem`, `All`, ...) remain available, and chaining
+  through one of them keeps the dictionary vocabulary: `dict.Has().Count(2).and.Key("a")`.
 - Variables *declared* as `IDictionary<TKey, TValue>` bind to the enumerable-of-pairs assertions only.
 
 ### 5.6 Justifying assertions with because

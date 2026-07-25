@@ -24,7 +24,8 @@
 		<PackageReleaseNotes>
 			Unified invocation-count grammar: a wasInvoked: argument (a Moq.Times) closes all three scopes — expression `Then&lt;IEventQueue&gt;(q =&gt; q.MarkRejected(42, ...), Once)`, named method `.And&lt;IEventQueue&gt;(nameof(IEventQueue.MarkFailed), Never)` (any args, aggregated over overloads), whole service `.And&lt;IEntityWriter&gt;(wasInvoked: Never)`. The bare `Then&lt;TService&gt;(expr)` still verifies ≥1 call. The count now renders into the specification, e.g. "IEventQueue.MarkFailed was not invoked". Deprecates the Then/And&lt;TService&gt;().WasInvoked(Times) continuation.
 			ValueTask support: When/Having/Until accept ValueTask- and ValueTask&lt;T&gt;-returning lambdas, and mocking ValueTask members works as for Task. No more .AsTask() at the call site.
-			Enum generation now varies: successive generated values cycle the enum's members instead of always yielding the first one. Small value spaces still repeat once exhausted — mentions vary, they are not guaranteed unique (the docs previously overstated this).
+			Dictionaries and strings keep their vocabulary when chaining: `dict.Has().Count(2).and.Key("a")`. Binary-breaking. The redundant `Has().Order&lt;int&gt;()` spelling is gone — write `Has().Order()`.
+			Enum generation varies: successive values cycle the enum's members. Mentions vary, they are not guaranteed unique (the docs previously overstated this).
 			BREAKING (compile-time only): a lambda written `async`, or consisting of a `throw`, must now state its return type — `When(async Task&lt;int&gt; (_) =&gt; ...)`, `Until(void (_) =&gt; throw ...)` — else Task and ValueTask are ambiguous. `When(_ =&gt; _.CreateCart(id))` is unaffected.
 	</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>

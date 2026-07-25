@@ -10,14 +10,16 @@ namespace TSpec.Assert.Continuations.Enumerable;
 /// at least, at most, or a range of items, optionally filtered by a predicate. Methods return a continuation to allow
 /// chaining further assertions on the enumerable.</remarks>
 /// <typeparam name="TItem">The type of elements contained in the enumerable being asserted.</typeparam>
-public record CountContinuation<TItem> : EnumerableConstraint<TItem, HasEnumerableContinuation<TItem>>
+/// <typeparam name="TContinuation">The continuation returned when chaining further assertions</typeparam>
+public record CountContinuation<TItem, TContinuation> : EnumerableConstraint<TItem, TContinuation>
+    where TContinuation : HasEnumerable<TItem, TContinuation>, new()
 {
-    private readonly HasEnumerable<TItem> _parent;
+    private readonly HasEnumerable<TItem, TContinuation> _parent;
     private readonly Func<TItem, bool>? _condition;
     private readonly string? _conditionExpr;
 
     internal CountContinuation(
-        HasEnumerable<TItem> parent, 
+        HasEnumerable<TItem, TContinuation> parent, 
         Func<TItem, bool>? condition,
         string? conditionExpr)
     {
@@ -32,7 +34,7 @@ public record CountContinuation<TItem> : EnumerableConstraint<TItem, HasEnumerab
     /// <param name="expected">Lowest allowed count</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable</returns>
-    public ContinueWith<HasEnumerableContinuation<TItem>> At(
+    public ContinueWith<TContinuation> At(
         int expected, [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
     {
         var expectedStr = ExpressExpectation(expected, expectedExpr!);
@@ -46,7 +48,7 @@ public record CountContinuation<TItem> : EnumerableConstraint<TItem, HasEnumerab
     /// <param name="expected">Lowest allowed count</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable</returns>
-    public ContinueWith<HasEnumerableContinuation<TItem>> AtLeast(
+    public ContinueWith<TContinuation> AtLeast(
         int expected, [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
     {
         var expectedStr = ExpressExpectation(expected, expectedExpr!);
@@ -60,7 +62,7 @@ public record CountContinuation<TItem> : EnumerableConstraint<TItem, HasEnumerab
     /// <param name="expected">Highest allowed count</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable</returns>
-    public ContinueWith<HasEnumerableContinuation<TItem>> AtMost(
+    public ContinueWith<TContinuation> AtMost(
         int expected, [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
     {
         var expectedStr = ExpressExpectation(expected, expectedExpr!);
@@ -76,7 +78,7 @@ public record CountContinuation<TItem> : EnumerableConstraint<TItem, HasEnumerab
     /// <param name="fromExpr">Captured automatically by the compiler — do not provide</param>
     /// <param name="toExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable</returns>
-    public ContinueWith<HasEnumerableContinuation<TItem>> InRange(
+    public ContinueWith<TContinuation> InRange(
         int from,
         int to,
         [CallerArgumentExpression(nameof(from))] string? fromExpr = null,
@@ -94,7 +96,7 @@ public record CountContinuation<TItem> : EnumerableConstraint<TItem, HasEnumerab
         methodName: null).And();
     }
 
-    internal override HasEnumerableContinuation<TItem> Continue() => _parent.Continue();
+    internal override TContinuation Continue() => _parent.Continue();
 
     /// The count in the failure description is the number of counted items,
     /// i.e. the number of matching items when a condition is given
