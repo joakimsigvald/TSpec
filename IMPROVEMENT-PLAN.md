@@ -23,7 +23,7 @@ is done** (2026-07-24) and `PackageVersion` is now **1.5.0**; since 1.4.2 was ne
 notes are folded into the 1.5.0 notes. **P14 is resolved** by the already-shipped `Is().A<T>().that`.
 **P13b is resolved** (2026-07-25, also in 1.5.0) as a docs correction plus enum variation — the uniqueness
 guarantee was dropped, not implemented. P12 and P13 are dropped; P17 and P15a (the CRTP generalization) and P18
-(2026-07-25) are done and P15b (source generator) is declined, leaving P16 and P19 open.
+(2026-07-25) are done, P15b (source generator) is declined and P16 is closed as cleanup-only, leaving P19 open.
 
 ## Release train
 
@@ -33,7 +33,7 @@ guarantee was dropped, not implemented. P12 and P13 are dropped; P17 and P15a (t
 | R2 | **1.3.0 / 1.3.1** ✅ | P6–P10: assert-library API additions (P6 also fixes the P2 bug) | New functionality → minor |
 | — | **1.4.0–1.4.2** | Off-plan assert/verification additions (see status table) | New functionality → minor |
 | R3 | **1.5.0** | P11, P13b, P14: pipeline/generation features, plus P15a and P17 | New functionality → minor |
-| — | (no release) | P16, P19: internal refactors (P15a, P17 and P18 shipped in 1.5.0) | Ship with whichever release comes next; no standalone release needed |
+| — | (no release) | P19: internal refactors (P15a, P16, P17 and P18 shipped in 1.5.0) | Ship with whichever release comes next; no standalone release needed |
 | R4 | **2.0.0** | All/most remaining items done **+ removal of every deprecated member** | Removals are binary- and source-breaking → major |
 
 ### 2.0.0 — the destination
@@ -215,9 +215,12 @@ deleted outright rather than deprecated. See [P15a](#p15a-crtp-generalization-of
 - **Correction on record:** an earlier claim that a generator would degrade go-to-definition *for package users* was wrong. This generator would run in TSpec's own build; consumers get a compiled DLL plus the XML doc file and cannot tell generated members from hand-written ones. All costs are maintainer-side.
 - **What would change the answer:** a sixth ordinal, a fourth mention shape, or P18's numeric duplication turning out not to collapse under `INumber<T>`.
 
-### P16. Rework the `Constraint` assertion state machine
-- [ ] Implement
-- **Scope:** `Constraint.cs:121-175` — `[Flags]` enum with pre-declared combined values (`InvertedEither = 3`, `EitherSucceeded = 6`…), `DoAssert` mutating `State`/`Exception` mid-flight, inversion via swallowing `XunitException`. It is the kernel of the assert library and its hardest code. Replace with an explicit evaluation result (Passed / Failed(ex)) plus separate either-tracking; drop the pre-combined enum members. The either/or/not test suite (`Core.Test/Assert/**`) is the safety net — behavior must not change, including `ContinueWith.Continue`'s and/or/but validation rules.
+### P16. Rework the `Constraint` assertion state machine — **closed 2026-07-25** (cleanup only; the rewrite is not worth doing)
+- [x] Done: the five never-referenced pre-combined enum members (`InvertedEither = 3`, `EitherSucceeded = 6`, `InvertedEitherSucceeded`, `EitherFailed`, `InvertedEitherFailed`) are deleted — only the four primitives were ever used — and the enum now documents that the flags combine freely. The two-alternative limit of `either/or` is documented in README §5.1.2, the agent reference and the `either` XML doc. Suite 1325 green.
+- **Why the rewrite was dropped:** the enum *looked* like a state machine hiding complexity; the complexity is real but inherent. Assertions evaluate eagerly and throw on failure, and C# gives no end-of-chain signal — nothing runs after the last `.or.X()`. `either` exists to buy a deferral, and it can only buy one, because the deferral must be spent by the last alternative (`DoAssert` clears `Either` on the first failure). Two-way `either/or` is therefore not an oversight; it falls out of eager evaluation.
+- **N-way `or` would need one of two worse designs:** flush pending failures at teardown or at the next assertion (N-way, but failures surface away from the assertion with a useless stack trace), or take the alternatives as arguments — `Either(x => x.Even(), x => x.GreaterThan(5))` — which is the lambda soup P9 rejected.
+- **Verified 2026-07-25:** `1.Is().either.Even().or.GreaterThan(5).or.LessThan(2)` fails reporting the *first* branch's message, though the third alternative holds. Locked in by `WhenEitherIsEvenOrNotEven.AndThirdIsTrue_ThenFail`.
+- **If ever reopened,** start with characterization tests: the contracts (success short-circuits, first failure wins the message, `Either` consumed by failure, `either` rejected after `not`, `and`/`but` rejected after `either`, `or` rejected without `either`) have roughly one test each today.
 
 ### P17. Deduplicate `HasEnumerable` OneItem…FiveItems
 - [x] Done 2026-07-24: all ten methods (×5 arities ×2, with/without condition) are now one-line projections over a single private `NItems<TThat>(int n, Func<TItem[], TThat> project, Func<TItem,bool>? condition, string? conditionExpr, [CallerMemberName] string? methodName)`. **−118 lines** (31 insertions / 149 deletions); XML docs and the ten distinct signatures untouched. Zero test changes — 1317 green on net8/9/10, which also proves spec text and failure messages are byte-identical.

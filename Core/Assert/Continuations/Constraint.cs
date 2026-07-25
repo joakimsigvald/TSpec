@@ -4,19 +4,20 @@ using TSpec.Internal.Specification;
 
 namespace TSpec.Assert.Continuations;
 
+/// <summary>
+/// The four independent facts about an assertion in a chain. They combine freely — name no
+/// combinations here; every consumer tests one flag at a time with HasFlag.
+/// Either is spent by the first failure (see DoAssert), which is what limits either/or to two
+/// alternatives: assertions evaluate eagerly, so the deferral has to be consumed by the last one.
+/// </summary>
 [Flags]
 internal enum ConstraintState
 {
     Normal = 0,
     Inverted = 1,
     Either = 2,
-    InvertedEither = 3,
     Succeeded = 4,
-    EitherSucceeded = 6,
-    InvertedEitherSucceeded = 7,
     Failed = 8,
-    EitherFailed = 10,
-    InvertedEitherFailed = 11,
 };
 
 /// <summary>
@@ -69,7 +70,9 @@ public abstract record Constraint<TActual, TContinuation>
             expectedExpr!).And();
 
     /// <summary>
-    /// Used to provide two assertions, separated by 'or', one of which has to pass for the test to pass
+    /// Used to provide two assertions, separated by 'or', one of which has to pass for the test to pass.
+    /// Exactly two: assertions are evaluated as they are written, so 'either' can only defer the failure
+    /// of the first alternative — a further 'or' compiles but cannot rescue the chain.
     /// </summary>
     [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Special convention of binding words")]
     public TContinuation either
