@@ -216,7 +216,7 @@ deleted outright rather than deprecated. See [P15a](#p15a-crtp-generalization-of
 - **What would change the answer:** a sixth ordinal, a fourth mention shape, or P18's numeric duplication turning out not to collapse under `INumber<T>`.
 
 ### P16. Rework the `Constraint` assertion state machine — **closed 2026-07-25** (cleanup only; the rewrite is not worth doing)
-- [x] Done: the five never-referenced pre-combined enum members (`InvertedEither = 3`, `EitherSucceeded = 6`, `InvertedEitherSucceeded`, `EitherFailed`, `InvertedEitherFailed`) are deleted — only the four primitives were ever used — and the enum now documents that the flags combine freely. The two-alternative limit of `either/or` is documented in README §5.1.2, the agent reference and the `either` XML doc. Suite 1325 green.
+- [x] Done: the five never-referenced pre-combined enum members (`InvertedEither = 3`, `EitherSucceeded = 6`, `InvertedEitherSucceeded`, `EitherFailed`, `InvertedEitherFailed`) are deleted — only the four primitives were ever used — and the enum now documents that the flags combine freely. The two-alternative limit is noted on the `either` XML doc; README §5.1.2 already said "two assertions", which the user judged sufficient. Suite 1325 green on net8/9/10.
 - **Why the rewrite was dropped:** the enum *looked* like a state machine hiding complexity; the complexity is real but inherent. Assertions evaluate eagerly and throw on failure, and C# gives no end-of-chain signal — nothing runs after the last `.or.X()`. `either` exists to buy a deferral, and it can only buy one, because the deferral must be spent by the last alternative (`DoAssert` clears `Either` on the first failure). Two-way `either/or` is therefore not an oversight; it falls out of eager evaluation.
 - **N-way `or` would need one of two worse designs:** flush pending failures at teardown or at the next assertion (N-way, but failures surface away from the assertion with a useless stack trace), or take the alternatives as arguments — `Either(x => x.Even(), x => x.GreaterThan(5))` — which is the lambda soup P9 rejected.
 - **Verified 2026-07-25:** `1.Is().either.Even().or.GreaterThan(5).or.LessThan(2)` fails reporting the *first* branch's message, though the third alternative holds. Locked in by `WhenEitherIsEvenOrNotEven.AndThirdIsTrue_ThenFail`.
@@ -237,9 +237,9 @@ deleted outright rather than deprecated. See [P15a](#p15a-crtp-generalization-of
 - **Breaking:** the `IsInt`/`IsByte`/… public types are gone (source- and binary-breaking for anyone naming them; they normally only appear behind `var`).
 
 ### P19. Data-layer clarity fixes
-- [ ] Implement
-- `DataProvider.TryGetValue` (`DataProvider.cs:78-92`): lookup mutates the dictionary; the double assignment on lines 84–85 is an undocumented reentrancy guard for self-referencing factories — restructure or comment. It currently reads like a bug.
-- `Repository.TryGetDefault` (`Repository.cs:54-65`): a Try-getter that generates and mutates state — rename or split.
+- [ ] Implement (the two pure items are done; the four semantic questions below remain open)
+- [x] Done 2026-07-25: `DataProvider.TryGetValue`'s double assignment is commented — the factory is dropped *before* it is invoked so that a factory asking for a value of its own type re-enters, finds no factory, and falls through to ordinary generation instead of recursing until the stack blows.
+- [x] Done 2026-07-25: `Repository.TryGetDefault` → **`TryResolveDefault`**, with a note on `IRepository` that it resolves rather than looks up (it generates and mutates when no arrangement exists but a default setup is registered). All six call sites are internal. Suite 1325 green on net8/9/10.
 - `ObjectStrategy.cs:38-47`: silent fallback to parameterless ctor when the greedy ctor throws can mask arrangement errors — record a warning into the specification text (keep the fallback).
 - Naming pass over the internal chain `Pipeline → Fixture → SpecFixture` / `Context → Repository → DataProvider/Mutator/DataGenerator` — six nouns whose roles aren't discoverable from the names. Rename opportunistically while touching files; no big-bang rename.
 - Open questions from the P5b session (user's principle: user setup error → `SetupFailed`; missing framework case → `NotImplementedException`):

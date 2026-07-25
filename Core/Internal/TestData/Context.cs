@@ -31,7 +31,7 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
         {
             var newValue = found
                 ? (TValue)val!
-                : _repository.TryGetDefault(typeof(TValue), For.Input, out var defaultValue)
+                : _repository.TryResolveDefault(typeof(TValue), For.Input, out var defaultValue)
                 ? (TValue)defaultValue!
                 : Create<TValue>();
             if (mutation is null)
@@ -88,7 +88,7 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
     {
         var type = typeof(TValue[]);
         var (val, found) = _repository.Retrieve(type);
-        return (found || _repository.TryGetDefault(type, For.Input, out val)) ? val as TValue[] : null;
+        return (found || _repository.TryResolveDefault(type, For.Input, out val)) ? val as TValue[] : null;
     }
 
     internal TValue[] ApplyMany<TValue>(Mutation<TValue> mutation, int count)

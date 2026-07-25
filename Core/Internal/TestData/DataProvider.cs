@@ -86,6 +86,9 @@ internal class DataProvider
         {
             if (arr.Factory != null)
             {
+                // Drop the factory before invoking it: a factory that asks for a value of the same
+                // type re-enters here, and without this it would call itself until the stack blows.
+                // With the factory gone the reentrant lookup falls through to ordinary generation.
                 arrangements[type] = new(arr.HasValue, arr.Value, null);
                 arrangements[type] = arr = new(true, arr.Factory(), null);
             }

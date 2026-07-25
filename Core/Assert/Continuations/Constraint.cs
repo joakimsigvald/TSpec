@@ -71,8 +71,7 @@ public abstract record Constraint<TActual, TContinuation>
 
     /// <summary>
     /// Used to provide two assertions, separated by 'or', one of which has to pass for the test to pass.
-    /// Exactly two: assertions are evaluated as they are written, so 'either' can only defer the failure
-    /// of the first alternative — a further 'or' compiles but cannot rescue the chain.
+    /// Exactly two — a further 'or' compiles but cannot rescue the chain.
     /// </summary>
     [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Special convention of binding words")]
     public TContinuation either

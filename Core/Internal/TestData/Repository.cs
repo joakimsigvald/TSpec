@@ -51,7 +51,7 @@ internal class Repository : IRepository
         return _mutator.Mutate(type, instance);
     }
 
-    public bool TryGetDefault(Type type, For scope, out object? val)
+    public bool TryResolveDefault(Type type, For scope, out object? val)
     {
         var found = _dataProvider.TryGetValue(type, scope, out val);
         if (found)
@@ -75,7 +75,7 @@ internal class Repository : IRepository
     internal void AddDefaultSetup(Type type, Func<object, object> mutation) => _mutator.AddMutation(type, mutation);
 
     public (object? val, bool found) Use(Type type, For scope)
-        => TryGetDefault(type, scope, out var value) ? (value, true) : (null, false);
+        => TryResolveDefault(type, scope, out var value) ? (value, true) : (null, false);
 
     public object Create(Type type, For scope) => _mutator.Mutate(type, _generator.Create(type, scope))!;
 

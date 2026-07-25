@@ -3,5 +3,5 @@
 internal class DefaultStrategy(IRepository repository) : IGenerationStrategy
 {
     public bool TryGenerate(GenerationRequest request, ref object? result)
-        => request.WithDefaultFallback && repository.TryGetDefault(request.Type, request.Scope, out result);
+        => request.WithDefaultFallback && repository.TryResolveDefault(request.Type, request.Scope, out result);
 }
