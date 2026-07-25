@@ -22,8 +22,8 @@ R3 is renumbered to **1.5.0** because 1.4.x was consumed by the off-plan work ab
 is done** (2026-07-24) and `PackageVersion` is now **1.5.0**; since 1.4.2 was never pushed, its release
 notes are folded into the 1.5.0 notes. **P14 is resolved** by the already-shipped `Is().A<T>().that`.
 **P13b is resolved** (2026-07-25, also in 1.5.0) as a docs correction plus enum variation — the uniqueness
-guarantee was dropped, not implemented. P12 and P13 are dropped; P17 and P15a (the CRTP generalization,
-2026-07-25) are done and P15b (source generator) is declined, leaving P16, P18 and P19 open.
+guarantee was dropped, not implemented. P12 and P13 are dropped; P17 and P15a (the CRTP generalization) and P18
+(2026-07-25) are done and P15b (source generator) is declined, leaving P16 and P19 open.
 
 ## Release train
 
@@ -33,7 +33,7 @@ guarantee was dropped, not implemented. P12 and P13 are dropped; P17 and P15a (t
 | R2 | **1.3.0 / 1.3.1** ✅ | P6–P10: assert-library API additions (P6 also fixes the P2 bug) | New functionality → minor |
 | — | **1.4.0–1.4.2** | Off-plan assert/verification additions (see status table) | New functionality → minor |
 | R3 | **1.5.0** | P11, P13b, P14: pipeline/generation features, plus P15a and P17 | New functionality → minor |
-| — | (no release) | P16, P18, P19: internal refactors (P15a and P17 shipped in 1.5.0) | Ship with whichever release comes next; no standalone release needed |
+| — | (no release) | P16, P19: internal refactors (P15a, P17 and P18 shipped in 1.5.0) | Ship with whichever release comes next; no standalone release needed |
 | R4 | **2.0.0** | All/most remaining items done **+ removal of every deprecated member** | Removals are binary- and source-breaking → major |
 
 ### 2.0.0 — the destination
@@ -226,9 +226,12 @@ deleted outright rather than deprecated. See [P15a](#p15a-crtp-generalization-of
 - **Was not a trap:** `OneItem` lost `Xunit.Assert.Single` in favour of `Equal(1, length)`; the message is TSpec's own (`Expected arr to have one item but found 0: []`), so nothing changed.
 - **Note for [P15](#p15-collapse-the-ordinalfluent-boilerplate-with-a-source-generator):** the CRTP generalization still has to rewrite these ten return types (`ContinueWithThat<HasEnumerableContinuation<TItem>, …>` → `ContinueWithThat<TContinuation, …>`), but the bodies are now one line each, so that edit is cheap.
 
-### P18. Halve the numeric assertion duplication with generic math
-- [ ] Implement
-- **Scope:** `AssertionExtensionsNumerical.cs` (219) vs `AssertionExtensionsNullableNumerical.cs` (235) + 24 near-empty `IsX`/`IsNullableX` records. `INumber<T>` is already used in `UsingFromExtensions.Numeric.cs`, so generic math is available on all TFMs. Keep the per-type records only where the continuation type must differ (e.g. fractional `Around`).
+### P18. Halve the numeric assertion duplication with generic math — **done 2026-07-25** (partial; shipped in 1.5.0)
+- [x] The 16 empty integral records (`IsByte`…`IsULong` and the `IsNullable*` twins) are replaced by two generic continuations, `IsIntegral<TActual>` and `IsNullableIntegral<TActual>` (both `where TActual : struct, IBinaryInteger<TActual>`, three lines each). −16 files, ~−130 lines. Suite 1325 green on net8/9/10, no test changes.
+- **The extension methods could not be collapsed, and this is structural.** The obvious generic form — `Is<T>(this T actual, …) where T : IBinaryInteger<T>` — does not compile: it is ambiguous (CS0121) with the general `AssertionExtensions.Is<TValue>`. Constraints filter candidates but never make one *more specific*, so the two generic methods tie. The 32 per-type overloads win today only because **non-generic beats generic** in overload resolution, which makes them load-bearing rather than duplication. The reason is recorded in the two classes' XML docs so nobody re-attempts it. Actual saving: roughly a fifth of the duplication, not half.
+- **Drive-by:** `uint` had a bare `Is()` but no `Is(expected)` overload, so `5u.Is(6u)` fell through to the general object comparison. The regenerated file is symmetric; `uint` now takes the numeric path like every other integral type. No test covered it either way.
+- **Fractional deliberately untouched:** `IsDecimal`/`IsDouble`/`IsFloat` are *not* empty — they implement `AssertEqual`/`AssertNotEqual`, and inconsistently: `IsDecimal` compares `Math.Abs(actual - expected) <= precision` while the other two delegate to xUnit's `Assert.Equal(expected, actual, tolerance)` with its own NaN handling and message. Collapsing them onto `TActual.Abs(...)` via `INumber<T>` is feasible but changes double/float failure text and NaN semantics — a behavior change needing its own decision, not a cleanup. Same for the nullable fractional trio.
+- **Breaking:** the `IsInt`/`IsByte`/… public types are gone (source- and binary-breaking for anyone naming them; they normally only appear behind `var`).
 
 ### P19. Data-layer clarity fixes
 - [ ] Implement
