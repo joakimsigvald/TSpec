@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using TSpec.Internal.Specification;
 using TSpec.Internal.TestData.Generation.Strategies.IlCompilation;
 
 namespace TSpec.Internal.TestData.Generation.Strategies;
@@ -36,14 +37,22 @@ internal class ObjectStrategy : IGenerationStrategy
             }
             catch (Exception ex)
             {
+                object instance;
                 try
                 {
-                    return Activator.CreateInstance(type)!;
+                    instance = Activator.CreateInstance(type)!;
                 }
                 catch (Exception)
                 {
-                    throw new SetupFailed($"Failed to create value for type {type.Name}", ex);
+                    throw new SetupFailed(
+                        $"Failed to create value for type {type.Name}. Arrange it with Using<{type.Name}>(...) or Given<{type.Name}>(...)",
+                        ex);
                 }
+                SpecificationContext.Current.AddSetupWarning(
+                    $"{type.Name}: the constructor rejected the generated arguments ({ex.GetType().Name}), "
+                    + $"so the parameterless constructor was used instead. "
+                    + $"Arrange it with Using<{type.Name}>(...) or Given<{type.Name}>(...) if that is not what you want.");
+                return instance;
             }
         }
 

@@ -115,9 +115,11 @@ public static class AssertionExtensions
         ex.HasInnerMessage(spec);
     }
 
+    /// Compares the recording only, by cutting at the first section header. Sections are optional,
+    /// so cut on the blank-line separator that introduces them rather than on a specific header.
     private static void HasInnerMessage(this Xunit.Sdk.XunitException ex, string expected)
-        => SplitInnerExceptionMessage(ex)[0].NormalizeLineEndings()
-            .Is($"\n{expected.NormalizeLineEndings()}\n");
+        => ex.InnerException!.Message.NormalizeLineEndings().Split("\n\n===")[0]
+            .Is($"\n{expected.NormalizeLineEndings()}");
 
     /// <summary>
     /// Verify that the exception message contains the expected assignments section
@@ -134,6 +136,6 @@ public static class AssertionExtensions
     {
         var innerEx = ex.InnerException;
         innerEx!.Is().not.Null();
-        return innerEx!.Message.Split("----");
+        return innerEx!.Message.NormalizeLineEndings().Split("=== VALUES ===");
     }
 }

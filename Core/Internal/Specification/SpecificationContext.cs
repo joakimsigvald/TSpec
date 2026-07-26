@@ -24,6 +24,7 @@ internal class SpecificationContext : IAssertSpecificationContext
     private readonly ActionPhrases _action;
     private readonly AssertionPhrases _assertion;
     private readonly SpecificationAssignments _assignments = new();
+    private readonly List<string> _setupWarnings = [];
     private string? _subjectDescription;
 
     private SpecificationContext()
@@ -119,11 +120,35 @@ internal class SpecificationContext : IAssertSpecificationContext
             var innerTSpecTEx = GetExpectedException(ex.InnerException as XunitException);
             if (innerTSpecTEx is not null)
                 message = $"{message}{Environment.NewLine}{innerTSpecTEx.Message}";
-            var assignmentList = _assignments.ListAssignments();
-            var specMessage = string.Join(
-                Environment.NewLine, string.Empty, _recording, "----", assignmentList);
-            throw new XunitException(message, new XunitException(specMessage));
+            throw new XunitException(message, new XunitException(DescribeSpecification()));
         }
+    }
+
+    /// <summary>
+    /// Record something the framework had to work around while realizing the specification.
+    /// Warnings are plain text, free of generated values, so they stay stable and comparable;
+    /// duplicates are dropped and the rest keep the order they were registered in. They surface
+    /// only when a test fails, under the WARNINGS section of the attached specification.
+    /// </summary>
+    public void AddSetupWarning(string warning)
+    {
+        if (!_setupWarnings.Contains(warning))
+            _setupWarnings.Add(warning);
+    }
+
+    private string DescribeSpecification()
+    {
+        List<string?> sections = [string.Empty, _recording.ToString()];
+        if (_setupWarnings.Count > 0)
+            sections.AddRange([
+                string.Empty,
+                "=== WARNINGS ===",
+                // Blank line between warnings, so that multi-line ones stay distinguishable
+                string.Join($"{Environment.NewLine}{Environment.NewLine}", _setupWarnings)]);
+        var assignments = _assignments.ListAssignments();
+        if (assignments.Length > 0)
+            sections.AddRange([string.Empty, "=== VALUES ===", assignments]);
+        return string.Join(Environment.NewLine, sections);
     }
 
     public void AddThen() => _assertion.AddThen();

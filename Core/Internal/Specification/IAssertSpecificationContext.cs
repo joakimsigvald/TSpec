@@ -16,4 +16,5 @@ internal interface IAssertSpecificationContext
     void AddAssert([CallerMemberName] string? assertName = null);
     void AddAssertConjunction(string conjunction);
     void AddThat();
+    void AddSetupWarning(string warning);
 }
