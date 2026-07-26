@@ -42,8 +42,8 @@ deprecated surface** accumulated in 1.x. Everything currently carrying `[Obsolet
 
 | Deprecated member | Replacement | Deprecated in |
 |---|---|---|
-| `Spec.Then<TService>()` / `ITestPipeline.Then<TService>()` / `TestPipeline.Then<TService>()` (parameterless) | `Then<TService>(wasInvoked: Times)` | 1.4.2 |
-| `IAndVerify.And<TObject>()` / `AndVerify.And<TObject>()` (parameterless) | `And<TObject>(wasInvoked: Times)` | 1.4.2 |
+| `Spec.Then<TService>()` / `ITestPipeline.Then<TService>()` / `TestPipeline.Then<TService>()` (parameterless) | `Then<TService>(wasInvoked: Times)` | 1.5.0 |
+| `IAndVerify.And<TObject>()` / `AndVerify.And<TObject>()` (parameterless) | `And<TObject>(wasInvoked: Times)` | 1.5.0 |
 | `HasObject.Type<TObject>()` | `Is().A<T>()` / `Is().An<T>()` | 1.4.0 |
 
 Removing these also lets `IVerifyService<TResult>` and `VerifyService` go — nothing else produces them.
