@@ -1,29 +1,29 @@
 # TSpec Improvement Plan
 
 Origin: full code review 2026-07-19 (all 1201 tests green on net10.0, zero warnings).
-Work the items top-down; each item is self-contained. Tick the checkbox when done.
 
-## Status (2026-07-25)
+## CLOSED 2026-07-26 — 1.5.0 published and tagged `v1.5.0`
 
-R1 and R2 are **complete**: P1, P3–P5 landed in 1.2.1; P6–P9 in 1.3.0; P10 (`WasInvoked`) in 1.3.1.
+Every item is resolved: **done** (P1, P3–P11, P13b, P14, P15a, P16, P17, P18, P19), **dropped**
+(P2 folded into P6, P12, P13) or **declined** (P15b). The suite went from 1201 to **1344 tests**,
+green on net8.0/net9.0/net10.0 with zero warnings.
 
-Since then, three unplanned releases landed off-plan (they are not P-items):
+The one thread left open is P19's *opportunistic* naming pass (`Pipeline → Fixture → SpecFixture`,
+`Context → Repository → DataProvider`), deliberately not scheduled: it touches every file in the data
+layer and rewrites `git blame` for no functional gain. Rename individual names when they are actively
+misleading, as `TryGetDefault → TryResolveDefault` was.
 
-| Version | Content | Shipped to nuget.org? |
-|---|---|---|
-| 1.4.0 | `Is().A<T>()` / `An<T>()` type-narrowing assertion exposing the value via `that`; deprecates `Has().Type<T>()` | yes |
-| 1.4.1 | Named-method invocation assertion `Then<TService>(nameof(...), Times)` | yes |
-| 1.4.2 | Unified `wasInvoked:` invocation-count grammar across all three scopes; deprecates the `Then<TService>().WasInvoked(Times)` continuation | **no — committed, not yet packed/pushed** |
+**This document is now a historical record, with one living part: the [2.0.0 destination](#200--the-destination)
+table below.** Any new deprecation added in 1.x still gets a row there in the same change. New work goes
+to `TODO.txt`.
 
-No `v*` tags exist in the repo; the release procedure's tagging step has not been applied to any
-release so far.
+### What shipped in 1.5.0
 
-R3 is renumbered to **1.5.0** because 1.4.x was consumed by the off-plan work above. **P11 (ValueTask)
-is done** (2026-07-24) and `PackageVersion` is now **1.5.0**; since 1.4.2 was never pushed, its release
-notes are folded into the 1.5.0 notes. **P14 is resolved** by the already-shipped `Is().A<T>().that`.
-**P13b is resolved** (2026-07-25, also in 1.5.0) as a docs correction plus enum variation — the uniqueness
-guarantee was dropped, not implemented. P12 and P13 are dropped; P17 and P15a (the CRTP generalization) and P18
-(2026-07-25) are done, P15b (source generator) is declined and P16 is closed as cleanup-only, leaving P19 open.
+`ValueTask` support (P11); enum generation that varies, and the uniqueness guarantee retracted as a docs
+error rather than implemented (P13b); dictionaries and strings keeping their vocabulary when chaining
+(P15a); a general setup-warning mechanism surfaced under `=== WARNINGS ===` on failure (P19); the integral
+continuations collapsed to `IsIntegral<T>` (P18); `For.None` rejected at the public boundary (P19); and
+the `WhenRenderFailureOutput` matrix locking the shape of generated output, which nothing had covered.
 
 ## Release train
 
@@ -31,10 +31,9 @@ guarantee was dropped, not implemented. P12 and P13 are dropped; P17 and P15a (t
 |---|---|---|---|
 | R1 | **1.2.1** ✅ | P1, P3–P5: correctness fixes, no new API surface | Bug fixes only → patch |
 | R2 | **1.3.0 / 1.3.1** ✅ | P6–P10: assert-library API additions (P6 also fixes the P2 bug) | New functionality → minor |
-| — | **1.4.0–1.4.2** | Off-plan assert/verification additions (see status table) | New functionality → minor |
-| R3 | **1.5.0** | P11, P13b, P14: pipeline/generation features, plus P15a and P17 | New functionality → minor |
-| — | (no release) | P19: internal refactors (P15a, P16, P17 and P18 shipped in 1.5.0) | Ship with whichever release comes next; no standalone release needed |
-| R4 | **2.0.0** | All/most remaining items done **+ removal of every deprecated member** | Removals are binary- and source-breaking → major |
+| — | **1.4.0–1.4.2** | Off-plan assert/verification additions | New functionality → minor |
+| R3 | **1.5.0** ✅ | P11, P13b, P14, plus P15a, P16, P17, P18, P19 | New functionality → minor |
+| R4 | **2.0.0** | Next major: **removal of every deprecated member** | Removals are binary- and source-breaking → major |
 
 ### 2.0.0 — the destination
 
@@ -216,7 +215,7 @@ deleted outright rather than deprecated. See [P15a](#p15a-crtp-generalization-of
 - **Not in scope, still open:** the `Is()`/`Does()` round trip. `HasDictionaryContinuation.Is()` returns `IsEnumerable<KVP>`, so crossing verbs and coming back lands in the plain enumerable vocabulary. Separate problem, no user complaint yet.
 
 ### P15b. Collapse the ordinal/fluent boilerplate with a source generator — **declined 2026-07-25**
-- [ ] Not planned. Revisit only if the generated surface starts growing again.
+- **Declined**, not deferred. Revisit only if the generated surface starts growing again.
 - **Scope it would have covered:** `IGivenContinuation.cs` (511 lines), `GivenContinuation.cs` (254), `Spec_Value.cs` (320), `Spec_Values.cs` (304), plus full-API delegation in `TestPipeline.cs` (156) — ~1,700 hand-written lines of A/An/ASecond…AFifth × {value, setup, transform} × interface/impl/delegate.
 - **Why not:** the original rationale was "do it before P6–P14 so every later API addition is cheaper" — those are all done, so it has expired. Five ordinals is a closed set and the three shapes are stable, so the remaining code is mechanical and low-defect. Decisive argument (user, 2026-07-25): a generator is automagic that makes the code harder to understand, and that cost is paid on every future read.
 - **Correction on record:** an earlier claim that a generator would degrade go-to-definition *for package users* was wrong. This generator would run in TSpec's own build; consumers get a compiled DLL plus the XML doc file and cannot tell generated members from hand-written ones. All costs are maintainer-side.
