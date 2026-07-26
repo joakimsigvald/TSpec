@@ -199,6 +199,30 @@ authoritative; this section is what has actually happened against it.
 | 5 | `/version` reads the assembly version | Driven out red-green; `<Version>` in `MyHotel.csproj` is now the single source, and feeds the generated document too. |
 | 6 | `README.md` §7, agent-reference section | Phase 4 started early because CLAUDE.md makes docs part of the change, not a later step. Both marked work-in-progress. |
 | 7 | Subject resolution hardened | Composition extracted to `PendingDocument.Prepare`, so the whole chain is testable against a real directory rather than only through a test run. Failure messages now state both expectations — naming (`.Spec` preferred, `.Test` fine) and a *direct* project reference — whichever half broke. 32 tests in `Core.Test/Internal/Document`, up from 17; the added ones cover the manifest-reading and directory-walking paths that previously had none. Mutation-checked: removing the reference check fails 8 of 12. |
+| 8 | `.editorconfig`, build-enforced everywhere | `const` is PascalCase at every accessibility; other non-public fields are `_camelCase`. Enforced with `<EnforceCodeStyleInBuild>` + `IDE1006`, so a violation is a build error under `TreatWarningsAsErrors`. Renamed 7 `private const _camelCase` and 4 PascalCase fields in Core, then 26 more in `Core.Test`. Mutation-checked in both directions. |
+
+**Naming in a spec project is a documentation decision, not a style one.** TSpec renders source
+identifiers into the specification text tests pin with `Specification.Is(...)`, so renaming a field
+or const in a spec project rewrites specifications and can shift their 80-character wrapping. The
+rules are enforced in `Core.Test` regardless (user, 2026-07-26), and the net readability effect was
+a wash rather than a loss — fields gained underscores, consts shed them:
+
+```
+Given IShoppingCartRepository.GetCart(CartId) returns new ShoppingCart { Id =
+      CartId, Items = _cartItems ?? [] }      # CartId became const, so kept its readable name
+Given IMyValueIntRepo.Get(the MyValueInt) tap(i => _tappedValue = i) returns
+      RetVal                                  # was _retVal
+```
+
+The rule turned out to have a useful side effect: because `const` keeps PascalCase, a value that
+*should* be const now reads better in the specification than one that is merely an unassigned
+field. `WhenAddItem._cartId` was never reassigned; making it `protected const int CartId` was both
+the more honest declaration and the better-rendering one. Underscores now mark genuine mutable
+setup (`_cartItems`, `_cart`, `_checkout`), which is information the reader wants.
+
+The wrapping happened not to shift through any of this. It is not guaranteed to survive the next
+rename — the standing caution recorded in `.editorconfig`, and live input to §7 Q1/Q2 as
+`MyHotel.Spec` grows.
 
 **Deviation from §6's ordering:** Phase 2's skeleton (fixture, location, identity, write) was built
 before Phase 1's collection. A document that contains nothing but a header still exercises the

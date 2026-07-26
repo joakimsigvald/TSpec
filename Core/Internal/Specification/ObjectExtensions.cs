@@ -4,8 +4,8 @@ namespace TSpec.Internal.Specification;
 
 internal static class ObjectExtensions
 {
-    private const int _maxElements = 5;
-    private const int _maxElementLength = 50;
+    private const int MaxElements = 5;
+    private const int MaxElementLength = 50;
 
     internal static string FormatValue(this object? value)
         => value switch
@@ -22,9 +22,9 @@ internal static class ObjectExtensions
     /// expanding nested structure.
     private static string FormatCollection(IEnumerable col)
     {
-        var elements = col.Cast<object?>().Take(_maxElements + 1).Select(FormatElement).ToList();
-        if (elements.Count > _maxElements)
-            elements[_maxElements] = "...";
+        var elements = col.Cast<object?>().Take(MaxElements + 1).Select(FormatElement).ToList();
+        if (elements.Count > MaxElements)
+            elements[MaxElements] = "...";
         return $"[{string.Join(", ", elements)}]";
     }
 
@@ -38,5 +38,5 @@ internal static class ObjectExtensions
         };
 
     private static string Cap(string text)
-        => text.Length <= _maxElementLength ? text : $"{text[.._maxElementLength]}...";
+        => text.Length <= MaxElementLength ? text : $"{text[..MaxElementLength]}...";
 }

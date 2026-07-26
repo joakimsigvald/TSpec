@@ -12,7 +12,7 @@ public class WhenSubjectResolutionFails : Spec
     private static string MessageFor(string specAssemblyName)
         => Xunit.Assert.Throws<SetupFailed>(
             () => SpecificationSubject.Resolve(
-                specAssemblyName, ProjectReferences.Parse(DepsJson._myHotelSpec, "MyHotel.Spec")))
+                specAssemblyName, ProjectReferences.Parse(DepsJson.MyHotelSpec, "MyHotel.Spec")))
             .Message;
 
     [Theory]

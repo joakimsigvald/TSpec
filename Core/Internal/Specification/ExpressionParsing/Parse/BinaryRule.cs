@@ -10,7 +10,7 @@ namespace TSpec.Internal.Specification.ExpressionParsing.Parse;
 internal static class BinaryRule
 {
     public const int MinPrecedence = 1;
-    private const int _relationalPrecedence = 5;
+    private const int RelationalPrecedence = 5;
 
     // (operator, precedence, right-associative)
     private static readonly (string Op, int Prec, bool RightAssoc)[] _ops =
@@ -30,7 +30,7 @@ internal static class BinaryRule
         var left = UnaryRule.Parse(ts);
         while (true)
         {
-            if (IsTypeOp(ts) && _relationalPrecedence >= minPrec)
+            if (IsTypeOp(ts) && RelationalPrecedence >= minPrec)
             {
                 left = ParseIsAs(ts, save, left);
                 continue;

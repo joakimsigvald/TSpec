@@ -10,7 +10,7 @@ internal sealed record SpecificationSubject(string Name, string Version)
     /// <summary>
     /// Stated identically by both failures, so the fix reads the same whichever half of the rule broke.
     /// </summary>
-    internal const string _expectations =
+    internal const string Expectations =
         "A spec project must (1) be named after the project it specifies with one suffix appended — "
         + "'MyHotel.Spec' is preferred, 'MyHotel.Test' is fine — and (2) reference that project "
         + "directly; a transitive reference is not enough.";
@@ -22,7 +22,7 @@ internal sealed record SpecificationSubject(string Name, string Version)
             throw new SetupFailed(
                 $"TSpec derived the subject '{name}' from the spec assembly name '{specAssemblyName}', "
                 + $"but '{name}' is not one of its direct project references ({Describe(references.Names)}). "
-                + _expectations);
+                + Expectations);
         return new(name, version);
     }
 
@@ -32,7 +32,7 @@ internal sealed record SpecificationSubject(string Name, string Version)
         if (lastSeparator <= 0 || lastSeparator == specAssemblyName.Length - 1)
             throw new SetupFailed(
                 $"TSpec cannot tell which project the spec assembly '{specAssemblyName}' specifies: "
-                + "the name has no suffix to strip. " + _expectations);
+                + "the name has no suffix to strip. " + Expectations);
         return specAssemblyName[..lastSeparator];
     }
 

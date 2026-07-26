@@ -5,13 +5,13 @@ namespace TSpec.Test.Tests.ShoppingService;
 
 public abstract class WhenCreateCart : ShoppingServiceSpec<ShoppingCart>
 {
-    protected int Id;
+    protected int _id;
 
-    protected WhenCreateCart() => When(_ => _.CreateCart(Id));
+    protected WhenCreateCart() => When(_ => _.CreateCart(_id));
 
     public class GivenIdIsOne : WhenCreateCart
     {
-        public GivenIdIsOne() => Using(() => Id = 1);
+        public GivenIdIsOne() => Using(() => _id = 1);
 
         [Fact]
         public void ThenCartIdIsOne()
@@ -19,8 +19,8 @@ public abstract class WhenCreateCart : ShoppingServiceSpec<ShoppingCart>
             Result.Id.Is(1);
             Specification.Is(
                 """
-                Using Id = 1
-                When _.CreateCart(Id)
+                Using _id = 1
+                When _.CreateCart(_id)
                 Then Result.Id is 1
                 """);
         }
@@ -31,8 +31,8 @@ public abstract class WhenCreateCart : ShoppingServiceSpec<ShoppingCart>
             Result.Id.Is().Not(2);
             Specification.Is(
                 """
-                Using Id = 1
-                When _.CreateCart(Id)
+                Using _id = 1
+                When _.CreateCart(_id)
                 Then Result.Id is not 2
                 """);
         }
@@ -40,7 +40,7 @@ public abstract class WhenCreateCart : ShoppingServiceSpec<ShoppingCart>
 
     public class GivenIdIsTwo : WhenCreateCart
     {
-        public GivenIdIsTwo() => Using(() => Id = 2);
+        public GivenIdIsTwo() => Using(() => _id = 2);
 
         [Fact]
         public void ThenCartIdIsTwo()
@@ -48,8 +48,8 @@ public abstract class WhenCreateCart : ShoppingServiceSpec<ShoppingCart>
             Result.Id.Is(2);
             Specification.Is(
                 """
-                Using Id = 2
-                When _.CreateCart(Id)
+                Using _id = 2
+                When _.CreateCart(_id)
                 Then Result.Id is 2
                 """);
         }

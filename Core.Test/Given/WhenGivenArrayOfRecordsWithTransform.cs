@@ -5,11 +5,11 @@ namespace TSpec.Test.Given;
 
 public class WhenGivenArrayOfRecordsWithTransform : Spec<MyService, MyModel[]>
 {
-    private const string _myString = "MyString";
+    private const string MyString = "MyString";
 
     public WhenGivenArrayOfRecordsWithTransform()
         => When(_ => _.GetModels())
-        .Given().Three<MyModel>((_, i) => _ with { Name = _myString });
+        .Given().Three<MyModel>((_, i) => _ with { Name = MyString });
 
     [Fact]
     public void ThenGetTheArrayOfModels()
@@ -19,7 +19,7 @@ public class WhenGivenArrayOfRecordsWithTransform : Spec<MyService, MyModel[]>
     public void ThenTransformIsAppliedToReferencedValues()
     {
         Then();
-        A<MyModel>().Name.Is(_myString);
+        A<MyModel>().Name.Is(MyString);
     }
 }
 

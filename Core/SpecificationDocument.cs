@@ -15,7 +15,7 @@ namespace TSpec;
 /// </remarks>
 public sealed class SpecificationDocument : IDisposable
 {
-    internal const string _fileName = "SPECIFICATION.md";
+    internal const string FileName = "SPECIFICATION.md";
 
     private readonly PendingDocument _document;
 

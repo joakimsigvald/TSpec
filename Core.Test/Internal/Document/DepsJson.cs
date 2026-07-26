@@ -6,7 +6,7 @@ namespace TSpec.Test.Internal.Document;
 /// </summary>
 internal static class DepsJson
 {
-    internal const string _myHotelSpec =
+    internal const string MyHotelSpec =
         """
         {
           "runtimeTarget": { "name": ".NETCoreApp,Version=v10.0" },

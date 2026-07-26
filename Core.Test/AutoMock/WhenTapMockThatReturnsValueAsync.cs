@@ -5,7 +5,7 @@ namespace TSpec.Test.AutoMock;
 
 public class WhenTapMockThatReturnsValueAsync : Spec<MyValueIntService, string>
 {
-    private const string _retVal = "abc";
+    private const string RetVal = "abc";
     private int _tappedValue = 0;
 
     [Fact]
@@ -15,13 +15,13 @@ public class WhenTapMockThatReturnsValueAsync : Spec<MyValueIntService, string>
             .Given<IMyValueIntRepo>()
             .That(_ => _.GetAsync(The<MyValueInt>()))
             .Tap((int value) => _tappedValue = value)
-            .Returns(() => _retVal)
+            .Returns(() => RetVal)
             .Then();
         _tappedValue.Is(The<MyValueInt>());
         Specification.Is(
             """
             Given IMyValueIntRepo.GetAsync(the MyValueInt) tap((int value) => _tappedValue
-                  = value) returns _retVal
+                  = value) returns RetVal
             When _.GetValueAsync(a MyValueInt)
             Then _tappedValue is the MyValueInt
             """);

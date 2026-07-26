@@ -12,7 +12,7 @@ namespace TSpec.Test.Assert;
 /// </summary>
 public class WhenRenderFailureOutput : Spec<int>
 {
-    private const string _warning =
+    private const string Warning =
         "Fussy: the constructor rejected the generated arguments (ArgumentException), "
         + "so the parameterless constructor was used instead. "
         + "Arrange it with Using<Fussy>(...) or Given<Fussy>(...) if that is not what you want.";
@@ -86,7 +86,7 @@ public class WhenRenderFailureOutput : Spec<int>
             N is 2
 
             === WARNINGS ===
-            {_warning}
+            {Warning}
             """);
 
     [Fact]
@@ -99,7 +99,7 @@ public class WhenRenderFailureOutput : Spec<int>
             A<Fussy>().Quantity is 1
 
             === WARNINGS ===
-            {_warning}
+            {Warning}
 
             === VALUES ===
             Fussy:1 = TSpec.Test.Assert.Fussy
@@ -153,7 +153,7 @@ public class WhenRenderFailureOutput : Spec<int>
             Arr has all it.Is().LessThan(3)
 
             === WARNINGS ===
-            {_warning}
+            {Warning}
             """);
 
     [Fact]
@@ -169,7 +169,7 @@ public class WhenRenderFailureOutput : Spec<int>
             Two int has all it.Is().LessThan(2)
 
             === WARNINGS ===
-            {_warning}
+            {Warning}
 
             === VALUES ===
             int:1 = 2

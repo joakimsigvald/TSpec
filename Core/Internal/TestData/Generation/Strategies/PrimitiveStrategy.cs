@@ -3,8 +3,8 @@
 internal class PrimitiveStrategy(Counter counter) : IGenerationStrategy
 {
     internal static readonly DateTime _epoch = new(1999, 9, 18, 12, 0, 0, DateTimeKind.Utc);
-    private const int _hundredYears = 36523;
-    private const int _oneDay = 60 * 24;
+    private const int HundredYears = 36523;
+    private const int OneDay = 60 * 24;
 
     public bool TryGenerate(GenerationRequest request, ref object? result)
     {
@@ -46,5 +46,5 @@ internal class PrimitiveStrategy(Counter counter) : IGenerationStrategy
 
     private decimal GetFractional() => counter.Next + (1 + Math.Abs(counter.Current) % 99) / 100m;
 
-    private DateTime GetDateTime() => _epoch.AddDays(counter.Next * 367 % _hundredYears).AddMinutes(counter.Current * 17 % _oneDay);
+    private DateTime GetDateTime() => _epoch.AddDays(counter.Next * 367 % HundredYears).AddMinutes(counter.Current * 17 % OneDay);
 }

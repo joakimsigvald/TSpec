@@ -5,7 +5,7 @@ namespace TSpec.Test.AutoMock;
 
 public class WhenTapMock : Spec<MyValueIntService, string>
 {
-    private const string _retVal = "abc";
+    private const string RetVal = "abc";
     private int _tappedValue = 0;
 
     [Fact]
@@ -15,13 +15,13 @@ public class WhenTapMock : Spec<MyValueIntService, string>
         .Given<IMyValueIntRepo>()
         .That(_ => _.Get(The<MyValueInt>()))
         .Tap<int>(i => _tappedValue = i)
-        .Returns(() => _retVal).
+        .Returns(() => RetVal).
         Then();
         _tappedValue.Is(The<MyValueInt>());
         Specification.Is(
             """
             Given IMyValueIntRepo.Get(the MyValueInt) tap(i => _tappedValue = i) returns
-                  _retVal
+                  RetVal
             When _.GetValue(a MyValueInt)
             Then _tappedValue is the MyValueInt
             """);

@@ -7,7 +7,7 @@ namespace TSpec.Internal.Specification;
 /// </summary>
 internal class TextBuilder(int maxLineLength = 80, int indentationSize = 2)
 {
-    private const int _wrapIndentation = 3;
+    private const int WrapIndentation = 3;
     private static readonly char[] _breakAfterCues = ['.', '(', '[', '{'];
     private readonly StringBuilder _sb = new();
     private int _currentLineLength;
@@ -39,7 +39,7 @@ internal class TextBuilder(int maxLineLength = 80, int indentationSize = 2)
         _sb.Append(first);
         _currentLineLength += first.Length;
         if (rest is not null)
-            AddLine(rest, _wrapIndentation);
+            AddLine(rest, WrapIndentation);
         return _sb;
     }
 

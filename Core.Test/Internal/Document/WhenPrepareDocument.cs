@@ -12,7 +12,7 @@ public class WhenPrepareDocument : Spec
     [Fact]
     public void ThenTargetTheProjectRoot()
     {
-        using var project = new TempProject("MyHotel.Spec", DepsJson._myHotelSpec);
+        using var project = new TempProject("MyHotel.Spec", DepsJson.MyHotelSpec);
         PendingDocument.Prepare("MyHotel.Spec", project.BaseDirectory)
             .Path.Is(Path.Combine(project.Root, "SPECIFICATION.md"));
     }
@@ -20,7 +20,7 @@ public class WhenPrepareDocument : Spec
     [Fact]
     public void ThenRenderTheSubjectItResolved()
     {
-        using var project = new TempProject("MyHotel.Spec", DepsJson._myHotelSpec);
+        using var project = new TempProject("MyHotel.Spec", DepsJson.MyHotelSpec);
         PendingDocument.Prepare("MyHotel.Spec", project.BaseDirectory)
             .Content.Does().Contain("# MyHotel").and.Contain("Version 0.1.0");
     }
@@ -28,7 +28,7 @@ public class WhenPrepareDocument : Spec
     [Fact]
     public void ThenWriteWhatItPrepared()
     {
-        using var project = new TempProject("MyHotel.Spec", DepsJson._myHotelSpec);
+        using var project = new TempProject("MyHotel.Spec", DepsJson.MyHotelSpec);
         var document = PendingDocument.Prepare("MyHotel.Spec", project.BaseDirectory);
         document.Write();
         File.ReadAllText(document.Path).Is(document.Content);
@@ -46,7 +46,7 @@ public class WhenPrepareDocument : Spec
     [Fact]
     public void GivenNoProjectFile_ThenFail()
     {
-        using var project = new TempProject("MyHotel.Spec", DepsJson._myHotelSpec, withProjectFile: false);
+        using var project = new TempProject("MyHotel.Spec", DepsJson.MyHotelSpec, withProjectFile: false);
         Xunit.Assert.Throws<SetupFailed>(
             () => PendingDocument.Prepare("MyHotel.Spec", project.BaseDirectory));
     }

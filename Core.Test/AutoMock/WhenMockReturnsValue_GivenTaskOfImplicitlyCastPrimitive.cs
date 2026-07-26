@@ -5,21 +5,21 @@ namespace TSpec.Test.AutoMock;
 
 public class WhenMockReturnsValue_GivenTaskOfImplicitlyCastPrimitive : Spec<MyValueIntService, string>
 {
-    private const string _retVal = "abc";
+    private const string RetVal = "abc";
 
     public WhenMockReturnsValue_GivenTaskOfImplicitlyCastPrimitive()
         => When(_ => _.GetValueAsync(A<MyValueInt>()))
-        .Given<IMyValueIntRepo>().That(_ => _.GetAsync(The<MyValueInt>())).Returns(() => _retVal);
+        .Given<IMyValueIntRepo>().That(_ => _.GetAsync(The<MyValueInt>())).Returns(() => RetVal);
 
     [Fact]
     public void Then_ItReturnsExpectedValue()
     {
-        Result.Is(_retVal);
+        Result.Is(RetVal);
         Specification.Is(
             """
-            Given IMyValueIntRepo.GetAsync(the MyValueInt) returns _retVal
+            Given IMyValueIntRepo.GetAsync(the MyValueInt) returns RetVal
             When _.GetValueAsync(a MyValueInt)
-            Then Result is _retVal
+            Then Result is RetVal
             """);
     }
 }

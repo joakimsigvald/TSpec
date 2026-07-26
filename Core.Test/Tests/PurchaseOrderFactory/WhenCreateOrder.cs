@@ -7,13 +7,13 @@ public class WhenCreateOrder : PurchaseOrderFactorySpec<OrderRecord>
 {
     protected const int BasketId = 123;
     protected const int CompanyId = 234;
-    protected Checkout Checkout = new() { Basket = new() };
+    protected Checkout _checkout = new() { Basket = new() };
 
-    protected WhenCreateOrder() => When(_ => _.CreateOrder(Checkout));
+    protected WhenCreateOrder() => When(_ => _.CreateOrder(_checkout));
 
     public class GivenBasket : WhenCreateOrder
     {
-        public GivenBasket() => Given().That(() => Checkout = new() { Basket = new() { Id = BasketId } });
+        public GivenBasket() => Given().That(() => _checkout = new() { Basket = new() { Id = BasketId } });
 
         [Fact]
         public void ThenQuotationId_Is_BasketId()
@@ -21,8 +21,8 @@ public class WhenCreateOrder : PurchaseOrderFactorySpec<OrderRecord>
             Result.QuotationId.Is(BasketId);
             Specification.Is(
                 """
-                Given that Checkout = new() { Basket = new() { Id = BasketId } }
-                When _.CreateOrder(Checkout)
+                Given that _checkout = new() { Basket = new() { Id = BasketId } }
+                When _.CreateOrder(_checkout)
                 Then Result.QuotationId is BasketId
                 """);
         }
@@ -33,8 +33,8 @@ public class WhenCreateOrder : PurchaseOrderFactorySpec<OrderRecord>
             Result.OrderNo.Is($"{BasketId}");
             Specification.Is(
                 """
-                Given that Checkout = new() { Basket = new() { Id = BasketId } }
-                When _.CreateOrder(Checkout)
+                Given that _checkout = new() { Basket = new() { Id = BasketId } }
+                When _.CreateOrder(_checkout)
                 Then Result.OrderNo is "{BasketId}"
                 """);
         }

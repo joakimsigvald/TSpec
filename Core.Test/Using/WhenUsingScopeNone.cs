@@ -10,7 +10,7 @@ public class WhenUsingScopeNone : Spec<int>
 {
     private static readonly Tag<int> _tag = new(nameof(_tag));
 
-    private const string _message =
+    private const string Message =
         "For.None is not a valid scope: it would apply the arrangement to neither Input nor Subject. "
         + "Use For.Input, For.Subject or For.All";
 
@@ -31,5 +31,5 @@ public class WhenUsingScopeNone : Spec<int>
         => AssertRejected(() => Using<int>(For.None).From<byte>());
 
     private static void AssertRejected(Action arrange)
-        => Xunit.Assert.Throws<SetupFailed>(arrange).Message.Is(_message);
+        => Xunit.Assert.Throws<SetupFailed>(arrange).Message.Is(Message);
 }

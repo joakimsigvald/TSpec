@@ -5,7 +5,7 @@ namespace TSpec.Test.Internal.Document;
 
 public class WhenParseProjectReferences : Spec
 {
-    private static ProjectReferences Parse() => ProjectReferences.Parse(DepsJson._myHotelSpec, "MyHotel.Spec");
+    private static ProjectReferences Parse() => ProjectReferences.Parse(DepsJson.MyHotelSpec, "MyHotel.Spec");
 
     [Fact] public void ThenKeepDirectProjectReferences() => Parse().TryGetVersion("MyHotel", out _).Is(true);
 
@@ -21,5 +21,5 @@ public class WhenParseProjectReferences : Spec
         => Parse().TryGetVersion("MyHotel.Persistence", out _).Is(false);
 
     [Fact] public void GivenAnUnknownAssembly_ThenFindNothing()
-        => ProjectReferences.Parse(DepsJson._myHotelSpec, "Other").Names.Count.Is(0);
+        => ProjectReferences.Parse(DepsJson.MyHotelSpec, "Other").Names.Count.Is(0);
 }

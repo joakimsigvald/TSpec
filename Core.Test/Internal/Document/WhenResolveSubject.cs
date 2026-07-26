@@ -7,7 +7,7 @@ public class WhenResolveSubject : Spec
 {
     private static SpecificationSubject Resolve(string specAssemblyName)
         => SpecificationSubject.Resolve(
-            specAssemblyName, ProjectReferences.Parse(DepsJson._myHotelSpec, "MyHotel.Spec"));
+            specAssemblyName, ProjectReferences.Parse(DepsJson.MyHotelSpec, "MyHotel.Spec"));
 
     [Fact] public void ThenNameTheReferencedProject() => Resolve("MyHotel.Spec").Name.Is("MyHotel");
 

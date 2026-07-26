@@ -5,30 +5,30 @@ namespace TSpec.Test.Tests.ShoppingServiceAsync;
 
 public abstract class WhenPlaceOrder : Spec<Subjects.ShoppingServiceAsync, object>
 {
-    protected ShoppingCart Cart = null!;
+    protected ShoppingCart _cart = null!;
 
-    protected WhenPlaceOrder() => When(_ => _.PlaceOrder(Cart!));
+    protected WhenPlaceOrder() => When(_ => _.PlaceOrder(_cart!));
 
     public class GivenOpenCart : WhenPlaceOrder
     {
-        public GivenOpenCart() => Given().That(() => Cart = new() { IsOpen = true });
+        public GivenOpenCart() => Given().That(() => _cart = new() { IsOpen = true });
 
         [Fact]
         public void ThenOrderIsCreated()
         {
-            Then<IOrderService>(_ => _.CreateOrder(Cart));
+            Then<IOrderService>(_ => _.CreateOrder(_cart));
             Specification.Is(
                 """
-                Given that Cart = new() { IsOpen = true }
-                When _.PlaceOrder(Cart!)
-                Then IOrderService.CreateOrder(Cart)
+                Given that _cart = new() { IsOpen = true }
+                When _.PlaceOrder(_cart!)
+                Then IOrderService.CreateOrder(_cart)
                 """);
         }
     }
 
     public class GivenClosedCart : WhenPlaceOrder
     {
-        public GivenClosedCart() => Given().That(() => Cart = new() { IsOpen = false });
+        public GivenClosedCart() => Given().That(() => _cart = new() { IsOpen = false });
 
         [Fact]
         public void ThenThrowsNotPurchasable()
@@ -36,8 +36,8 @@ public abstract class WhenPlaceOrder : Spec<Subjects.ShoppingServiceAsync, objec
             Then().Throws<NotPurchasable>();
             Specification.Is(
                 """
-                Given that Cart = new() { IsOpen = false }
-                When _.PlaceOrder(Cart!)
+                Given that _cart = new() { IsOpen = false }
+                When _.PlaceOrder(_cart!)
                 Then throws NotPurchasable
                 """);
         }

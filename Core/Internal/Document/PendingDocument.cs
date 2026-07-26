@@ -12,7 +12,7 @@ internal sealed record PendingDocument(string Path, string Content)
         var subject = SpecificationSubject.Resolve(specAssemblyName, references);
         var directory = ProjectDirectory.Locate(baseDirectory);
         return new(
-            System.IO.Path.Combine(directory, SpecificationDocument._fileName),
+            System.IO.Path.Combine(directory, SpecificationDocument.FileName),
             DocumentRenderer.Render(subject, specAssemblyName));
     }
 

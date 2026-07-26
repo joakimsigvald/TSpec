@@ -27,19 +27,19 @@ public sealed class SpecificationText
         string? expected,
         [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
         => _text.Value.NormalizeLineEndings()
-            .Is(expected?.NormalizeLineEndings(), _actualExpr, expectedExpr);
+            .Is(expected?.NormalizeLineEndings(), ActualExpr, expectedExpr);
 
     /// <summary>
     /// Get available assertions for the specification, normalized to '\n' line endings
     /// </summary>
     /// <returns>A continuation for making further assertions on the specification</returns>
-    public IsString Is() => _text.Value.NormalizeLineEndings().Is(actualExpr: _actualExpr);
+    public IsString Is() => _text.Value.NormalizeLineEndings().Is(actualExpr: ActualExpr);
 
     /// <summary>
     /// Get available assertions for the characteristics of the specification, normalized to '\n' line endings
     /// </summary>
     /// <returns>A continuation for making further assertions on the specification</returns>
-    public DoesString Does() => _text.Value.NormalizeLineEndings().Does(actualExpr: _actualExpr);
+    public DoesString Does() => _text.Value.NormalizeLineEndings().Does(actualExpr: ActualExpr);
 
     /// <summary>
     /// Get the specification text as a string
@@ -53,5 +53,5 @@ public sealed class SpecificationText
     /// <param name="specification">The specification to convert</param>
     public static implicit operator string(SpecificationText specification) => specification.ToString();
 
-    private const string _actualExpr = "Specification";
+    private const string ActualExpr = "Specification";
 }
