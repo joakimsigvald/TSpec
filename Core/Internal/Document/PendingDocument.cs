@@ -1,10 +1,10 @@
 namespace TSpec.Internal.Document;
 
 /// <summary>
-/// A resolved document, ready to write. Preparing it is everything that can fail;
-/// writing it cannot. Separated so the whole resolution chain is testable without a test run.
+/// A located document, ready to write. Everything that can fail is resolved when it is prepared —
+/// before any test runs — while the content depends on requirements collected during the run.
 /// </summary>
-internal sealed record PendingDocument(string Path, string Content)
+internal sealed record PendingDocument(string Path, SpecificationSubject Subject, string SpecAssemblyName)
 {
     internal static PendingDocument Prepare(string specAssemblyName, string baseDirectory)
     {
@@ -12,9 +12,12 @@ internal sealed record PendingDocument(string Path, string Content)
         var subject = SpecificationSubject.Resolve(specAssemblyName, references);
         var directory = ProjectDirectory.Locate(baseDirectory);
         return new(
-            System.IO.Path.Combine(directory, SpecificationDocument.FileName),
-            DocumentRenderer.Render(subject, specAssemblyName));
+            System.IO.Path.Combine(directory, SpecificationDocument.FileName), subject, specAssemblyName);
     }
 
-    internal void Write() => File.WriteAllText(Path, Content);
+    internal string Render(IEnumerable<SpecificationEntry> entries)
+        => DocumentRenderer.Render(Subject, SpecAssemblyName, entries);
+
+    internal void Write(IEnumerable<SpecificationEntry> entries)
+        => File.WriteAllText(Path, Render(entries));
 }

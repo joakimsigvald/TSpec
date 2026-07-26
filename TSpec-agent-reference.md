@@ -131,7 +131,9 @@ Opt in with one line in the spec project; the document is written to the spec pr
 [assembly: AssemblyFixture(typeof(SpecificationDocument))]
 ```
 
-- **Work in progress:** the document currently holds the subject's name and version only — requirements are not collected yet.
+- Each passing requirement is rendered under a `## Subject` / `### Branch.Requirement` heading, with its specification in a fenced block. Sorted and deduplicated, so theories contribute one entry and execution order never shows.
+- Only passing tests contribute; if any test did not pass, the file is left untouched and the reason reported.
+- **Work in progress:** no opt-out attributes yet, and no completeness check — a filtered run (`-class ...`) is currently treated as green and will shorten the document.
 - Subject name = spec assembly name minus its last suffix (`MyHotel.Spec` → `MyHotel`; any suffix works, `.Spec` preferred and `.Test` fine). It is then verified against the spec assembly's **direct** project references — a transitive reference is not enough. If either half fails, `SetupFailed` is thrown before the first test, stating both expectations and listing the references found.
 - Version = the version the build resolved for that project, i.e. `<Version>` in the production project file.
 - Without the attribute, nothing changes.

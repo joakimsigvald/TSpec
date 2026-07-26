@@ -1,4 +1,5 @@
 ﻿using TSpec.Continuations;
+using TSpec.Internal.Document;
 using TSpec.Internal.Pipelines;
 
 namespace TSpec;
@@ -52,6 +53,21 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     public void Dispose()
     {
         Pipeline.TearDown();
+        Collect();
         GC.SuppressFinalize(this);
+    }
+
+    private void Collect()
+    {
+        if (!SpecificationCollector.IsActive)
+            return;
+        if (!TestIdentity.Passed)
+        {
+            SpecificationCollector.RecordNotPassed();
+            return;
+        }
+        var (subject, branch) = TestIdentity.Locate(GetType());
+        SpecificationCollector.Record(
+            new(subject, branch, TestIdentity.Requirement, Pipeline.Specification.ToString()));
     }
 }

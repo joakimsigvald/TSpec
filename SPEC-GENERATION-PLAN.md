@@ -224,6 +224,23 @@ The wrapping happened not to shift through any of this. It is not guaranteed to 
 rename — the standing caution recorded in `.editorconfig`, and live input to §7 Q1/Q2 as
 `MyHotel.Spec` grows.
 
+| 9 | Phase 1 collection + rendering | `SpecificationEntry`, a `ConcurrentBag` collector inert unless the fixture switched it on, and recording in `Spec.Dispose()` when `TestState.Result == Passed`. Rendered as `## Subject` / `### Branch.Requirement` with the specification in a fenced block, sorted and deduplicated. A non-passing test marks the run and the file is left untouched, with the reason on stderr — verified by breaking a MyHotel spec. |
+
+**Two deviations from §4.** The class chain follows **nesting (`DeclaringType`), not inheritance.**
+The designed `BaseType` walk yields `ApiSpec\`1 → WhenGetVersion → GivenNothing` for MyHotel, because
+a shared black-box base sits between the test and `Spec`; nesting gives `WhenGetVersion →
+GivenNothing`, which is what §6.1's recommended structure actually expresses. Shared bases are
+scaffolding, not specification structure. And **namespace is not yet collected** — with one subject
+it would add a heading level for nothing. Both revisit when MyHotel has several subjects.
+
+**The specification text needed LF normalisation.** `TextBuilder` appends `Environment.NewLine`, and
+`Specification.ToString()` *documents* that it returns platform-native endings — so it is not a bug
+to fix at the source, and changing it would break a published contract. The document normalises at
+its own boundary instead, reusing the shipped `NormalizeLineEndings()` that the specification
+assertions already use. This matters because the document is committed: without it a Windows run and
+a Linux run would differ on every line, and the diff — the whole point of the artifact — would be
+noise. Caught by git, not by a test, which is why there is now a test for it.
+
 **Deviation from §6's ordering:** Phase 2's skeleton (fixture, location, identity, write) was built
 before Phase 1's collection. A document that contains nothing but a header still exercises the
 trigger, the output path and the subject rule end to end — the three things most likely to be

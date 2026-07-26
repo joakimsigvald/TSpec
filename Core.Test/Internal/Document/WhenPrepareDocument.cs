@@ -22,7 +22,7 @@ public class WhenPrepareDocument : Spec
     {
         using var project = new TempProject("MyHotel.Spec", DepsJson.MyHotelSpec);
         PendingDocument.Prepare("MyHotel.Spec", project.BaseDirectory)
-            .Content.Does().Contain("# MyHotel").and.Contain("Version 0.1.0");
+            .Render([]).Does().Contain("# MyHotel").and.Contain("Version 0.1.0");
     }
 
     [Fact]
@@ -30,8 +30,8 @@ public class WhenPrepareDocument : Spec
     {
         using var project = new TempProject("MyHotel.Spec", DepsJson.MyHotelSpec);
         var document = PendingDocument.Prepare("MyHotel.Spec", project.BaseDirectory);
-        document.Write();
-        File.ReadAllText(document.Path).Is(document.Content);
+        document.Write([]);
+        File.ReadAllText(document.Path).Is(document.Render([]));
     }
 
     [Fact]

@@ -24,12 +24,26 @@ public sealed class SpecificationDocument : IDisposable
     /// <see cref="SetupFailed"/> if any of them cannot be determined.
     /// </summary>
     public SpecificationDocument()
-        => _document = PendingDocument.Prepare(ReadSpecAssemblyName(), AppContext.BaseDirectory);
+    {
+        _document = PendingDocument.Prepare(ReadSpecAssemblyName(), AppContext.BaseDirectory);
+        SpecificationCollector.IsActive = true;
+    }
 
     /// <summary>
     /// Writes the document. Called by xunit after every test in the assembly has run.
+    /// A test that did not pass contributes nothing, so writing then would quietly drop
+    /// requirements — the existing file is left alone instead.
     /// </summary>
-    public void Dispose() => _document.Write();
+    public void Dispose()
+    {
+        SpecificationCollector.IsActive = false;
+        if (SpecificationCollector.RunWasGreen)
+            _document.Write(SpecificationCollector.Entries);
+        else
+            Console.Error.WriteLine(
+                $"TSpec: {FileName} left unchanged — not every test passed, so the collected "
+                + "requirements are incomplete.");
+    }
 
     private static string ReadSpecAssemblyName()
         => FindSpecAssembly().GetName().Name
