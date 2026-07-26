@@ -15,6 +15,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <returns>A continuation to specify the source of the target type's values with From, or provide further arrangement.</returns>
     public IUsingContinuation<TSUT, TResult, TTarget> Using<TTarget>(For scope = For.All)
     {
+        ValidateScope(scope);
         var continuation = new UsingContinuation<TSUT, TResult, TTarget>(this, scope);
         Pipeline.Specification.AddUsing(() => !continuation.IsConverted, typeof(TTarget).Name, scope);
         Pipeline.AppendUsing(continuation.ResolveDefault);
@@ -39,6 +40,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         bool owned = false,
         [CallerArgumentExpression(nameof(value))] string? valueExpr = null)
     {
+        ValidateScope(scope);
         Pipeline.Using(value, scope, valueExpr!, owned);
         return new UsingTestPipeline<TSUT, TResult>(this);
     }
@@ -62,6 +64,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         bool owned = false,
         [CallerArgumentExpression(nameof(factory))] string? factoryExpr = null)
     {
+        ValidateScope(scope);
         Pipeline.AppendUsing(() => Pipeline.Using(factory, scope, factoryExpr!, owned));
         return new UsingTestPipeline<TSUT, TResult>(this);
     }
@@ -81,7 +84,20 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         bool owned = false,
         [CallerArgumentExpression(nameof(tag))] string? tagExpr = null)
     {
+        ValidateScope(scope);
         Pipeline.AppendUsing(() => Pipeline.Using(() => The(tag), scope, tagExpr!, owned));
         return new UsingTestPipeline<TSUT, TResult>(this);
+    }
+
+    /// <summary>
+    /// For.None is the empty scope — the zero value of the flags enum, and the result of intersecting
+    /// two disjoint scopes. It is never meaningful as an argument, so reject it where the user supplies
+    /// it rather than let it reach a strategy that has no branch for it.
+    /// </summary>
+    private static void ValidateScope(For scope)
+    {
+        if (scope == For.None)
+            throw new SetupFailed(
+                "For.None is not a valid scope: it would apply the arrangement to neither Input nor Subject. Use For.Input, For.Subject or For.All");
     }
 }

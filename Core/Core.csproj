@@ -31,6 +31,7 @@
 			CHANGED
 			* Enum generation varies instead of always yielding the first member. Mentions vary but are not unique — the docs overstated this.
 			* IsInt, IsByte, ... are now IsIntegral&lt;T&gt; / IsNullableIntegral&lt;T&gt;. Assertions unchanged.
+			* For.None is rejected with a clear SetupFailed wherever a scope is given, instead of failing obscurely later.
 
 			BREAKING
 			* An async lambda, or one that is a bare throw, must state its return type: When(async Task&lt;int&gt; (_) =&gt; ...). Otherwise Task and ValueTask are ambiguous.

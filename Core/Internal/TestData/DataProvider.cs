@@ -46,7 +46,7 @@ internal class DataProvider
             For.Input => _inputDefaults,
             For.Subject => _subjectDefaults,
             For.All => _generalDefaults,
-            _ => throw new SetupFailed($"Unsupported scope: {scope}")
+            _ => throw new NotImplementedException($"{scope}")
         };
 
     public bool TryGetValue(Type type, For scope, out object? val)
@@ -57,7 +57,9 @@ internal class DataProvider
         {
             For.Input => TryGetValue(_inputDefaults, type, out val) || TryGetValue(_generalDefaults, type, out val),
             For.Subject => TryGetValue(_subjectDefaults, type, out val) || TryGetValue(_generalDefaults, type, out val),
-            _ => throw new SetupFailed($"Unsupported scope: {scope}")
+            // Callers pass Input or Subject, and For.None is rejected at the public boundary,
+            // so reaching this is a gap in the framework rather than a mistake by the user.
+            _ => throw new NotImplementedException($"{scope}")
         };
 
     private bool TryGetValueOfAsync(Type type, For scope, out object? val)

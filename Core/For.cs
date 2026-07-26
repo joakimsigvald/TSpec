@@ -3,14 +3,13 @@
 /// <summary>
 /// For defines which part of the test pipeline provided values and setups are applied to.
 /// They can either be used when constructing the subject under test and mocks (`Subject`),
-/// or be applied as defaults for test-data generation (`Input`),
-/// or neither (`None`) or both (`All`)
+/// or be applied as defaults for test-data generation (`Input`), or both (`All`)
 /// </summary>
 [Flags]
 public enum For
 {
     /// <summary>
-    /// The value applies neither to Input nor Subject.
+    /// Not a valid scope. Passing it throws SetupFailed — use Input, Subject or All.
     /// </summary>
     None,
 
