@@ -1,6 +1,6 @@
 # TSpec — Agent Reference
 
-Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 1.1).
+Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 1.5).
 TSpec is a fluent Given–When–Then specification framework for .NET on top of xUnit v3 + Moq.
 Full human documentation: [README.md](https://github.com/joakimsigvald/TSpec#readme).
 

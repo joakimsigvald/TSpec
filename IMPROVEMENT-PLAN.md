@@ -60,14 +60,21 @@ deleted outright rather than deprecated. See [P15a](#p15a-crtp-generalization-of
 
 **Release procedure (every release):**
 1. Update `PackageVersion` and `PackageReleaseNotes` in `Core/Core.csproj`.
-2. Update `README.md` **and** `TSpec-agent-reference.md` for every public API / observable behavior change (hard rule from CLAUDE.md).
+2. Update `README.md` **and** `TSpec-agent-reference.md` for every public API / observable behavior change
+   (hard rule from CLAUDE.md), including the agent reference's "covers TSpec x.y" line — it had gone four
+   minor versions stale by 1.5.0, and it ships inside the package.
 3. Run the full suite on **all three** target frameworks (net8.0, net9.0, net10.0):
    `dotnet build Core.Test -f <tfm>` then run `Core.Test/bin/Debug/<tfm>/TSpec.Test.exe`
    (`dotnet test` swallows xunit-v3 exe-runner output — don't use it).
-4. Pack and push to nuget.org:
-   `dotnet pack Core -c Release` → `dotnet nuget push Core/bin/Release/TSpec.<version>.nupkg --api-key <key> --source https://api.nuget.org/v3/index.json`
-   (`GeneratePackageOnBuild` is already enabled; the `.nupkg` also lands under `bin/<config>` on normal builds.)
-5. Tag the commit `v<version>`.
+4. `dotnet pack Core -c Release`, then **upload `Core/bin/Release/TSpec.<version>.nupkg` manually at
+   nuget.org**. Note the folder keeps every previously packed version, so pick the file by name rather
+   than globbing. (`GeneratePackageOnBuild` is enabled, so a `.nupkg` also lands under `bin/<config>` on
+   ordinary builds.)
+5. Optional: tag the published commit `v<version>`. In Visual Studio: **View → Git Repository**,
+   right-click the commit → **Create Tag**, then right-click the tag under **Tags** → **Push** (an
+   ordinary push does not include tags). Worth it only if a GitHub Releases page is wanted; otherwise
+   skip it — `PackageVersion` is committed in `Core/Core.csproj`, so the commit a version shipped from
+   is findable with `git log -S "<version>" -- Core/Core.csproj`. No `v*` tags existed before 1.5.0.
 
 ---
 
