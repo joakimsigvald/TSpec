@@ -5,6 +5,8 @@
     <File Path="TODO.txt" />
     <File Path="TSpec-agent-reference.md" />
   </Folder>
+  <Project Path="MyHotel/MyHotel.csproj" />
+  <Project Path="MyHotel.Spec/MyHotel.Spec.csproj" />
   <Project Path="Core.Test/Core.Test.csproj" />
   <Project Path="Core/Core.csproj" />
 </Solution>

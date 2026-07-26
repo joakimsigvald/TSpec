@@ -17,3 +17,9 @@ A code change is not complete until both documents reflect it. Also update
   `dotnet build Core.Test -f net10.0`, then run `Core.Test/bin/Debug/net10.0/TSpec.Test.exe`
   (filter with `-class Namespace.ClassName`).
 - The library multi-targets net8.0/net9.0/net10.0 — run the full suite on all three before a release.
+
+## MyHotel
+
+`MyHotel/` and `MyHotel.Spec/` are the reference application TSpec is developed against, not part
+of the shipped package. They have their own rules — read `MyHotel/CLAUDE.md` before changing
+anything in either directory.
