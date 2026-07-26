@@ -1,3 +1,10 @@
+* Fail a test that asserted nothing. Deferred execution means `[Fact] void T() => When(_ => Act());`
+  passes without running Act at all - green, counted as coverage, verifying nothing. No test framework
+  catches this; TSpec can, because it knows what an assertion is.
+  - Runtime: fail in SpecFixture teardown when no assertion was recorded. ~20 lines. Check the suite
+    doesn't trip it (Specification.Is and Then<TService>(...) must count as assertions).
+  - Compile time: Roslyn analyzer warning on a [Fact] in a Spec subclass that reaches no assertion.
+    Ships alongside, generates no code, suppressible. Do this only if the runtime check earns its keep.
 * auto-convert look for first public static method with one argument of type TSource that returns TTarget
 * Sequence uniqueness check: fixed spacings now use an O(1) check; the collect-all-values check
   remains only for step-function sequences (Spaced with lambda). If users generate large numbers
