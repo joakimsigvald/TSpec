@@ -21,7 +21,14 @@ public abstract class WhenGetVersion : ApiSpec<HttpResponseMessage>
         }
 
         [Fact]
-        public async Task ThenReturnTheApiVersion()
-            => (await Result.Read<VersionInfo>()).Version.Is("0.1.0");
+        public async Task ThenReturnTheApplicationVersion()
+            => (await Result.Read<VersionInfo>()).Version.Is(DeclaredVersion);
+
+        /// <summary>
+        /// Read from the assembly version, which the SDK sets from &lt;Version&gt; in MyHotel.csproj.
+        /// The endpoint reads the informational version, so agreeing means both track the project file.
+        /// </summary>
+        private static string DeclaredVersion
+            => typeof(Program).Assembly.GetName().Version!.ToString(3);
     }
 }

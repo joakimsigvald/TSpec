@@ -4,6 +4,10 @@ Target release: **2.1.0**. Realizes Stage 1 of [TSpec-vision.md](TSpec-vision.md
 one document per Spec project, built on the 1.5.0 specification vocabulary with no changes to
 how a single test renders.
 
+**Start at [§10 Build log](#10-build-log)** for what is built and what is next. Sections 1–9 are
+the design and stay authoritative; when a decision changes, they get corrected in place rather
+than contradicted from the log.
+
 ## 1. Scope
 
 **In:** collecting each passing test's existing specification text, checking the run was
@@ -49,6 +53,18 @@ common case free of ceremony.
 **Generation is enabled per project by one line**, `[assembly: AssemblyFixture(typeof(SpecificationDocument))]`
 in the Spec project. No environment variable, no MSBuild property, no run mode. An ordinary
 `dotnet test` in a project without that line behaves exactly as today.
+
+**The subject is derived by convention, then verified against the build graph.** The document
+describes the production project, so TSpec has to name it. The subject name is the spec assembly
+name with its last suffix stripped — `MyHotel.Spec` describes `MyHotel`, and *any* suffix works,
+not a list of known ones. That name is then required to appear among the direct project references
+the build recorded in the spec assembly's `deps.json`; if it does not, `SetupFailed` is thrown
+before the first test, listing the references found. The version is the one the build resolved for
+that project, i.e. `<Version>` in the production project file. Rejected: the `Spec<TSubject>` type
+arguments (a black-box API spec's subject is `HttpClient`, so this collapses), and
+`GetReferencedAssemblies()` filtered by `System.*`/`Microsoft.*` (swaps the user's naming
+convention for Microsoft's). Decision (user, 2026-07-26): convention for the name, build graph for
+the check — good enough for MVP, revisit if a project needs a different shape.
 
 **Write only on a complete, green run; otherwise leave the file untouched.** A filtered run must
 not truncate the document, and a red run must not publish one. Both are the same check (§5).
@@ -117,9 +133,13 @@ separate "was anything red" flag — non-passing tests simply never enter the co
 - Markdown rendering: subject headings, method sub-headings, branch path, bullet per requirement,
   everything sorted (namespace, subject, method, branch path, requirement) so parallel execution
   order cannot reach the page.
-- Locating the project directory: TSpec ships `build/TSpec.props` injecting
+- ~~Locating the project directory: TSpec ships `build/TSpec.props` injecting
   `[AssemblyMetadata("TSpecProjectDirectory", "$(MSBuildProjectDirectory)")]`. **To verify** —
-  fallback is walking up from `AppContext.BaseDirectory` for the `.csproj`.
+  fallback is walking up from `AppContext.BaseDirectory` for the `.csproj`.~~ **Settled**: the
+  fallback alone is enough. Walking up for the first ancestor holding a `.csproj` works, and no
+  props file ships. This matters beyond convenience — `.props` files do *not* flow over a
+  `ProjectReference`, so a props-based mechanism would work for package consumers but not for
+  this repo's own `MyHotel.Spec`, and the dogfooding path would stop matching the shipping path.
 - Generated-file header naming the subject set and warning against hand-editing.
 
 ### Phase 3 — tune the format against MyHotel
@@ -138,9 +158,9 @@ reference's "covers TSpec x.y" line.
    and is a much larger change. Decide from MyHotel.
 2. Does 80-character wrapping survive markdown rendering, or is the swappable `TextBuilder`
    worth building?
-3. Should TSpec's own `Core.Test` enable generation? It is a framework testing itself; the
-   document would describe TSpec's API rather than a domain. Recommendation: leave it off,
-   dogfood on MyHotel.
+3. ~~Should TSpec's own `Core.Test` enable generation?~~ **Answered: no.** It is a framework
+   testing itself; the document would describe TSpec's API rather than a domain. `Core.Test`
+   carries no `AssemblyFixture` line and dogfooding happens on MyHotel.
 5. Vision §11 Q4 — structural classification of the diff (claim added / strengthened / weakened /
    removed) — stays out of scope here.
 
@@ -162,3 +182,53 @@ xunit facts.
 
 Decoupled deliberately: the generator is purely additive and does not justify a major, and
 bundling it would hold the deprecation cleanup hostage to the Phase 3 tuning loop.
+
+## 10. Build log
+
+Working record on branch `specification-generator`. Sections above are the design and stay
+authoritative; this section is what has actually happened against it.
+
+### Built, in order
+
+| # | What | Notes |
+|---|---|---|
+| 1 | `MyHotel` + `MyHotel.Spec` | Minimal API in one `Program.cs`, Scalar UI at `/scalar`, `GET /version`. `ApiSpec<TResult>` gives every spec an `HttpClient` over `WebApplicationFactory<Program>`, so specs are black-box by default. |
+| 2 | `MyHotel/README.md`, `MyHotel/CLAUDE.md` | Development rules for the reference app: PO leads, spec-first, black-box default, one project, simplistic until it hurts. Pointer added to root `CLAUDE.md` — needed because `MyHotel/CLAUDE.md` does not apply to `MyHotel.Spec/`. |
+| 3 | `SpecificationDocument` assembly fixture | Opt-in by one line, per §3. Resolves subject and output path in its *constructor*, so a misconfigured project fails before the first test; writes at `Dispose`. |
+| 4 | Subject resolution and rendering | `ProjectReferences` (direct project refs from `deps.json`), `SpecificationSubject` (derive + verify, §3), `ProjectDirectory` (walk up for the `.csproj`), `DocumentRenderer`. 17 unit tests in `Core.Test/Internal/Document`. |
+| 5 | `/version` reads the assembly version | Driven out red-green; `<Version>` in `MyHotel.csproj` is now the single source, and feeds the generated document too. |
+| 6 | `README.md` §7, agent-reference section | Phase 4 started early because CLAUDE.md makes docs part of the change, not a later step. Both marked work-in-progress. |
+| 7 | Subject resolution hardened | Composition extracted to `PendingDocument.Prepare`, so the whole chain is testable against a real directory rather than only through a test run. Failure messages now state both expectations — naming (`.Spec` preferred, `.Test` fine) and a *direct* project reference — whichever half broke. 32 tests in `Core.Test/Internal/Document`, up from 17; the added ones cover the manifest-reading and directory-walking paths that previously had none. Mutation-checked: removing the reference check fails 8 of 12. |
+
+**Deviation from §6's ordering:** Phase 2's skeleton (fixture, location, identity, write) was built
+before Phase 1's collection. A document that contains nothing but a header still exercises the
+trigger, the output path and the subject rule end to end — the three things most likely to be
+wrong about the environment rather than about the code. Collection then lands on a proven pipe.
+
+**Current output.** `MyHotel.Spec/SPECIFICATION.md` is a header only: subject name, version, and a
+do-not-edit comment. No requirements yet.
+
+### Remaining, by decreasing priority
+
+1. **Phase 1 — collection.** `SpecificationEntry`, static thread-safe collector, recording in
+   `Spec.Dispose()` when the fixture is active and `TestState.Result == Passed`,
+   `[Specification]`/`[ExcludeFromSpecification]` with nearest-declaration-wins, class-chain walk
+   with a stop condition at `Spec`. Everything below depends on this.
+2. **Phase 2 — completeness check (§5).** Reflect the expected set, compare, write only on an
+   exact match. Vacuous until entries exist, which is why it follows rather than leads.
+3. **Phase 2 — document rendering.** Subject headings, method sub-headings, branch path, one
+   bullet per requirement, everything sorted so parallel execution order cannot reach the page.
+4. **Grow MyHotel.** Phase 3 cannot start against one endpoint; the format can only be judged
+   against a document with several subjects and real branch structure. Paced by the PO, not by
+   this plan.
+5. **Phase 3 — tune the format.** Answers §7 Q1 (does the flat paragraph read as a bullet, or does
+   `Given` need hoisting) and Q2 (does 80-character wrapping survive markdown). Both are
+   deliberately unanswerable in advance; they need item 4 first.
+6. **Scratch project for the §2 xunit facts (§8).** Fixture wiring, `TestState` at `Dispose` and
+   end-of-assembly ordering cannot be self-tested from inside the same assembly. Currently those
+   facts are verified only by MyHotel.Spec passing, which will not catch a regression precisely.
+7. **Finish Phase 4 docs.** Drop the work-in-progress notes, update the agent reference's
+   "covers TSpec x.y" line — which is stale *now*, since it says 1.5 while documenting post-1.5
+   behaviour.
+8. **Version and release decision.** `PackageVersion` and `PackageReleaseNotes` are untouched at
+   1.5.0. This branch aims at 2.1.0, but 2.0.0 (the removals) has not happened. Needs the PO.

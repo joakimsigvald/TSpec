@@ -123,6 +123,19 @@ Also works standalone in plain xUnit tests (no `Spec` base class required), as a
 
 One test project per production project (`X.Spec`); one folder per class under test; one abstract class per method under test (`WhenMethodName`) holding the `When` in its constructor; nested concrete/abstract classes per precondition (`GivenSomething`) adding `Given` in their constructors; one test method per logical assertion (`Then...`). Prefer expression-bodied members and fluent chaining.
 
+## Generating SPECIFICATION.md
+
+Opt in with one line in the spec project; the document is written to the spec project root when the run ends.
+
+```csharp
+[assembly: AssemblyFixture(typeof(SpecificationDocument))]
+```
+
+- **Work in progress:** the document currently holds the subject's name and version only — requirements are not collected yet.
+- Subject name = spec assembly name minus its last suffix (`MyHotel.Spec` → `MyHotel`; any suffix works, `.Spec` preferred and `.Test` fine). It is then verified against the spec assembly's **direct** project references — a transitive reference is not enough. If either half fails, `SetupFailed` is thrown before the first test, stating both expectations and listing the references found.
+- Version = the version the build resolved for that project, i.e. `<Version>` in the production project file.
+- Without the attribute, nothing changes.
+
 ## Complete examples
 
 ```csharp

@@ -35,8 +35,12 @@ dotnet build MyHotel.Spec -f net10.0
 MyHotel.Spec/bin/Debug/net10.0/MyHotel.Spec.exe
 ```
 
+A green run regenerates [`MyHotel.Spec/SPECIFICATION.md`](../MyHotel.Spec/SPECIFICATION.md). It is a
+generated file — review it in diffs, never edit it by hand. Its version comes from `<Version>` in
+[MyHotel.csproj](MyHotel.csproj).
+
 ## Endpoints
 
 | Method | Path | Returns |
 |---|---|---|
-| `GET` | `/version` | `{ "version": "0.1.0" }` |
+| `GET` | `/version` | `{ "version": "0.1.0" }` — read from the assembly, so it tracks `<Version>` in [MyHotel.csproj](MyHotel.csproj) |

@@ -1,0 +1,38 @@
+# EditorConfig — https://editorconfig.org
+# Naming conventions for TSpec. These are not preferences to be re-litigated per file:
+# they describe what the codebase already does everywhere.
+root = true
+
+[*.cs]
+
+##############################################################################
+# Non-public fields — including const and static readonly — are _camelCase.
+#
+#   private const int _maxElements = 5;
+#   internal const string _fileName = "SPECIFICATION.md";
+#   private static readonly char[] _breakAfterCues = ...;
+#   private readonly StringBuilder _sb = new();
+#
+# const is a field and gets no exemption. PascalCase on a non-public const
+# (MaxElements, FileName) is the mistake this rule exists to catch.
+#
+# Public members stay PascalCase (public const int MinPrecedence = 1).
+# The fluent binding words — .and, .but, .or — are deliberate lowercase
+# exceptions and carry an explicit [SuppressMessage("Style", "IDE1006")].
+##############################################################################
+
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case.required_prefix = _
+
+dotnet_naming_symbols.non_public_fields.applicable_kinds = field
+dotnet_naming_symbols.non_public_fields.applicable_accessibilities = private, internal, protected, protected_internal, private_protected
+
+dotnet_naming_rule.non_public_fields_are_underscore_camel_case.symbols = non_public_fields
+dotnet_naming_rule.non_public_fields_are_underscore_camel_case.style = underscore_camel_case
+dotnet_naming_rule.non_public_fields_are_underscore_camel_case.severity = warning
+
+# The rule severity above is not enough on its own — the analyzer that reports naming
+# violations must also be switched on, or the rules are documentation the build ignores.
+# Paired with <EnforceCodeStyleInBuild> in the csproj, this makes a violation a build error
+# under TreatWarningsAsErrors.
+dotnet_diagnostic.IDE1006.severity = warning

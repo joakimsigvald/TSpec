@@ -1,4 +1,9 @@
+using System.Reflection;
 using Scalar.AspNetCore;
+
+var version = Assembly.GetExecutingAssembly()
+    .GetCustomAttribute<AssemblyInformationalVersionAttribute>()!
+    .InformationalVersion.Split('+')[0];
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
@@ -8,7 +13,7 @@ var app = builder.Build();
 app.MapOpenApi();
 app.MapScalarApiReference();
 
-app.MapGet("/version", () => new VersionInfo("0.1.0"));
+app.MapGet("/version", () => new VersionInfo(version));
 
 app.Run();
 
