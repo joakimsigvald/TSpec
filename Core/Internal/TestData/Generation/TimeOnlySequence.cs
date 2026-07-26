@@ -9,6 +9,6 @@ namespace TSpec.Internal.TestData.Generation;
 /// </summary>
 internal class TimeOnlySequence : Sequence<TimeOnly>
 {
-    protected override TimeOnly DefaultStart => TimeOnly.FromDateTime(PrimitiveStrategy.Epoch);
+    protected override TimeOnly DefaultStart => TimeOnly.FromDateTime(PrimitiveStrategy._epoch);
     protected override TimeOnly DefaultStep(TimeOnly current) => current.AddHours(1);
 }

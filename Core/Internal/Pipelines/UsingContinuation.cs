@@ -25,7 +25,7 @@ internal class UsingContinuation<TSUT, TResult, TTarget> :
     internal void ResolveDefault()
     {
         if (!_isConverted)
-            Parent.Pipeline.Using(Parent.Pipeline.InstantiateNew<TTarget>, _scope, string.Empty);
+            _parent.Pipeline.Using(_parent.Pipeline.InstantiateNew<TTarget>, _scope, string.Empty);
     }
 
     /// <inheritdoc />
@@ -61,10 +61,10 @@ internal class UsingContinuation<TSUT, TResult, TTarget> :
     {
         VerifyNotConverted();
         var holder = new SequenceHolder();
-        Parent.Pipeline.Register<TTarget, TSource>(null, _scope, holder);
-        Parent.Pipeline.SetSequence(holder, next);
+        _parent.Pipeline.Register<TTarget, TSource>(null, _scope, holder);
+        _parent.Pipeline.SetSequence(holder, next);
         _isConverted = true;
-        Parent.Pipeline.Specification.AddUsingFactory<TTarget>(_scope, expr);
+        _parent.Pipeline.Specification.AddUsingFactory<TTarget>(_scope, expr);
         return this;
     }
 
@@ -72,10 +72,10 @@ internal class UsingContinuation<TSUT, TResult, TTarget> :
     {
         VerifyNotConverted();
         var holder = new SequenceHolder();
-        var from = new FromContinuation<TSUT, TResult, TSource>(Parent, holder);
-        Parent.Pipeline.Register(convert, _scope, holder);
+        var from = new FromContinuation<TSUT, TResult, TSource>(_parent, holder);
+        _parent.Pipeline.Register(convert, _scope, holder);
         _isConverted = true;
-        Parent.Pipeline.Specification.AddUsingConversion<TTarget, TSource>(_scope, from.DescribeSequence);
+        _parent.Pipeline.Specification.AddUsingConversion<TTarget, TSource>(_scope, from.DescribeSequence);
         return from;
     }
 

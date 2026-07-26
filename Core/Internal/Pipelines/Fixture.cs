@@ -154,7 +154,7 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
     internal void SetSequence(SequenceHolder sequence, Func<object?> next)
     {
         AssertIsNotSetUp();
-        sequence.Next = next;
+        sequence._next = next;
     }
 
     private void AssertIsNotSetUp()

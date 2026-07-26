@@ -8,6 +8,6 @@ namespace TSpec.Internal.TestData.Generation;
 /// </summary>
 internal class DateTimeSequence : Sequence<DateTime>
 {
-    protected override DateTime DefaultStart => PrimitiveStrategy.Epoch;
+    protected override DateTime DefaultStart => PrimitiveStrategy._epoch;
     protected override DateTime DefaultStep(DateTime current) => current.AddDays(1);
 }

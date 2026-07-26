@@ -30,7 +30,7 @@ public class WhenTimeOnlyStartingAtSpaced : Spec<TimeOnly>
 
 public class WhenTimeOnlySpacedOnly : Spec<TimeOnly>
 {
-    private static readonly TimeOnly _noon = TimeOnly.FromDateTime(PrimitiveStrategy.Epoch);
+    private static readonly TimeOnly _noon = TimeOnly.FromDateTime(PrimitiveStrategy._epoch);
 
     public WhenTimeOnlySpacedOnly() => Using<TimeOnly>().From<TimeOnly>().Spaced(TimeSpan.FromMinutes(90));
 

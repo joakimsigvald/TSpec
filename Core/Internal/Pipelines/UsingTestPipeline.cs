@@ -17,7 +17,7 @@ internal class UsingTestPipeline<TSUT, TResult> :
 
     /// <inheritdoc />
     public IUsingContinuation<TSUT, TResult, TTarget> And<TTarget>(For scope = For.All)
-        => Parent.Using<TTarget>(scope);
+        => _parent.Using<TTarget>(scope);
 
     /// <inheritdoc />
     public IUsingTestPipeline<TSUT, TResult> And<TValue>(
@@ -25,7 +25,7 @@ internal class UsingTestPipeline<TSUT, TResult> :
         For scope = For.All,
         bool owned = false,
         [CallerArgumentExpression(nameof(value))] string? valueExpr = null)
-        => Parent.Using(value, scope, owned, valueExpr!);
+        => _parent.Using(value, scope, owned, valueExpr!);
 
     /// <inheritdoc />
     public IUsingTestPipeline<TSUT, TResult> And<TValue>(
@@ -33,7 +33,7 @@ internal class UsingTestPipeline<TSUT, TResult> :
         For scope = For.All,
         bool owned = false,
         [CallerArgumentExpression(nameof(factory))] string? factoryExpr = null)
-        => Parent.Using(factory, scope, owned, factoryExpr!);
+        => _parent.Using(factory, scope, owned, factoryExpr!);
 
     /// <inheritdoc />
     public IUsingTestPipeline<TSUT, TResult> And<TValue>(
@@ -41,5 +41,5 @@ internal class UsingTestPipeline<TSUT, TResult> :
         For scope = For.All,
         bool owned = false,
         [CallerArgumentExpression(nameof(tag))] string? tagExpr = null)
-        => Parent.Using(tag, scope, owned, tagExpr!);
+        => _parent.Using(tag, scope, owned, tagExpr!);
 }

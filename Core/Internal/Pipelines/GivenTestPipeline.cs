@@ -16,7 +16,7 @@ internal class GivenTestPipeline<TSUT, TResult>
     public IGivenTag<TSUT, TResult, TValue> And<TValue>(
         Tag<TValue> tag,
         [CallerArgumentExpression(nameof(tag))] string? tagExpr = null)
-        => new GivenTag<TSUT, TResult, TValue>(Parent, tag, tagExpr!);
+        => new GivenTag<TSUT, TResult, TValue>(_parent, tag, tagExpr!);
 
     public IGivenTestPipeline<TSUT, TResult> And<TValue>(
         Func<TValue, TValue> setup,

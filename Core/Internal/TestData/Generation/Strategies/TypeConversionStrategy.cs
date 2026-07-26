@@ -12,7 +12,7 @@ internal class TypeConversionStrategy() : IGenerationStrategy
         if (!TryGetRelay(request.Type, request.Scope, out var source))
             return false;
 
-        result = source.Sequence.Next is { } next ? next()
+        result = source.Sequence._next is { } next ? next()
             : source.Type == request.Type ? throw new SetupFailed(
                 $"Using<{request.Type.Name}>().From<{request.Type.Name}>() with the same type requires a sequence, e.g. StartingAt or Spaced")
             : request.Create(source.Type);
@@ -101,5 +101,5 @@ internal record TypeRelay(Type Type, Func<object?, object?>? Convert, SequenceHo
 /// </summary>
 internal class SequenceHolder
 {
-    internal Func<object?>? Next;
+    internal Func<object?>? _next;
 }

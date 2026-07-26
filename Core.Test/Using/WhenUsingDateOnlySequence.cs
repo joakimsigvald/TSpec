@@ -30,7 +30,7 @@ public class WhenDateOnlyStartingAtSpaced : Spec<DateOnly>
 
 public class WhenDateOnlySpacedOnly : Spec<DateOnly>
 {
-    private static readonly DateOnly _epoch = DateOnly.FromDateTime(PrimitiveStrategy.Epoch);
+    private static readonly DateOnly _epoch = DateOnly.FromDateTime(PrimitiveStrategy._epoch);
 
     public WhenDateOnlySpacedOnly() => Using<DateOnly>().From<DateOnly>().Spaced(7);
 

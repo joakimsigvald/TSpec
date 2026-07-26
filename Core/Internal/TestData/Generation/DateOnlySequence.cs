@@ -8,6 +8,6 @@ namespace TSpec.Internal.TestData.Generation;
 /// </summary>
 internal class DateOnlySequence : Sequence<DateOnly>
 {
-    protected override DateOnly DefaultStart => DateOnly.FromDateTime(PrimitiveStrategy.Epoch);
+    protected override DateOnly DefaultStart => DateOnly.FromDateTime(PrimitiveStrategy._epoch);
     protected override DateOnly DefaultStep(DateOnly current) => current.AddDays(1);
 }

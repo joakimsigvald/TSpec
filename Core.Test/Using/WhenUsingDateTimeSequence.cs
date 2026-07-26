@@ -34,7 +34,7 @@ public class WhenDateTimeSpacedOnly : Spec<DateTime>
 
     [Fact]
     public void ThenStartAtEpoch()
-        => Two<DateTime>().Is().EqualTo([PrimitiveStrategy.Epoch, PrimitiveStrategy.Epoch.AddDays(7)]);
+        => Two<DateTime>().Is().EqualTo([PrimitiveStrategy._epoch, PrimitiveStrategy._epoch.AddDays(7)]);
 }
 
 public class WhenDateTimeSpacedThenStartingAt : Spec<DateTime>

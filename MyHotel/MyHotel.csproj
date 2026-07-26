@@ -10,6 +10,7 @@
 		<AssemblyName>MyHotel</AssemblyName>
 		<RootNamespace>MyHotel</RootNamespace>
 		<IsPackable>false</IsPackable>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 	</PropertyGroup>
 
 	<ItemGroup>

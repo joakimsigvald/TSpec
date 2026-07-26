@@ -30,7 +30,7 @@ public class WhenDateTimeOffsetStartingAtSpaced : Spec<DateTimeOffset>
 
 public class WhenDateTimeOffsetSpacedOnly : Spec<DateTimeOffset>
 {
-    private static readonly DateTimeOffset _epoch = new(PrimitiveStrategy.Epoch);
+    private static readonly DateTimeOffset _epoch = new(PrimitiveStrategy._epoch);
 
     public WhenDateTimeOffsetSpacedOnly()
         => Using<DateTimeOffset>().From<DateTimeOffset>().Spaced(TimeSpan.FromDays(7));

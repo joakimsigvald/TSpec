@@ -32,7 +32,7 @@ internal class FromContinuation<TSUT, TResult, TSource> :
 
     public void InstallSequence(ISequence sequence)
     {
-        Parent.Pipeline.SetSequence(_holder, sequence.Next);
+        _parent.Pipeline.SetSequence(_holder, sequence.Next);
         Sequence = sequence;
     }
 

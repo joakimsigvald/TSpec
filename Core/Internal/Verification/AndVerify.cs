@@ -17,7 +17,7 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
     public IVerifyService<TResult> And<TObject>() where TObject : class
     {
         SpecificationContext.Current.AddThen();
-        return Parent.VerifyService<TObject>();
+        return _parent.VerifyService<TObject>();
     }
 
     /// <summary>
@@ -27,7 +27,7 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
         [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TObject : class
     {
         SpecificationContext.Current.AddThen();
-        return Parent.VerifyInvoked<TObject>(Require(wasInvoked), wasInvokedExpr!);
+        return _parent.VerifyInvoked<TObject>(Require(wasInvoked), wasInvokedExpr!);
     }
 
     /// <summary>
@@ -37,7 +37,7 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
         [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TObject : class
     {
         SpecificationContext.Current.AddThen();
-        return Parent.VerifyInvoked<TObject>(Require(wasInvoked)(), wasInvokedExpr!);
+        return _parent.VerifyInvoked<TObject>(Require(wasInvoked)(), wasInvokedExpr!);
     }
 
     /// <summary>
@@ -47,7 +47,7 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
         [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TObject : class
     {
         SpecificationContext.Current.AddThen();
-        return Parent.VerifyInvoked<TObject>(method, wasInvoked, wasInvokedExpr!);
+        return _parent.VerifyInvoked<TObject>(method, wasInvoked, wasInvokedExpr!);
     }
 
     /// <summary>
@@ -57,7 +57,7 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
         [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TObject : class
     {
         SpecificationContext.Current.AddThen();
-        return Parent.VerifyInvoked<TObject>(method, wasInvoked(), wasInvokedExpr!);
+        return _parent.VerifyInvoked<TObject>(method, wasInvoked(), wasInvokedExpr!);
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
         where TObject : class
     {
         SpecificationContext.Current.AddThen();
-        return Parent.Verify(expression, expressionExpr!);
+        return _parent.Verify(expression, expressionExpr!);
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
         where TObject : class
     {
         SpecificationContext.Current.AddThen();
-        return Parent.Verify(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
+        return _parent.Verify(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
         where TObject : class
     {
         SpecificationContext.Current.AddThen();
-        return Parent.Verify(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
+        return _parent.Verify(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
         where TObject : class
     {
         SpecificationContext.Current.AddThen();
-        return Parent.Verify(expression, expressionExpr!);
+        return _parent.Verify(expression, expressionExpr!);
     }
 
     /// <summary>
@@ -120,7 +120,7 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
         where TObject : class
     {
         SpecificationContext.Current.AddThen();
-        return Parent.Verify(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
+        return _parent.Verify(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
     }
 
     /// <summary>
@@ -133,7 +133,7 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
         where TObject : class
     {
         SpecificationContext.Current.AddThen();
-        return Parent.Verify(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
+        return _parent.Verify(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
     }
 
     private static Times Require(Times? wasInvoked) => wasInvoked ?? throw MissingWasInvoked;

@@ -6,8 +6,8 @@ namespace TSpec.Internal.Verification;
 
 internal class AndThen<TSUT, TResult> : IAndThen<TResult>
 {
-    internal protected readonly TestResult<TSUT, TResult> Parent;
-    internal AndThen(TestResult<TSUT, TResult> parent) => Parent = parent;
+    internal protected readonly TestResult<TSUT, TResult> _parent;
+    internal AndThen(TestResult<TSUT, TResult> parent) => _parent = parent;
 
     /// <summary>
     /// Continuation to make additional assertions on the result
@@ -18,7 +18,7 @@ internal class AndThen<TSUT, TResult> : IAndThen<TResult>
         get
         {
             SpecificationContext.Current.AddThen();
-            return Parent;
+            return _parent;
         }
     }
 

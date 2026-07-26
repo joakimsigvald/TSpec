@@ -10,6 +10,7 @@
 		<RootNamespace>TSpec.Test</RootNamespace>
 		<OutputType>Exe</OutputType>
 		<UseAppHost>true</UseAppHost>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 	</PropertyGroup>
 
 	<ItemGroup>
