@@ -882,9 +882,32 @@ The document is written when the test run ends. A project without that line beha
 before — there is no run mode, environment variable or MSBuild property to set, and no collection
 happens at all.
 
-Only passing tests contribute. If any test did not pass, the existing `SPECIFICATION.md` is left
-untouched and the reason is reported, because a run that lost requirements would otherwise publish
-a quietly shortened document.
+The document is written only when **every** non-skipped test in the assembly reported a pass.
+A filtered run, a failure, or a test whose constructor threw all leave requirements unreported, and
+publishing then would silently shorten the document — so the existing file is left untouched and
+the missing requirements are named:
+
+```
+TSpec: SPECIFICATION.md left unchanged — 1 requirement(s) did not report a pass, so the document
+would be incomplete. Run the whole suite green to regenerate it.
+  - MyHotel.Spec.WhenGetVersion.ThenReturnTheApplicationVersion
+```
+
+### 7.3 Keeping it honest
+
+The document is deterministic: entries are sorted, duplicates collapse, and the specification text
+is normalized to LF, so the same source produces a byte-identical file on every machine. The header
+names the build it came from — the spec assembly's module version id, which under the SDK's default
+deterministic build is a hash of the compilation inputs.
+
+A markdown file cannot detect that it is out of date, so make the build check it:
+
+```bash
+dotnet test && git diff --exit-code -- "**/SPECIFICATION.md"
+```
+
+If someone changed the tests without regenerating, that fails, and the diff is the error message.
+This catches drift *within* a version, which is where nearly all of it happens.
 
 ### 7.2 How the subject is identified
 

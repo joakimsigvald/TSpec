@@ -18,6 +18,7 @@ public sealed class SpecificationDocument : IDisposable
     internal const string FileName = "SPECIFICATION.md";
 
     private readonly PendingDocument _document;
+    private readonly Assembly _specAssembly;
 
     /// <summary>
     /// Resolves the spec assembly, its subject and the output path. Throws
@@ -25,28 +26,44 @@ public sealed class SpecificationDocument : IDisposable
     /// </summary>
     public SpecificationDocument()
     {
-        _document = PendingDocument.Prepare(ReadSpecAssemblyName(), AppContext.BaseDirectory);
+        _specAssembly = FindSpecAssembly();
+        _document = PendingDocument.Prepare(
+            ReadName(_specAssembly), BuildId(_specAssembly), AppContext.BaseDirectory);
         SpecificationCollector.IsActive = true;
     }
 
     /// <summary>
-    /// Writes the document. Called by xunit after every test in the assembly has run.
-    /// A test that did not pass contributes nothing, so writing then would quietly drop
-    /// requirements — the existing file is left alone instead.
+    /// Writes the document, but only when every non-skipped test in the assembly reported a pass.
+    /// A filtered run, a failure, or a test whose constructor threw all leave requirements
+    /// unreported, and publishing then would silently shorten the document — so the existing file
+    /// is left alone and the missing requirements are named instead.
     /// </summary>
     public void Dispose()
     {
         SpecificationCollector.IsActive = false;
-        if (SpecificationCollector.RunWasGreen)
+        var missing = SpecificationCollector.Missing(ExpectedRequirements.Of(_specAssembly));
+        if (missing.Count == 0)
             _document.Write(SpecificationCollector.Entries);
         else
-            Console.Error.WriteLine(
-                $"TSpec: {FileName} left unchanged — not every test passed, so the collected "
-                + "requirements are incomplete.");
+            Console.Error.WriteLine(Report(missing));
     }
 
-    private static string ReadSpecAssemblyName()
-        => FindSpecAssembly().GetName().Name
+    private static string Report(IReadOnlyCollection<string> missing)
+        => $"TSpec: {FileName} left unchanged — {missing.Count} requirement(s) did not report a pass, "
+        + "so the document would be incomplete. Run the whole suite green to regenerate it."
+        + string.Concat(missing.Take(10).Select(requirement => $"\n  - {requirement}"))
+        + (missing.Count > 10 ? $"\n  ... and {missing.Count - 10} more" : string.Empty);
+
+    /// <summary>
+    /// Identifies the build the document was generated from. The module version id is a hash of the
+    /// compilation inputs under the SDK's default deterministic build, so it is stable across
+    /// rebuilds of unchanged source and moves as soon as the spec project changes.
+    /// </summary>
+    private static string BuildId(Assembly assembly)
+        => assembly.ManifestModule.ModuleVersionId.ToString("N")[..8];
+
+    private static string ReadName(Assembly assembly)
+        => assembly.GetName().Name
         ?? throw new SetupFailed("TSpec could not read the name of the spec assembly.");
 
     private static Assembly FindSpecAssembly()

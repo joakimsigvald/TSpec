@@ -226,6 +226,35 @@ rename — the standing caution recorded in `.editorconfig`, and live input to �
 
 | 9 | Phase 1 collection + rendering | `SpecificationEntry`, a `ConcurrentBag` collector inert unless the fixture switched it on, and recording in `Spec.Dispose()` when `TestState.Result == Passed`. Rendered as `## Subject` / `### Branch.Requirement` with the specification in a fenced block, sorted and deduplicated. A non-passing test marks the run and the file is left untouched, with the reason on stderr — verified by breaking a MyHotel spec. |
 
+| 10 | Completeness check (§5) + provenance | `ExpectedRequirements` reflects every non-skipped `[Fact]`/`[Theory]` on every concrete `Spec` subclass; the document is written only when the reported set matches. Verified both ways on MyHotel — a `-method` filtered run now refuses and names what was missing. Header gained `Generated from MyHotel.Spec <mvid8>`, and the file is byte-identical across a full rebuild and rerun. |
+
+**§5 is done, and the staleness question it raised is answered differently than proposed.** A
+markdown file cannot detect that it is out of date; any stamp only says what it *was* generated
+from, and something must still compare that to reality. Since the document is deterministic, that
+comparison already exists and is exact:
+
+```bash
+dotnet test && git diff --exit-code -- "**/SPECIFICATION.md"
+```
+
+An assembly-version-lag heuristic (the original item 2) catches strictly less — it is blind to every
+change within a version, which is where nearly all drift happens — and can be wrong in both
+directions. Decision (user, 2026-07-26): stamp provenance for the reader, make CI the gate.
+
+**The hash covers the spec assembly only, deliberately.** Header reads `Version 0.1.0, hash 750be2a0`.
+
+Hashing production too was considered and rejected (user, 2026-07-26). The scenario it appears to
+address — production code breaks a test, nobody reruns — is already caught by `dotnet test` failing;
+the document was never the detector. What a production hash would add is a *certificate* of which
+production build the requirements were verified against, at the cost of diffing `SPECIFICATION.md`
+on every PR that touches production. That churn would drown the one signal the document exists for:
+a changed line means a changed behaviour.
+
+The spec-only hash was kept over dropping it entirely because it answers a question nothing else
+does: **without it, a document that was never regenerated is indistinguishable from one that was
+regenerated and came out unchanged.** The accepted cost is that a spec-project edit changing no
+requirement still moves the header, so the CI gate asks for a rerun.
+
 **Two deviations from §4.** The class chain follows **nesting (`DeclaringType`), not inheritance.**
 The designed `BaseType` walk yields `ApiSpec\`1 → WhenGetVersion → GivenNothing` for MyHotel, because
 a shared black-box base sits between the test and `Spec`; nesting gives `WhenGetVersion →

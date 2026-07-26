@@ -132,8 +132,9 @@ Opt in with one line in the spec project; the document is written to the spec pr
 ```
 
 - Each passing requirement is rendered under a `## Subject` / `### Branch.Requirement` heading, with its specification in a fenced block. Sorted and deduplicated, so theories contribute one entry and execution order never shows.
-- Only passing tests contribute; if any test did not pass, the file is left untouched and the reason reported.
-- **Work in progress:** no opt-out attributes yet, and no completeness check — a filtered run (`-class ...`) is currently treated as green and will shorten the document.
+- Written only when **every** non-skipped test in the assembly reported a pass. A filtered run, a failure, or a constructor that threw all leave the file untouched, with the missing requirements named. There is no "was anything red" flag — non-passing tests simply never report, so one set comparison covers every case.
+- Deterministic: sorted, deduplicated, LF-normalized, and the header names the build (spec assembly MVID). Verify freshness in CI with `dotnet test && git diff --exit-code -- "**/SPECIFICATION.md"`.
+- **Work in progress:** no `[Specification]` / `[ExcludeFromSpecification]` opt-out attributes yet.
 - Subject name = spec assembly name minus its last suffix (`MyHotel.Spec` → `MyHotel`; any suffix works, `.Spec` preferred and `.Test` fine). It is then verified against the spec assembly's **direct** project references — a transitive reference is not enough. If either half fails, `SetupFailed` is thrown before the first test, stating both expectations and listing the references found.
 - Version = the version the build resolved for that project, i.e. `<Version>` in the production project file.
 - Without the attribute, nothing changes.

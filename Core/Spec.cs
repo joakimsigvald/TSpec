@@ -59,15 +59,13 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
 
     private void Collect()
     {
-        if (!SpecificationCollector.IsActive)
+        if (!SpecificationCollector.IsActive || !TestIdentity.Passed)
             return;
-        if (!TestIdentity.Passed)
-        {
-            SpecificationCollector.RecordNotPassed();
-            return;
-        }
-        var (subject, branch) = TestIdentity.Locate(GetType());
+        var testClass = GetType();
+        var requirement = TestIdentity.Requirement;
+        var (subject, branch) = TestIdentity.Locate(testClass);
         SpecificationCollector.Record(
-            new(subject, branch, TestIdentity.Requirement, Pipeline.Specification.ToString()));
+            ExpectedRequirements.Identity(testClass, requirement),
+            new(subject, branch, requirement, Pipeline.Specification.ToString()));
     }
 }

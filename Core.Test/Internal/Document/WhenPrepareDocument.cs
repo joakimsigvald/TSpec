@@ -13,7 +13,7 @@ public class WhenPrepareDocument : Spec
     public void ThenTargetTheProjectRoot()
     {
         using var project = new TempProject("MyHotel.Spec", DepsJson.MyHotelSpec);
-        PendingDocument.Prepare("MyHotel.Spec", project.BaseDirectory)
+        PendingDocument.Prepare("MyHotel.Spec", "4f2a9c1e", project.BaseDirectory)
             .Path.Is(Path.Combine(project.Root, "SPECIFICATION.md"));
     }
 
@@ -21,7 +21,7 @@ public class WhenPrepareDocument : Spec
     public void ThenRenderTheSubjectItResolved()
     {
         using var project = new TempProject("MyHotel.Spec", DepsJson.MyHotelSpec);
-        PendingDocument.Prepare("MyHotel.Spec", project.BaseDirectory)
+        PendingDocument.Prepare("MyHotel.Spec", "4f2a9c1e", project.BaseDirectory)
             .Render([]).Does().Contain("# MyHotel").and.Contain("Version 0.1.0");
     }
 
@@ -29,7 +29,7 @@ public class WhenPrepareDocument : Spec
     public void ThenWriteWhatItPrepared()
     {
         using var project = new TempProject("MyHotel.Spec", DepsJson.MyHotelSpec);
-        var document = PendingDocument.Prepare("MyHotel.Spec", project.BaseDirectory);
+        var document = PendingDocument.Prepare("MyHotel.Spec", "4f2a9c1e", project.BaseDirectory);
         document.Write([]);
         File.ReadAllText(document.Path).Is(document.Render([]));
     }
@@ -39,7 +39,7 @@ public class WhenPrepareDocument : Spec
     {
         using var project = new TempProject("MyHotel.Spec");
         var error = Xunit.Assert.Throws<SetupFailed>(
-            () => PendingDocument.Prepare("MyHotel.Spec", project.BaseDirectory));
+            () => PendingDocument.Prepare("MyHotel.Spec", "4f2a9c1e", project.BaseDirectory));
         error.Message.Does().Contain("MyHotel.Spec.deps.json");
     }
 
@@ -48,6 +48,6 @@ public class WhenPrepareDocument : Spec
     {
         using var project = new TempProject("MyHotel.Spec", DepsJson.MyHotelSpec, withProjectFile: false);
         Xunit.Assert.Throws<SetupFailed>(
-            () => PendingDocument.Prepare("MyHotel.Spec", project.BaseDirectory));
+            () => PendingDocument.Prepare("MyHotel.Spec", "4f2a9c1e", project.BaseDirectory));
     }
 }
