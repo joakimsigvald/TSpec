@@ -79,4 +79,54 @@ public class WhenRenderDocument : Spec
     public void ThenNormaliseLineEndingsToLf()
         => Render(_respondOk with { Steps = Sentences("when a", "then b") })
             .Does().Contain("```\nWhen a\nThen b\n```").and.not.Contain("\r");
+
+    // ----------- Setup shared by a whole subject is stated once, under its heading
+
+    private static SpecificationStep Using(string body)
+        => new(StepLayout.SentenceOrPhrase) { Family = StepFamily.Using, Body = body };
+
+    /// A requirement opening with the shared setup, then saying something of its own.
+    private static SpecificationEntry Requirement(string name, params SpecificationStep[] ownSteps)
+        => new("WhenGetRoom", "GivenNoSuchRoom", name,
+            [Using("api"), Using("api.CreateClient"), .. ownSteps]);
+
+    private static SpecificationEntry[] ThreeRequirements()
+        => [Requirement("ThenA", Sentences("then a")[0]),
+            Requirement("ThenB", Sentences("then b")[0]),
+            Requirement("ThenC", Sentences("then c")[0])];
+
+    [Fact]
+    public void GivenEveryRequirementOpensWithTheSameSetup_ThenStateItUnderTheSubject()
+        => Render(ThreeRequirements()).Does()
+            .Contain("## WhenGetRoom\n\n```\nUsing api\n  and api.CreateClient\n```\n")
+            .and.Contain("### GivenNoSuchRoom.ThenA\n\n```\nThen a\n```\n");
+
+    /// <summary>The hoisted run is complete, so nothing is left behind to head the block.</summary>
+    [Fact]
+    public void GivenSetupIsShared_ThenLeaveNoneOfItInTheBlocks()
+        => Render(ThreeRequirements()).Does().not.Contain("```\nAnd api.CreateClient");
+
+    /// <summary>Two requirements are not repetition worth factoring out.</summary>
+    [Fact]
+    public void GivenFewerThanThreeRequirements_ThenLeaveTheSetupInPlace()
+        => Render(ThreeRequirements()[..2]).Does()
+            .Contain("```\nUsing api\n  and api.CreateClient\nThen a\n```")
+            .and.not.Contain("## WhenGetRoom\n\n```");
+
+    [Fact]
+    public void GivenOneRequirementOpensDifferently_ThenLeaveTheSetupInPlace()
+    {
+        var requirements = ThreeRequirements();
+        requirements[2] = requirements[2] with { Steps = [Using("api"), .. Sentences("then c")] };
+        Render(requirements).Does().not.Contain("## WhenGetRoom\n\n```");
+    }
+
+    /// <summary>Hoisting must never empty a block, so a requirement that is only setup blocks it.</summary>
+    [Fact]
+    public void GivenARequirementIsNothingButTheSharedSetup_ThenLeaveTheSetupInPlace()
+    {
+        var requirements = ThreeRequirements();
+        requirements[2] = requirements[2] with { Steps = [Using("api"), Using("api.CreateClient")] };
+        Render(requirements).Does().not.Contain("## WhenGetRoom\n\n```");
+    }
 }
