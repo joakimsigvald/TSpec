@@ -1,6 +1,12 @@
 # EditorConfig — https://editorconfig.org
 root = true
 
+[*]
+# .gitattributes already forces LF in the working tree on checkout (`* text=auto eol=lf`),
+# overriding core.autocrlf. This line is the other half: it stops editors writing CRLF back
+# on save, so the two agree and nothing flips underneath a build.
+end_of_line = lf
+
 [*.cs]
 
 ##############################################################################

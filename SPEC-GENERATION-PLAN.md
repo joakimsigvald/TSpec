@@ -255,6 +255,17 @@ does: **without it, a document that was never regenerated is indistinguishable f
 regenerated and came out unchanged.** The accepted cost is that a spec-project edit changing no
 requirement still moves the header, so the CI gate asks for a rerun.
 
+**The hash is sensitive to source line endings.** Found by accident: an edit-and-revert that left a
+file as CRLF moved the hash, and it did not come back until the bytes did. So the gate requires a
+`.gitattributes` normalising line endings (this repo has `* text=auto eol=lf`); without one, a
+Windows checkout and a Linux checkout compile different bytes and the check fails on every run for a
+reason that looks nothing like its cause. Documented in README §7.3. Nothing is wrong with the
+determinism — it is doing exactly what it claims — but the failure mode is obscure enough to
+deserve the warning.
+
+**Not built, and deliberately so:** the pipeline that runs the gate. TSpec makes staleness
+*detectable*; detecting it is one `git diff --exit-code` in whatever CI the consumer already has.
+
 **Two deviations from §4.** The class chain follows **nesting (`DeclaringType`), not inheritance.**
 The designed `BaseType` walk yields `ApiSpec\`1 → WhenGetVersion → GivenNothing` for MyHotel, because
 a shared black-box base sits between the test and `Spec`; nesting gives `WhenGetVersion →

@@ -909,6 +909,12 @@ dotnet test && git diff --exit-code -- "**/SPECIFICATION.md"
 If someone changed the tests without regenerating, that fails, and the diff is the error message.
 This catches drift *within* a version, which is where nearly all of it happens.
 
+> **Normalize line endings.** The hash is derived from the compilation, so it moves when the source
+> bytes move — including a change from LF to CRLF. Without a `.gitattributes` fixing line endings
+> (`* text=auto eol=lf`), a Windows checkout and a Linux checkout compile different bytes, the hash
+> differs, and the check fails on every run. This affects the hash only; the requirement text is
+> unaffected.
+
 ### 7.2 How the subject is identified
 
 The document describes the production project, not the spec project, so TSpec has to work out
