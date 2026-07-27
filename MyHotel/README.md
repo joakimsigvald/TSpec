@@ -44,3 +44,11 @@ generated file — review it in diffs, never edit it by hand. Its version comes 
 | Method | Path | Returns |
 |---|---|---|
 | `GET` | `/version` | `{ "version": "0.1.0" }` — read from the assembly, so it tracks `<Version>` in [MyHotel.csproj](MyHotel.csproj) |
+| `POST` | `/rooms` | `201` with the room and a `Location` header; `409` if the room number is taken |
+| `GET` | `/rooms/{roomNumber}` | `200` with the room, or `404` |
+
+A room is `{ "roomNumber": "101", "bedCount": 2 }`. The room number is the identity: it appears in
+the URL and cannot be changed — to renumber a room, delete it and add a new one. Rooms are held in
+memory and are gone when the process stops.
+
+Still to come: list, delete, update.

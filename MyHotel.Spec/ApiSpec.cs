@@ -6,11 +6,17 @@ namespace MyHotel.Spec;
 /// Base for black-box specifications: the subject under test is an <see cref="HttpClient"/>
 /// wired to an in-memory instance of the API.
 /// </summary>
+/// <remarks>
+/// A fresh application per test, not a shared one. The API keeps its state in memory, so a shared
+/// instance would let one test's rooms be visible to the next. Both the application and its client
+/// are owned by the pipeline and disposed with the test.
+/// </remarks>
 public abstract class ApiSpec<TResult> : Spec<HttpClient, TResult>
 {
-    private static readonly WebApplicationFactory<Program> _api = new();
-
-    protected ApiSpec() => Using(CreateClient, owned: true);
-
-    private static HttpClient CreateClient() => _api.CreateClient();
+    protected ApiSpec()
+    {
+        var api = new WebApplicationFactory<Program>();
+        Using(api, owned: true);
+        Using(api.CreateClient, owned: true);
+    }
 }

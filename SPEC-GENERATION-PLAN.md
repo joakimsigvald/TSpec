@@ -266,6 +266,58 @@ deserve the warning.
 **Not built, and deliberately so:** the pipeline that runs the gate. TSpec makes staleness
 *detectable*; detecting it is one `git diff --exit-code` in whatever CI the consumer already has.
 
+| 11 | MyHotel rooms, step 1 of 4 | `POST /rooms` and `GET /rooms/{roomNumber}` with their branches (created / conflict, found / not found), driven out red-green. 9 requirements, 6 lines of production code, everything still in `Program.cs`. `ApiSpec` now builds a **fresh `WebApplicationFactory` per test** — the shared one leaked in-memory rooms between tests. Remaining: list, delete, update. |
+
+### Format findings from the first real document (§7 Q1/Q2 answers arriving)
+
+Nine requirements across two subjects is finally enough to judge the format. Four findings, in the
+order I would act on them.
+
+**F1 — `Having` renders as `After`, which is chronologically backwards.** A `Given` clause that runs
+*before* the action reads as though it follows it:
+
+```
+When api.GetAsync("/rooms/{RoomNumber}")
+After api.PostAsJsonAsync("/rooms", new Room(RoomNumber, 2))
+```
+
+This is the branch condition — the single most important line for a reader — and it is presented as
+an afterthought. Genuine defect, not a formatting preference. Note §1 puts per-test specification
+text out of scope, so fixing this widens the epic; it may belong in its own change.
+
+**F2 — infrastructure `Using` lines dominate.** Every block opens with the same two lines:
+
+```
+Using owned api
+  and owned api.CreateClient
+```
+
+That is 18 of roughly 45 content lines describing test wiring rather than hotel behaviour, and it
+grows linearly with the suite. This is §7 Q1 made concrete, and it reframes the question: the issue
+is not that identical `Given` clauses repeat, it is that **setup which is pure plumbing has no place
+in a specification document at all**. Hoisting shared clauses to the branch heading would fix the
+repetition; suppressing infrastructure setup would fix the relevance. They are different fixes and
+we probably want both.
+
+**F3 — constants render as their names, not their values.** `api.GetAsync("/rooms/{RoomNumber}")`
+and `new Room(RoomNumber, 2)` — a reader cannot see that the room is 101. Faithful to the source and
+useless as documentation. This is the deepest of the four because it questions the vision's
+faithful-rendering principle: should the document show the *expression* or the *value*? Values are
+what a specification reader wants; expressions are what the current design guarantees. Not urgent,
+but it should be decided rather than drift.
+
+**F4 — grouping works.** `## WhenAddRoom` with `### GivenNoSuchRoom.ThenRespondCreated` beneath it
+reads cleanly, subjects separate properly, and sorting by branch keeps siblings adjacent. The
+nesting-based chain (build log row 9) is vindicated: no scaffolding class appears in a heading.
+
+### A testing lesson worth keeping
+
+`GivenNoSuchRoom.ThenRespondNotFound` passed *before* any endpoint existed — an unmatched route also
+returns 404. **An assertion that checks only an absence cannot distinguish "not implemented" from
+"correctly absent."** The fix is to assert on something only the implementation can produce: return
+404 *with a body* (`Results.Problem($"No room {roomNumber}", statusCode: 404)`) and assert on it.
+Agreed as worth doing; not yet applied.
+
 **Two deviations from §4.** The class chain follows **nesting (`DeclaringType`), not inheritance.**
 The designed `BaseType` walk yields `ApiSpec\`1 → WhenGetVersion → GivenNothing` for MyHotel, because
 a shared black-box base sits between the test and `Spec`; nesting gives `WhenGetVersion →
@@ -291,25 +343,24 @@ do-not-edit comment. No requirements yet.
 
 ### Remaining, by decreasing priority
 
-1. **Phase 1 — collection.** `SpecificationEntry`, static thread-safe collector, recording in
-   `Spec.Dispose()` when the fixture is active and `TestState.Result == Passed`,
-   `[Specification]`/`[ExcludeFromSpecification]` with nearest-declaration-wins, class-chain walk
-   with a stop condition at `Spec`. Everything below depends on this.
-2. **Phase 2 — completeness check (§5).** Reflect the expected set, compare, write only on an
-   exact match. Vacuous until entries exist, which is why it follows rather than leads.
-3. **Phase 2 — document rendering.** Subject headings, method sub-headings, branch path, one
-   bullet per requirement, everything sorted so parallel execution order cannot reach the page.
-4. **Grow MyHotel.** Phase 3 cannot start against one endpoint; the format can only be judged
-   against a document with several subjects and real branch structure. Paced by the PO, not by
-   this plan.
-5. **Phase 3 — tune the format.** Answers §7 Q1 (does the flat paragraph read as a bullet, or does
-   `Given` need hoisting) and Q2 (does 80-character wrapping survive markdown). Both are
-   deliberately unanswerable in advance; they need item 4 first.
-6. **Scratch project for the §2 xunit facts (§8).** Fixture wiring, `TestState` at `Dispose` and
+Items 1–3 of the original list (collection, completeness, rendering) are done — see the build log
+above. What is left:
+
+1. **Act on F1 and F2.** The two findings that cost the document most. F1 (`Having` → `After`) is a
+   defect; F2 (infrastructure `Using` lines) is the biggest readability win available. Decide F3
+   (names vs values) before it drifts. All three are PO calls, not mechanical work.
+2. **Grow MyHotel, steps 2–4.** List, then delete, then update — in that order (delete is simpler,
+   and delete+add covers what update does). Each step reviewed before the next. Adding rooms with
+   varied bed counts will also show whether repetition gets worse or the grouping absorbs it.
+3. **404 with a body.** Apply the lesson above so absence-only assertions become real requirements.
+   One line per handler; do it with step 2.
+4. **Opt-out attributes.** `[Specification]` / `[ExcludeFromSpecification]`, nearest declaration
+   wins. Deferred from Phase 1 because nothing has yet needed to opt out.
+5. **Scratch project for the §2 xunit facts (§8).** Fixture wiring, `TestState` at `Dispose` and
    end-of-assembly ordering cannot be self-tested from inside the same assembly. Currently those
    facts are verified only by MyHotel.Spec passing, which will not catch a regression precisely.
-7. **Finish Phase 4 docs.** Drop the work-in-progress notes, update the agent reference's
+6. **Finish Phase 4 docs.** Drop the work-in-progress notes, update the agent reference's
    "covers TSpec x.y" line — which is stale *now*, since it says 1.5 while documenting post-1.5
    behaviour.
-8. **Version and release decision.** `PackageVersion` and `PackageReleaseNotes` are untouched at
+7. **Version and release decision.** `PackageVersion` and `PackageReleaseNotes` are untouched at
    1.5.0. This branch aims at 2.1.0, but 2.0.0 (the removals) has not happened. Needs the PO.

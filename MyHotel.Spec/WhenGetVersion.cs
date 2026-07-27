@@ -12,7 +12,8 @@ public class WhenGetVersion : ApiSpec<HttpResponseMessage>
         Result.StatusCode.Is(HttpStatusCode.OK);
         Specification.Is(
             """
-            Using owned CreateClient
+            Using owned api
+              and owned api.CreateClient
             When api.GetAsync("/version")
             Then Result.StatusCode is HttpStatusCode.OK
             """);
