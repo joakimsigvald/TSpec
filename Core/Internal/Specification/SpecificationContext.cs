@@ -49,9 +49,9 @@ internal class SpecificationContext : IAssertSpecificationContext
 
     internal void AddWhen(string actExpr) => _action.AddWhen(actExpr);
 
-    internal void AddAfter(string setUpExpr) => _action.AddAfter(setUpExpr);
+    internal void AddHaving(string setUpExpr) => _action.AddHaving(setUpExpr);
 
-    internal void AddBefore(string tearDownExpr) => _action.AddBefore(tearDownExpr);
+    internal void AddUntil(string tearDownExpr) => _action.AddUntil(tearDownExpr);
 
     internal void AddTap(string expr) => _action.AddTap(expr);
 

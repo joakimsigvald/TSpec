@@ -104,8 +104,8 @@ public abstract class WhenValueTaskFunction : Spec<CounterService, int>
                 """
                 Given ICounterStore.GetCount("a") returns 7
                 When _.IncrementAndGet("a")
-                After set offset _
-                Before record offset _
+                Having set offset _
+                Until record offset _
                 Then Result is 17
                 """);
             _offsetAfterTest.Is(-1); //Teardown runs after the test method

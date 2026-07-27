@@ -31,9 +31,9 @@ internal class SpecFixture<TSUT>(ISpecificationProvider specificationProvider) :
     internal void AddToSpecification()
     {
         foreach (var setUp in _setUp.Reverse<Command>())
-            specificationProvider.Specification.AddAfter(setUp.Expression);
+            specificationProvider.Specification.AddHaving(setUp.Expression);
         foreach (var tearDown in _tearDown)
-            specificationProvider.Specification.AddBefore(tearDown.Expression);
+            specificationProvider.Specification.AddUntil(tearDown.Expression);
         specificationProvider.Specification.AddThen();
     }
 

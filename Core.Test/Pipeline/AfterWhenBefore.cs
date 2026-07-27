@@ -12,7 +12,7 @@ public class AfterWhenBefore : Spec<MyStateService, int>
         Specification.Is(
             """
             When ++_.Counter
-            After _.Counter++
+            Having _.Counter++
             Then Result is 2
             """);
     }
@@ -27,8 +27,8 @@ public class AfterWhenBefore : Spec<MyStateService, int>
         Specification.Is(
             """
             When _.Counter *= 2
-            After _.Counter = 3
-            After _.Counter = 5
+            Having _.Counter = 3
+            Having _.Counter = 5
             Then Result is 6
             """);
     }
@@ -46,8 +46,8 @@ public class AfterWhenBefore : Spec<MyStateService, int>
         Specification.Is(
             """
             When _.Counter = 1
-            Before _.Counter = 3
-            Before _.Counter = 2
+            Until _.Counter = 3
+            Until _.Counter = 2
             Then Result is 1
             """);
     }
@@ -80,8 +80,8 @@ public class AfterWhenBefore : Spec<MyStateService, int>
             """
             Using 1
             When ++_.Counter
-            After _.Counter++
-            Before ++_.Counter
+            Having _.Counter++
+            Until ++_.Counter
             Then Result is 2
             """);
     }
@@ -98,7 +98,7 @@ public class GivenTearDown : Spec<MyStateService, int>
         Specification.Is(
             """
             When ++_.Counter
-            Before _theCounterAfterTest = --_.Counter
+            Until _theCounterAfterTest = --_.Counter
             Then Result is 1
             """);
         Xunit.Assert.Equal(-1, _theCounterAfterTest); //Teardown is performed after executing the test method

@@ -96,7 +96,7 @@ public class AutoDispose
             Using log for Subject
               and owned new OrderedDependency(log)
             When _.GetValue()
-            Before log.Entries.Add("until")
+            Until log.Entries.Add("until")
             Then
             """);
         spec.Dispose();
