@@ -48,10 +48,13 @@ public class WhenParseValue : Spec<string>
     [InlineData("async _ => await _.GetAsync()", "_.GetAsync()")]
     [InlineData("async (_) => await _.GetAsync()", "_.GetAsync()")]
     [InlineData("async Task<int> (_) => await _.GetAsync()", "_.GetAsync()")]
-    [InlineData("Task<int> (_) => _.GetAsync()", "_.GetAsync()")]
-    // A 2+ parameter lambda renders from raw source, so the keywords survive there
-    [InlineData("async ValueTask<int> (a, b) => await Add(a, b)",
-        "async ValueTask<int> (a, b) => await Add(a, b)")]
+    // A return type is only recognised after async, so this one stays unparsed
+    [InlineData("Task<int> (_) => _.GetAsync()", "Task<int> (_) => _.GetAsync()")]
+    // A 2+ parameter lambda has no prose rendering, so it prints as source —
+    // rebuilt from the tree, which is what keeps the keywords out of it
+    [InlineData("async ValueTask<int> (a, b) => await Add(a, b)", "(a, b) => Add(a, b)")]
+    [InlineData("(a,b) => a.Combine( b )", "(a, b) => a.Combine(b)")]
+    [InlineData("(a, b, c) => a ? b[0] : (int)c", "(a, b, c) => a ? b[0] : (int)c")]
     [InlineData("await.Length", "await.Length")]
     [InlineData("await - 1", "await - 1")]
     public void ThenReturnDescription(string? valueExpr, string expected)

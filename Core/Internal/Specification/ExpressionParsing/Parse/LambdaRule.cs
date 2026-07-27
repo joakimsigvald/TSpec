@@ -49,15 +49,17 @@ internal static class LambdaRule
     {
         ps = [];
         if (ts.IsWord("async"))
+        {
             ts.Advance();
-
-        TrySkipReturnType(ts);
+            TrySkipReturnType(ts);
+        }
         return TrySingleParam(ts, out ps) || TryParenParams(ts, out ps);
     }
 
     /// A return type is a type reference immediately followed by a parenthesised
-    /// parameter list. Requiring the <c>(</c> is what keeps this from eating the
-    /// target of an ordinary call.
+    /// parameter list. Only recognised after <c>async</c>: assertion phrases are
+    /// parsed with a word prefixed to the expression (<c>"by (it, i) => …"</c>),
+    /// and that shape is indistinguishable from a bare return type.
     private static void TrySkipReturnType(TokenStream ts)
     {
         int save = ts.Pos;

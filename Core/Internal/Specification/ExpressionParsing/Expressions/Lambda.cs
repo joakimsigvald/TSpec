@@ -4,6 +4,12 @@ internal sealed record Lambda(string Raw, IReadOnlyList<string> Params, Expr Bod
 {
     public override IEnumerable<Expr> Children => [Body];
 
+    /// The head is rebuilt from the parameters alone, which is what drops the
+    /// <c>async</c> modifier and any explicit return type.
+    public override string ToSource() => $"{Head} => {Body.ToSource()}";
+
+    private string Head => Params.Count == 1 ? Params[0] : $"({string.Join(", ", Params)})";
+
     /// Match <c>p =&gt; p.Prop = value</c> (any compound-assignment op).
     /// The first parameter must match the receiver (with <c>_</c> as wildcard).
     public ParamRefAssign? AsParamRefAssign() =>

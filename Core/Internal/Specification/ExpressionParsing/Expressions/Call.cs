@@ -3,6 +3,7 @@ namespace TSpec.Internal.Specification.ExpressionParsing.Expressions;
 internal sealed record Call(string Raw, Expr Target, IReadOnlyList<Expr> Args) : Expr(Raw)
 {
     public override IEnumerable<Expr> Children => Args.Prepend(Target);
+    public override string ToSource() => $"{Target.ToSource()}({SourceList(Args)})";
 
     /// The method/factory name being invoked, or null for non-named targets.
     public string? MethodName => Target switch

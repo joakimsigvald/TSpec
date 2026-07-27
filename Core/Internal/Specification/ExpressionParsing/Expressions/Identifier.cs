@@ -7,4 +7,5 @@ internal sealed record Identifier(string Raw, string Name) : Expr(Raw)
     public Identifier(string name) : this(name, name) { }
 
     public override string AsPath() => Name;
+    public override string ToSource() => Name;
 }

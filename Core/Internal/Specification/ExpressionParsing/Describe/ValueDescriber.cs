@@ -20,7 +20,7 @@ internal sealed class ValueDescriber : Describer
                 => $"{pa.Target.Name} {pa.Op} {Describe(pa.Value)}",
             Lambda l when l.Params.Count <= 1 && l.Body is With w => DescribeAll(w.Init),
             Lambda l when l.Params.Count <= 1 => Describe(l.Body),
-            Lambda l => l.Raw,
+            Lambda l => l.ToSource(),
             Assign a => $"{AssignTargetName(a.Target)} {a.Op} {Describe(a.Value)}",
             With w => DescribeAll(w.Init),
             TupleExpr t => $"({DescribeAll(t.Items)})",

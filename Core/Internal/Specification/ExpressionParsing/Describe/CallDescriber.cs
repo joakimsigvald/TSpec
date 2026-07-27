@@ -27,10 +27,10 @@ internal sealed class CallDescriber(bool skipSubjectRef) : Describer
     private string DescribeLambda(Lambda l)
         => l.Params.Count switch
         {
-            0 => l.Raw,
+            0 => l.ToSource(),
             1 => DescribeOneArgLambda(l),
             _ when l.AsParamRefAssign() is { } pa2 => $"{pa2.Target.Name} {pa2.Op} {Value.Describe(pa2.Value)}",
-            _ => l.Raw
+            _ => l.ToSource()
         };
 
     private string DescribeOneArgLambda(Lambda l)
