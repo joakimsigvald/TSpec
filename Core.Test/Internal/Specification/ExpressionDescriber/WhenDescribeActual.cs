@@ -1,9 +1,9 @@
 using TSpec.Assert;
 using TSpec.Internal.Specification;
 
-namespace TSpec.Test.Internal.Specification.ExpressionParser;
+namespace TSpec.Test.Internal.Specification.ExpressionDescriber;
 
-public class WhenParseActual : Spec<string>
+public class WhenDescribeActual : Spec<string>
 {
     [Theory]
     [InlineData(null, "")]
@@ -20,12 +20,12 @@ public class WhenParseActual : Spec<string>
     // The await sits mid-chain here, so peeling has to happen as the chain is walked
     [InlineData("(await Result.Read<VersionInfo>()).Version", "Result.Read<VersionInfo>().Version")]
     public void ThenReturnDescription(string? returnsExpr, string expected)
-        => When(_ => returnsExpr.ParseActual()).Then().Result.Is(expected);
+        => When(_ => returnsExpr.DescribeActual()).Then().Result.Is(expected);
 
     [Theory]
     [InlineData("And(Result).Id", "Result", "Result.Id")]
     [InlineData("Then().IsOpen", "the Checkout", "the Checkout's IsOpen")]
     public void GivenSubject_ThenPrefixDescription(string returnsExpr, string subject, string expected)
-        => When(_ => returnsExpr.ParseActual(subject)).Then().Result.Is(expected);
+        => When(_ => returnsExpr.DescribeActual(subject)).Then().Result.Is(expected);
 
 }

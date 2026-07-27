@@ -43,7 +43,7 @@ public class WhenDistinct : Spec
     public void GivenDistinctProperty(params int[] numbers)
     {
         numbers.Is().Distinct(it => it % 3);
-        Specification.Is("Numbers is distinct by it => it % 3");
+        Specification.Is("Numbers is distinct by it % 3");
     }
 
     [Theory]
@@ -51,7 +51,7 @@ public class WhenDistinct : Spec
     public void GivenDistinctPropertyFail(params int[] numbers)
     {
         var ex = Xunit.Assert.Throws<XunitException>(() => numbers.Is().Distinct(it => it % 3));
-        ex.Message.Is($"Expected numbers to be distinct by it => it % 3 but found {numbers.FormatValue()}");
+        ex.Message.Is($"Expected numbers to be distinct by it % 3 but found {numbers.FormatValue()}");
     }
 
     [Theory]
@@ -77,8 +77,8 @@ public class WhenDistinct : Spec
         numbers.Is().Distinct(it => it % 3).and.Distinct(it => it % 5);
         Specification.Is(
             """
-            Numbers is distinct by it => it % 3
-                and distinct by it => it % 5
+            Numbers is distinct by it % 3
+                and distinct by it % 5
             """);
             
     }

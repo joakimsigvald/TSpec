@@ -14,9 +14,9 @@ internal class SetupPhrases(SpecificationRecording recording, TextBuilder textBu
     internal void AddGiven(string valueExpr, For scope)
         => RecordSetup(() => textBuilder.AddPhraseOrSentence(scope switch
         {
-            For.Subject => $"{NextGivenWord()} using {valueExpr.ParseValue()}",
-            For.Input => $"{NextGivenWord()} {valueExpr.ParseValue()} is default",
-            _ => $"{NextGivenWord()} {valueExpr.ParseValue()}",
+            For.Subject => $"{NextGivenWord()} using {valueExpr.Describe()}",
+            For.Input => $"{NextGivenWord()} {valueExpr.Describe()} is default",
+            _ => $"{NextGivenWord()} {valueExpr.Describe()}",
         }));
 
     internal void AddGiven<TValue>(string setupExpr, bool isCustomExpression, string? article)
@@ -29,7 +29,7 @@ internal class SetupPhrases(SpecificationRecording recording, TextBuilder textBu
 
     internal void AddGivenThat(string customArrangementExpr)
         => recording.Record(() => textBuilder.AddPhraseOrSentence(
-            $"{NextGivenWord()} that {customArrangementExpr.ParseValue()}"));
+            $"{NextGivenWord()} that {customArrangementExpr.Describe()}"));
 
     internal void AddUsing(string valueExpr, For scope, bool owned = false)
         => RecordSetup(() => RenderUsing(valueExpr, scope, owned));
@@ -51,14 +51,14 @@ internal class SetupPhrases(SpecificationRecording recording, TextBuilder textBu
 
     internal void AddMockSetup<TService>(string callExpr)
         => recording.Record(() => textBuilder.AddPhraseOrSentence(
-            $"{NextGivenWord()} {GetMockName<TService>('.')}{callExpr.ParseCall(true)}"));
+            $"{NextGivenWord()} {GetMockName<TService>('.')}{callExpr.DescribeCall(true)}"));
 
     internal void AddMockReturnsDefault<TService>(string returnsExpr)
         => recording.Record(() => textBuilder.AddPhraseOrSentence(
-            $"{NextGivenWord()} {GetMockName<TService>(' ')}returns {returnsExpr.ParseValue()}"));
+            $"{NextGivenWord()} {GetMockName<TService>(' ')}returns {returnsExpr.Describe()}"));
 
     internal void AddMockReturns(string? returnsExpr)
-        => recording.Record(() => textBuilder.AddWord($"returns {returnsExpr?.ParseValue()}".Trim()));
+        => recording.Record(() => textBuilder.AddWord($"returns {returnsExpr?.Describe()}".Trim()));
 
     internal void AddMockThrowsDefault<TService, TException>()
         => recording.Record(() => textBuilder.AddWord(
@@ -66,13 +66,13 @@ internal class SetupPhrases(SpecificationRecording recording, TextBuilder textBu
 
     internal void AddMockThrowsDefault<TService>(string expectedExpr)
         => recording.Record(() => textBuilder.AddWord(
-            $"{NextGivenWord()} {GetMockName<TService>(' ')}throws {expectedExpr.ParseValue()}"));
+            $"{NextGivenWord()} {GetMockName<TService>(' ')}throws {expectedExpr.Describe()}"));
 
     internal void AddMockThrows<TException>()
         => recording.Record(() => textBuilder.AddWord($"throws {typeof(TException).Alias()}"));
 
     internal void AddMockThrows(string expectedExpr)
-        => recording.Record(() => textBuilder.AddWord($"throws {expectedExpr.ParseValue()}"));
+        => recording.Record(() => textBuilder.AddWord($"throws {expectedExpr.Describe()}"));
 
     /// The rendered step ends any mock setup in progress, so a later mock
     /// phrase names its service again.
@@ -85,7 +85,7 @@ internal class SetupPhrases(SpecificationRecording recording, TextBuilder textBu
 
     private void RenderUsing(string valueExpr, For scope, bool owned)
         => textBuilder.AddPhraseOrSentence(
-            $"{NextUsingWord()}{(owned ? " owned" : "")} {valueExpr.ParseValue()}{ScopeSuffix(scope)}");
+            $"{NextUsingWord()}{(owned ? " owned" : "")} {valueExpr.Describe()}{ScopeSuffix(scope)}");
 
     private string GetGivenExpression<TValue>(string setupExpr, bool isCustomExpression, string? article)
         => isCustomExpression
@@ -94,7 +94,7 @@ internal class SetupPhrases(SpecificationRecording recording, TextBuilder textBu
 
     private static string ParseSetupExpression<TValue>(string setupExpr)
     {
-        var value = setupExpr.ParseValue();
+        var value = setupExpr.Describe();
         var verb = value.Contains('=') && !value.StartsWith("new") ? "has" : "is";
         return $"{typeof(TValue).Alias()} {verb} {value}";
     }

@@ -41,7 +41,7 @@ internal class SpecificationContext : IAssertSpecificationContext
     /// Then/And overload that received it. Pass null when the wrapper takes no
     /// subject, so a previously registered subject cannot leak into it.
     /// </summary>
-    public void SetSubject(string? subjectExpr) => _subjectDescription = subjectExpr?.ParseValue();
+    public void SetSubject(string? subjectExpr) => _subjectDescription = subjectExpr?.Describe();
 
     internal static string? PendingSubject => _currentAssertionContext.Value?._subjectDescription;
 

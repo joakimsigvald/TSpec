@@ -28,7 +28,7 @@ public static class AssertionExtensionsDictionary
         => new()
         {
             Actual = actual,
-            ActualExpr = actualExpr!.ParseActual(SpecificationContext.PendingSubject),
+            ActualExpr = actualExpr!.DescribeActual(SpecificationContext.PendingSubject),
         };
 
     /// <summary>

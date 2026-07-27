@@ -3,7 +3,7 @@ using TSpec.Internal.Specification.ExpressionParsing.Expressions;
 namespace TSpec.Internal.Specification.ExpressionParsing.Describe;
 
 /// <summary>
-/// Call-mode description (used by <c>ParseCall</c>). Recognizes the
+/// Call-mode description (used by <c>DescribeCall</c>). Recognizes the
 /// lambda-body shapes a mock setup or action expression typically takes
 /// (<c>_ =&gt; _.Method(args)</c>, <c>_ =&gt; _.X = value</c>) and falls
 /// back to value-mode for anything else. <see cref="_skipSubjectRef"/>

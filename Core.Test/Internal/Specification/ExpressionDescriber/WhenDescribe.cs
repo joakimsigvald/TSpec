@@ -1,9 +1,9 @@
 ﻿using TSpec.Assert;
-using static TSpec.Internal.Specification.ExpressionParser;
+using static TSpec.Internal.Specification.ExpressionDescriber;
 
-namespace TSpec.Test.Internal.Specification.ExpressionParser;
+namespace TSpec.Test.Internal.Specification.ExpressionDescriber;
 
-public class WhenParseValue : Spec<string>
+public class WhenDescribe : Spec<string>
 {
     [Theory]
     [InlineData(null, "")]
@@ -59,7 +59,7 @@ public class WhenParseValue : Spec<string>
     [InlineData("await - 1", "await - 1")]
     public void ThenReturnDescription(string? valueExpr, string expected)
     {
-        When(_ => valueExpr.ParseValue())
+        When(_ => valueExpr.Describe())
             .Then().Result.Is(expected);
     }
 }

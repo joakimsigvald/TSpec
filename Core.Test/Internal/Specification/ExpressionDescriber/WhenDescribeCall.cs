@@ -1,9 +1,9 @@
 ﻿using TSpec.Assert;
 using TSpec.Internal.Specification;
 
-namespace TSpec.Test.Internal.Specification.ExpressionParser;
+namespace TSpec.Test.Internal.Specification.ExpressionDescriber;
 
-public class WhenParseCall : Spec<string>
+public class WhenDescribeCall : Spec<string>
 {
     [Theory]
     [InlineData(null, null)]
@@ -20,6 +20,6 @@ public class WhenParseCall : Spec<string>
         y
         """, "x y")]
     public void ThenReturnDescription(string? callExpr, string? expected)
-        => When(_ => callExpr.ParseCall())
+        => When(_ => callExpr.DescribeCall())
         .Then().Result.Is(expected);
 }

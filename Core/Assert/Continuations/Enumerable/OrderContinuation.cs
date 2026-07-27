@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using TSpec.Internal.Specification;
 
 namespace TSpec.Assert.Continuations.Enumerable;
 
@@ -43,9 +44,9 @@ public record OrderContinuation<TItem, TContinuation> : EnumerableConstraint<TIt
 
     private ContinueWith<TContinuation> OrderBy(
         Func<TItem, TItem, int> compare, [CallerMemberName] string? methodName = null)
-        => Assert(_orderByExpr is null ? Ignore.Me : (object)$"by {_orderByExpr}",
+        => Assert(_orderByExpr is null ? Ignore.Me : (object)$"by {_orderByExpr.Describe()}",
             NotNullAnd(col => AssertOrder(col, compare)),
-            _orderByExpr is null ? "order" : $"order by {_orderByExpr}",
+            _orderByExpr is null ? "order" : $"order by {_orderByExpr.Describe()}",
             methodName: methodName).And();
 
     private static void AssertOrder(IEnumerable<TItem> enumerable, Func<TItem, TItem, int> compare)

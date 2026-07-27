@@ -32,7 +32,7 @@ internal class AssertionPhrases(SpecificationRecording recording, TextBuilder te
             else
                 textBuilder.AddSentence(actual);
             textBuilder.AddWord(verb.AsWords());
-            textBuilder.AddWord(expected.ParseValue());
+            textBuilder.AddWord(expected.Describe());
             _isChainOfAssertions = false;
         });
 
@@ -50,7 +50,7 @@ internal class AssertionPhrases(SpecificationRecording recording, TextBuilder te
         => recording.Record(() => textBuilder.AddWord($"throws {typeof(TError).Alias()} {binder}".Trim()));
 
     internal void AddAssertThrows(string expectedExpr)
-        => recording.Record(() => textBuilder.AddWord($"throws {expectedExpr.ParseValue()}"));
+        => recording.Record(() => textBuilder.AddWord($"throws {expectedExpr.Describe()}"));
 
     internal void AddAssertDoesNotThrow<TError>()
         => recording.Record(() => textBuilder.AddWord($"does not throw {typeof(TError).Alias()}"));
@@ -58,7 +58,7 @@ internal class AssertionPhrases(SpecificationRecording recording, TextBuilder te
     internal void AddVerify<TService>(string expressionExpr, string? wasInvokedExpr = null)
         => recording.Record(() =>
         {
-            var call = $"{typeof(TService).Alias()}.{expressionExpr.ParseCall(true)}";
+            var call = $"{typeof(TService).Alias()}.{expressionExpr.DescribeCall(true)}";
             textBuilder.AddWord(wasInvokedExpr is null ? call : $"{call} {DescribeInvocation(wasInvokedExpr)}");
         });
 

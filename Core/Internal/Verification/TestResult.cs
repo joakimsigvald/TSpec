@@ -100,7 +100,7 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
     public IAndThen<TResult> Throws<TError>(
         Func<TError, bool> condition, [CallerArgumentExpression(nameof(condition))] string? conditionExpr = null)
     {
-        var conditionSpec = conditionExpr!.ParseValue();
+        var conditionSpec = conditionExpr!.Describe();
         SpecificationContext.Current.AddAssertThrows<TError>($"where {conditionSpec}");
         AssertError(condition, conditionSpec);
         return And();

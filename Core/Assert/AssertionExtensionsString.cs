@@ -65,6 +65,6 @@ public static class AssertionExtensionsString
         => new()
         {
             Actual = actual,
-            ActualExpr = actualExpr!.ParseActual(SpecificationContext.PendingSubject),
+            ActualExpr = actualExpr!.DescribeActual(SpecificationContext.PendingSubject),
         };
 }

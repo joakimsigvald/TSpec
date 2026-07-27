@@ -45,7 +45,7 @@ public class WhenOrder : Spec
     {
         int[] numbers = [2, 1, 3];
         numbers.Has().Order(it => it % 3).Descending();
-        Specification.Is($"Numbers has descending order by it => it % 3");
+        Specification.Is($"Numbers has descending order by it % 3");
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class WhenOrder : Spec
     {
         int[] numbers = [3, 1, 2];
         var ex = Xunit.Assert.Throws<XunitException>(() => numbers.Has().Order(it => it % 3).Descending());
-        ex.Message.Is("Expected numbers to be descending by it => it % 3 but found [3, 1, 2]");
+        ex.Message.Is("Expected numbers to be descending by it % 3 but found [3, 1, 2]");
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public class WhenOrder : Spec
     {
         int[] numbers = [3, 1, 2];
         numbers.Has().Order(it => it % 3).Ascending();
-        Specification.Is($"Numbers has ascending order by it => it % 3");
+        Specification.Is($"Numbers has ascending order by it % 3");
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class WhenOrder : Spec
     {
         int[] numbers = [2, 1, 3];
         var ex = Xunit.Assert.Throws<XunitException>(() => numbers.Has().Order(it => it % 3).Ascending());
-        ex.Message.Is("Expected numbers to be ascending by it => it % 3 but found [2, 1, 3]");
+        ex.Message.Is("Expected numbers to be ascending by it % 3 but found [2, 1, 3]");
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public class WhenOrder : Spec
         Patient[] patients =
             [new("Adam", new(2026, 3, 1)), new("Bertil", new(2026, 2, 1)), new("Cesar", new(2026, 1, 1))];
         patients.Has().Order(p => p.Name).Ascending();
-        Specification.Is($"Patients has ascending order by p => p.Name");
+        Specification.Is($"Patients has ascending order by p.Name");
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public class WhenOrder : Spec
         Patient[] patients =
             [new("Adam", new(2026, 3, 1)), new("Bertil", new(2026, 2, 1)), new("Cesar", new(2026, 1, 1))];
         patients.Has().Order(p => p.Admitted).Descending();
-        Specification.Is($"Patients has descending order by p => p.Admitted");
+        Specification.Is($"Patients has descending order by p.Admitted");
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class WhenOrder : Spec
     {
         Patient[] patients = [new("Bertil", new(2026, 2, 1)), new("Adam", new(2026, 3, 1))];
         var ex = Xunit.Assert.Throws<XunitException>(() => patients.Has().Order(p => p.Name).Ascending());
-        ex.Message.Is("Expected patients to be ascending by p => p.Name but found [Patient { Name = Bertil, Admitted = 2026-02-01 00:..., Patient { Name = Adam, Admitted = 2026-03-01 00:00...]");
+        ex.Message.Is("Expected patients to be ascending by p.Name but found [Patient { Name = Bertil, Admitted = 2026-02-01 00:..., Patient { Name = Adam, Admitted = 2026-03-01 00:00...]");
     }
 
     [Fact]

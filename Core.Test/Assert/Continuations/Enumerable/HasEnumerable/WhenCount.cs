@@ -93,7 +93,7 @@ public class WhenCount : Spec
     public void GivenConditionalCount(int count, int greaterThan, params int[] numbers)
     {
         numbers.Has().Count(it => it > greaterThan).At(count);
-        Specification.Is($"Numbers has 'count' = {count} items where it => it > greaterThan");
+        Specification.Is($"Numbers has 'count' = {count} items where it > greaterThan");
     }
 
     [Theory]
@@ -102,7 +102,7 @@ public class WhenCount : Spec
     public void GivenConditionalCountAtLeast(int count, int greaterThan, params int[] numbers)
     {
         numbers.Has().Count(it => it > greaterThan).AtLeast(count);
-        Specification.Is($"Numbers has at least 'count' = {count} items where it => it > greaterThan");
+        Specification.Is($"Numbers has at least 'count' = {count} items where it > greaterThan");
     }
 
     [Theory]
@@ -111,7 +111,7 @@ public class WhenCount : Spec
     public void GivenConditionalCountAtMost(int count, int greaterThan, params int[] numbers)
     {
         numbers.Has().Count(it => it > greaterThan).AtMost(count);
-        Specification.Is($"Numbers has at most 'count' = {count} items where it => it > greaterThan");
+        Specification.Is($"Numbers has at most 'count' = {count} items where it > greaterThan");
     }
 
     [Theory]
@@ -120,7 +120,7 @@ public class WhenCount : Spec
     public void GivenConditionalInRange(int from, int to, int greaterThan, params int[] numbers)
     {
         numbers.Has().Count(it => it > greaterThan).InRange(from, to);
-        Specification.Is($"Numbers has between 'from' = {from} and 'to' = {to} items where it => it > greaterThan");
+        Specification.Is($"Numbers has between 'from' = {from} and 'to' = {to} items where it > greaterThan");
     }
 
     [Fact]
@@ -128,6 +128,6 @@ public class WhenCount : Spec
     {
         int[] oneAndTwo = [1, 2];
         var ex = Xunit.Assert.Throws<XunitException>(() => oneAndTwo.Has().Count(it => it < 0).InRange(1, 2));
-        ex.Message.Is("Expected oneAndTwo to have between 1 and 2 items where it => it < 0 but found 0: [1, 2]");
+        ex.Message.Is("Expected oneAndTwo to have between 1 and 2 items where it < 0 but found 0: [1, 2]");
     }
 }

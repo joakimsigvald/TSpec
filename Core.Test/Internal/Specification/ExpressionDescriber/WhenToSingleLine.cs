@@ -1,7 +1,7 @@
 ﻿using TSpec.Assert;
 using TSpec.Internal.Specification;
 
-namespace TSpec.Test.Internal.Specification.ExpressionParser;
+namespace TSpec.Test.Internal.Specification.ExpressionDescriber;
 
 public class WhenToSingleLine : Spec<string>
 {

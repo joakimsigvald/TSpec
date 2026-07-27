@@ -7,21 +7,22 @@ namespace TSpec.Internal.Specification;
 /// <summary>
 /// Facade over the expression-parsing pipeline: preprocess the source
 /// (<see cref="SourcePreprocessor.ToSingleLine"/>), parse it into an
-/// <see cref="Expr"/> tree, and describe the tree in the mode the caller
-/// needs (value, call, or actual).
+/// <see cref="Expr"/> tree, and describe it. <see cref="Describe"/> is the
+/// plain rendering; the other two add the context of a call or of the actual
+/// under test, and fall back to it for anything they do not handle themselves.
 /// </summary>
-internal static class ExpressionParser
+internal static class ExpressionDescriber
 {
-    public static string ParseValue(this string? expr)
+    public static string Describe(this string? expr)
         => string.IsNullOrWhiteSpace(expr) ? string.Empty
         : Describer.Value.Describe(Parser.Parse(expr.ToSingleLine()));
 
-    public static string? ParseCall(this string? expr, bool skipSubjectRef = false)
+    public static string? DescribeCall(this string? expr, bool skipSubjectRef = false)
         => expr is null ? null
         : string.IsNullOrWhiteSpace(expr) ? string.Empty
         : new CallDescriber(skipSubjectRef).Describe(Parser.Parse(expr.ToSingleLine()));
 
-    public static string ParseActual(this string? expr, string? subject = null)
+    public static string DescribeActual(this string? expr, string? subject = null)
         => string.IsNullOrWhiteSpace(expr) ? string.Empty
         : new ActualDescriber(subject).Describe(Parser.Parse(expr.ToSingleLine()));
 

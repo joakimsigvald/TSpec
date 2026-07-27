@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using TSpec.Internal.Specification;
 
 namespace TSpec.Assert.Continuations.Enumerable;
 
@@ -46,7 +47,10 @@ public record IsEnumerable<TItem> : EnumerableConstraint<TItem, IsEnumerableCont
         return Assert(expectedStr, NotNullAnd(list => Xunit.Assert.Distinct(list.Select(selector))), expectedStr).And();
     }
 
-    private static string ExpressExpectation(string selectorStr) => $"by {selectorStr}";
+    /// The selector is described before the connective is put in front of it.
+    /// Composing first would hand the parser a string that is not C#, and the
+    /// leading word can then be mistaken for part of the expression.
+    private static string ExpressExpectation(string selectorStr) => $"by {selectorStr.Describe()}";
 
     /// <summary>
     /// Asserts that the enumerable is null

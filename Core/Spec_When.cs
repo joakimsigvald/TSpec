@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using TSpec.Continuations;
+using TSpec.Internal.Specification;
 
 namespace TSpec;
 
@@ -223,7 +224,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         if (delayMs is null)
             return;
 
-        PrependSetUp((Func<TSUT, Task>)(_ => Task.Delay(delayMs())), $"wait {delayExpr} ms");
+        PrependSetUp((Func<TSUT, Task>)(_ => Task.Delay(delayMs())), $"wait {delayExpr.Describe()} ms");
     }
 
     private Spec<TSUT, TResult> SetAction(Delegate act, string expr)

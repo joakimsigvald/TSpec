@@ -6,13 +6,13 @@ namespace TSpec.Internal.Specification;
 internal class ActionPhrases(SpecificationRecording recording, TextBuilder textBuilder)
 {
     internal void AddWhen(string actExpr)
-        => recording.Record(() => textBuilder.AddSentence($"when {actExpr.ParseCall()}"));
+        => recording.Record(() => textBuilder.AddSentence($"when {actExpr.DescribeCall()}"));
 
     internal void AddAfter(string setUpExpr)
-        => recording.Record(() => textBuilder.AddSentence($"after {setUpExpr.ParseCall()}"));
+        => recording.Record(() => textBuilder.AddSentence($"after {setUpExpr.DescribeCall()}"));
 
     internal void AddBefore(string tearDownExpr)
-        => recording.Record(() => textBuilder.AddSentence($"before {tearDownExpr.ParseCall()}"));
+        => recording.Record(() => textBuilder.AddSentence($"before {tearDownExpr.DescribeCall()}"));
 
     internal void AddTap(string expr)
         => recording.Record(() => textBuilder.AddWord($"tap({expr})"));

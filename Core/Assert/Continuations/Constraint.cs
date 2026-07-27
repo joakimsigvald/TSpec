@@ -91,7 +91,7 @@ public abstract record Constraint<TActual, TContinuation>
     }
 
     internal static TContinuation Create(TActual? actual, string actualExpr)
-        => new() { Actual = actual, ActualExpr = actualExpr.ParseActual(SpecificationContext.PendingSubject) };
+        => new() { Actual = actual, ActualExpr = actualExpr.DescribeActual(SpecificationContext.PendingSubject) };
 
     internal TActual? Actual { get; set; }
 

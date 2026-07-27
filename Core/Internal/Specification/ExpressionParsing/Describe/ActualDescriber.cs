@@ -3,7 +3,7 @@ using TSpec.Internal.Specification.ExpressionParsing.Expressions;
 namespace TSpec.Internal.Specification.ExpressionParsing.Describe;
 
 /// <summary>
-/// Actual-mode description (used by <c>ParseActual</c>). Walks the rightmost
+/// Actual-mode description (used by <c>DescribeActual</c>). Walks the rightmost
 /// member-access chain to find the wrapping <c>Then(...)</c> / <c>And(...)</c>
 /// call, then returns just the tail after that wrapper, prefixed by the
 /// <paramref name="subject"/> the wrapper registered at runtime — the wrapper's

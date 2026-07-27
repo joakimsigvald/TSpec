@@ -110,7 +110,7 @@ public record CountContinuation<TItem, TContinuation> : EnumerableConstraint<TIt
         => ExpressExpectation($"between {Express(fromExpr, from)} and {Express(toExpr, to)} items");
 
     private string ExpressExpectation(string expectedStr) 
-        => _condition is null ? expectedStr : $"{expectedStr} where {_conditionExpr}";
+        => _condition is null ? expectedStr : $"{expectedStr} where {_conditionExpr.Describe()}";
 
     private int Count(IEnumerable<TItem> items) => _condition is null ? items.Count() : items.Count(_condition);
 }

@@ -18,7 +18,7 @@ public abstract record EnumerableConstraint<TItem, TContinuation> : Constraint<I
     private protected static string Express<TValue>(string? valueExpr, TValue value)
     {
         var valueStr = value.FormatValue();
-        return valueExpr is null || valueExpr == valueStr ? valueStr : $"'{valueExpr.ParseValue()}' = {value}";
+        return valueExpr is null || valueExpr == valueStr ? valueStr : $"'{valueExpr.Describe()}' = {value}";
     }
 
     private protected static Action<IEnumerable<TItem>?> NotEmptyAnd(Action<IEnumerable<TItem>> assert)
