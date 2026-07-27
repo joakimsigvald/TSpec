@@ -14,7 +14,7 @@ internal sealed class CallDescriber(bool skipSubjectRef) : Describer
 {
     private readonly bool _skipSubjectRef = skipSubjectRef;
 
-    public override string Describe(Expr expr)
+    protected override string Render(Expr expr)
         => expr switch
         {
             Lambda l => DescribeLambda(l),

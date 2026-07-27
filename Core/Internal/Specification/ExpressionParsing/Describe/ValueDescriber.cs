@@ -9,7 +9,7 @@ namespace TSpec.Internal.Specification.ExpressionParsing.Describe;
 /// </summary>
 internal sealed class ValueDescriber : Describer
 {
-    public override string Describe(Expr expr)
+    protected override string Render(Expr expr)
     {
         if (DescribeMention(expr) is { } mention)
             return mention;

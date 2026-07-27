@@ -32,7 +32,7 @@ internal sealed class ActualDescriber(string? subject = null) : Describer
         BindingWord,
     }
 
-    public override string Describe(Expr expr)
+    protected override string Render(Expr expr)
     {
         var chain = new List<Segment>();
         var (anchor, root) = CollectChain(expr, chain);
@@ -53,7 +53,7 @@ internal sealed class ActualDescriber(string? subject = null) : Describer
     {
         var cur = expr;
         while (true)
-            switch (cur)
+            switch (cur = cur.WithoutNoise())
             {
                 case Member m when IsBindingWord(m.Name):
                     return (Anchor.BindingWord, m);

@@ -11,7 +11,11 @@ internal abstract class Describer
 {
     public static readonly ValueDescriber Value = new();
 
-    public abstract string Describe(Expr expr);
+    /// Noise is peeled here rather than in each mode, so a single predicate
+    /// decides what never reaches a specification.
+    public string Describe(Expr expr) => Render(expr.WithoutNoise());
+
+    protected abstract string Render(Expr expr);
 
     protected static string DescribeAll(IEnumerable<Expr> exprs) =>
         string.Join(", ", exprs.Select(Value.Describe));

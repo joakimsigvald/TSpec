@@ -40,8 +40,37 @@ internal static class LambdaRule
     private static bool IsBoundary(Token t)
         => t.Kind == TokenKind.Symbol && t.Text is "," or ")" or "]" or "}";
 
+    /// The head may carry an <c>async</c> modifier and an explicit return type
+    /// (<c>async Task&lt;int&gt; (_) =&gt; ...</c>). Both are consumed and dropped —
+    /// they describe how the lambda runs, not what the subject does. Every
+    /// branch below backtracks, and <see cref="Parse"/> resets on failure, so a
+    /// wrong guess costs nothing.
     private static bool TryParams(TokenStream ts, out IReadOnlyList<string> ps)
-        => TrySingleParam(ts, out ps) || TryParenParams(ts, out ps);
+    {
+        ps = [];
+        if (ts.IsWord("async"))
+            ts.Advance();
+
+        TrySkipReturnType(ts);
+        return TrySingleParam(ts, out ps) || TryParenParams(ts, out ps);
+    }
+
+    /// A return type is a type reference immediately followed by a parenthesised
+    /// parameter list. Requiring the <c>(</c> is what keeps this from eating the
+    /// target of an ordinary call.
+    private static void TrySkipReturnType(TokenStream ts)
+    {
+        int save = ts.Pos;
+        if (ts.Peek().Kind != TokenKind.Word)
+            return;
+
+        while (ts.Peek() is { Kind: TokenKind.Word }
+            or { Kind: TokenKind.Symbol, Text: "." or "<" or ">" or "," or "?" or "[" or "]" })
+            ts.Advance();
+
+        if (!ts.IsSym("("))
+            ts.Pos = save;
+    }
 
     /// Matches <c>x =&gt;</c> — a single bare identifier followed by <c>=&gt;</c>.
     private static bool TrySingleParam(TokenStream ts, out IReadOnlyList<string> ps)

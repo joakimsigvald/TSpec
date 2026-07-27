@@ -16,6 +16,9 @@ public class WhenParseActual : Spec<string>
     [InlineData("Then().and.Result", "Result")]
     [InlineData("Then<IMyService>(_ => _.Call()).and.Result", "Result")]
     [InlineData("And<IMyService>(_ => _.Call()).and.Result", "Result")]
+    [InlineData("await Result.Read<Room>()", "Result.Read<Room>()")]
+    // The await sits mid-chain here, so peeling has to happen as the chain is walked
+    [InlineData("(await Result.Read<VersionInfo>()).Version", "Result.Read<VersionInfo>().Version")]
     public void ThenReturnDescription(string? returnsExpr, string expected)
         => When(_ => returnsExpr.ParseActual()).Then().Result.Is(expected);
 

@@ -42,6 +42,18 @@ public class WhenParseValue : Spec<string>
     [InlineData("obj?.Name", "obj?.Name")]
     [InlineData("obj?.Method()", "obj?.Method()")]
     [InlineData("_ => _.Inner?.Value", "_.Inner?.Value")]
+    [InlineData("await Foo()", "Foo()")]
+    [InlineData("(await Foo()).Bar", "Foo().Bar")]
+    [InlineData("_ => await _.GetAsync()", "_.GetAsync()")]
+    [InlineData("async _ => await _.GetAsync()", "_.GetAsync()")]
+    [InlineData("async (_) => await _.GetAsync()", "_.GetAsync()")]
+    [InlineData("async Task<int> (_) => await _.GetAsync()", "_.GetAsync()")]
+    [InlineData("Task<int> (_) => _.GetAsync()", "_.GetAsync()")]
+    // A 2+ parameter lambda renders from raw source, so the keywords survive there
+    [InlineData("async ValueTask<int> (a, b) => await Add(a, b)",
+        "async ValueTask<int> (a, b) => await Add(a, b)")]
+    [InlineData("await.Length", "await.Length")]
+    [InlineData("await - 1", "await - 1")]
     public void ThenReturnDescription(string? valueExpr, string expected)
     {
         When(_ => valueExpr.ParseValue())

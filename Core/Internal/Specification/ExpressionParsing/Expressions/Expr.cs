@@ -12,6 +12,10 @@ internal abstract record Expr(string Raw)
     public virtual IEnumerable<Expr> Children => [];
     public virtual string AsPath() => Raw;
 
+    /// Peel operators that are pure language mechanism — they say how the code
+    /// runs, never what the subject does, so no description mode should see them.
+    public virtual Expr WithoutNoise() => this;
+
     /// If this expression (or its outer wrappers) contains a Mention factory
     /// — <c>A&lt;T&gt;</c> / <c>An&lt;T&gt;</c> / <c>The&lt;T&gt;</c> etc. —
     /// describe its root, verb, type args, and any constraints. Otherwise null.

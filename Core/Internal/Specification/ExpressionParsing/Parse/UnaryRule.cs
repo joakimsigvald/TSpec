@@ -5,13 +5,20 @@ using TSpec.Internal.Specification.ExpressionParsing.Expressions;
 namespace TSpec.Internal.Specification.ExpressionParsing.Parse;
 
 /// <summary>
-/// Prefix-unary operators and parenthesized cast expressions.
+/// Prefix-unary operators and parenthesized cast expressions. <c>await</c> is a
+/// prefix operator like any other here; whether it reaches the specification
+/// text is the describers' decision, via <see cref="Expr.WithoutNoise"/>.
 /// </summary>
 internal static class UnaryRule
 {
     public static Expr Parse(TokenStream ts)
     {
         int save = ts.Pos;
+        if (ts.IsWord("await") && CanStartExpression(ts.Peek(1)))
+        {
+            ts.Advance();
+            return new Unary(ts.RawFrom(save), "await", Parse(ts));
+        }
         if (ts.Peek() is { Kind: TokenKind.Symbol, Text: "!" or "-" or "+" or "~" or "++" or "--" } op)
         {
             ts.Advance();
@@ -22,6 +29,17 @@ internal static class UnaryRule
 
         return PostfixRule.Parse(ts);
     }
+
+    /// Guards the <c>await</c> drop: without this, an identifier that happens to
+    /// be named <c>await</c> would swallow whatever follows it. <c>+</c> and
+    /// <c>-</c> are left out on purpose — they are the only prefix operators that
+    /// are also binary, so <c>await - 1</c> stays a subtraction.
+    private static bool CanStartExpression(Token t) => t.Kind switch
+    {
+        TokenKind.Word or TokenKind.Number or TokenKind.String or TokenKind.Char => true,
+        TokenKind.Symbol => t.Text is "(" or "[" or "!" or "~",
+        _ => false,
+    };
 
     private static bool TryParseCast(TokenStream ts, [NotNullWhen(true)] out Expr? cast)
     {
