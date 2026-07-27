@@ -29,11 +29,10 @@ internal class SpecificationContext : IAssertSpecificationContext
 
     private SpecificationContext()
     {
-        var textBuilder = new TextBuilder();
-        _recording = new(textBuilder);
-        _setup = new(_recording, textBuilder);
-        _action = new(_recording, textBuilder);
-        _assertion = new(_recording, textBuilder);
+        _recording = new();
+        _setup = new(_recording);
+        _action = new(_recording);
+        _assertion = new(_recording);
     }
 
     /// <summary>

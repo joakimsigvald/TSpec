@@ -1,72 +1,63 @@
 namespace TSpec.Internal.Specification;
 
 /// <summary>
-/// Phrases for the assertion steps: Then/That, asserts and their
-/// conjunctions, expected exceptions, and mock verifications.
+/// Describes the assertion steps: Then/That, asserts and their conjunctions,
+/// expected exceptions, and mock verifications. Whether an assert starts a
+/// sentence or continues one depends on what precedes it, so that decision is
+/// carried as <see cref="SpecificationStep.OpensAssertionChain"/> and made
+/// while rendering.
 /// </summary>
-internal class AssertionPhrases(SpecificationRecording recording, TextBuilder textBuilder)
+internal class AssertionPhrases(SpecificationRecording recording)
 {
-    private int _thenCount;
-    private bool _isChainOfAssertions;
-
     internal void AddThen()
-        => recording.Record(() =>
-        {
-            _isChainOfAssertions = true;
-            textBuilder.AddPhraseOrSentence(NextThenWord());
-        });
+        => recording.Record(() => recording.Add(
+            new(StepLayout.SentenceOrPhrase) { Family = StepFamily.Then, OpensAssertionChain = true }));
 
     internal void AddThat()
-        => recording.Record(() =>
-        {
-            _isChainOfAssertions = true;
-            textBuilder.AddWord("that");
-        });
+        => recording.Record(() => recording.Add(
+            new(StepLayout.Word) { Body = "that", OpensAssertionChain = true }));
 
     internal void AddAssert(string actual, string verb, string? expected)
         => recording.Record(() =>
         {
             // actual is already described text, not source code — never re-parse it
-            if (_isChainOfAssertions)
-                textBuilder.AddWord(actual);
-            else
-                textBuilder.AddSentence(actual);
-            textBuilder.AddWord(verb.AsWords());
-            textBuilder.AddWord(expected.Describe());
-            _isChainOfAssertions = false;
+            recording.Add(new(StepLayout.AssertionHead) { Body = actual });
+            AddWord(verb.AsWords());
+            AddWord(expected.Describe());
         });
 
     internal void AddAssert(string assertName)
-        => recording.Record(() => textBuilder.AddWord(assertName.AsWords()));
+        => recording.Record(() => AddWord(assertName.AsWords()));
 
     internal void AddAssertConjunction(string conjunction)
-        => recording.Record(() =>
-        {
-            _isChainOfAssertions = true;
-            textBuilder.AddPhrase(conjunction, 2);
-        });
+        => recording.Record(() => recording.Add(
+            new(StepLayout.Phrase) { Body = conjunction, Indentation = 2, OpensAssertionChain = true }));
 
     internal void AddAssertThrows<TError>(string? binder)
-        => recording.Record(() => textBuilder.AddWord($"throws {typeof(TError).Alias()} {binder}".Trim()));
+        => recording.Record(() => AddWord($"throws {typeof(TError).Alias()} {binder}".Trim()));
 
     internal void AddAssertThrows(string expectedExpr)
-        => recording.Record(() => textBuilder.AddWord($"throws {expectedExpr.Describe()}"));
+        => recording.Record(() => AddWord($"throws {expectedExpr.Describe()}"));
 
     internal void AddAssertDoesNotThrow<TError>()
-        => recording.Record(() => textBuilder.AddWord($"does not throw {typeof(TError).Alias()}"));
+        => recording.Record(() => AddWord($"does not throw {typeof(TError).Alias()}"));
 
     internal void AddVerify<TService>(string expressionExpr, string? wasInvokedExpr = null)
         => recording.Record(() =>
         {
             var call = $"{typeof(TService).Alias()}.{expressionExpr.DescribeCall(true)}";
-            textBuilder.AddWord(wasInvokedExpr is null ? call : $"{call} {DescribeInvocation(wasInvokedExpr)}");
+            AddWord(wasInvokedExpr is null ? call : $"{call} {DescribeInvocation(wasInvokedExpr)}");
         });
 
     internal void AddWasInvoked<TService>(string? wasInvokedExpr)
-        => recording.Record(() => textBuilder.AddWord($"{typeof(TService).Alias()} {DescribeInvocation(wasInvokedExpr)}"));
+        => recording.Record(() => AddWord(
+            $"{typeof(TService).Alias()} {DescribeInvocation(wasInvokedExpr)}"));
 
     internal void AddWasInvoked<TService>(string method, string? wasInvokedExpr)
-        => recording.Record(() => textBuilder.AddWord($"{typeof(TService).Alias()}.{method} {DescribeInvocation(wasInvokedExpr)}"));
+        => recording.Record(() => AddWord(
+            $"{typeof(TService).Alias()}.{method} {DescribeInvocation(wasInvokedExpr)}"));
+
+    private void AddWord(string body) => recording.Add(new(StepLayout.Word) { Body = body });
 
     private static string DescribeInvocation(string? timesExpr)
         => timesExpr.NormalizeTimes() switch
@@ -76,6 +67,4 @@ internal class AssertionPhrases(SpecificationRecording recording, TextBuilder te
             "Once" => "was invoked once",
             var normalized => $"was invoked {normalized}",
         };
-
-    private string NextThenWord() => 0 == _thenCount++ ? "Then" : "and";
 }

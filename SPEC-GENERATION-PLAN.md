@@ -6,7 +6,8 @@ how a single test renders.
 
 **Start at [§10 Build log](#10-build-log)** for what is built and what is next. Sections 1–9 are
 the design and stay authoritative; when a decision changes, they get corrected in place rather
-than contradicted from the log.
+than contradicted from the log. [§11](#11-f2--hoisting-shared-setup) is the staged plan for the
+next piece of work.
 
 ## 1. Scope
 
@@ -72,6 +73,24 @@ not truncate the document, and a red run must not publish one. Both are the same
 **Skipped tests do not exist.** They contribute nothing and are excluded from the expected set.
 This closes vision §4's open item ("mark or omit, pick one") in favour of omit. Recording only
 on `Passed` handles static skips, dynamic skips and failures uniformly with no special cases.
+
+**Erasure is justified semantically, never by taste.** The recurring question in the specification
+language is whether a token is a *claim about the subject* or a *mechanism of the test*; mechanism
+is erased. Erased so far: `await`, `async` plus an explicit lambda return type, `!`, and `?.`
+(rendered as a plain `.`). Kept: `?` on a type, because `int?` and `int` differ in what values can
+occur — that is a claim, and the describer sees only source text so it cannot tell a nullable value
+type from a nullable reference type. The `?` case is the rule's load-bearing one: it is where
+erasure would have weakened a real statement, and that is what stopped it. Erasure is cumulative
+and one-directional, and no test can ever report that too much has been erased.
+
+**The document and the per-test specification render from one and the same text** (user,
+2026-07-27). Not because it is simpler, but because the hundreds of `Specification.Is(...)`
+expectations are what keep the document honest: with one renderer they are simultaneously the
+document's regression tests, and every line in `SPECIFICATION.md` is text a passing test actually
+produced. A second renderer would leave every requirement in the repo unpinned. The document may
+add *structure around* the text — headings, grouping, hoisting — but never a different version of
+it. Where a failure report wants more than the specification says (setup context, for instance),
+it appends it; it does not render a variant.
 
 **The specification text is used as rendered today**, including its 80-character wrapping.
 Markdown reflows wrapped lines inside a list item, so this is expected to read acceptably.
@@ -268,22 +287,43 @@ deserve the warning.
 
 | 11 | MyHotel rooms, step 1 of 4 | `POST /rooms` and `GET /rooms/{roomNumber}` with their branches (created / conflict, found / not found), driven out red-green. 9 requirements, 6 lines of production code, everything still in `Program.cs`. `ApiSpec` now builds a **fresh `WebApplicationFactory` per test** — the shared one leaked in-memory rooms between tests. Remaining: list, delete, update. |
 
+| 12 | Noise erased from the specification text | `await` and `async`/return-type added to the grammar so they parse and then peel; `!` and `?.` joined them. Erasure is a *describer* policy (`Expr.WithoutNoise`), not a parse-time drop, so one predicate decides what never reaches a specification. `?` on a type deliberately kept — see §3. |
+| 13 | `Having` / `Until` keywords, and `ToSource()` | Setup and tear-down steps now render under the name of the method that produced them, closing F1. Separately, `Expr.ToSource()` rebuilds an expression from the tree instead of copying source text, so a 2+ parameter lambda — the one shape with no prose rendering — can no longer smuggle erased keywords back in via its parent's `Raw`. |
+
+**Composing phrases before parsing was a live bug, and the suite caught it.** TSpec builds some
+assertion phrases by prepending a word to the *raw* expression and parsing the whole splice —
+`"by (it, i) => it + i"`. That is not C#, and the moment the grammar learned about lambda return
+types it read `by` as one and swallowed it, silently turning `Numbers is distinct by …` into
+`Numbers is distinct …`. Two pinned expectations failed on the first run.
+
+The fix was not to model the connectives as syntax. Every other phrase in TSpec already composes
+*after* describing (`$"throws {expectedExpr.Describe()}"`), and the four sites that did it backwards
+were simply skipping that convention. Parsing now only ever sees real C#, which retires the whole
+collision class instead of enumerating it. It also fixed a defect nobody had noticed: because
+`wait () => The(_wait) ms` never parsed, its inner expression was never described — the line read
+`The(_wait)` while the line directly beneath it read `the _state`.
+
+**Renamed while there:** `ParseValue`/`ParseCall`/`ParseActual` → `Describe`/`DescribeCall`/
+`DescribeActual`, and `ExpressionParser` → `ExpressionDescriber`. The methods return finished prose,
+not a tree; parsing is the half the caller never sees. `Describe` carries no suffix because value
+mode is not a peer of the other two — it is the default they both fall back to.
+
 ### Format findings from the first real document (§7 Q1/Q2 answers arriving)
 
 Nine requirements across two subjects is finally enough to judge the format. Four findings, in the
 order I would act on them.
 
-**F1 — `Having` renders as `After`, which is chronologically backwards.** A `Given` clause that runs
-*before* the action reads as though it follows it:
+**F1 — `Having` rendered as `After`. Fixed (build log row 13).** The keyword now matches the
+pipeline method that produced the step, which was the whole of the defect: `Having` is what the
+author wrote, so `Having` is what the reader should see.
 
 ```
 When api.GetAsync("/rooms/{RoomNumber}")
-After api.PostAsJsonAsync("/rooms", new Room(RoomNumber, 2))
+Having api.PostAsJsonAsync("/rooms", new Room(RoomNumber, 2))
 ```
 
-This is the branch condition — the single most important line for a reader — and it is presented as
-an afterthought. Genuine defect, not a formatting preference. Note §1 puts per-test specification
-text out of scope, so fixing this widens the epic; it may belong in its own change.
+`Until` got the same treatment, for the same reason. The delay step needed one extra word — it
+shares the setup list, so `After wait … ms` became `Having waited … ms` to stay grammatical.
 
 **F2 — infrastructure `Using` lines dominate.** Every block opens with the same two lines:
 
@@ -346,9 +386,8 @@ do-not-edit comment. No requirements yet.
 Items 1–3 of the original list (collection, completeness, rendering) are done — see the build log
 above. What is left:
 
-1. **Act on F1 and F2.** The two findings that cost the document most. F1 (`Having` → `After`) is a
-   defect; F2 (infrastructure `Using` lines) is the biggest readability win available. Decide F3
-   (names vs values) before it drifts. All three are PO calls, not mechanical work.
+1. **Act on F2** — planned in [§11](#11-f2--hoisting-shared-setup). F1 is done. Decide F3 (names vs
+   values) before it drifts; it remains a PO call, not mechanical work.
 2. **Grow MyHotel, steps 2–4.** List, then delete, then update — in that order (delete is simpler,
    and delete+add covers what update does). Each step reviewed before the next. Adding rooms with
    varied bed counts will also show whether repetition gets worse or the grouping absorbs it.
@@ -364,3 +403,109 @@ above. What is left:
    behaviour.
 7. **Version and release decision.** `PackageVersion` and `PackageReleaseNotes` are untouched at
    1.5.0. This branch aims at 2.1.0, but 2.0.0 (the removals) has not happened. Needs the PO.
+
+## 11. F2 — hoisting shared setup
+
+Status: **awaiting sign-off.** Nothing built.
+
+### 11.1 The problem, correctly framed
+
+Nine requirements, and 18 of roughly 45 content lines are `Using owned api` / `and owned
+api.CreateClient`. Suppressing them was proposed and rejected (user, 2026-07-27): the lines state
+something true — every requirement is verified against a freshly built, owned, disposed API — and
+deleting them would be an erasure with no semantic justification, which §3 forbids. Under
+one-renderer it would also strip them from the failure output, where a leaked-fixture bug is exactly
+what they diagnose.
+
+So it is a **repetition** problem, not a noise problem. Repetition is the one thing the document can
+fix on its own, because the document has structure the per-test text does not: headings.
+
+### 11.2 Why this forces a two-phase engine
+
+Today every step is `recording.Record(() => textBuilder.AddX(...))` — a closure over one shared
+builder, run lazily at `ToString()`. Two properties of that make clause-level hoisting impossible:
+
+**A clause is not a record call.** A mock clause is several: `AddMockSetup` starts a line,
+`AddMockReturns`/`AddMockThrows` append with `AddWord`. `Given IMyService.GetValueAsync() first
+returns 1 and next returns 2` is one hoistable expression built from three records. The builder call
+kind is the clause boundary — a clause is one line-starting step plus every appending step that
+follows it. That is what makes "regardless of line breaks or a leading `and`" mechanical.
+
+**Lead words are baked in while describing.** `NextUsingWord()`, `NextGivenWord()`, `NextThenWord()`
+and `GetMockName()` decide `Using` vs `and`, and whether to repeat a service name, inside the
+closure. For an `and` to become a `Using` after hoisting, that decision has to happen where position
+is known.
+
+Hence the split (user, 2026-07-27):
+
+| Phase | Produces | Knows about |
+|---|---|---|
+| 1 — describe | an ordered list of `Clause` (family, described body, continuations) | expressions, nothing about layout |
+| 2 — render | text | lead words, mock-name elision, wrapping, indentation |
+
+Phase 1's output is the structure served to *both* consumers: the per-test specification renders all
+clauses in order; the document renders them grouped and hoisted. This keeps §3's one-renderer rule
+intact — phase 2 applies the same positional rules at a new position, it is not a second renderer.
+
+**Phase 2 is not a dumb formatter.** `_isChainOfAssertions` decides whether an assert starts a
+sentence or appends to one, i.e. phase 2 decides structure as well as words. It is positional, so it
+moves cleanly, but it must not be designed as pure formatting.
+
+**Bonus:** phase 2 taking a builder as an argument answers §7 Q2 for free — re-rendering unwrapped
+for markdown becomes a parameter rather than a project.
+
+### 11.3 Hoisting rules
+
+1. **Whole clauses only.** Never a line, never a fragment. Line breaks and indentation are phase-2
+   artifacts and carry no meaning here.
+2. **Complete family runs only, in stage 3.** All the `Using` clauses hoist or none do. This is what
+   keeps a headless `and …` from ever being left behind, and it is why lead-word promotion is not
+   needed until stage 4.
+3. **Shared by every entry under the heading.** Exact match on the clause, no partial credit.
+4. **At least three entries under that heading.** Evaluated *per level*, which is the point: at the
+   root all nine MyHotel entries share `Using`, so it hoists even though `WhenGetVersion` has only
+   two requirements — while that subject's `When`, shared by two, stays inline.
+5. **At most two levels**, root and `##` subject. Settled (user, 2026-07-27); a third level would
+   require splitting the branch out of the `###` heading, which is not needed by any current example.
+
+Applied to MyHotel today, the `Using` run reaches the root and the `When` reaches `## WhenAddRoom`
+and `## WhenGetRoom` but not `## WhenGetVersion`.
+
+### 11.4 Stages
+
+| # | Scope | Gate |
+|---|---|---|
+| 1 | Phase split, internal to the specification engine. Same text per test, document still fed the rendered string. | Suite green with **zero expectation edits**. Any text change is a refactor bug, not a decision. |
+| 2 | Document builder consumes clauses instead of strings and rebuilds the same unhoisted document. | Regenerating `SPECIFICATION.md` yields a diff containing **only the hash line**. |
+| 3 | Naive hoisting: one level, complete family runs, shared by all, ≥3 entries. Hoisted clauses simply appear under the shared heading. | Reviewed against the real document. |
+| 4 | Full hoisting per §11.3: two levels, partial runs with lead-word promotion, per-level threshold. | Reviewed against the real document. |
+| 5 | Bonus — revisit the algorithm if the output asks for it. | Deliberately unknown. |
+
+Stages 1 and 2 have gates that are *checkable*; 3 and 4 end in a PO reading the document, which is
+the only verdict that counts for a format decision (see §3 on what the pinned expectations can and
+cannot tell us).
+
+**Sizing.** Stage 1 is the bulk — 30 record sites (`SetupPhrases` 14, `AssertionPhrases` 12,
+`ActionPhrases` 4) plus five pieces of positional state to relocate (`_givenCount`, `_usingCount`,
+`_currentMockSetup`, `_thenCount`, `_isChainOfAssertions`). It is the largest single change in the
+epic so far, but it is unusually *safe* grind: the pinned expectations depend on exact lead words,
+wrapping and indentation, so the refactor either reproduces the text byte-for-byte or the suite says
+where it did not. Everything after stage 1 is small by comparison — stage 2 is wiring across three
+files, stage 3 is a grouping pass and an equality comparison, stage 4 adds promotion and the second
+level.
+
+**Stage 2 must not touch wrapping.** §7 Q2 becomes answerable once phase 2 takes a builder, but
+changing the 80-character wrapping at stage 2 would destroy the only gate that stage has.
+
+### 11.5 Formatting of a hoisted block
+
+Nothing fancy (user, 2026-07-27): the hoisted clauses render as an ordinary fenced block directly
+under their heading, before the first child heading, in the same style as a requirement block and
+with no lead-in label. If that reads badly against the real document it is a stage 5 question.
+
+### 11.6 Rejected alternative
+
+Recording the family alongside the already-rendered text and promoting a leading `and` to its family
+word when hoisting. Much smaller, and it would handle MyHotel. Rejected because it leaves the
+mock-name elision as a latent hole, and because the phase split is worth having on its own merits —
+it is the structure the engine should have had.

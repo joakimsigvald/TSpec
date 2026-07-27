@@ -1,98 +1,106 @@
 namespace TSpec.Internal.Specification;
 
 /// <summary>
-/// Phrases for the arrangement steps: Given/Using values and mock behavior.
-/// Consecutive phrases share their leading word ("Given ..., and ...") and
-/// consecutive phrases for the same mock omit the repeated service name.
+/// Describes the arrangement steps: Given/Using values and mock behavior.
+/// What a step says is decided here; whether it reads "Given ..." or "and ...",
+/// and whether a mocked service is named again, is decided while rendering.
 /// </summary>
-internal class SetupPhrases(SpecificationRecording recording, TextBuilder textBuilder)
+internal class SetupPhrases(SpecificationRecording recording)
 {
-    private int _givenCount;
-    private int _usingCount;
-    private string? _currentMockSetup;
-
     internal void AddGiven(string valueExpr, For scope)
-        => RecordSetup(() => textBuilder.AddPhraseOrSentence(scope switch
+        => RecordSetup(() => Given(scope switch
         {
-            For.Subject => $"{NextGivenWord()} using {valueExpr.Describe()}",
-            For.Input => $"{NextGivenWord()} {valueExpr.Describe()} is default",
-            _ => $"{NextGivenWord()} {valueExpr.Describe()}",
+            For.Subject => $"using {valueExpr.Describe()}",
+            For.Input => $"{valueExpr.Describe()} is default",
+            _ => valueExpr.Describe(),
         }));
 
     internal void AddGiven<TValue>(string setupExpr, bool isCustomExpression, string? article)
-        => RecordSetup(() => textBuilder.AddPhraseOrSentence(
-            GetGivenExpression<TValue>(setupExpr, isCustomExpression, article)));
+        => RecordSetup(() => Given(isCustomExpression
+            ? setupExpr
+            : $"{ArticlePrefix(article)}{DescribeSetupExpression<TValue>(setupExpr)}"));
 
     internal void AddGivenCount<TModel>(string count)
-        => RecordSetup(() => textBuilder.AddPhraseOrSentence(
-            $"{NextGivenWord()} {ArticlePrefix(count)}{typeof(TModel).Alias()}"));
+        => RecordSetup(() => Given($"{ArticlePrefix(count)}{typeof(TModel).Alias()}"));
 
     internal void AddGivenThat(string customArrangementExpr)
-        => recording.Record(() => textBuilder.AddPhraseOrSentence(
-            $"{NextGivenWord()} that {customArrangementExpr.Describe()}"));
+        => recording.Record(() => Given($"that {customArrangementExpr.Describe()}"));
 
     internal void AddUsing(string valueExpr, For scope, bool owned = false)
-        => RecordSetup(() => RenderUsing(valueExpr, scope, owned));
+        => RecordSetup(() => Using(valueExpr, scope, owned));
 
     internal void AddUsing(Func<bool> shouldRender, string valueExpr, For scope)
         => RecordSetup(() =>
         {
             if (shouldRender())
-                RenderUsing(valueExpr, scope, owned: false);
+                Using(valueExpr, scope, owned: false);
         });
 
     internal void AddUsingConversion<TTarget, TSource>(For scope, Func<string> describeSequence)
-        => RecordSetup(() => textBuilder.AddPhraseOrSentence(
-            $"{NextUsingWord()} {typeof(TTarget).Alias()} from {typeof(TSource).Alias()}{describeSequence()}{ScopeSuffix(scope)}"));
+        => RecordSetup(() => Add(StepLayout.SentenceOrPhrase, StepFamily.Using,
+            $"{typeof(TTarget).Alias()} from {typeof(TSource).Alias()}{describeSequence()}{ScopeSuffix(scope)}"));
 
     internal void AddUsingFactory<TTarget>(For scope, string generateExpr)
-        => RecordSetup(() => textBuilder.AddPhraseOrSentence(
-            $"{NextUsingWord()} {typeof(TTarget).Alias()} from {generateExpr}{ScopeSuffix(scope)}"));
+        => RecordSetup(() => Add(StepLayout.SentenceOrPhrase, StepFamily.Using,
+            $"{typeof(TTarget).Alias()} from {generateExpr}{ScopeSuffix(scope)}"));
 
     internal void AddMockSetup<TService>(string callExpr)
-        => recording.Record(() => textBuilder.AddPhraseOrSentence(
-            $"{NextGivenWord()} {GetMockName<TService>('.')}{callExpr.DescribeCall(true)}"));
+        => recording.Record(() => Mock<TService>(
+            StepLayout.SentenceOrPhrase, callExpr.DescribeCall(true) ?? string.Empty, '.'));
 
     internal void AddMockReturnsDefault<TService>(string returnsExpr)
-        => recording.Record(() => textBuilder.AddPhraseOrSentence(
-            $"{NextGivenWord()} {GetMockName<TService>(' ')}returns {returnsExpr.Describe()}"));
+        => recording.Record(() => Mock<TService>(
+            StepLayout.SentenceOrPhrase, $"returns {returnsExpr.Describe()}"));
 
     internal void AddMockReturns(string? returnsExpr)
-        => recording.Record(() => textBuilder.AddWord($"returns {returnsExpr?.Describe()}".Trim()));
+        => recording.Record(() => Add(
+            StepLayout.Word, StepFamily.None, $"returns {returnsExpr?.Describe()}".Trim()));
 
     internal void AddMockThrowsDefault<TService, TException>()
-        => recording.Record(() => textBuilder.AddWord(
-            $"{NextGivenWord()} {GetMockName<TService>(' ')}throws {typeof(TException).Alias()}"));
+        => recording.Record(() => Mock<TService>(
+            StepLayout.Word, $"throws {typeof(TException).Alias()}"));
 
     internal void AddMockThrowsDefault<TService>(string expectedExpr)
-        => recording.Record(() => textBuilder.AddWord(
-            $"{NextGivenWord()} {GetMockName<TService>(' ')}throws {expectedExpr.Describe()}"));
+        => recording.Record(() => Mock<TService>(
+            StepLayout.Word, $"throws {expectedExpr.Describe()}"));
 
     internal void AddMockThrows<TException>()
-        => recording.Record(() => textBuilder.AddWord($"throws {typeof(TException).Alias()}"));
+        => recording.Record(() => Add(
+            StepLayout.Word, StepFamily.None, $"throws {typeof(TException).Alias()}"));
 
     internal void AddMockThrows(string expectedExpr)
-        => recording.Record(() => textBuilder.AddWord($"throws {expectedExpr.Describe()}"));
+        => recording.Record(() => Add(
+            StepLayout.Word, StepFamily.None, $"throws {expectedExpr.Describe()}"));
 
-    /// The rendered step ends any mock setup in progress, so a later mock
-    /// phrase names its service again.
-    private void RecordSetup(Action render)
+    /// A described setup step ends any mock setup in progress, so a later mock
+    /// phrase names its service again. The run ends even when the step itself
+    /// turns out to describe nothing.
+    private void RecordSetup(Action describe)
         => recording.Record(() =>
         {
-            _currentMockSetup = null;
-            render();
+            recording.Add(new(StepLayout.Silent) { EndsMockRun = true });
+            describe();
         });
 
-    private void RenderUsing(string valueExpr, For scope, bool owned)
-        => textBuilder.AddPhraseOrSentence(
-            $"{NextUsingWord()}{(owned ? " owned" : "")} {valueExpr.Describe()}{ScopeSuffix(scope)}");
+    private void Given(string body) => Add(StepLayout.SentenceOrPhrase, StepFamily.Given, body);
 
-    private string GetGivenExpression<TValue>(string setupExpr, bool isCustomExpression, string? article)
-        => isCustomExpression
-            ? $"{NextGivenWord()} {setupExpr}"
-            : $"{NextGivenWord()} {ArticlePrefix(article)}{ParseSetupExpression<TValue>(setupExpr)}";
+    private void Using(string valueExpr, For scope, bool owned)
+        => Add(StepLayout.SentenceOrPhrase, StepFamily.Using,
+            $"{(owned ? "owned " : "")}{valueExpr.Describe()}{ScopeSuffix(scope)}");
 
-    private static string ParseSetupExpression<TValue>(string setupExpr)
+    private void Mock<TService>(StepLayout layout, string body, char binder = ' ')
+        => recording.Add(new(layout)
+        {
+            Family = StepFamily.Given,
+            Body = body,
+            MockService = typeof(TService).Alias(),
+            MockBinder = binder,
+        });
+
+    private void Add(StepLayout layout, StepFamily family, string body)
+        => recording.Add(new(layout) { Family = family, Body = body });
+
+    private static string DescribeSetupExpression<TValue>(string setupExpr)
     {
         var value = setupExpr.Describe();
         var verb = value.Contains('=') && !value.StartsWith("new") ? "has" : "is";
@@ -103,18 +111,4 @@ internal class SetupPhrases(SpecificationRecording recording, TextBuilder textBu
         => string.IsNullOrEmpty(article) ? string.Empty : $"{article.AsWords()} ";
 
     private static string ScopeSuffix(For scope) => scope == For.All ? string.Empty : $" for {scope}";
-
-    private string GetMockName<TService>(char binder)
-    {
-        var nextMockSetup = typeof(TService).Alias();
-        var mockName = nextMockSetup == _currentMockSetup
-            ? ""
-            : $"{nextMockSetup}{binder}";
-        _currentMockSetup = nextMockSetup;
-        return mockName;
-    }
-
-    private string NextGivenWord() => 0 == _givenCount++ ? "Given" : "and";
-
-    private string NextUsingWord() => 0 == _usingCount++ ? "Using" : "and";
 }
