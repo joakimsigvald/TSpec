@@ -12,6 +12,7 @@ internal class SpecificationRecording
     private readonly List<Action> _recordings = new(10);
     private readonly List<SpecificationStep> _steps = new(10);
     private int _suppressionCount;
+    private bool _isDescribed;
     private string? _because;
     private string? _cachedSpecification;
 
@@ -28,6 +29,9 @@ internal class SpecificationRecording
             return _steps;
         }
     }
+
+    /// The reason given for the requirement, rendered after the last step.
+    internal string? Because => _because;
 
     public override string ToString()
         => _cachedSpecification ??= SpecificationRenderer.Render(Steps, _because, new TextBuilder());
@@ -55,8 +59,18 @@ internal class SpecificationRecording
 
     internal void InciteRecording() => _suppressionCount--;
 
+    /// <summary>
+    /// The specification is frozen the first time it is observed. It has to be:
+    /// <c>Specification.Is(...)</c> reads it from inside the test and then asserts, and that
+    /// assertion is itself a recordable step — so without a freeze a test would describe the act
+    /// of checking its own description.
+    /// </summary>
     private void Describe()
     {
+        if (_isDescribed)
+            return;
+
+        _isDescribed = true;
         foreach (var describe in _recordings)
             describe();
         _recordings.Clear();

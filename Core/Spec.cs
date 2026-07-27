@@ -66,6 +66,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         var (subject, branch) = TestIdentity.Locate(testClass);
         SpecificationCollector.Record(
             ExpectedRequirements.Identity(testClass, requirement),
-            new(subject, branch, requirement, Pipeline.Specification.ToString()));
+            new(subject, branch, requirement,
+                Pipeline.Specification.Steps, Pipeline.Specification.Because));
     }
 }

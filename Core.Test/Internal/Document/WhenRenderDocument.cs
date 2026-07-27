@@ -1,5 +1,6 @@
 using TSpec.Assert;
 using TSpec.Internal.Document;
+using TSpec.Internal.Specification;
 
 namespace TSpec.Test.Internal.Document;
 
@@ -16,7 +17,15 @@ public class WhenRenderDocument : Spec
 
     private static readonly SpecificationEntry _respondOk = new(
         "WhenGetVersion", "GivenNothing", "ThenRespondOk",
-        "Using owned CreateClient\nWhen api.GetAsync(\"/version\")\nThen Result.StatusCode is HttpStatusCode.OK");
+        Sentences(
+            "using owned CreateClient",
+            "when api.GetAsync(\"/version\")",
+            "then Result.StatusCode is HttpStatusCode.OK"));
+
+    /// The document takes described steps, so a test that is about layout rather than about
+    /// description supplies the simplest step there is: one sentence per line.
+    private static SpecificationStep[] Sentences(params string[] sentences)
+        => [.. sentences.Select(sentence => new SpecificationStep(StepLayout.Sentence) { Body = sentence })];
 
     private static string Render(params SpecificationEntry[] entries)
         => DocumentRenderer.Render(_myHotel, "MyHotel.Spec", "4f2a9c1e", entries);
@@ -65,9 +74,9 @@ public class WhenRenderDocument : Spec
     public void GivenDuplicateEntries_ThenRenderOne()
         => Render(_respondOk, _respondOk).Is(Render(_respondOk));
 
-    /// <summary>Specification text is built with Environment.NewLine, so it arrives CRLF on Windows.</summary>
+    /// <summary>The specification is built with Environment.NewLine, so it comes back CRLF on Windows.</summary>
     [Fact]
-    public void GivenCrLfInTheSpecificationText_ThenNormaliseToLf()
-        => Render(_respondOk with { Text = "When a\r\nThen b" })
+    public void ThenNormaliseLineEndingsToLf()
+        => Render(_respondOk with { Steps = Sentences("when a", "then b") })
             .Does().Contain("```\nWhen a\nThen b\n```").and.not.Contain("\r");
 }
