@@ -12,7 +12,7 @@ public class WhenDescribeActual : Spec<string>
     [InlineData("Then().Result.Name", "Result.Name")]
     [InlineData("And(Result).Id", "Id")]
     [InlineData("The<int>()", "the int")]
-    [InlineData("Then().Result?.Name", "Result?.Name")]
+    [InlineData("Then().Result?.Name", "Result.Name")]
     [InlineData("Then().and.Result", "Result")]
     [InlineData("Then<IMyService>(_ => _.Call()).and.Result", "Result")]
     [InlineData("And<IMyService>(_ => _.Call()).and.Result", "Result")]

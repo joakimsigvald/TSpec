@@ -61,7 +61,7 @@ internal static class PostfixRule
         }
 
         ts.Advance();
-        return Step.More(new Member(ts.RawFrom(save), expr, name.Text, dot.Text == "?."));
+        return Step.More(new Member(ts.RawFrom(save), expr, name.Text));
     }
 
     private static Step? TryGeneric(TokenStream ts, int save, Expr expr)

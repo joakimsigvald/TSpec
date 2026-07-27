@@ -39,9 +39,9 @@ public class WhenDescribe : Spec<string>
                 + ASecond<string>()
         """, "Name = a string + a second string")]
     [InlineData("() => The(delay)", "the delay")]
-    [InlineData("obj?.Name", "obj?.Name")]
-    [InlineData("obj?.Method()", "obj?.Method()")]
-    [InlineData("_ => _.Inner?.Value", "_.Inner?.Value")]
+    [InlineData("obj?.Name", "obj.Name")]
+    [InlineData("obj?.Method()", "obj.Method()")]
+    [InlineData("_ => _.Inner?.Value", "_.Inner.Value")]
     [InlineData("await Foo()", "Foo()")]
     [InlineData("(await Foo()).Bar", "Foo().Bar")]
     [InlineData("_ => await _.GetAsync()", "_.GetAsync()")]

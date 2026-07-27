@@ -20,7 +20,7 @@ public abstract class WhenPlaceOrder : Spec<Subjects.ShoppingServiceAsync, objec
             Specification.Is(
                 """
                 Given that _cart = new() { IsOpen = true }
-                When _.PlaceOrder(_cart!)
+                When _.PlaceOrder(_cart)
                 Then IOrderService.CreateOrder(_cart)
                 """);
         }
@@ -37,7 +37,7 @@ public abstract class WhenPlaceOrder : Spec<Subjects.ShoppingServiceAsync, objec
             Specification.Is(
                 """
                 Given that _cart = new() { IsOpen = false }
-                When _.PlaceOrder(_cart!)
+                When _.PlaceOrder(_cart)
                 Then throws NotPurchasable
                 """);
         }
