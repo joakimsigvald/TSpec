@@ -21,10 +21,53 @@ internal static class StringExtensions
         return string.Join(' ', words);
     }
 
+    /// <summary>
+    /// Breaks an identifier into words. An underscore separates clauses rather than words, so
+    /// <c>GivenASnake_WithWings</c> reads "given a snake, with wings".
+    /// </summary>
     internal static string[] ToWords(this string str)
-        => string.IsNullOrWhiteSpace(str)
-        ? [string.Empty]
-        : [.. SplitWords(str).Select(word => word.ToLower())];
+    {
+        if (string.IsNullOrWhiteSpace(str))
+            return [string.Empty];
+
+        List<string> words = [];
+        foreach (var clause in str.Split('_', StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (words.Count > 0)
+                words[^1] += ",";
+            words.AddRange(MergeAcronyms(SplitWords(clause)).Select(Normalize));
+        }
+        return [.. words];
+    }
+
+    /// <summary>
+    /// Splitting at every capital tears an acronym into letters, so a run of them is put back
+    /// together: <c>HTTPStatus</c> gives H, T, T, P, Status and reads "HTTP status". A lone letter
+    /// is a word in its own right — the "a" of <c>GivenASnake</c>.
+    /// </summary>
+    private static IEnumerable<string> MergeAcronyms(IEnumerable<string> words)
+    {
+        var acronym = string.Empty;
+        foreach (var word in words)
+        {
+            if (word.Length == 1)
+            {
+                acronym += word;
+                continue;
+            }
+            if (acronym.Length > 0)
+                yield return acronym;
+
+            acronym = string.Empty;
+            yield return word;
+        }
+        if (acronym.Length > 0)
+            yield return acronym;
+    }
+
+    /// An acronym keeps the case that identifies it as one; every other word is lowered.
+    private static string Normalize(string word)
+        => word.Length > 1 && word.All(char.IsUpper) ? word : word.ToLower();
 
     /// <summary>
     /// A tag reads as a name of its own in a specification, not as the variable it happens to be
@@ -38,6 +81,17 @@ internal static class StringExtensions
         => !string.IsNullOrEmpty(str)
         && (char.IsLetter(str[0]) || str[0] == '_')
         && str.All(c => char.IsLetterOrDigit(c) || c == '_');
+
+    /// <summary>
+    /// A class or method name as a document heading: <c>GivenNoSuchRoom</c> reads
+    /// "Given no such room". A branch path is dotted, and each segment becomes its own sentence.
+    /// </summary>
+    internal static string AsHeading(this string name)
+        => string.Join(". ", name.Split('.').Select(part => part.AsWords().Capitalize()));
+
+    /// <summary>A subject name as a document title: <c>MyHotel</c> reads "My Hotel".</summary>
+    internal static string AsTitle(this string name)
+        => string.Join(' ', name.ToWords().Select(word => word.Capitalize()));
 
     internal static string NormalizeLineEndings(this string str)
         => str.Replace("\r\n", "\n").Replace('\r', '\n');

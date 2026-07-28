@@ -292,6 +292,11 @@ deserve the warning.
 
 | 14 | Two-phase specification engine | §11 stages 1–2. Phrase classes describe steps; `SpecificationRenderer` lays them out, holding everything positional — lead words, mock-name elision, assertion chaining. `SpecificationEntry` carries steps, so the document renders its own arrangement. |
 | 15 | Hoisting shared openings | §11 stages 3–4. Longest shared prefix of whole clauses, at the document and subject levels, three requirements minimum, never assertions, never emptying a block. MyHotel's specification text drops from ~45 lines to 18. |
+| 16 | Interpolation holes described | `$"/rooms/{The(x)}"` used to print its hole as source, because the inside of a quoted string was the last place the describer never looked. Holes now parse as expressions; alignment and format specifiers (`{v,10:N2}`) stay verbatim, since they are formatting rather than expression. Five existing expectations improved on their own. |
+| 17 | Tags name themselves, uniquely | `Tag<TValue>([CallerMemberName])` — a tag declared as a field takes its variable's name, so `nameof(...)` is gone from every field declaration. Names must be unique within a test (`SetupFailed` on a clash). `Tag.Name` is the label everywhere, enforced by removing the `tagName` parameter that let callers pass something else. |
+| 18 | Tag names normalized in the specification | `_roomNumber` renders as `RoomNumber`: leading underscores dropped, capitalized. Applied at the five entry points that hold a `Tag` and one syntactic rule for `The(x)` inside an expression. |
+| 19 | Header trimmed to the title | Version and build id moved into the generated-file comment — provenance for a diff and a pipeline, never a question a reader has, and the one line that moved on every regeneration. The blank line before each fence went too: a heading and an HTML comment both end at their own line, so the fence opens correctly without it. 83 → 69 lines. |
+| 20 | Branch heading, and hoisting at every level | `### GivenNoSuchRoom` / `#### ThenRespondCreated` replaces the merged heading, so a branch is named once. Threshold dropped to two and the two-level cap dropped, so each level now carries its own kind of clause and every requirement block holds exactly its claim. A subject with no branches keeps its requirements a level up rather than skipping one. |
 
 **Composing phrases before parsing was a live bug, and the suite caught it.** TSpec builds some
 assertion phrases by prepending a word to the *raw* expression and parsing the whole splice —
@@ -342,12 +347,28 @@ in a specification document at all**. Hoisting shared clauses to the branch head
 repetition; suppressing infrastructure setup would fix the relevance. They are different fixes and
 we probably want both.
 
-**F3 — constants render as their names, not their values.** `api.GetAsync("/rooms/{RoomNumber}")`
-and `new Room(RoomNumber, 2)` — a reader cannot see that the room is 101. Faithful to the source and
-useless as documentation. This is the deepest of the four because it questions the vision's
-faithful-rendering principle: should the document show the *expression* or the *value*? Values are
-what a specification reader wants; expressions are what the current design guarantees. Not urgent,
-but it should be decided rather than drift.
+**F3 — constants render as their names, not their values. Answered by a third option: neither.**
+The finding was that `new Room(RoomNumber, 2)` hides that the room is 101, and framed the choice as
+*expression or value* — the value being what a reader wants, the expression being what the design
+guarantees.
+
+The answer (user, 2026-07-28) is that the requirement never cared what the room number was, only
+that it is **the same one throughout**. That is what a tag says, so `const RoomNumber = "101"` became
+`static readonly Tag<string> _roomNumber = new()`:
+
+```
+When api.PostAsJsonAsync("/rooms", new Room(the RoomNumber, 2))
+Then Result.Headers.Location.ToString() is "/rooms/{the RoomNumber}"
+```
+
+`the RoomNumber` is neither the expression nor the value; it is the *identity*, which is the actual
+claim. Where a requirement does depend on a particular value, the value is still written literally
+and still renders — so F3's dilemma turns out to be a symptom of using a constant to express
+sameness. Faithful rendering is not in tension with readability here; the source was saying the
+wrong thing.
+
+Note this is not a general escape from F3. A value that genuinely matters and is held in a `const`
+still renders as its name.
 
 **F4 — grouping works.** `## WhenAddRoom` with `### GivenNoSuchRoom.ThenRespondCreated` beneath it
 reads cleanly, subjects separate properly, and sorting by branch keeps siblings adjacent. The
@@ -389,11 +410,16 @@ do-not-edit comment. No requirements yet.
 Items 1–3 of the original list (collection, completeness, rendering) are done — see the build log
 above. What is left:
 
-1. **Act on F2** — planned in [§11](#11-f2--hoisting-shared-setup). F1 is done. Decide F3 (names vs
-   values) before it drifts; it remains a PO call, not mechanical work.
-2. **Grow MyHotel, steps 2–4.** List, then delete, then update — in that order (delete is simpler,
-   and delete+add covers what update does). Each step reviewed before the next. Adding rooms with
-   varied bed counts will also show whether repetition gets worse or the grouping absorbs it.
+1. **Grow MyHotel, steps 2–4 — before tuning the format further.** List, then delete, then update —
+   in that order (delete is simpler, and delete+add covers what update does). Each step reviewed
+   before the next. Adding rooms with varied bed counts will also show whether repetition gets worse
+   or the grouping absorbs it.
+
+   This now comes first. F1–F3 and H3 are answered; H1 and H2 are what is left, and both are
+   judgements about how the document reads *at scale* rather than at nine requirements. H1's remedy
+   is the fenced blocks, which are load-bearing; H2 is vision §11 Q1, whether a requirement needs
+   both a heading and a claim. Neither is decidable from the sample we have — see §3 on what the
+   pinned expectations can and cannot tell us.
 3. **404 with a body.** Apply the lesson above so absence-only assertions become real requirements.
    One line per handler; do it with step 2.
 4. **Opt-out attributes.** `[Specification]` / `[ExcludeFromSpecification]`, nearest declaration
@@ -461,18 +487,42 @@ for markdown becomes a parameter rather than a project.
 
 1. **Whole clauses only.** Never a line, never a fragment. Line breaks and indentation are phase-2
    artifacts and carry no meaning here.
-2. **Complete family runs only, in stage 3.** All the `Using` clauses hoist or none do. This is what
-   keeps a headless `and …` from ever being left behind, and it is why lead-word promotion is not
-   needed until stage 4.
+2. ~~**Complete family runs only, in stage 3.**~~ Superseded in stage 4 by the longest shared prefix
+   of whole clauses, which is simpler and more general. Lead-word promotion turned out to need no
+   code at all — see §11.7.
 3. **Shared by every entry under the heading.** Exact match on the clause, no partial credit.
-4. **At least three entries under that heading.** Evaluated *per level*, which is the point: at the
-   root all nine MyHotel entries share `Using`, so it hoists even though `WhenGetVersion` has only
-   two requirements — while that subject's `When`, shared by two, stays inline.
-5. **At most two levels**, root and `##` subject. Settled (user, 2026-07-27); a third level would
-   require splitting the branch out of the `###` heading, which is not needed by any current example.
+4. **No minimum number of entries** (user, 2026-07-28). There was a threshold — three, then two —
+   and it was deleted rather than lowered again: a lone requirement's context still belongs under
+   the heading that names it, so `GivenTheRoomAlreadyExists` holds its `Having` even with one
+   requirement beneath. What stops a block being hollowed out is rule 6, not any counting.
 
-Applied to MyHotel today, the `Using` run reaches the root and the `When` reaches `## WhenAddRoom`
-and `## WhenGetRoom` but not `## WhenGetVersion`.
+   The framing changed on the way: the rule was *repetition*, the intent was *placement*, and those
+   coincide only when groups are large. Hoisting is not compression — at one or two sharers it costs
+   more lines in fences than it saves in repetition. It buys each clause appearing where it belongs.
+5. **Every level the document has** (user, 2026-07-28), today document → `##` subject →
+   `###` branch. The earlier cap of two levels was dropped rather than defended: it existed because
+   no example needed a third, which is speculation in the other direction. A shared branch condition
+   belongs at the branch heading, which is the one place where naming it agrees with what it says.
+   Hoisting is not generalised to an arbitrary depth either — it applies to the levels that exist,
+   and a new level would add one, for the same reason.
+
+6. **Assertions never hoist.** They are the claim each requirement exists to make, so two
+   requirements agreeing on one is a coincidence worth seeing, not repetition to factor out. With
+   the threshold gone this rule is load-bearing in a way it was not before: it is now the only thing
+   guaranteeing a requirement block still says something.
+
+Applied to MyHotel today, every clause sits at the level that names it: the `Using` run at the root,
+each subject's `When` under its heading, each branch's `Having` under its own. Every requirement
+block is left holding exactly its own claim.
+
+**A rule deliberately not built.** Placement is inferred from sharing, which is a proxy — TSpec does
+not record which class declared a clause, so a `Having` from a branch constructor and one from a
+`[Fact]` are indistinguishable. The successor rule is a family-to-level ceiling (`When` no higher
+than its subject, `Having` no higher than its branch, arrangement anywhere), which encodes the
+intent instead of inferring it. It is deferred because it needs a naming convention enforced on test
+classes, and no shape in MyHotel yet shows the proxy failing. The trigger to build it: a clause
+appearing above the heading that names it — a `When` at document level, say — which is possible
+today in a single-subject document (user, 2026-07-28).
 
 ### 11.4 Stages
 
@@ -568,16 +618,61 @@ made it visible by removing everything else from the block. This is vision §11 
 own — with the context hoisted away, a requirement is now a name and a claim, and the document
 states both.
 
-**H3 — the document-level block is unanchored.** The shared `Using` clauses render as a fenced block
+**H1 update.** Partly acted on (build log 19): the version line and the blank line before each fence
+went, 83 → 69. Then the branch heading and the lower threshold put lines back, to 79. The ratio is
+not the thing to optimise — a document where every block holds exactly one claim is what was wanted,
+and the fences are what cost it. H1 stands as a finding but its remedy is the fences, which are
+load-bearing, so it needs a format decision rather than more trimming.
+
+**H2 update.** Half answered by the branch heading, which stopped the branch being restated on every
+requirement. What remains is the narrower case: `#### ThenRespondCreated` over
+`Then Result.StatusCode is HttpStatusCode.Created`. Still vision §11 Q1, still a PO call.
+
+**H3 — the document-level block is unanchored. Resolved by build log 19** — with the version line
+gone, the hoisted root block sits directly under the generated-file comment and no longer floats
+beneath an unrelated heading-shaped line. Original finding follows.
+
+The shared `Using` clauses render as a fenced block
 under no heading at all, between the generated-file comment and the first `##`. It reads as though
 it belongs to nothing. §11.5 chose no label deliberately; with the block now real, that choice looks
 like the weakest part of the layout.
 
-**Not a finding: the third heading level.** Splitting the branch out of the `###` heading would let
-`Having` hoist, and §11.3 rule 5 deferred it. It would pay almost nothing today — the only branch
-with a repeated `Having` is `GivenTheRoomExists`, which has two requirements and so falls under the
-threshold anyway. Leave it deferred.
+**~~Not a finding: the third heading level.~~ Done — and I had the argument backwards.** I dismissed
+splitting the branch out of the `###` heading on the grounds that it would pay almost nothing,
+counting only the lines it would save. What bothered the PO was not the line count but the merged
+`GivenNoSuchRoom.ThenPointAtTheNewRoom` heading naming its branch once per requirement (user,
+2026-07-28). Splitting it states the branch once, and the hoist destination it creates is what let
+the threshold drop to two and closed H2's duplication at the branch level. I had also used the
+threshold as a reason not to build the thing that would have justified changing the threshold.
 
 **Constraint worth recording before anyone proposes dropping the fences:** the specification text
 contains `<` and `>` (`Result.Read<Room>()`), which a markdown renderer outside a code fence will
-eat as a tag. Fences are load-bearing, not decoration.
+eat as a tag, and two-space continuation indents that collapse. Fences are load-bearing, not
+decoration — which is also why tag names are emphasised by *capitalization* rather than by `**`:
+markdown inside a fence is verbatim, so bold would print as literal asterisks, and the same text is
+failure output in a terminal where `**` is noise. PascalCase was chosen over `AsWords()`
+("room number") for exactly that reason: it survives verbatim rendering and stays greppable back to
+the declaration (user, 2026-07-28).
+
+### 11.8 Tag naming, and where a name is known
+
+Three facts that were not obvious and cost several wrong turns to establish:
+
+**`Tag.Name` never reaches the specification text.** Every tag word in a specification comes from the
+captured source expression. `Name` labels a value in the `=== VALUES ===` block of a failure report
+and nothing else. Normalizing `Name` would therefore have changed nothing in the document — the
+lever is the describer and the entry points, not the tag.
+
+**The name is registered by whichever call touches the tag first, and never revisited**
+(`Context.GetTagIndex` returns early once a tag has an index). Before this work the paths disagreed
+about what to register — `Given(tag)` used the expression while `The(tag)` and `Using(tag)` used
+`Name` — so an explicit name was honoured or ignored depending on which arrangement came first, with
+nothing at the call site to indicate which. Now every path uses `Name`, and the parameter that
+allowed anything else is gone.
+
+**A tag is named after its variable only in a field initializer.** `[CallerMemberName]` reports the
+enclosing *member*, which is the field for a field and the method for a local — so two locals
+declared in one method collide. That is what the uniqueness check exists to catch, and what the
+constructor argument exists to fix; it keeps the rule rather than breaking it. A *single* unnamed
+local still takes its method's name and nothing detects it, since the compiler cannot tell the
+describer that an identifier was a local. Closing that would need an analyzer.

@@ -22,7 +22,7 @@ public class WhenPrepareDocument : Spec
     {
         using var project = new TempProject("MyHotel.Spec", DepsJson.MyHotelSpec);
         PendingDocument.Prepare("MyHotel.Spec", "4f2a9c1e", project.BaseDirectory)
-            .Render([]).Does().Contain("# MyHotel").and.Contain("Version 0.1.0");
+            .Render([]).Does().Contain("# My Hotel").and.Contain("Version 0.1.0");
     }
 
     [Fact]
