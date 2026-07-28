@@ -31,7 +31,7 @@ internal sealed class ValueDescriber : Describer
             Conditional c => $"{Describe(c.Cond)} ? {Describe(c.Then)} : {Describe(c.Else)}",
             Cast c => $"({c.TypeName}){Describe(c.Operand)}",
             IsAs ia => $"{Describe(ia.Operand)} {ia.Op} {ia.TypeName}",
-            InterpolatedString s => s.Quoted,
+            InterpolatedString s => s.Quoted(Describe),
             Literal lit => lit.Quoted,
             New n => DescribeNew(n),
             Call c when c.IsDefaultOf() => $"default {Describe(c.Args[0])}",

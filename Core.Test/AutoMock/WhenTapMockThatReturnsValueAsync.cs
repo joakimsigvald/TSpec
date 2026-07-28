@@ -61,7 +61,7 @@ public class WhenTapMockThatReturnsValueAsync : Spec<MyValueIntService, string>
             Given IMyValueIntRepo.GetAsync(the MyValueInt) returns "{2 * i}"
               and Get(the MyValueInt) returns "{3 * i}"
             When _.GetValueAsync(a MyValueInt)
-            Then Result is "{2 * The<MyValueInt>()}"
+            Then Result is "{2 * the MyValueInt}"
             """);
     }
 
@@ -80,7 +80,7 @@ public class WhenTapMockThatReturnsValueAsync : Spec<MyValueIntService, string>
             Given IMyValueIntRepo.GetAsync(the MyValueInt) returns "{2 * i}"
               and Get(the MyValueInt) returns "{3 * i}"
             When _.GetValue(a MyValueInt)
-            Then Result is "{3 * The<MyValueInt>()}"
+            Then Result is "{3 * the MyValueInt}"
             """);
     }
 }

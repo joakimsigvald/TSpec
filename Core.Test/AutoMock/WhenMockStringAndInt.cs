@@ -15,7 +15,7 @@ public class WhenMockStringAndInt : Spec<StaticStringAndIntService, string>
             Using a string
               and an int
             When _.GetValue()
-            Then Result is "{The<string>()}:{The<int>()}"
+            Then Result is "{the string}:{the int}"
             """);
     }
 

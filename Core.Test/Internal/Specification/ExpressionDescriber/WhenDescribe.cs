@@ -57,6 +57,15 @@ public class WhenDescribe : Spec<string>
     [InlineData("(a, b, c) => a ? b[0] : (int)c", "(a, b, c) => a ? b[0] : (int)c")]
     [InlineData("await.Length", "await.Length")]
     [InlineData("await - 1", "await - 1")]
+    // Interpolation holes are expressions, and describe like any other
+    [InlineData("$\"/rooms/{The(_roomNumber)}\"", "\"/rooms/{the _roomNumber}\"")]
+    [InlineData("$\"{A<MyModel>()} and {An<int>()}\"", "\"{a MyModel} and {an int}\"")]
+    [InlineData("$\"no holes here\"", "\"no holes here\"")]
+    [InlineData("$\"{{escaped}} {The(x)}\"", "\"{{escaped}} {the x}\"")]
+    [InlineData("$\"{The(x),10:N2}\"", "\"{the x,10:N2}\"")]
+    // A comma inside the expression is not the alignment separator
+    [InlineData("$\"{_.Foo(a, b)}\"", "\"{_.Foo(a, b)}\"")]
+    [InlineData("$@\"{The(x)}\"", "\"{the x}\"")]
     public void ThenReturnDescription(string? valueExpr, string expected)
     {
         When(_ => valueExpr.Describe())

@@ -18,9 +18,11 @@ bound to an in-memory API. Write a narrower spec against an extracted class only
 behaviour cannot be observed over HTTP — "it would be easier to test directly" is not that
 reason, and the class must already have been extracted for a production reason.
 
-**Pin the rendering.** At least one requirement per spec class asserts
-`Specification.Is("""…""")`. The generated text is what this repo exists to produce, so a change
-in it must fail a test.
+**The document is the artifact, not the per-test text.** MyHotel exists to exercise
+`SPECIFICATION.md`; per-test rendering is already locked by the expectations in `Core.Test`. Do not
+add `Specification.Is("""…""")` here to pin rendering — it duplicates that cover and brings a
+failure mode of its own, since reading the specification from inside a test freezes it mid-test.
+A rendering change is caught where it matters: in the committed document's diff.
 
 **Simplistic until it hurts.** Everything in `Program.cs`. Extract a type only when leaving it
 there makes the *current* change harder, then extract the smallest thing that relieves it: one

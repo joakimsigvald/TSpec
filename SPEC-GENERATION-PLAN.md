@@ -290,6 +290,9 @@ deserve the warning.
 | 12 | Noise erased from the specification text | `await` and `async`/return-type added to the grammar so they parse and then peel; `!` and `?.` joined them. Erasure is a *describer* policy (`Expr.WithoutNoise`), not a parse-time drop, so one predicate decides what never reaches a specification. `?` on a type deliberately kept — see §3. |
 | 13 | `Having` / `Until` keywords, and `ToSource()` | Setup and tear-down steps now render under the name of the method that produced them, closing F1. Separately, `Expr.ToSource()` rebuilds an expression from the tree instead of copying source text, so a 2+ parameter lambda — the one shape with no prose rendering — can no longer smuggle erased keywords back in via its parent's `Raw`. |
 
+| 14 | Two-phase specification engine | §11 stages 1–2. Phrase classes describe steps; `SpecificationRenderer` lays them out, holding everything positional — lead words, mock-name elision, assertion chaining. `SpecificationEntry` carries steps, so the document renders its own arrangement. |
+| 15 | Hoisting shared openings | §11 stages 3–4. Longest shared prefix of whole clauses, at the document and subject levels, three requirements minimum, never assertions, never emptying a block. MyHotel's specification text drops from ~45 lines to 18. |
+
 **Composing phrases before parsing was a live bug, and the suite caught it.** TSpec builds some
 assertion phrases by prepending a word to the *raw* expression and parsing the whole splice —
 `"by (it, i) => it + i"`. That is not C#, and the moment the grammar learned about lambda return
@@ -473,13 +476,13 @@ and `## WhenGetRoom` but not `## WhenGetVersion`.
 
 ### 11.4 Stages
 
-| # | Scope | Gate |
-|---|---|---|
-| 1 | Phase split, internal to the specification engine. Same text per test, document still fed the rendered string. | Suite green with **zero expectation edits**. Any text change is a refactor bug, not a decision. |
-| 2 | Document builder consumes clauses instead of strings and rebuilds the same unhoisted document. | Regenerating `SPECIFICATION.md` yields a diff containing **only the hash line**. |
-| 3 | Naive hoisting: one level, complete family runs, shared by all, ≥3 entries. Hoisted clauses simply appear under the shared heading. | Reviewed against the real document. |
-| 4 | Full hoisting per §11.3: two levels, partial runs with lead-word promotion, per-level threshold. | Reviewed against the real document. |
-| 5 | Bonus — revisit the algorithm if the output asks for it. | Deliberately unknown. |
+| # | Scope | Gate | |
+|---|---|---|---|
+| 1 | Phase split, internal to the specification engine. Same text per test, document still fed the rendered string. | Suite green with **zero expectation edits**. Any text change is a refactor bug, not a decision. | **done**, gate met first run |
+| 2 | Document builder consumes clauses instead of strings and rebuilds the same unhoisted document. | Regenerating `SPECIFICATION.md` yields a diff containing **only the hash line**. | **done**, gate caught a real bug |
+| 3 | Naive hoisting: one level, complete family runs, shared by all, ≥3 entries. Hoisted clauses simply appear under the shared heading. | Reviewed against the real document. | **done** |
+| 4 | Full hoisting per §11.3: two levels, partial runs with lead-word promotion, per-level threshold. | Reviewed against the real document. | **done** |
+| 5 | Bonus — revisit the algorithm if the output asks for it. | Deliberately unknown. | see §11.7 |
 
 Stages 1 and 2 have gates that are *checkable*; 3 and 4 end in a PO reading the document, which is
 the only verdict that counts for a format decision (see §3 on what the pinned expectations can and
@@ -509,3 +512,72 @@ Recording the family alongside the already-rendered text and promoting a leading
 word when hoisting. Much smaller, and it would handle MyHotel. Rejected because it leaves the
 mock-name elision as a latent hole, and because the phase split is worth having on its own merits —
 it is the structure the engine should have had.
+
+### 11.7 What stages 1–4 turned out to be, and stage 5's findings
+
+**Four things went differently than planned, all in the same direction: the phase split made the
+later stages smaller than budgeted.**
+
+- **Lead-word promotion needed no code at all.** §11.2 sized it as stage 4's substantive part.
+  But lead words are assigned while rendering, and each block renders from a fresh position, so
+  whatever clause a block now opens with is simply given its family's word. The work was paid for
+  in stage 1.
+- **Complete family runs stopped being a rule.** Stage 4 takes the longest shared prefix of whole
+  clauses, which is simpler *and* more general than "all the `Using` clauses or none". The special
+  case exists in neither the code nor §11.3 now.
+- **`StepPhase` is derived, not stored, and belongs to the clause.** A continuation such as
+  `returns 1` has no phase of its own — it inherits its head's. Once action keywords became
+  families (below), phase became a pure function of family.
+- **Action keywords became families.** `Using` was a lead word assigned while rendering while
+  `when` was baked into the body text by `ActionPhrases` — the same kind of word by two different
+  mechanisms, and the only reason phase could not be derived. `StepFamily` now carries `When`,
+  `Having` and `Until`, `StepFamily.None` means only the bare assertion that heads its own line,
+  and the collapse rule is uniform: **every family says its word once and reads "and" after that.**
+  Consequence, decided by the PO (2026-07-28): consecutive setups now read `Having B and A`, and
+  tear-downs `Until B and C`. Both are faithful to execution order — setups run last-declared-first
+  so the list reads backwards in time, tear-downs run in declaration order so theirs reads forwards.
+  That asymmetry is the pipeline's, not the renderer's.
+
+**The stage 2 gate earned the whole idea of gates.** The first run put this into the document:
+
+```
+Specification is """ Using owned api and owned api.CreateClient When api.
+      GetAsync("/version") Then Result.StatusCode is HttpStatusCode.OK """
+```
+
+`Specification.Is(...)` reads the specification from inside a test and then asserts — and that
+assertion is itself a recordable step. The old code cached the rendered *text* on first read, which
+hid this by accident; asking for steps instead bypassed the cache and the test began describing the
+act of checking its own description. The specification is now explicitly **frozen at first
+observation**, which is what the old behaviour actually was. No test covered it, because no test
+could see it: it is visible only in the document.
+
+**Stage 5 findings.** Hoisting did what it was built to do, and in doing so exposed the next
+problem.
+
+**H1 — the content shrank but the scaffolding did not.** MyHotel's document was ~45 lines of
+specification text before hoisting and is 18 now. The file is 84 lines. Headings, fences and blank
+lines are therefore about three quarters of it, and the worst case is a requirement whose block is
+one line inside four lines of chrome. Hoisting improved the ratio of *repetition* and worsened the
+ratio of *signal to structure*. This is now the biggest cost in the document, where the repeated
+`Using` lines used to be.
+
+**H2 — the heading and the assertion often say the same thing.** `### GivenNoSuchRoom.ThenRespondCreated`
+over `Then Result.StatusCode is HttpStatusCode.Created`. That duplication always existed; hoisting
+made it visible by removing everything else from the block. This is vision §11 Q1 arriving on its
+own — with the context hoisted away, a requirement is now a name and a claim, and the document
+states both.
+
+**H3 — the document-level block is unanchored.** The shared `Using` clauses render as a fenced block
+under no heading at all, between the generated-file comment and the first `##`. It reads as though
+it belongs to nothing. §11.5 chose no label deliberately; with the block now real, that choice looks
+like the weakest part of the layout.
+
+**Not a finding: the third heading level.** Splitting the branch out of the `###` heading would let
+`Having` hoist, and §11.3 rule 5 deferred it. It would pay almost nothing today — the only branch
+with a repeated `Having` is `GivenTheRoomExists`, which has two requirements and so falls under the
+threshold anyway. Leave it deferred.
+
+**Constraint worth recording before anyone proposes dropping the fences:** the specification text
+contains `<` and `>` (`Result.Read<Room>()`), which a markdown renderer outside a code fence will
+eat as a tag. Fences are load-bearing, not decoration.

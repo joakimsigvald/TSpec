@@ -38,7 +38,7 @@ internal static class PrimaryRule
     {
         bool interpolated = text.StartsWith('$')
             || (text.Length > 1 && text[0] is '@' or '$' && text[1] == '$');
-        return interpolated ? new InterpolatedString(text) : new Literal(text);
+        return interpolated ? InterpolatedStringRule.Parse(text) : new Literal(text);
     }
 
     private static Expr ParseArrayLit(TokenStream ts, int save)
