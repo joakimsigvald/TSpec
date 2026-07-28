@@ -9,6 +9,17 @@
 * Sequence uniqueness check: fixed spacings now use an O(1) check; the collect-all-values check
   remains only for step-function sequences (Spaced with lambda). If users generate large numbers
   of values through step functions, provide an opt-out hook
+* Raw string literals are not tokenized, so any """...""" expression falls out as Unknown and
+  renders verbatim - delimiters included. Not wrong, just undescribed:
+      $$"""{{a + b}}"""       ->  $$"""{{a + b}}"""
+      $"""{The(y)}"""         ->  $"""{The(y)}"""
+  Ordinary interpolation holes ARE described since 2026-07-28 ($"/rooms/{The(x)}" -> "/rooms/{the x}"),
+  so this is the last place a specification still shows source code inside quotes.
+  - Needs tokenizer support for quote-run delimiters, then the hole rule keyed on the $-run:
+    $$ means two braces open a hole and a single { is literal - the inverse of the {{-escape rule
+    that applies to a single $.
+  - Low priority: a raw string inside a captured spec expression is rare, and a multi-line one is
+    collapsed by ToSingleLine before parsing anyway, which breaks its delimiters regardless.
 --- before Xspec
 * CollectionFixture om man vill dela mellan fler klasser
 * Separate ClassFixture class from Spec and only allow Arrange on fixture, not when/Then
