@@ -35,6 +35,12 @@ internal class TextBuilder(int maxLineLength = 80, int indentationSize = 2)
         if (text is null)
             return _sb;
 
+        if (IsExceedingMaxLineLength(text) && FitsOnOwnLine(text) && _currentLineLength > 0)
+        {
+            AddLine(text.Trim(), WrapIndentation);
+            return _sb;
+        }
+
         var (first, rest) = IsExceedingMaxLineLength(text) ? BreakLine(text) : (text, null);
         _sb.Append(first);
         _currentLineLength += first.Length;
@@ -59,6 +65,12 @@ internal class TextBuilder(int maxLineLength = 80, int indentationSize = 2)
     private bool IsExceedingMaxLineLength(string text)
         => text.Length + _currentLineLength > maxLineLength;
 
+    /// Whether the whole text would fit on a continuation line of its own. When it would, moving it
+    /// there beats breaking it: what arrives as one piece is one expression, and a break inside it
+    /// orphans part of it — where an expression that fits nowhere has to be broken regardless.
+    private bool FitsOnOwnLine(string text)
+        => text.Trim().Length + WrapIndentation * indentationSize <= maxLineLength;
+
     private (string first, string? rest) BreakLine(string text)
     {
         var fitInLine = text[..(maxLineLength - _currentLineLength)];
@@ -70,14 +82,31 @@ internal class TextBuilder(int maxLineLength = 80, int indentationSize = 2)
     {
         for (int i = segment.Length - 1; i >= 0; i--)
         {
-            char next = i + 1 < segment.Length ? segment[i + 1] : ' ';
-            if (!IsLineBreakPossibleAfter(segment[i], next))
+            if (!IsLineBreakPossibleAfter(segment[i], Next(segment, i)))
                 continue;
 
             var start = segment[..(i + 1)].TrimEnd();
             return start.Length > 0 ? start : null;
         }
         return null;
+    }
+
+    private static char Next(string segment, int i) => i + 1 < segment.Length ? segment[i + 1] : ' ';
+
+    /// How many brackets are open at each position, counting an opening bracket as already inside.
+    private static int[] Depths(string segment)
+    {
+        var depths = new int[segment.Length];
+        var depth = 0;
+        for (int i = 0; i < segment.Length; i++)
+        {
+            if (segment[i] is '(' or '[' or '{')
+                depth++;
+            else if (segment[i] is ')' or ']' or '}')
+                depth--;
+            depths[i] = depth;
+        }
+        return depths;
     }
 
     /// A segment without break position stays on the line (breaking mid-word),

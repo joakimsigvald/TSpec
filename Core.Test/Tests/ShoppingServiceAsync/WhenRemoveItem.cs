@@ -27,8 +27,8 @@ public abstract class WhenRemoveItem : Spec<Subjects.ShoppingServiceAsync, Shopp
             Result.Items.Is().Empty();
             Specification.Is(
                 """
-                Given IShoppingCartRepository.GetCart(CartId) returns new ShoppingCart { Id =
-                      CartId, Items = _cartItems }
+                Given IShoppingCartRepository.GetCart(CartId)
+                      returns new ShoppingCart { Id = CartId, Items = _cartItems }
                   and that _cartItems = [new ShoppingCartItem("X")]
                 When _.RemoveFromCart(CartId, Cart.Items[0])
                 Then Result.Items is empty

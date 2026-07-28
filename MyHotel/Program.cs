@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Reflection;
 using Scalar.AspNetCore;
 
@@ -16,15 +15,23 @@ app.MapScalarApiReference();
 
 app.MapGet("/version", () => new VersionInfo(version));
 
-var rooms = new ConcurrentDictionary<string, Room>();
+// A list, because rooms are listed in the order they were created.
+var rooms = new List<Room>();
 
-app.MapPost("/rooms", (Room room) => rooms.TryAdd(room.RoomNumber, room)
-    ? Results.Created($"/rooms/{room.RoomNumber}", room)
-    : Results.Conflict());
+Room? Find(string roomNumber) => rooms.Find(room => room.RoomNumber == roomNumber);
 
-app.MapGet("/rooms/{roomNumber}", (string roomNumber) => rooms.TryGetValue(roomNumber, out var room)
-    ? Results.Ok(room)
-    : Results.NotFound());
+app.MapGet("/rooms", () => rooms);
+
+app.MapPost("/rooms", (Room room) =>
+{
+    if (Find(room.RoomNumber) is not null)
+        return Results.Conflict();
+    rooms.Add(room);
+    return Results.Created($"/rooms/{room.RoomNumber}", room);
+});
+
+app.MapGet("/rooms/{roomNumber}", (string roomNumber)
+    => Find(roomNumber) is { } room ? Results.Ok(room) : Results.NotFound());
 
 app.Run();
 

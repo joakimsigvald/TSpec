@@ -86,10 +86,11 @@ document arrange clauses differently without becoming a second renderer.
 steps. Line breaks and a leading `and` are phase-2 artifacts and carry no meaning.
 
 **Every family says its word once and reads "and" after that** — `Using`, `Given`, `When`, `Having`,
-`Until`, `Then`. Consecutive setups therefore read `Having B and A` and tear-downs `Until B and C`.
-Both are faithful to execution order: setups run last-declared-first so the list reads backwards in
-time, tear-downs run in declaration order so theirs reads forwards. That asymmetry is the pipeline's,
-not the renderer's.
+`Until`, `Then`. Consecutive steps of a family are listed in **declaration order**, uniformly, and
+pinned that way in `Core.Test/Pipeline/HavingWhenUntil.cs`. For `Until` that is also execution order;
+for `Having` it is the reverse, and that is correct: `README.md` states the rule (`When(A).Having(B)
+.Having(C)` executes C → B → A), so a reader who needs the order has it, and the document should show
+the declarations rather than restate a rule the package already documents.
 
 ## 4. Completeness check
 
@@ -174,6 +175,16 @@ throughout. Where a value genuinely matters, write it literally and it renders.
 WhenGetVersion → GivenNothing`, because a shared black-box base sits between the test and `Spec`.
 Nesting gives what the recommended structure actually expresses; shared bases are scaffolding.
 
+**Mentions built inside `Having` steps come out in creation order.** A numbered mention takes its
+value from a shared counter when it is *first requested*, and setups run last-declared-first, so the
+setup that runs first both creates its entity first and gets the lowest generated value. Two
+consequences. The useful one: declare the setups in reverse and `A<T>` reads as the first-created
+entity throughout, which is why `WhenListRooms.GivenTwoRooms` declares its second room first. The
+limit: creation order and generated-value order always coincide, so such a requirement cannot
+distinguish "in creation order" from "sorted by the generated value". Breaking the tie means building
+the entities before the setups, which costs the document its readable setup lines — MyHotel accepts
+the coincidence rather than pay that, since no implementation there sorts.
+
 **The document normalises line endings at its own boundary.** `Specification.ToString()` documents
 that it returns platform-native endings, so that is not a bug to fix at the source.
 
@@ -205,10 +216,12 @@ the build id — it did not, and that caught the freeze bug above.
 
 ## 8. Remaining
 
-1. **Grow MyHotel** — list, then delete, then update (delete is simpler, and delete+add covers what
-   update does). Two format questions are open and neither is decidable at nine requirements: the
-   scaffolding-to-content ratio, whose remedy is the fences, and whether a requirement needs both a
-   heading and a claim (vision §11 Q1). Both are PO calls to make against a bigger document.
+1. **Grow MyHotel** — ~~list~~ (done, 13 requirements), then delete, then update (delete is simpler,
+   and delete+add covers what update does). Format questions open, all PO calls against a bigger
+   document: the scaffolding-to-content ratio, whose remedy is the fences; whether a requirement
+   needs both a heading and a claim (vision §11 Q1); and the two the list step raised — how a long
+   expectation wraps (§8.8) and whether an assertion shared by every branch of a subject should
+   repeat (§8.9).
 2. **404 with a body.** `GivenNoSuchRoom.ThenRespondNotFound` passed before any endpoint existed — an
    unmatched route also returns 404. **An assertion that checks only an absence cannot distinguish
    "not implemented" from "correctly absent."** Assert on something only the implementation can
@@ -226,6 +239,17 @@ the build id — it did not, and that caught the freeze bug above.
    and the agent reference's "covers TSpec x.y" line says 1.5 while documenting post-1.5 behaviour.
 7. **Version and release decision.** `PackageVersion` and `PackageReleaseNotes` are untouched at
    1.5.0. This branch aims at 2.1.0, but 2.0.0 has not happened. Needs the PO.
+8. **A subject-wide assertion repeats under every branch.** `ThenRespondOk` is declared on
+   `WhenListRooms` and inherited by both branches, so the document states it twice. §5 rule 5 says
+   assertions never hoist, and the reason still holds — two branches *agreeing* on an assertion is a
+   coincidence worth seeing. But an assertion *declared above the branches* is not a coincidence; it
+   is a claim about the subject, and the document cannot currently tell the two apart. Same missing
+   input as §5's "deliberately not built": TSpec does not record which class declared a step.
+10. **A second assertion in a test method starts an orphaned sentence.** Only the first gets `Then`;
+    the next is capitalized on a new line with no connective, so `Second is new Room("102", …)`
+    reads as a claim about nothing. Pinned as-is (`HavingWhenUntil.cs:67`), where the subject is
+    `Ex.InnerException` and carries its own context — a bare tuple field does not. §3's family rule
+    says it should read `and second is …`. A PO call, since it moves every multi-assertion pin.
 
 ## 9. Release train
 

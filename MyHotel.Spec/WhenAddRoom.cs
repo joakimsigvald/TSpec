@@ -8,7 +8,7 @@ public abstract class WhenAddRoom : ApiSpec<HttpResponseMessage>
     protected static readonly Tag<string> _roomNumber = new();
 
     protected WhenAddRoom()
-        => When(api => api.PostAsJsonAsync("/rooms", new Room(The(_roomNumber), 2)));
+        => When(api => api.PostAsJsonAsync("/rooms", new Room(The(_roomNumber), An<int>())));
 
     public class GivenNoSuchRoom : WhenAddRoom
     {
@@ -16,7 +16,7 @@ public abstract class WhenAddRoom : ApiSpec<HttpResponseMessage>
 
         [Fact]
         public async Task ThenReturnTheRoom()
-            => (await Result.Read<Room>()).Is(new Room(The(_roomNumber), 2));
+            => (await Result.Read<Room>()).Is(new Room(The(_roomNumber), The<int>()));
 
         [Fact]
         public void ThenPointAtTheNewRoom()
@@ -26,7 +26,7 @@ public abstract class WhenAddRoom : ApiSpec<HttpResponseMessage>
     public class GivenTheRoomAlreadyExists : WhenAddRoom
     {
         public GivenTheRoomAlreadyExists()
-            => Having(api => api.PostAsJsonAsync("/rooms", new Room(The(_roomNumber), 3)));
+            => Having(api => api.PostAsJsonAsync("/rooms", new Room(The(_roomNumber), Any<int>())));
 
         [Fact] public void ThenRespondConflict() => Result.StatusCode.Is(HttpStatusCode.Conflict);
     }

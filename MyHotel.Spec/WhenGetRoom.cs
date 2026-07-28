@@ -12,13 +12,13 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
     public class GivenTheRoomExists : WhenGetRoom
     {
         public GivenTheRoomExists()
-            => Having(api => api.PostAsJsonAsync("/rooms", new Room(The(_roomNumber), 2)));
+            => Having(api => api.PostAsJsonAsync("/rooms", new Room(The(_roomNumber), An<int>())));
 
         [Fact] public void ThenRespondOk() => Result.StatusCode.Is(HttpStatusCode.OK);
 
         [Fact]
         public async Task ThenReturnTheRoom()
-            => (await Result.Read<Room>()).Is(new Room(The(_roomNumber), 2));
+            => (await Result.Read<Room>()).Is(new Room(The(_roomNumber), The<int>()));
     }
 
     public class GivenNoSuchRoom : WhenGetRoom
