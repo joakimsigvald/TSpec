@@ -7,7 +7,7 @@ TSpec's own `Core.Test` is a framework testing itself: its specifications descri
 rather than a domain, so they say little about how TSpec reads when applied to real software.
 MyHotel is the counterpart — an ordinary ASP.NET Core minimal API, driven out entirely by
 specifications in [`MyHotel.Spec`](../MyHotel.Spec) — and the proving ground for `SPECIFICATION.md`
-generation ([SPEC-GENERATION-PLAN.md](../SPEC-GENERATION-PLAN.md), Phase 3).
+generation ([SPEC-GENERATION-PLAN.md](../SPEC-GENERATION-PLAN.md)).
 
 Deliberately simplistic: one project, no layering, everything in `Program.cs` until the code
 objects, and specs that test over HTTP rather than reaching inside. Development rules are in
