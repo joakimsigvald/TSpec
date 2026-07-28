@@ -48,9 +48,33 @@ public class WhenIsValueFail : Spec<MyModel>
         var theInt = The(id);
         ex.HasMessage($"Expected Result to be null but found MyModel {{ Id = {theInt}, Name = , Values =  }}",
             """
-            When new MyModel { Id = the id }
+            When new MyModel { Id = the Id }
             Then Result is null
             """);
         ex.HasAssignments($"int:id = {theInt}");
+    }
+
+    /// <summary>
+    /// A tag names itself after the variable it is assigned to, but only in a field initializer —
+    /// locals share their enclosing method. Naming them is what the constructor argument is for,
+    /// and two tags of one type are indistinguishable in the assignments without it.
+    /// </summary>
+    [Fact]
+    public void GivenTwoLocalTagsOfOneType_ThenShowEachUnderItsOwnName()
+    {
+        Tag<int> low = new(nameof(low)), high = new(nameof(high));
+        var ex = Xunit.Assert.Throws<XunitException>(()
+            => When(_ => new MyModel { Id = The(low) + The(high) }).Then().Result.Is().Null());
+        ex.HasMessage(
+            $"Expected Result to be null but found MyModel {{ Id = {The(low) + The(high)}, Name = , Values =  }}",
+            """
+            When new MyModel { Id = the Low + the High }
+            Then Result is null
+            """);
+        ex.HasAssignments(
+            $"""
+                int:low = {The(low)}
+                int:high = {The(high)}
+                """);
     }
 }

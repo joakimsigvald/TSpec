@@ -35,6 +35,7 @@ internal sealed class ValueDescriber : Describer
             Literal lit => lit.Quoted,
             New n => DescribeNew(n),
             Call c when c.IsDefaultOf() => $"default {Describe(c.Args[0])}",
+            Call c when c.AsTagReference() is { } tag => $"the {tag.AsTagName()}",
             Call c when c.AsNaturalLanguageCall() is { } verb => $"{verb.AsWords()} {DescribeAll(c.Args)}",
             Call c => $"{c.Target.AsPath()}({DescribeAll(c.Args)})",
             NamedArg na => $"{na.Name}: {Describe(na.Value)}",

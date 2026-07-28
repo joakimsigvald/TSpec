@@ -40,7 +40,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <typeparam name="TValue">The type of the value</typeparam>
     /// <param name="tag">The tag is used to distinguish between different values. Each tag instance corresponds to one value</param>
     /// <returns>The value associated to the tag</returns>
-    protected internal TValue The<TValue>(Tag<TValue> tag) => Pipeline.Mention(tag, tag.Name);
+    protected internal TValue The<TValue>(Tag<TValue> tag) => Pipeline.Mention(tag);
 
     /// <summary>
     /// Yields the first value of the given type (a mention).
@@ -287,7 +287,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// </summary>
     /// <typeparam name="TValue">The type of the value</typeparam>
     /// <returns>The generated or previously provided value</returns>
-    protected internal TValue Any<TValue>() => Pipeline.Mention<TValue>(null);
+    protected internal TValue Any<TValue>() => Pipeline.Mention<TValue>((int?)null);
 
     /// <summary>
     /// Yields a customized value of the given type that cannot be retrieved again
@@ -303,7 +303,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// </summary>
     /// <typeparam name="TValue">The type of the value</typeparam>
     /// <returns>The generated or previously provided value</returns>
-    protected internal TValue Another<TValue>() => Pipeline.Mention<TValue>(null);
+    protected internal TValue Another<TValue>() => Pipeline.Mention<TValue>((int?)null);
 
     /// <summary>
     /// Yields a customized value of the given type that cannot be retrieved again
@@ -313,9 +313,9 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <returns>The generated and customized value</returns>
     protected internal TValue Another<TValue>(Action<TValue> setup) => Pipeline.Create(setup);
 
-    internal TValue Assign<TValue>(Tag<TValue> tag, TValue value, string tagName) => Pipeline.Assign(tag, value, tagName);
+    internal TValue Assign<TValue>(Tag<TValue> tag, TValue value) => Pipeline.Assign(tag, value);
 
-    internal TValue Apply<TValue>(Tag<TValue> tag, Action<TValue> setup, string tagName) => Pipeline.Apply(tag, setup, tagName);
+    internal TValue Apply<TValue>(Tag<TValue> tag, Action<TValue> setup) => Pipeline.Apply(tag, setup);
 
-    internal TValue Apply<TValue>(Tag<TValue> tag, Func<TValue, TValue> transform, string tagName) => Pipeline.Apply(tag, transform, tagName);
+    internal TValue Apply<TValue>(Tag<TValue> tag, Func<TValue, TValue> transform) => Pipeline.Apply(tag, transform);
 }

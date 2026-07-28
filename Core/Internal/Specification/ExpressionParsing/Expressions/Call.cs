@@ -20,6 +20,14 @@ internal sealed record Call(string Raw, Expr Target, IReadOnlyList<Expr> Args) :
     /// as <c>"default T"</c>.
     public bool IsDefaultOf() => Target is Literal { Raw: "default" } && Args.Count == 1;
 
+    /// <summary>
+    /// A tag reference — <c>The(_roomNumber)</c> — returning the tag's variable, or null. The shape
+    /// is decisive: <c>The</c> has exactly one overload taking an argument, and it takes a
+    /// <c>Tag&lt;T&gt;</c>, so a single bare identifier passed to it is always a tag.
+    /// </summary>
+    public string? AsTagReference()
+        => Target is Identifier { Name: "The" } && Args is [Identifier tag] ? tag.Name : null;
+
     /// A bare-identifier-with-args call like <c>One(model)</c> or
     /// <c>Add(a, b)</c>. Rendered as a natural-language phrase
     /// (<c>"one model"</c>, <c>"add a, b"</c>) — returns the identifier's

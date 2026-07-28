@@ -8,6 +8,7 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
 {
     private readonly Repository _repository = new(specificationProvider, disposalTracker);
     private readonly Dictionary<Type, Dictionary<object, int>> _tagIndices = [];
+    private readonly HashSet<string> _tagNames = new(StringComparer.Ordinal);
 
     internal TClass Instantiate<TClass>()
         => (TClass)(_repository.Instantiate<TClass>() ?? Create<TClass>())!;
@@ -47,14 +48,12 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
         }
     }
 
-    internal TValue Produce<TValue>(Tag<TValue> tag, string tagName)
-        => Produce<TValue>(GetTagIndex(tag, tagName));
+    internal TValue Produce<TValue>(Tag<TValue> tag) => Produce<TValue>(GetTagIndex(tag));
 
-    internal TValue Assign<TValue>(Tag<TValue> tag, TValue value, string tagName)
-        => Assign(value, GetTagIndex(tag, tagName));
+    internal TValue Assign<TValue>(Tag<TValue> tag, TValue value) => Assign(value, GetTagIndex(tag));
 
-    internal TValue Apply<TValue>(Tag<TValue> tag, Mutation<TValue> mutation, string tagName)
-        => Apply(mutation, GetTagIndex(tag, tagName));
+    internal TValue Apply<TValue>(Tag<TValue> tag, Mutation<TValue> mutation)
+        => Apply(mutation, GetTagIndex(tag));
 
     internal Dictionary<object, int> GetTagIndices(Type type)
         => _tagIndices.TryGetValue(type, out var val) ? val : _tagIndices[type] = [];
@@ -108,16 +107,38 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
     internal void Register<TTarget, TSource>(Func<TSource, TTarget>? convert, For scope, SequenceHolder sequence)
         => _repository.Register(convert, scope, sequence);
 
-    private int GetTagIndex<TValue>(Tag<TValue> tag, string tagName)
+    /// <summary>
+    /// A tag is registered under its own name the first time the test touches it, and the name has
+    /// to be unique within the test — it is how a value is identified in a failure report, and two
+    /// values labelled alike identify nothing.
+    /// </summary>
+    private int GetTagIndex<TValue>(Tag<TValue> tag)
     {
         var type = typeof(TValue);
         var typedTagIndices = GetTagIndices(type);
         if (typedTagIndices.TryGetValue(tag, out var index))
             return index;
 
+        AssertNameIsUnique(tag.Name);
         index = GetNextTagIndex(typedTagIndices);
-        specificationProvider.Specification.TagIndex(type, index, tagName);
+        specificationProvider.Specification.TagIndex(type, index, tag.Name);
         return typedTagIndices[tag] = index;
+    }
+
+    /// <summary>
+    /// A tag takes the name of the variable it is assigned to, which the compiler can only supply
+    /// for a field — tags declared inside a method all take that method's name, and so collide.
+    /// </summary>
+    private void AssertNameIsUnique(string tagName)
+    {
+        if (_tagNames.Add(tagName))
+            return;
+
+        throw new SetupFailed(
+            $"Two tags are named '{tagName}'. A tag is named after the variable it is assigned to, "
+            + "but the compiler can only see that in a field declaration — tags declared inside a "
+            + "method take the method's name instead. Name each one where it is declared, "
+            + "for example: Tag<int> low = new(nameof(low));");
     }
 
     private static int GetNextTagIndex(Dictionary<object, int> typedTagIndices)

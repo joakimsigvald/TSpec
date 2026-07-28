@@ -71,18 +71,18 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
 
     internal TValue Mention<TValue>(int? index = 0) => _context.Produce<TValue>(index);
 
-    internal TValue Mention<TValue>(Tag<TValue> tag, string tagName) => _context.Produce(tag, tagName);
+    internal TValue Mention<TValue>(Tag<TValue> tag) => _context.Produce(tag);
 
-    internal TValue Assign<TValue>(Tag<TValue> tag, TValue value, string tagName)
+    internal TValue Assign<TValue>(Tag<TValue> tag, TValue value)
     {
         AssertHasNotRun();
-        return _context.Assign(tag, value, tagName);
+        return _context.Assign(tag, value);
     }
 
-    internal TValue Apply<TValue>(Tag<TValue> tag, Mutation<TValue> mutation, string tagName)
+    internal TValue Apply<TValue>(Tag<TValue> tag, Mutation<TValue> mutation)
     {
         AssertHasNotRun();
-        return _context.Apply(tag, mutation, tagName);
+        return _context.Apply(tag, mutation);
     }
 
     internal TValue Create<TValue>(Action<TValue> setup) => ApplyTo(setup, _context.Create<TValue>());

@@ -26,6 +26,19 @@ internal static class StringExtensions
         ? [string.Empty]
         : [.. SplitWords(str).Select(word => word.ToLower())];
 
+    /// <summary>
+    /// A tag reads as a name of its own in a specification, not as the variable it happens to be
+    /// held in — so the field convention's leading underscore goes and the name is capitalized.
+    /// Anything that is not a plain identifier is left alone: it was not a tag reference.
+    /// </summary>
+    internal static string AsTagName(this string tagExpr)
+        => IsIdentifier(tagExpr) ? tagExpr.TrimStart('_').Capitalize() : tagExpr;
+
+    private static bool IsIdentifier(string str)
+        => !string.IsNullOrEmpty(str)
+        && (char.IsLetter(str[0]) || str[0] == '_')
+        && str.All(c => char.IsLetterOrDigit(c) || c == '_');
+
     internal static string NormalizeLineEndings(this string str)
         => str.Replace("\r\n", "\n").Replace('\r', '\n');
 

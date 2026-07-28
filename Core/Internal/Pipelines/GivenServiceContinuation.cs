@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using TSpec.Continuations;
+using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.Pipelines;
 
@@ -31,7 +32,7 @@ internal class GivenServiceContinuation<TSUT, TResult, TService> : IGivenService
     public IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Returns<TReturns>(
         Tag<TReturns> tag,
         [CallerArgumentExpression(nameof(tag))] string? tagExpr = null)
-        => Returns(() => _spec.The(tag), tagExpr);
+        => Returns(() => _spec.The(tag), tagExpr!.AsTagName());
 
     public IGivenTestPipeline<TSUT, TResult> Throws<TException>() where TException : Exception
     {

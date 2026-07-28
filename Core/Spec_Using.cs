@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using TSpec.Continuations;
 using TSpec.Internal.Pipelines;
+using TSpec.Internal.Specification;
 
 namespace TSpec;
 
@@ -85,7 +86,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         [CallerArgumentExpression(nameof(tag))] string? tagExpr = null)
     {
         ValidateScope(scope);
-        Pipeline.AppendUsing(() => Pipeline.Using(() => The(tag), scope, tagExpr!, owned));
+        Pipeline.AppendUsing(() => Pipeline.Using(() => The(tag), scope, tagExpr!.AsTagName(), owned));
         return new UsingTestPipeline<TSUT, TResult>(this);
     }
 

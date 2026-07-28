@@ -5,7 +5,7 @@ namespace MyHotel.Spec;
 
 public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
 {
-    protected static readonly Tag<string> _roomNumber = new(nameof(_roomNumber));
+    protected static readonly Tag<string> _roomNumber = new();
 
     protected WhenGetRoom() => When(api => api.GetAsync($"/rooms/{The(_roomNumber)}"));
 

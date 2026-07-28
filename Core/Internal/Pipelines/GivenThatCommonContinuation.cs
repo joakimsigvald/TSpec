@@ -55,7 +55,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
 
     public IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Returns(
         Tag<TReturns?> tag, [CallerArgumentExpression(nameof(tag))] string? tagExpr = null)
-        => Returns(() => _spec.The(tag), tagExpr!);
+        => Returns(() => _spec.The(tag), tagExpr!.AsTagName());
 
     public IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> ReturnsDefault()
         => Returns(() => default);

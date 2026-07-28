@@ -38,7 +38,7 @@ public class WhenDescribe : Spec<string>
         _ => _.Name = A<string>()
                 + ASecond<string>()
         """, "Name = a string + a second string")]
-    [InlineData("() => The(delay)", "the delay")]
+    [InlineData("() => The(delay)", "the Delay")]
     [InlineData("obj?.Name", "obj.Name")]
     [InlineData("obj?.Method()", "obj.Method()")]
     [InlineData("_ => _.Inner?.Value", "_.Inner.Value")]
@@ -58,14 +58,14 @@ public class WhenDescribe : Spec<string>
     [InlineData("await.Length", "await.Length")]
     [InlineData("await - 1", "await - 1")]
     // Interpolation holes are expressions, and describe like any other
-    [InlineData("$\"/rooms/{The(_roomNumber)}\"", "\"/rooms/{the _roomNumber}\"")]
+    [InlineData("$\"/rooms/{The(_roomNumber)}\"", "\"/rooms/{the RoomNumber}\"")]
     [InlineData("$\"{A<MyModel>()} and {An<int>()}\"", "\"{a MyModel} and {an int}\"")]
     [InlineData("$\"no holes here\"", "\"no holes here\"")]
-    [InlineData("$\"{{escaped}} {The(x)}\"", "\"{{escaped}} {the x}\"")]
-    [InlineData("$\"{The(x),10:N2}\"", "\"{the x,10:N2}\"")]
+    [InlineData("$\"{{escaped}} {The(x)}\"", "\"{{escaped}} {the X}\"")]
+    [InlineData("$\"{The(x),10:N2}\"", "\"{the X,10:N2}\"")]
     // A comma inside the expression is not the alignment separator
     [InlineData("$\"{_.Foo(a, b)}\"", "\"{_.Foo(a, b)}\"")]
-    [InlineData("$@\"{The(x)}\"", "\"{the x}\"")]
+    [InlineData("$@\"{The(x)}\"", "\"{the X}\"")]
     public void ThenReturnDescription(string? valueExpr, string expected)
     {
         When(_ => valueExpr.Describe())

@@ -32,13 +32,13 @@ public abstract class WhenGetStateAfterSetStateWithHavingDelay : Spec<DelayedSta
             Result.Is(The(_state));
             Specification.Is(
                 """
-                Using _delay
-                Given _wait is 200
-                  and _delay is 100
+                Using Delay
+                Given Wait is 200
+                  and Delay is 100
                 When _.State
-                Having waited the _wait ms
-                  and _.SetState(the _state)
-                Then Result is the _state
+                Having waited the Wait ms
+                  and _.SetState(the State)
+                Then Result is the State
                 """);
         }
     }
@@ -46,7 +46,7 @@ public abstract class WhenGetStateAfterSetStateWithHavingDelay : Spec<DelayedSta
 
 public abstract class WhenGetStateAfterSetStateWithAsyncTaskDelay : Spec<DelayedState, int>
 {
-    private static readonly Tag<int> _delay = new(nameof(_delay)), _state = new(nameof(_state)), _wait = new(nameof(_wait));
+    private static readonly Tag<int> _delay = new(), _state = new(), _wait = new();
 
     protected WhenGetStateAfterSetStateWithAsyncTaskDelay()
         => Using(() => The(_delay), For.Subject)

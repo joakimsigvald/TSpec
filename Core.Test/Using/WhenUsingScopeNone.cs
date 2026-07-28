@@ -8,7 +8,7 @@ namespace TSpec.Test.Using;
 /// </summary>
 public class WhenUsingScopeNone : Spec<int>
 {
-    private static readonly Tag<int> _tag = new(nameof(_tag));
+    private static readonly Tag<int> _tag = new();
 
     private const string Message =
         "For.None is not a valid scope: it would apply the arrangement to neither Input nor Subject. "

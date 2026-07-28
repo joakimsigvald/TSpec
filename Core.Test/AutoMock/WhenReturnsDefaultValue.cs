@@ -22,15 +22,15 @@ public class WhenReturnsDefaultValue : Spec<MyValueIntService, string>
     [Fact]
     public void GivenTag_ThenUseDefaultValue()
     {
-        Tag<string> name = new();
+        Tag<string> name = new(nameof(name));
         When(_ => _.GetValue(A<MyValueInt>()))
             .Given<IMyValueIntRepo>().Returns(name)
             .And(name).Is(A<string>())
             .Then().Result.Is(The<string>());
         Specification.Is(
             """
-            Given name is a string
-              and IMyValueIntRepo returns name
+            Given Name is a string
+              and IMyValueIntRepo returns Name
             When _.GetValue(a MyValueInt)
             Then Result is the string
             """);

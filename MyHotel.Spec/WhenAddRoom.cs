@@ -5,7 +5,7 @@ namespace MyHotel.Spec;
 
 public abstract class WhenAddRoom : ApiSpec<HttpResponseMessage>
 {
-    protected static readonly Tag<string> _roomNumber = new(nameof(_roomNumber));
+    protected static readonly Tag<string> _roomNumber = new();
 
     protected WhenAddRoom()
         => When(api => api.PostAsJsonAsync("/rooms", new Room(The(_roomNumber), 2)));

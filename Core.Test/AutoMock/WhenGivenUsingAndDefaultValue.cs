@@ -38,7 +38,7 @@ public class WhenGivenUsingAndDefaultValue : Spec<MyWrapper<string>, (string, st
     [Fact]
     public void UsingTag_ThenApplyBothAsLambdas()
     {
-        Tag<string> def = new();
+        Tag<string> def = new(nameof(def));
             Using(() => "ABC", For.Input)
             .And(def, For.Subject)
             .Given(def).Is("DEF")
@@ -47,8 +47,8 @@ public class WhenGivenUsingAndDefaultValue : Spec<MyWrapper<string>, (string, st
         Specification.Is(
             """
             Using "ABC" for Input
-              and def for Subject
-            Given def is "DEF"
+              and Def for Subject
+            Given Def is "DEF"
             When _.GetValues(a string)
             Then Result is ("DEF", "ABC")
             """);
@@ -78,17 +78,17 @@ public class WhenGivenUsingAndDefaultModel : Spec<MyWrapper<MyModel>, (MyModel, 
     [Fact]
     public void GivenTagsThenApplyBothAsValues()
     {
-        Tag<MyModel> one = new(), two = new();
+        Tag<MyModel> one = new(nameof(one)), two = new(nameof(two));
         Using(one, For.Input).And(two, For.Subject)
             .Given(one).Is(_first).And(two).Is(_second)
             .When(_ => _.GetValues(A<MyModel>()))
             .Then().Result.Is((_second, _first));
         Specification.Is(
             """
-            Using one for Input
-              and two for Subject
-            Given two is _second
-              and one is _first
+            Using One for Input
+              and Two for Subject
+            Given Two is _second
+              and One is _first
             When _.GetValues(a MyModel)
             Then Result is (_second, _first)
             """);
