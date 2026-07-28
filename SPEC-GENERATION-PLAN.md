@@ -203,6 +203,7 @@ that it returns platform-native endings, so that is not a bug to fix at the sour
 | Tags name themselves | `[CallerMemberName]` — `nameof(…)` is no longer needed for a tag declared as a field. Names must be unique within a test. |
 | Tag names normalized | `_roomNumber` renders as `RoomNumber`. |
 | Document layout | Title, provenance in a comment, subject → branch → requirement headings read as prose, shared clauses hoisted to the level that names them. |
+| Line wrapping keeps expressions whole | A phrase too long for the rest of the line moves to the next line entire, where before it was split at the last break cue that fitted — `tap(…) returns` + `RetVal` is now `tap(…)` + `returns RetVal`. Nineteen expectations re-pinned. |
 
 **Notable internals:** the two-phase engine (§3) was the largest single change and the enabler for
 everything after it; `Expr.ToSource()` rebuilds an expression from the tree so erased keywords cannot
@@ -245,11 +246,18 @@ the build id — it did not, and that caught the freeze bug above.
    coincidence worth seeing. But an assertion *declared above the branches* is not a coincidence; it
    is a claim about the subject, and the document cannot currently tell the two apart. Same missing
    input as §5's "deliberately not built": TSpec does not record which class declared a step.
-10. **A second assertion in a test method starts an orphaned sentence.** Only the first gets `Then`;
-    the next is capitalized on a new line with no connective, so `Second is new Room("102", …)`
-    reads as a claim about nothing. Pinned as-is (`HavingWhenUntil.cs:67`), where the subject is
-    `Ex.InnerException` and carries its own context — a bare tuple field does not. §3's family rule
-    says it should read `and second is …`. A PO call, since it moves every multi-assertion pin.
+9. **A second assertion in a test method starts an orphaned sentence.** Only the first gets `Then`;
+   the next is capitalized on a new line with no connective, so `Second is new Room(…)` reads as a
+   claim about nothing. Pinned deliberately in `WhenTwoItems.cs:24` and `HavingWhenUntil.cs:67`.
+   **Examined 2026-07-28 and deferred**, along with two neighbours — rendering the continuation
+   lowercase, and breaking the line after `that`. All three need the same thing and none is cheap.
+   Assertions carry no `StepFamily`, so the family "and" rule does not reach them; every `and` in an
+   assertion today comes from an author-written `.and.` combinator, which cannot be written here
+   because destructuring the tuple breaks the chain. Synthesising one means knowing where the group
+   ends, and phase 2 streams steps one at a time. Breaking after `that` is eight lines if
+   unconditional, but that spoils the sixteen short pins where `… that is the MyModel` fits on one
+   line; conditional needs the same lookahead, since `AddAssert` emits head, verb and expected
+   separately and `first` alone always fits. Reconsider when phase 2 buffers a whole assertion.
 
 ## 9. Release train
 

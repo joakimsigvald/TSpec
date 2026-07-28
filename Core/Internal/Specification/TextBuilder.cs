@@ -93,22 +93,6 @@ internal class TextBuilder(int maxLineLength = 80, int indentationSize = 2)
 
     private static char Next(string segment, int i) => i + 1 < segment.Length ? segment[i + 1] : ' ';
 
-    /// How many brackets are open at each position, counting an opening bracket as already inside.
-    private static int[] Depths(string segment)
-    {
-        var depths = new int[segment.Length];
-        var depth = 0;
-        for (int i = 0; i < segment.Length; i++)
-        {
-            if (segment[i] is '(' or '[' or '{')
-                depth++;
-            else if (segment[i] is ')' or ']' or '}')
-                depth--;
-            depths[i] = depth;
-        }
-        return depths;
-    }
-
     /// A segment without break position stays on the line (breaking mid-word),
     /// unless the line is already more than half used — then everything moves
     /// to the continuation line.
