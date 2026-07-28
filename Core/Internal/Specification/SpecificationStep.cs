@@ -59,5 +59,14 @@ internal enum StepLayout
 /// The lead word a step introduces. Which word that is depends on position —
 /// the first step of a family gets the family's word and the rest get "and" —
 /// so the choice belongs to the renderer, not to the recording.
+/// <see cref="None"/> is the assertion that heads its own line, having nothing
+/// in front of it: <c>Result has all …</c> used without a <c>Then</c>.
 /// </summary>
-internal enum StepFamily { None, Using, Given, Then }
+internal enum StepFamily { None, Using, Given, When, Having, Until, Then }
+
+/// <summary>
+/// Which part of the test a clause belongs to, derived from its family. It is a
+/// property of a clause rather than of a step: a continuation such as
+/// <c>returns 1</c> belongs to whatever phase its head does.
+/// </summary>
+internal enum StepPhase { Arrange, Act, Assert }

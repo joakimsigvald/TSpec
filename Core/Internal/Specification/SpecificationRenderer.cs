@@ -69,9 +69,7 @@ internal static class SpecificationRenderer
     /// The rendering state that depends on what has already been rendered.
     private sealed class Position
     {
-        private int _usingCount;
-        private int _givenCount;
-        private int _thenCount;
+        private readonly HashSet<StepFamily> _started = [];
         private string? _currentMock;
 
         internal bool IsAssertionChainOpen { get; private set; }
@@ -80,12 +78,21 @@ internal static class SpecificationRenderer
 
         internal void EndMockRun() => _currentMock = null;
 
-        internal string? LeadWord(StepFamily family) => family switch
+        /// A family says its word once and reads "and" from then on, so consecutive steps of one
+        /// kind become a single statement. The order they are listed in is the order they were
+        /// declared in, which the keyword itself has always implied.
+        internal string? LeadWord(StepFamily family)
+            => family == StepFamily.None ? null
+            : _started.Add(family) ? Keyword(family) : "and";
+
+        private static string Keyword(StepFamily family) => family switch
         {
-            StepFamily.Using => First(ref _usingCount) ? "Using" : "and",
-            StepFamily.Given => First(ref _givenCount) ? "Given" : "and",
-            StepFamily.Then => First(ref _thenCount) ? "Then" : "and",
-            _ => null,
+            StepFamily.Using => "Using",
+            StepFamily.Given => "Given",
+            StepFamily.When => "When",
+            StepFamily.Having => "Having",
+            StepFamily.Until => "Until",
+            _ => "Then",
         };
 
         /// A service is named the first time it is spoken about, and again after
@@ -99,7 +106,5 @@ internal static class SpecificationRenderer
             _currentMock = service;
             return name;
         }
-
-        private static bool First(ref int count) => 0 == count++;
     }
 }

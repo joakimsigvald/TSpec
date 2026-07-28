@@ -10,9 +10,17 @@ internal sealed class SpecificationClause(IReadOnlyList<SpecificationStep> steps
 {
     internal IReadOnlyList<SpecificationStep> Steps => steps;
 
-    /// The family of the clause's head. Silent steps travel with a clause but never speak for it.
+    /// Taken from the clause's head. Silent steps travel with a clause but never speak for it.
     internal StepFamily Family { get; } =
         steps.FirstOrDefault(step => step.Layout != StepLayout.Silent)?.Family ?? StepFamily.None;
+
+    /// What the clause is for, which its lead word already tells us.
+    internal StepPhase Phase => Family switch
+    {
+        StepFamily.Using or StepFamily.Given => StepPhase.Arrange,
+        StepFamily.When or StepFamily.Having or StepFamily.Until => StepPhase.Act,
+        _ => StepPhase.Assert,
+    };
 
     /// Two clauses are the same expression when they were described identically. Steps are records
     /// over strings and enums, so this is a structural comparison.

@@ -2,28 +2,28 @@
 
 namespace TSpec.Test.Tests.Delay;
 
-public abstract class WhenGetStateAfterSetStateWithAfterDelay : Spec<DelayedState, int>
+public abstract class WhenGetStateAfterSetStateWithHavingDelay : Spec<DelayedState, int>
 {
     private static readonly Tag<int> _delay = new(), _state = new(), _wait = new();
 
-    protected WhenGetStateAfterSetStateWithAfterDelay()
+    protected WhenGetStateAfterSetStateWithHavingDelay()
         => Using(_delay)
         .When(_ => _.State)
         .Having(_ => _.SetState(The(_state)), () => The(_wait));
 
-    public class GivenZeroDelay : WhenGetStateAfterSetStateWithAfterDelay
+    public class GivenZeroDelay : WhenGetStateAfterSetStateWithHavingDelay
     {
         public GivenZeroDelay() => Given(_delay).Is(0);
         [Fact] public void ThenGetNewState() => Result.Is(The(_state));
     }
 
-    public class GivenWaitShorterThanDelay : WhenGetStateAfterSetStateWithAfterDelay
+    public class GivenWaitShorterThanDelay : WhenGetStateAfterSetStateWithHavingDelay
     {
         public GivenWaitShorterThanDelay() => Given(_delay).Is(200).And(_wait).Is(100);
         [Fact] public void ThenGetInitialState() => Result.Is(0);
     }
 
-    public class GivenWaitLongerThanDelay : WhenGetStateAfterSetStateWithAfterDelay
+    public class GivenWaitLongerThanDelay : WhenGetStateAfterSetStateWithHavingDelay
     {
         public GivenWaitLongerThanDelay() => Given(_delay).Is(100).And(_wait).Is(200);
         [Fact]
@@ -37,7 +37,7 @@ public abstract class WhenGetStateAfterSetStateWithAfterDelay : Spec<DelayedStat
                   and _delay is 100
                 When _.State
                 Having waited the _wait ms
-                Having _.SetState(the _state)
+                  and _.SetState(the _state)
                 Then Result is the _state
                 """);
         }

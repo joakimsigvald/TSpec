@@ -9,8 +9,8 @@ internal class SpecFixture<TSUT>(ISpecificationProvider specificationProvider) :
     private readonly List<Command> _setUp = [];
     private readonly List<Command> _tearDown = [];
 
-    internal void After(Command setUp) => _setUp.Insert(0, setUp);
-    internal void Before(Command tearDown) => _tearDown.Add(tearDown);
+    internal void PrependSetUp(Command setUp) => _setUp.Insert(0, setUp);
+    internal void AppendTearDown(Command tearDown) => _tearDown.Add(tearDown);
     internal void SetUp(Lazy<TSUT> sut)
     {
         _sut = sut;

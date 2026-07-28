@@ -6,16 +6,19 @@ namespace TSpec.Internal.Specification;
 /// </summary>
 internal class ActionPhrases(SpecificationRecording recording)
 {
-    internal void AddWhen(string actExpr) => AddSentence("when", actExpr);
+    internal void AddWhen(string actExpr) => Add(StepFamily.When, actExpr);
 
-    internal void AddHaving(string setUpExpr) => AddSentence("having", setUpExpr);
+    internal void AddHaving(string setUpExpr) => Add(StepFamily.Having, setUpExpr);
 
-    internal void AddUntil(string tearDownExpr) => AddSentence("until", tearDownExpr);
+    internal void AddUntil(string tearDownExpr) => Add(StepFamily.Until, tearDownExpr);
 
     internal void AddTap(string expr)
         => recording.Record(() => recording.Add(new(StepLayout.Word) { Body = $"tap({expr})" }));
 
-    private void AddSentence(string keyword, string expr)
-        => recording.Record(() => recording.Add(
-            new(StepLayout.Sentence) { Body = $"{keyword} {expr.DescribeCall()}" }));
+    private void Add(StepFamily family, string expr)
+        => recording.Record(() => recording.Add(new(StepLayout.SentenceOrPhrase)
+        {
+            Family = family,
+            Body = expr.DescribeCall() ?? string.Empty,
+        }));
 }

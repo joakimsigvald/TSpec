@@ -99,13 +99,13 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
     internal void PrependSetUp(Delegate setUp, string setUpExpr)
     {
         AssertIsNotSetUp();
-        _fixture.After(new(setUp ?? throw new SetupFailed("SetUp cannot be null"), setUpExpr));
+        _fixture.PrependSetUp(new(setUp ?? throw new SetupFailed("SetUp cannot be null"), setUpExpr));
     }
 
     internal void SetTearDown(Delegate tearDown, string tearDownExpr)
     {
         AssertIsNotSetUp();
-        _fixture.Before(new(tearDown ?? throw new SetupFailed("TearDown cannot be null"), tearDownExpr));
+        _fixture.AppendTearDown(new(tearDown ?? throw new SetupFailed("TearDown cannot be null"), tearDownExpr));
     }
 
     internal Lazy<TSUT> Arrange()

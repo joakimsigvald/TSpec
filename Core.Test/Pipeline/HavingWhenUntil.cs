@@ -3,10 +3,10 @@ using TSpec.Test.TestData;
 
 namespace TSpec.Test.Pipeline;
 
-public class AfterWhenBefore : Spec<MyStateService, int>
+public class HavingWhenUntil : Spec<MyStateService, int>
 {
     [Fact]
-    public void AfterIsExecutedBeforeWhen()
+    public void HavingIsExecutedBeforeWhen()
     {
         When(_ => ++_.Counter).Having(_ => _.Counter++).Then().Result.Is(2);
         Specification.Is(
@@ -18,7 +18,7 @@ public class AfterWhenBefore : Spec<MyStateService, int>
     }
 
     [Fact]
-    public void FirstAfterIsExecutedAfterSecondAfterBeforeWhen()
+    public void FirstHavingIsExecutedAfterSecondHavingBeforeWhen()
     {
         When(_ => _.Counter *= 2)
             .Having(_ => _.Counter = 3)
@@ -28,7 +28,7 @@ public class AfterWhenBefore : Spec<MyStateService, int>
             """
             When _.Counter *= 2
             Having _.Counter = 3
-            Having _.Counter = 5
+              and _.Counter = 5
             Then Result is 6
             """);
     }
@@ -39,7 +39,7 @@ public class AfterWhenBefore : Spec<MyStateService, int>
             () => When(_ => ++_.Counter).When(_ => _.Counter *= 2));
 
     [Fact]
-    public void GivenBeforeExecutedTwice_BothAreExecuted()
+    public void GivenUntilExecutedTwice_BothAreExecuted()
     {
         When(_ => _.Counter = 1).Until(_ => _.Counter = 3).Until(_ => _.Counter = 2)
             .Then().Result.Is(1);
@@ -47,7 +47,7 @@ public class AfterWhenBefore : Spec<MyStateService, int>
             """
             When _.Counter = 1
             Until _.Counter = 3
-            Until _.Counter = 2
+              and _.Counter = 2
             Then Result is 1
             """);
     }
@@ -73,7 +73,7 @@ public class AfterWhenBefore : Spec<MyStateService, int>
         => Xunit.Assert.Throws<SetupFailed>(() => Then().Throws<Exception>());
 
     [Fact]
-    public void WhenBeforeGivenAfter()
+    public void GivenStepsDeclaredOutOfOrder_ThenSpecifyThemInPipelineOrder()
     {
         When(_ => ++_.Counter).Until(_ => ++_.Counter).Using(1).Having(_ => _.Counter++).Then().Result.Is(2);
         Specification.Is(
@@ -92,7 +92,7 @@ public class GivenTearDown : Spec<MyStateService, int>
     private int _theCounterAfterTest = -1;
 
     [Fact]
-    public void BeforeIsExecutedAfterWhen()
+    public void UntilIsExecutedAfterWhen()
     {
         When(_ => ++_.Counter).Until(_ => _theCounterAfterTest = --_.Counter).Then().Result.Is(1);
         Specification.Is(

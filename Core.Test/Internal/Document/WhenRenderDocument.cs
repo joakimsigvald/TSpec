@@ -1,4 +1,4 @@
-using TSpec.Assert;
+﻿using TSpec.Assert;
 using TSpec.Internal.Document;
 using TSpec.Internal.Specification;
 
@@ -80,53 +80,76 @@ public class WhenRenderDocument : Spec
         => Render(_respondOk with { Steps = Sentences("when a", "then b") })
             .Does().Contain("```\nWhen a\nThen b\n```").and.not.Contain("\r");
 
-    // ----------- Setup shared by a whole subject is stated once, under its heading
+    // ----------- What every requirement of a group opens with is stated once for the group
 
     private static SpecificationStep Using(string body)
         => new(StepLayout.SentenceOrPhrase) { Family = StepFamily.Using, Body = body };
 
-    /// A requirement opening with the shared setup, then saying something of its own.
-    private static SpecificationEntry Requirement(string name, params SpecificationStep[] ownSteps)
-        => new("WhenGetRoom", "GivenNoSuchRoom", name,
-            [Using("api"), Using("api.CreateClient"), .. ownSteps]);
+    private static SpecificationStep Act(string body)
+        => new(StepLayout.SentenceOrPhrase) { Family = StepFamily.When, Body = body };
 
-    private static SpecificationEntry[] ThreeRequirements()
-        => [Requirement("ThenA", Sentences("then a")[0]),
-            Requirement("ThenB", Sentences("then b")[0]),
-            Requirement("ThenC", Sentences("then c")[0])];
+    /// An assertion heading its own line, which is the one clause with no family.
+    private static SpecificationStep Claim(string body)
+        => new(StepLayout.Sentence) { Body = body };
 
+    private static SpecificationEntry Requirement(
+        string subject, string name, params SpecificationStep[] steps)
+        => new(subject, "", name, steps);
+
+    /// Two subjects that share their arrangement but each have their own action.
+    private static SpecificationEntry[] TwoSubjects()
+        => [.. new[] { "a", "b", "c" }.Select(name =>
+                Requirement("WhenGetRoom", $"Then{name}",
+                    Using("api"), Act("get"), Claim($"then {name}"))),
+            .. new[] { "d", "e", "f" }.Select(name =>
+                Requirement("WhenAddRoom", $"Then{name}",
+                    Using("api"), Act("post"), Claim($"then {name}")))];
+
+    /// <summary>Shared by every requirement in the document, so it rises above the subjects.</summary>
     [Fact]
-    public void GivenEveryRequirementOpensWithTheSameSetup_ThenStateItUnderTheSubject()
-        => Render(ThreeRequirements()).Does()
-            .Contain("## WhenGetRoom\n\n```\nUsing api\n  and api.CreateClient\n```\n")
-            .and.Contain("### GivenNoSuchRoom.ThenA\n\n```\nThen a\n```\n");
+    public void GivenEveryRequirementOpensAlike_ThenStateThatOnceForTheDocument()
+        => Render(TwoSubjects()).Does()
+            .Contain("Do not edit by hand. -->\n\n```\nUsing api\n```\n\n## WhenAddRoom");
 
-    /// <summary>The hoisted run is complete, so nothing is left behind to head the block.</summary>
+    /// <summary>Shared within one subject only, so it settles at that subject's heading.</summary>
     [Fact]
-    public void GivenSetupIsShared_ThenLeaveNoneOfItInTheBlocks()
-        => Render(ThreeRequirements()).Does().not.Contain("```\nAnd api.CreateClient");
+    public void GivenOneSubjectOpensAlike_ThenStateThatOnceForTheSubject()
+        => Render(TwoSubjects()).Does()
+            .Contain("## WhenAddRoom\n\n```\nWhen post\n```\n")
+            .and.Contain("## WhenGetRoom\n\n```\nWhen get\n```\n")
+            .and.Contain("### Thena\n\n```\nThen a\n```\n");
+
+    /// <summary>
+    /// An assertion is the claim a requirement exists to make. Two requirements agreeing on one
+    /// is worth seeing, so it stays in both blocks however often it repeats.
+    /// </summary>
+    [Fact]
+    public void GivenEveryRequirementClaimsTheSame_ThenStillStateItInEachBlock()
+        => Render([.. new[] { "a", "b", "c" }.Select(name =>
+                Requirement("WhenGetRoom", $"Then{name}", Claim("then same"), Claim($"then {name}")))])
+            .Split("Then same").Length.Is(4);
 
     /// <summary>Two requirements are not repetition worth factoring out.</summary>
     [Fact]
-    public void GivenFewerThanThreeRequirements_ThenLeaveTheSetupInPlace()
-        => Render(ThreeRequirements()[..2]).Does()
-            .Contain("```\nUsing api\n  and api.CreateClient\nThen a\n```")
-            .and.not.Contain("## WhenGetRoom\n\n```");
+    public void GivenFewerThanThreeRequirements_ThenLeaveTheOpeningInPlace()
+        => Render(TwoSubjects()[..2]).Does()
+            .Contain("```\nUsing api\nWhen get\nThen a\n```")
+            .and.not.Contain("-->\n\n```");
 
     [Fact]
-    public void GivenOneRequirementOpensDifferently_ThenLeaveTheSetupInPlace()
+    public void GivenOneRequirementOpensDifferently_ThenLeaveTheOpeningInPlace()
     {
-        var requirements = ThreeRequirements();
-        requirements[2] = requirements[2] with { Steps = [Using("api"), .. Sentences("then c")] };
-        Render(requirements).Does().not.Contain("## WhenGetRoom\n\n```");
+        var requirements = TwoSubjects()[..3];
+        requirements[2] = requirements[2] with { Steps = [Using("other"), Act("get"), Claim("then c")] };
+        Render(requirements).Does().not.Contain("-->\n\n```");
     }
 
-    /// <summary>Hoisting must never empty a block, so a requirement that is only setup blocks it.</summary>
+    /// <summary>Hoisting must never empty a block, so a requirement that is only the opening blocks it.</summary>
     [Fact]
-    public void GivenARequirementIsNothingButTheSharedSetup_ThenLeaveTheSetupInPlace()
+    public void GivenARequirementIsNothingButTheSharedOpening_ThenLeaveTheOpeningInPlace()
     {
-        var requirements = ThreeRequirements();
-        requirements[2] = requirements[2] with { Steps = [Using("api"), Using("api.CreateClient")] };
-        Render(requirements).Does().not.Contain("## WhenGetRoom\n\n```");
+        var requirements = TwoSubjects()[..3];
+        requirements[2] = requirements[2] with { Steps = [Using("api")] };
+        Render(requirements).Does().not.Contain("-->\n\n```");
     }
 }

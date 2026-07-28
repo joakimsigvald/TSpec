@@ -10,12 +10,18 @@ namespace TSpec.Internal.Specification;
 internal class AssertionPhrases(SpecificationRecording recording)
 {
     internal void AddThen()
-        => recording.Record(() => recording.Add(
-            new(StepLayout.SentenceOrPhrase) { Family = StepFamily.Then, OpensAssertionChain = true }));
+        => recording.Record(() => recording.Add(new(StepLayout.SentenceOrPhrase)
+        {
+            Family = StepFamily.Then,
+            OpensAssertionChain = true,
+        }));
 
     internal void AddThat()
-        => recording.Record(() => recording.Add(
-            new(StepLayout.Word) { Body = "that", OpensAssertionChain = true }));
+        => recording.Record(() => recording.Add(new(StepLayout.Word)
+        {
+            Body = "that",
+            OpensAssertionChain = true,
+        }));
 
     internal void AddAssert(string actual, string verb, string? expected)
         => recording.Record(() =>
@@ -30,8 +36,12 @@ internal class AssertionPhrases(SpecificationRecording recording)
         => recording.Record(() => AddWord(assertName.AsWords()));
 
     internal void AddAssertConjunction(string conjunction)
-        => recording.Record(() => recording.Add(
-            new(StepLayout.Phrase) { Body = conjunction, Indentation = 2, OpensAssertionChain = true }));
+        => recording.Record(() => recording.Add(new(StepLayout.Phrase)
+        {
+            Body = conjunction,
+            Indentation = 2,
+            OpensAssertionChain = true,
+        }));
 
     internal void AddAssertThrows<TError>(string? binder)
         => recording.Record(() => AddWord($"throws {typeof(TError).Alias()} {binder}".Trim()));
@@ -57,7 +67,8 @@ internal class AssertionPhrases(SpecificationRecording recording)
         => recording.Record(() => AddWord(
             $"{typeof(TService).Alias()}.{method} {DescribeInvocation(wasInvokedExpr)}"));
 
-    private void AddWord(string body) => recording.Add(new(StepLayout.Word) { Body = body });
+    private void AddWord(string body)
+        => recording.Add(new(StepLayout.Word) { Body = body });
 
     private static string DescribeInvocation(string? timesExpr)
         => timesExpr.NormalizeTimes() switch
