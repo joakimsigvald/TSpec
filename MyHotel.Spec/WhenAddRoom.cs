@@ -1,5 +1,5 @@
-using System.Net;
 using System.Net.Http.Json;
+using static System.Net.HttpStatusCode;
 
 namespace MyHotel.Spec;
 
@@ -12,7 +12,7 @@ public abstract class WhenAddRoom : ApiSpec<HttpResponseMessage>
 
     public class GivenNoSuchRoom : WhenAddRoom
     {
-        [Fact] public void ThenRespondCreated() => Result.StatusCode.Is(HttpStatusCode.Created);
+        [Fact] public void ThenRespondCreated() => Result.StatusCode.Is(Created);
 
         [Fact]
         public async Task ThenReturnTheRoom()
@@ -28,6 +28,6 @@ public abstract class WhenAddRoom : ApiSpec<HttpResponseMessage>
         public GivenTheRoomAlreadyExists()
             => Having(api => api.PostAsJsonAsync("/rooms", new Room(The(_roomNumber), Any<int>())));
 
-        [Fact] public void ThenRespondConflict() => Result.StatusCode.Is(HttpStatusCode.Conflict);
+        [Fact] public void ThenRespondConflict() => Result.StatusCode.Is(Conflict);
     }
 }

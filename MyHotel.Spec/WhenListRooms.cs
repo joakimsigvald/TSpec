@@ -1,5 +1,5 @@
-using System.Net;
 using System.Net.Http.Json;
+using static System.Net.HttpStatusCode;
 
 namespace MyHotel.Spec;
 
@@ -7,7 +7,7 @@ public abstract class WhenListRooms : ApiSpec<HttpResponseMessage>
 {
     protected WhenListRooms() => When(api => api.GetAsync("/rooms"));
 
-    [Fact] public void ThenRespondOk() => Result.StatusCode.Is(HttpStatusCode.OK);
+    [Fact] public void ThenRespondOk() => Result.StatusCode.Is(OK);
 
     public class GivenNoRooms : WhenListRooms
     {

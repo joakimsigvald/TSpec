@@ -1,5 +1,5 @@
-using System.Net;
 using System.Net.Http.Json;
+using static System.Net.HttpStatusCode;
 
 namespace MyHotel.Spec;
 
@@ -14,7 +14,7 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
         public GivenTheRoomExists()
             => Having(api => api.PostAsJsonAsync("/rooms", new Room(The(_roomNumber), An<int>())));
 
-        [Fact] public void ThenRespondOk() => Result.StatusCode.Is(HttpStatusCode.OK);
+        [Fact] public void ThenRespondOk() => Result.StatusCode.Is(OK);
 
         [Fact]
         public async Task ThenReturnTheRoom()
@@ -23,6 +23,6 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
 
     public class GivenNoSuchRoom : WhenGetRoom
     {
-        [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(HttpStatusCode.NotFound);
+        [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
     }
 }

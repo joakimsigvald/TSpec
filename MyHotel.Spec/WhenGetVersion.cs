@@ -1,4 +1,4 @@
-using System.Net;
+using static System.Net.HttpStatusCode;
 
 namespace MyHotel.Spec;
 
@@ -6,7 +6,7 @@ public class WhenGetVersion : ApiSpec<HttpResponseMessage>
 {
     public WhenGetVersion() => When(api => api.GetAsync("/version"));
 
-    [Fact] public void ThenRespondOk() => Result.StatusCode.Is(HttpStatusCode.OK);
+    [Fact] public void ThenRespondOk() => Result.StatusCode.Is(OK);
 
     [Fact]
     public async Task ThenReturnTheApplicationVersion()
