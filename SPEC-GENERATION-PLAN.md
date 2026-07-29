@@ -92,6 +92,42 @@ for `Having` it is the reverse, and that is correct: `README.md` states the rule
 .Having(C)` executes C → B → A), so a reader who needs the order has it, and the document should show
 the declarations rather than restate a rule the package already documents.
 
+**Sections are ordered by `ComplexityNumber`, simplest first** — don't go for the gold too early. A
+node's `ComplexityNumber` is the count of its own clauses in every phase but Assert — `Using`,
+`Given`, `When`, `Having`, `Until` — plus the sum of its children's. Ordering applies *within* a
+grouping and never across one: requirements within a branch, branches within a subject, subjects
+within the document, later folders and projects.
+
+**At the leaf, a tie breaks on the length of the rendered requirement**, then alphabetically. Most
+requirements of a branch arrange identically, so without it the leaf would be sorted by name, which
+says nothing; length at least puts the short status check before the one that inspects a whole value.
+It is a proxy for how much a requirement claims and it is only a tiebreak — it never overrides
+arrangement, and it decides nothing above the leaf, where sections are large enough that ordering by
+their size would be the churn the measure exists to avoid. Expect to replace it: `Then return no
+rooms` sorts before `Then respond ok` in MyHotel purely because `is empty` is shorter than
+`is HttpStatusCode.OK`. Elsewhere ties break alphabetically.
+
+The measure is arrangement, not size, and that is what makes it safe to sum upward. Assertions
+contribute nothing, so adding a requirement to an existing branch leaves every number in the tree
+unchanged; the number moves only when arrangement appears or disappears, which is a structural change
+worth seeing in a diff anyway. Summing size instead would move keys on every edit and reorder whole
+subjects because one line was added — spending the reviewable diff the document exists for.
+
+Breadth and depth both raise it, deliberately: siblings are distinguished *by* their arrangement, so
+at most one child of a node can contribute zero and a subject with n branches carries at least n−1.
+The `When` is constant among subjects and cancels, so subject order is decided by the branches.
+
+**A node's own clauses are the hoisted ones** — what is stated at its heading, not what its
+requirements carry before hoisting. This is not a free choice: counting pre-hoist would charge every
+requirement for the arrangement it inherits, so a subject's number would grow with how many
+requirements it has, and the measure would be size again by another route. The tree must therefore be
+decomposed before it is ordered, which is why `DocumentRenderer` builds `SubjectNode`/`BranchNode`
+and sorts those rather than sorting a flat list of entries.
+
+Alphabetical is a placeholder for something semantic. Any change to the rule reflows every
+`SPECIFICATION.md` at once, which makes the ordering strategy closer to a file format than an
+implementation detail: it belongs in a major release, not a minor.
+
 ## 4. Completeness check
 
 At `SpecificationDocument.Dispose()`, before writing anything:
@@ -203,6 +239,7 @@ that it returns platform-native endings, so that is not a bug to fix at the sour
 | Tags name themselves | `[CallerMemberName]` — `nameof(…)` is no longer needed for a tag declared as a field. Names must be unique within a test. |
 | Tag names normalized | `_roomNumber` renders as `RoomNumber`. |
 | Document layout | Title, provenance in a comment, subject → branch → requirement headings read as prose, shared clauses hoisted to the level that names them. |
+| Sections ordered by `ComplexityNumber` | Every level now reads simplest first — subjects, branches and requirements — instead of alphabetically. On MyHotel: version 1, add room 2, get room 2, list rooms 3. Requirements that arrange alike are then ordered by the length of what they claim; anything still tied falls back to the name. |
 | Line wrapping keeps expressions whole | A phrase too long for the rest of the line moves to the next line entire, where before it was split at the last break cue that fitted — `tap(…) returns` + `RetVal` is now `tap(…)` + `returns RetVal`. Nineteen expectations re-pinned. |
 
 **Notable internals:** the two-phase engine (§3) was the largest single change and the enabler for
@@ -220,9 +257,8 @@ the build id — it did not, and that caught the freeze bug above.
 1. **Grow MyHotel** — ~~list~~ (done, 13 requirements), then delete, then update (delete is simpler,
    and delete+add covers what update does). Format questions open, all PO calls against a bigger
    document: the scaffolding-to-content ratio, whose remedy is the fences; whether a requirement
-   needs both a heading and a claim (vision §11 Q1); and the two the list step raised — how a long
-   expectation wraps (§8.8) and whether an assertion shared by every branch of a subject should
-   repeat (§8.9).
+   needs both a heading and a claim (vision §11 Q1); and whether an assertion shared by every branch
+   of a subject should repeat (§8.8).
 2. **404 with a body.** `GivenNoSuchRoom.ThenRespondNotFound` passed before any endpoint existed — an
    unmatched route also returns 404. **An assertion that checks only an absence cannot distinguish
    "not implemented" from "correctly absent."** Assert on something only the implementation can
@@ -235,7 +271,8 @@ the build id — it did not, and that caught the freeze bug above.
    end-of-assembly ordering cannot be self-tested from inside the same assembly. Currently verified
    only by `MyHotel.Spec` passing, which will not catch a regression precisely.
 5. **Namespace as a grouping level.** Not collected — with few subjects it would add a heading level
-   for nothing. Revisit when MyHotel has several.
+   for nothing. Revisit when MyHotel has several. Now only about *headings*: ordering no longer needs
+   it, since §3's rule does not depend on where a class sits.
 6. **Finish the docs.** `README.md` §7 and `TSpec-agent-reference.md` are marked work-in-progress,
    and the agent reference's "covers TSpec x.y" line says 1.5 while documenting post-1.5 behaviour.
 7. **Version and release decision.** `PackageVersion` and `PackageReleaseNotes` are untouched at

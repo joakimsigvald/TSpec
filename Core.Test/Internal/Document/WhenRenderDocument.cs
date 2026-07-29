@@ -191,4 +191,78 @@ public class WhenRenderDocument : Spec
         requirements[2] = requirements[2] with { Steps = [Using("api")] };
         Render(requirements).Does().not.Contain("-->\n```");
     }
+
+    // ----------- Sections are ordered by how much arrangement they carry, simplest first
+
+    /// The headings in the order they appear, which is all an ordering rule can be seen in.
+    private static string[] Headings(string document)
+        => [.. document.Split('\n').Where(line => line.StartsWith("##", StringComparison.Ordinal))];
+
+    private static string[] SubjectHeadings(string document)
+        => [.. Headings(document).Where(heading => heading.StartsWith("## ", StringComparison.Ordinal))];
+
+    /// <summary>
+    /// The alphabetically first subject is the one that arranges more, and it comes last — so the
+    /// order is the rule's and not the alphabet's.
+    /// </summary>
+    [Fact]
+    public void GivenOneSubjectArrangesMore_ThenPlaceTheSimplerFirst()
+        => Headings(Render(
+            new("WhenAddRoom", "GivenNoSuchRoom", "ThenA", [Act("post"), Claim("then a")]),
+            new("WhenAddRoom", "GivenTheRoomExists", "ThenB", [Act("post"), Condition("post"), Claim("then b")]),
+            new("WhenGetVersion", "", "ThenC", [Act("get"), Claim("then c")])))
+            .Is().EqualTo([
+                "## When get version",
+                "### Then c",
+                "## When add room",
+                "### Given no such room",
+                "#### Then a",
+                "### Given the room exists",
+                "#### Then b"]);
+
+    [Fact]
+    public void GivenOneBranchArrangesMore_ThenPlaceTheSimplerFirst()
+        => Headings(Render(
+            new("WhenGetRoom", "GivenAaa", "ThenA", [Act("get"), Condition("post"), Claim("then a")]),
+            new("WhenGetRoom", "GivenZzz", "ThenB", [Act("get"), Claim("then b")])))
+            .Is().EqualTo([
+                "## When get room",
+                "### Given zzz",
+                "#### Then b",
+                "### Given aaa",
+                "#### Then a"]);
+
+    [Fact]
+    public void GivenOneRequirementArrangesMore_ThenPlaceTheSimplerFirst()
+        => Headings(Render(
+            new("WhenGetRoom", "GivenX", "ThenA", [Act("get"), Condition("post"), Claim("then a")]),
+            new("WhenGetRoom", "GivenX", "ThenB", [Act("get"), Claim("then b")])))
+            .Is().EqualTo(["## When get room", "### Given x", "#### Then b", "#### Then a"]);
+
+    /// <summary>
+    /// Requirements that arrange alike are ordered by how much they claim, so a short status check
+    /// precedes one that inspects a whole value. Length only ever breaks a tie — it never overrides
+    /// arrangement, and it decides nothing above the leaf.
+    /// </summary>
+    [Fact]
+    public void GivenTwoRequirementsArrangeAlike_ThenPlaceTheShorterClaimFirst()
+        => Headings(Render(
+            new("WhenGetRoom", "GivenX", "ThenA", [Act("get"), Claim("then the whole room is returned")]),
+            new("WhenGetRoom", "GivenX", "ThenB", [Act("get"), Claim("then ok")])))
+            .Is().EqualTo(["## When get room", "### Given x", "#### Then b", "#### Then a"]);
+
+    /// <summary>
+    /// Assertions are not counted, and this is why: a suite grows by claiming more, and a document
+    /// that reshuffled every time it did would spend the diff it is reviewed for.
+    /// </summary>
+    [Fact]
+    public void GivenARequirementIsAdded_ThenLeaveTheOrderOfSubjectsAlone()
+    {
+        SpecificationEntry[] before = [
+            new("WhenAaa", "", "ThenA", [Act("aaa"), Condition("post"), Claim("then a")]),
+            new("WhenZzz", "", "ThenB", [Act("zzz"), Claim("then b")])];
+        SubjectHeadings(Render(before)).Is().EqualTo(["## When zzz", "## When aaa"]);
+        SubjectHeadings(Render([.. before, new("WhenZzz", "", "ThenC", [Act("zzz"), Claim("then c")])]))
+            .Is().EqualTo(["## When zzz", "## When aaa"]);
+    }
 }
