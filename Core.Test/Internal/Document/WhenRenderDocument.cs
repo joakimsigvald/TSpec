@@ -215,6 +215,13 @@ public class WhenRenderDocument : Spec
             .Contain("## When get room\n```\nSubject under test: HttpClient\nReturn type: HttpResponseMessage\nWhen get\n```")
             .and.Contain("## When add\n```\nSubject under test: int\nReturn type: int\nWhen add\n```");
 
+    /// <summary>Stated where it holds and not again below, since saying it once is the point.</summary>
+    [Fact]
+    public void GivenTheDocumentStatesTheTypes_ThenDoNotRepeatThemPerSubject()
+        => Render([.. TwoSubjects().Select(entry => entry with
+                { SubjectUnderTest = "HttpClient", ReturnType = "HttpResponseMessage" })])
+            .Split("Subject under test").Length.Is(2);
+
     [Fact]
     public void GivenTheSpecDeclaresNothing_ThenSayNothingAboutTypes()
         => Render(_respondOk).Does().not.Contain("Subject under test");

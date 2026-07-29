@@ -92,6 +92,29 @@ for `Having` it is the reverse, and that is correct: `README.md` states the rule
 .Having(C)` executes C → B → A), so a reader who needs the order has it, and the document should show
 the declarations rather than restate a rule the package already documents.
 
+**The document states the subject-under-test and return type**, at the highest heading where every
+requirement below agrees, per subject otherwise:
+
+```
+Subject under test: HttpClient
+Return type: HttpResponseMessage
+```
+
+Stated as labels, not phrased into a sentence: no one phrasing survives every spec, and
+`Spec<int>` over a static calculation defeats all of them. The consumer is a developer, and these two
+lines are what tie a requirement to the code it is about — worth their space rather than left to be
+inferred from context. They live inside the fence because a return type can contain `<` and `>`
+(§6). `Spec<T>` states the same type twice rather than earn a special case; the non-generic `Spec`
+declares neither and the lines are omitted.
+
+**This is document apparatus, not a step.** As a `SpecificationStep` it would enter every per-test
+specification too and move all 1400-odd pinned expectations; rendered beside the title and the
+provenance comment it costs nothing outside the document, which §3's one-renderer rule allows because
+it is structure around the text rather than another version of it. It stays out of
+`ComplexityNumber`, where it would cancel anyway. Reading it walks the *inheritance* chain for the
+closed `Spec<,>` — a different walk from the nesting one behind the headings (§6) — and must
+recognise the non-generic `Spec` first, since that is `Spec<object, object>`.
+
 **Sections are ordered by `ComplexityNumber`, simplest first** — don't go for the gold too early. A
 node's `ComplexityNumber` is the count of its own clauses in every phase but Assert — `Using`,
 `Given`, `When`, `Having`, `Until` — plus the sum of its children's. Ordering applies *within* a
@@ -244,6 +267,7 @@ that it returns platform-native endings, so that is not a bug to fix at the sour
 | Tags name themselves | `[CallerMemberName]` — `nameof(…)` is no longer needed for a tag declared as a field. Names must be unique within a test. |
 | Tag names normalized | `_roomNumber` renders as `RoomNumber`. |
 | Document layout | Title, provenance in a comment, subject → branch → requirement headings read as prose, shared clauses hoisted to the level that names them. |
+| Subject-under-test and return type stated | `Subject under test: HttpClient` / `Return type: HttpResponseMessage`, at the highest heading where they hold. Document-only — no per-test specification changed. |
 | Sections ordered by `ComplexityNumber` | Every level now reads simplest first — subjects, branches and requirements — instead of alphabetically. On MyHotel: version 1, add room 2, get room 2, list rooms 3. Requirements that arrange alike are then ordered by the length of what they claim; anything still tied falls back to the name. |
 | Line wrapping keeps expressions whole | A phrase too long for the rest of the line moves to the next line entire, where before it was split at the last break cue that fitted — `tap(…) returns` + `RetVal` is now `tap(…)` + `returns RetVal`. Nineteen expectations re-pinned. |
 
