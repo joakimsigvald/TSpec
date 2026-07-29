@@ -1,3 +1,4 @@
+using TSpec.Internal.Specification;
 using Xunit.Sdk;
 
 namespace TSpec.Internal.Document;
@@ -25,5 +26,26 @@ internal static class TestIdentity
             nesting.Add(type.Name);
         nesting.Reverse();
         return (nesting[0], string.Join(".", nesting.Skip(1)));
+    }
+
+    /// <summary>
+    /// The subject-under-test and return type the class declares, or null when it declares neither.
+    /// </summary>
+    /// <remarks>
+    /// This walks the inheritance chain, unlike <see cref="Locate"/>, because the types are what a
+    /// base class states rather than what the nesting expresses. The non-generic <c>Spec</c> is
+    /// <c>Spec&lt;object, object&gt;</c>, so it has to be recognised before the closed generic is
+    /// reached — otherwise a spec that declares no subject would claim one of type object.
+    /// </remarks>
+    internal static (string SubjectUnderTest, string ReturnType)? Declares(Type testClass)
+    {
+        for (var type = testClass; type is not null; type = type.BaseType)
+        {
+            if (type == typeof(Spec))
+                return null;
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Spec<,>))
+                return (type.GenericTypeArguments[0].Alias(), type.GenericTypeArguments[1].Alias());
+        }
+        return null;
     }
 }

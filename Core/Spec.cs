@@ -64,9 +64,11 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         var testClass = GetType();
         var requirement = TestIdentity.Requirement;
         var (subject, branch) = TestIdentity.Locate(testClass);
+        var declared = TestIdentity.Declares(testClass);
         SpecificationCollector.Record(
             ExpectedRequirements.Identity(testClass, requirement),
             new(subject, branch, requirement,
-                Pipeline.Specification.Steps, Pipeline.Specification.Because));
+                Pipeline.Specification.Steps, Pipeline.Specification.Because,
+                declared?.SubjectUnderTest, declared?.ReturnType));
     }
 }

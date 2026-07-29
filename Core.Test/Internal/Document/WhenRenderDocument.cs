@@ -192,6 +192,33 @@ public class WhenRenderDocument : Spec
         Render(requirements).Does().not.Contain("-->\n```");
     }
 
+    // ----------- What the spec declares about the code, stated where it holds
+
+    /// <summary>
+    /// The types ground the requirements in the code they describe, so they are stated rather than
+    /// phrased — a sentence would have to read well for every spec, and Spec&lt;int&gt; over a static
+    /// calculation defeats any of them.
+    /// </summary>
+    [Fact]
+    public void GivenEverySpecDeclaresTheSame_ThenStateItForTheDocument()
+        => Render(_respondOk with { SubjectUnderTest = "HttpClient", ReturnType = "HttpResponseMessage" })
+            .Does().Contain("-->\n```\nSubject under test: HttpClient\nReturn type: HttpResponseMessage\n");
+
+    [Fact]
+    public void GivenSpecsDeclareDifferently_ThenStateItForEachSubject()
+        => Render(
+            Requirement("WhenGetRoom", "ThenA", Act("get"), Claim("then a"))
+                with { SubjectUnderTest = "HttpClient", ReturnType = "HttpResponseMessage" },
+            Requirement("WhenAdd", "ThenB", Act("add"), Claim("then b"))
+                with { SubjectUnderTest = "int", ReturnType = "int" })
+            .Does()
+            .Contain("## When get room\n```\nSubject under test: HttpClient\nReturn type: HttpResponseMessage\nWhen get\n```")
+            .and.Contain("## When add\n```\nSubject under test: int\nReturn type: int\nWhen add\n```");
+
+    [Fact]
+    public void GivenTheSpecDeclaresNothing_ThenSayNothingAboutTypes()
+        => Render(_respondOk).Does().not.Contain("Subject under test");
+
     // ----------- Sections are ordered by how much arrangement they carry, simplest first
 
     /// The headings in the order they appear, which is all an ordering rule can be seen in.

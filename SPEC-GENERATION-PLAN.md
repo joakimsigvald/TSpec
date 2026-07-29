@@ -101,13 +101,16 @@ within the document, later folders and projects.
 **At the leaf, a tie breaks on the length of the rendered requirement**, then alphabetically. Most
 requirements of a branch arrange identically, so without it the leaf would be sorted by name, which
 says nothing; length at least puts the short status check before the one that inspects a whole value.
-It is a proxy for how much a requirement claims and it is only a tiebreak — it never overrides
-arrangement, and it decides nothing above the leaf, where sections are large enough that ordering by
-their size would be the churn the measure exists to avoid. Expect to replace it: length tracks
-spelling, not weight. MyHotel demonstrated both directions within an hour — `Then return no rooms`
-outranked `Then respond ok` while the status read `is HttpStatusCode.OK`, and they swapped back when
-a `using static` shortened it to `is OK`. Neither claim had changed. Elsewhere ties break
-alphabetically.
+It is only a tiebreak — it never overrides arrangement, and it decides nothing above the leaf, where
+sections are large enough that ordering by their size would be the churn the measure exists to avoid.
+
+Length measures what a reader must take in, which is what the ordering is for, so it is a good proxy
+for weight *to the extent the source is clean*. Noise inflates it, and that is a fault in the spec
+rather than in the measure: `Then return no rooms` outranked `Then respond ok` only while the status
+read `is HttpStatusCode.OK`, and a `using static` put them right. With both sides clean the order is
+correct on its merits — reading a body and asserting it is empty is a larger claim than checking a
+status. So the measure and the discipline reinforce each other, and a section that sorts oddly is
+first a question about the test that produced it. Elsewhere ties break alphabetically.
 
 The measure is arrangement, not size, and that is what makes it safe to sum upward. Assertions
 contribute nothing, so adding a requirement to an existing branch leaves every number in the tree
