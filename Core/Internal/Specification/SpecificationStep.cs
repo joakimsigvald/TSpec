@@ -64,6 +64,26 @@ internal enum StepLayout
 /// </summary>
 internal enum StepFamily { None, Using, Given, When, Having, Until, Then }
 
+/// The words a statement can open with, shared by the renderer that writes them and the document
+/// that drops one where it would be said twice.
+internal static class StepFamilies
+{
+    internal static string Keyword(this StepFamily family) => family switch
+    {
+        StepFamily.Using => "Using",
+        StepFamily.Given => "Given",
+        StepFamily.When => "When",
+        StepFamily.Having => "Having",
+        StepFamily.Until => "Until",
+        _ => "Then",
+    };
+
+    /// Every lead word there is — which is also every word a heading built from a test name can open
+    /// with, since <c>ThenRespondOk</c> reads "Then respond ok".
+    internal static IReadOnlyList<string> Keywords { get; } =
+        [.. Enum.GetValues<StepFamily>().Where(family => family != StepFamily.None).Select(Keyword)];
+}
+
 /// <summary>
 /// Which part of the test a clause belongs to, derived from its family. It is a
 /// property of a clause rather than of a step: a continuation such as

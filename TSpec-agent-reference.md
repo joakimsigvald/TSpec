@@ -131,7 +131,8 @@ Opt in with one line in the spec project; the document is written to the spec pr
 [assembly: AssemblyFixture(typeof(SpecificationDocument))]
 ```
 
-- Each passing requirement is rendered in a fenced block under `## Subject` → `### Given…` → `#### Then…` headings, read as prose (`WhenListRooms` → `## When list rooms`). Deduplicated, so theories contribute one entry and execution order never shows.
+- Headings read as prose (`WhenListRooms` → `## When list rooms`): `## Subject` → `### Given…`, then each passing requirement as a list item, its name in bold and its claim in a code span beside it. Deduplicated, so theories contribute one entry and execution order never shows.
+- One line of specification is written inline, several keep a fence (indented into the item when a requirement's own specification is more than its claim). No lead word is repeated where something above it already says it: a `When` heading is not followed by `When`, and a list item drops the `Then` its position states.
 - What every requirement below a heading opens with is stated once at that heading instead of repeated — including `Subject under test:` and `Return type:` from the spec's `Spec<TSUT, TResult>`, which sit at the highest heading where they hold. Assertions never move up.
 - Sections are ordered simplest first by how much arrangement each carries (its own `Using`/`Given`/`When`/`Having`/`Until` clauses plus its children's); ties fall back to the name, and among requirements to the length of the claim. Assertions are not counted, so adding one never reorders the document.
 - Written only when **every** non-skipped test in the assembly reported a pass. A filtered run, a failure, or a constructor that threw all leave the file untouched, with the missing requirements named. There is no "was anything red" flag — non-passing tests simply never report, so one set comparison covers every case.

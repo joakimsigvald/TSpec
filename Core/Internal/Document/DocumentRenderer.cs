@@ -27,23 +27,30 @@ internal static class DocumentRenderer
         var requirements = Distinct(entries).ToArray();
         var declared = Declaration(requirements);
         var whole = SharedOpening(requirements);
-        text.Append(HeadingBlock(declared, whole));
+        text.Append(HeadingBlock(declared, whole, stated: null));
 
         foreach (var subjectNode in Subjects(requirements, whole.Count))
         {
-            text.Append($"\n## {subjectNode.Key.AsHeading()}\n");
-            text.Append(HeadingBlock(declared is null ? subjectNode.Declaration : null, subjectNode.Shared));
+            var subjectHeading = subjectNode.Key.AsHeading();
+            text.Append($"\n## {subjectHeading}\n")
+                .Append(HeadingBlock(
+                    declared is null ? subjectNode.Declaration : null,
+                    subjectNode.Shared,
+                    StatedWord(subjectHeading)));
 
             foreach (var branch in subjectNode.Branches)
             {
                 if (branch.Key.Length > 0)
                 {
-                    text.Append($"\n### {branch.Key.AsHeading()}\n");
-                    text.Append(HeadingBlock(null, branch.Shared));
+                    var branchHeading = branch.Key.AsHeading();
+                    text.Append($"\n### {branchHeading}\n")
+                        .Append(HeadingBlock(null, branch.Shared, StatedWord(branchHeading)));
                 }
+                // A blank line opens the list, so no renderer has to decide whether a bullet may
+                // interrupt the line above it. It costs no height: a margin is there either way.
+                text.Append('\n');
                 foreach (var requirement in branch.Requirements)
-                    text.Append($"\n{RequirementHeading(branch.Key)} {requirement.Entry.Requirement.AsHeading()}\n"
-                        + Block(Render(requirement.Clauses, requirement.Entry.Because)));
+                    text.Append(Leaf(requirement));
             }
         }
         return text.ToString();
@@ -118,17 +125,45 @@ internal static class DocumentRenderer
         return requirements.All(requirement
                 => requirement.Entry.SubjectUnderTest == first.SubjectUnderTest
                 && requirement.Entry.ReturnType == first.ReturnType)
-            ? $"Subject under test: {first.SubjectUnderTest}\nReturn type: {first.ReturnType}"
+            // Two labels read as a pair, so their values are set in a column under one another.
+            ? $"{SubjectLabel} {first.SubjectUnderTest}\n"
+                + $"{ReturnLabel.PadRight(SubjectLabel.Length)} {first.ReturnType}"
             : null;
     }
 
-    /// The fenced block under a heading: what it declares, then the clauses hoisted to it. Nothing
-    /// to say means no fence at all, so a heading never opens an empty one.
-    private static string HeadingBlock(string? declaration, IReadOnlyList<SpecificationClause> shared)
+    private const string SubjectLabel = "Subject under test:";
+    private const string ReturnLabel = "Return type:";
+
+    /// The specification under a heading: what it declares, then the clauses hoisted to it. Nothing
+    /// to say means nothing is written at all, so a heading never opens an empty block.
+    private static string HeadingBlock(
+        string? declaration, IReadOnlyList<SpecificationClause> shared, string? stated)
     {
         string?[] parts = [declaration, shared.Count > 0 ? Render(shared, because: null) : null];
-        var body = string.Join("\n", parts.Where(part => !string.IsNullOrEmpty(part)));
-        return body.Length == 0 ? string.Empty : Block(body);
+        // A blank line between them, because they are not the same kind of statement: what a spec
+        // declares about the code is the document's own apparatus, and the clauses are specification.
+        var body = string.Join("\n\n", parts.Where(part => !string.IsNullOrEmpty(part)));
+        return body.Length == 0 ? string.Empty : Block(Without(stated, body));
+    }
+
+    /// <summary>
+    /// A requirement as an item of a list. It gets no heading of its own: a heading here would be a
+    /// fourth level, which renders at body size and so cannot be told from the third — and writing
+    /// one takes two elements whose four margins are most of the document's height. Items of a tight
+    /// list have no margins between them, and being a different kind of thing from the headings above
+    /// them is what lets those headings read as a hierarchy at all.
+    /// </summary>
+    private static string Leaf(Requirement requirement)
+    {
+        var name = requirement.Entry.Requirement.AsHeading();
+        // An item's place in the list is what says "then", so neither its label nor its claim says
+        // it. Only the opening word goes: what follows keeps its own, which is what orders it.
+        var label = Without(StatedWord(name), name);
+        var claim = Without(
+            StepFamily.Then.Keyword(), Render(requirement.Clauses, requirement.Entry.Because));
+        return claim.Contains('\n')
+            ? $"- **{label}**\n{Indent($"```\n{claim}\n```")}\n"
+            : $"- **{label}** — `{claim}`\n";
     }
 
     /// <summary>
@@ -181,14 +216,43 @@ internal static class DocumentRenderer
             .Render(clauses.SelectMany(clause => clause.Steps), because, new TextBuilder())
             .NormalizeLineEndings();
 
-    /// No blank line before the fence: a heading and an HTML comment are both leaf blocks that end
-    /// at their own line, so the fence opens correctly either way and the blank line renders as
-    /// nothing at all.
-    private static string Block(string specification) => $"```\n{specification}\n```\n";
+    /// <summary>
+    /// Specification text placed under a heading. One line goes inline, because a fence is an element
+    /// of its own and pays a margin above and below for text that needs neither; several lines keep
+    /// the fence, which is then what tells a reader there are several. Only the code is monospaced
+    /// either way — the prose around it is the document's, not the specification's.
+    /// </summary>
+    /// <remarks>
+    /// No blank line before it: a heading and an HTML comment are both leaf blocks that end at their
+    /// own line, so what follows opens a block of its own either way and the blank line would render
+    /// as nothing at all.
+    /// </remarks>
+    private static string Block(string specification)
+        => specification.Contains('\n')
+            ? $"```\n{specification}\n```\n"
+            : $"`{specification}`\n";
 
-    /// A requirement sits under its branch when it has one. A subject with no branches has nothing
-    /// to nest under, so its requirements stay a level up rather than skipping a heading level.
-    private static string RequirementHeading(string branch) => branch.Length == 0 ? "###" : "####";
+    /// A block inside a list item is indented to the item's own text, or it would end the list.
+    private static string Indent(string block)
+        => string.Join("\n", block.Split('\n').Select(line => $"  {line}"));
+
+    /// <summary>
+    /// The lead word a heading states, which is then the one word the specification beneath it does
+    /// not repeat: a heading reading "When add room" is not followed by "When ...".
+    /// </summary>
+    /// <remarks>
+    /// Only a block's opening word is ever dropped, and only when something above it says that same
+    /// word — a "Having" under a "Given" states something the heading did not, and further down the
+    /// lead words are the structure of the statements they open.
+    /// </remarks>
+    private static string? StatedWord(string heading)
+        => StepFamilies.Keywords.FirstOrDefault(
+            word => heading.StartsWith($"{word} ", StringComparison.Ordinal));
+
+    private static string Without(string? stated, string specification)
+        => stated is not null && specification.StartsWith($"{stated} ", StringComparison.Ordinal)
+            ? specification[(stated.Length + 1)..]
+            : specification;
 
     /// One requirement with its specification broken into clauses, as hoisting consumes them.
     /// The rendered text rides along as its identity, and as the last word on ordering when two

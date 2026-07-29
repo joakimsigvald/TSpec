@@ -83,17 +83,7 @@ internal static class SpecificationRenderer
         /// declared in, which the keyword itself has always implied.
         internal string? LeadWord(StepFamily family)
             => family == StepFamily.None ? null
-            : _started.Add(family) ? Keyword(family) : "and";
-
-        private static string Keyword(StepFamily family) => family switch
-        {
-            StepFamily.Using => "Using",
-            StepFamily.Given => "Given",
-            StepFamily.When => "When",
-            StepFamily.Having => "Having",
-            StepFamily.Until => "Until",
-            _ => "Then",
-        };
+            : _started.Add(family) ? family.Keyword() : "and";
 
         /// A service is named the first time it is spoken about, and again after
         /// any non-mock setup step has interrupted the run.

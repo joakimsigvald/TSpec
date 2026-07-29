@@ -44,21 +44,21 @@ public class WhenRenderDocument : Spec
             + "\n"
             + "### Given nothing\n"
             + "\n"
-            + "#### Then respond ok\n"
-            + "```\n"
-            + "Using owned CreateClient\n"
-            + "When api.GetAsync(\"/version\")\n"
-            + "Then Result.StatusCode is HttpStatusCode.OK\n"
-            + "```\n");
+            + "- **respond ok**\n"
+            + "  ```\n"
+            + "  Using owned CreateClient\n"
+            + "  When api.GetAsync(\"/version\")\n"
+            + "  Then Result.StatusCode is HttpStatusCode.OK\n"
+            + "  ```\n");
 
     /// <summary>
-    /// With no branch there is nothing to nest under, so the requirement stays a level up rather
-    /// than skipping one.
+    /// A requirement is an item of a list wherever it sits, so a subject with no branch loses a
+    /// level of nesting rather than a level of heading.
     /// </summary>
     [Fact]
-    public void GivenNoBranch_ThenHeadTheRequirementALevelUp()
+    public void GivenNoBranch_ThenListTheRequirementUnderTheSubject()
         => Render(_respondOk with { Branch = "" }).Does()
-            .Contain("## When get version\n\n### Then respond ok\n").and.not.Contain("####");
+            .Contain("## When get version\n\n- **respond ok**\n").and.not.Contain("###");
 
     /// <summary>Two requirements of one subject share a single subject heading.</summary>
     [Fact]
@@ -66,14 +66,14 @@ public class WhenRenderDocument : Spec
     {
         var document = Render(_respondOk, _respondOk with { Requirement = "ThenReturnVersion" });
         document.Split("## When get version").Length.Is(2);
-        document.Does().Contain("#### Then respond ok").and.Contain("#### Then return version");
+        document.Does().Contain("- **respond ok**").and.Contain("- **return version**");
         document.Split("### Given nothing\n").Length.Is(2);
     }
 
     [Fact]
     public void GivenEntriesOutOfOrder_ThenSortThem()
         => Render(_respondOk with { Requirement = "ThenB" }, _respondOk with { Requirement = "ThenA" })
-            .Does().Contain("#### Then a\n").and.Contain("#### Then b\n");
+            .Does().Contain("- **a**\n").and.Contain("- **b**\n");
 
     /// <summary>A theory reports once per case; identical text must not repeat in the document.</summary>
     [Fact]
@@ -84,9 +84,9 @@ public class WhenRenderDocument : Spec
     [Fact]
     public void ThenNormaliseLineEndingsToLf()
         => Render(_respondOk with { Steps = Sentences("when a", "then b") })
-            .Does().Contain("```\nWhen a\nThen b\n```").and.not.Contain("\r");
+            .Does().Contain("When a\n  Then b").and.not.Contain("\r");
 
-    // ----------- What every requirement of a group opens with is stated once for the group
+    // ----------- A heading states the context, and the requirements under it are a list
 
     private static SpecificationStep Using(string body)
         => new(StepLayout.SentenceOrPhrase) { Family = StepFamily.Using, Body = body };
@@ -106,6 +106,40 @@ public class WhenRenderDocument : Spec
         => new(subject, "", name, steps);
 
     /// <summary>
+    /// One statement under a heading is written inline, where a fence would be an element of its own
+    /// paying a margin above and below for a single line — and it drops the word the heading has
+    /// already said.
+    /// </summary>
+    [Fact]
+    public void GivenAHeadingStatesOneClause_ThenWriteItInlineWithoutTheWordItSaid()
+        => Render(
+            Requirement("WhenGetRoom", "ThenA", Act("get"), Claim("then a")),
+            Requirement("WhenAddRoom", "ThenB", Act("post"), Claim("then b")))
+            .Does().Contain("## When get room\n`get`\n");
+
+    /// <summary>
+    /// A requirement is an item of a list: its name reads the claim and the claim stands beside it,
+    /// neither of them saying the "then" that the item's place in the list says already.
+    /// </summary>
+    [Fact]
+    public void ThenWriteARequirementAsAListItem()
+        => Render(Requirement("WhenGetRoom", "ThenRespondOk", Act("get"), Claim("then Result is OK")))
+            .Does().Contain("- **respond ok** — `Result is OK`\n");
+
+    /// <summary>
+    /// A requirement that states more than its claim keeps the fence, indented into its own item so
+    /// that the list survives it — and keeps its lead words, which are what orders the statements.
+    /// </summary>
+    [Fact]
+    public void GivenARequirementStatesSeveralThings_ThenFenceThemInsideItsItem()
+        => Render(
+            Requirement("WhenGetRoom", "ThenA", Act("get"), Condition("post"), Claim("then a")),
+            Requirement("WhenGetRoom", "ThenB", Act("get"), Claim("then b")))
+            .Does().Contain("- **a**\n  ```\n  Having post\n  Then a\n  ```\n");
+
+    // ----------- What every requirement of a group opens with is stated once for the group
+
+    /// <summary>
     /// A condition shared by a branch's requirements belongs at the branch heading, which is the
     /// one place naming it agrees with what it says.
     /// </summary>
@@ -120,9 +154,9 @@ public class WhenRenderDocument : Spec
             OfBranch("GivenNoSuchRoom", "ThenC", Claim("then c")),
             OfBranch("GivenNoSuchRoom", "ThenD", Claim("then d")))
             .Does()
-            .Contain("### Given the room exists\n```\nHaving post\n```\n")
-            .and.Contain("#### Then a\n```\nThen a\n```\n")
-            .and.Contain("### Given no such room\n\n#### Then c\n");
+            .Contain("### Given the room exists\n`Having post`\n")
+            .and.Contain("- **a** — `a`\n")
+            .and.Contain("### Given no such room\n\n- **c** — `c`\n");
     }
 
     /// Two subjects that share their arrangement but each have their own action.
@@ -138,15 +172,15 @@ public class WhenRenderDocument : Spec
     [Fact]
     public void GivenEveryRequirementOpensAlike_ThenStateThatOnceForTheDocument()
         => Render(TwoSubjects()).Does()
-            .Contain("Do not edit by hand. -->\n```\nUsing api\n```\n\n## When add room");
+            .Contain("Do not edit by hand. -->\n`Using api`\n\n## When add room");
 
     /// <summary>Shared within one subject only, so it settles at that subject's heading.</summary>
     [Fact]
     public void GivenOneSubjectOpensAlike_ThenStateThatOnceForTheSubject()
         => Render(TwoSubjects()).Does()
-            .Contain("## When add room\n```\nWhen post\n```\n")
-            .and.Contain("## When get room\n```\nWhen get\n```\n")
-            .and.Contain("### Thena\n```\nThen a\n```\n");
+            .Contain("## When add room\n`post`\n")
+            .and.Contain("## When get room\n`get`\n")
+            .and.Contain("- **Thena** — `a`\n");
 
     /// <summary>
     /// An assertion is the claim a requirement exists to make. Two requirements agreeing on one
@@ -156,7 +190,7 @@ public class WhenRenderDocument : Spec
     public void GivenEveryRequirementClaimsTheSame_ThenStillStateItInEachBlock()
         => Render([.. new[] { "a", "b", "c" }.Select(name =>
                 Requirement("WhenGetRoom", $"Then{name}", Claim("then same"), Claim($"then {name}")))])
-            .Split("Then same").Length.Is(4);
+            .Split("same").Length.Is(4);
 
     /// <summary>
     /// A lone requirement shares nothing with anyone, but its context still belongs under the
@@ -166,21 +200,21 @@ public class WhenRenderDocument : Spec
     public void GivenASingleRequirement_ThenStillStateItsOpeningAbove()
         => Render(TwoSubjects()[..1]).Does()
             .Contain("-->\n```\nUsing api\nWhen get\n```\n")
-            .and.Contain("### Thena\n```\nThen a\n```\n");
+            .and.Contain("- **Thena** — `a`\n");
 
     /// <summary>Two are already repetition — the second saying it again is what makes it so.</summary>
     [Fact]
     public void GivenTwoRequirementsOpenAlike_ThenStateTheOpeningOnce()
         => Render(TwoSubjects()[..2]).Does()
             .Contain("-->\n```\nUsing api\nWhen get\n```\n")
-            .and.Contain("### Thena\n```\nThen a\n```\n");
+            .and.Contain("- **Thena** — `a`\n");
 
     [Fact]
     public void GivenOneRequirementOpensDifferently_ThenLeaveTheOpeningInPlace()
     {
         var requirements = TwoSubjects()[..3];
         requirements[2] = requirements[2] with { Steps = [Using("other"), Act("get"), Claim("then c")] };
-        Render(requirements).Does().not.Contain("-->\n```");
+        Render(requirements).Does().Contain("-->\n\n## ");
     }
 
     /// <summary>Hoisting must never empty a block, so a requirement that is only the opening blocks it.</summary>
@@ -189,7 +223,7 @@ public class WhenRenderDocument : Spec
     {
         var requirements = TwoSubjects()[..3];
         requirements[2] = requirements[2] with { Steps = [Using("api")] };
-        Render(requirements).Does().not.Contain("-->\n```");
+        Render(requirements).Does().Contain("-->\n\n## ");
     }
 
     // ----------- What the spec declares about the code, stated where it holds
@@ -202,7 +236,26 @@ public class WhenRenderDocument : Spec
     [Fact]
     public void GivenEverySpecDeclaresTheSame_ThenStateItForTheDocument()
         => Render(_respondOk with { SubjectUnderTest = "HttpClient", ReturnType = "HttpResponseMessage" })
-            .Does().Contain("-->\n```\nSubject under test: HttpClient\nReturn type: HttpResponseMessage\n");
+            .Does().Contain("-->\n```\nSubject under test: HttpClient\nReturn type:        HttpResponseMessage\n");
+
+    /// <summary>The two values are read as a pair, so they are set in a column under one another.</summary>
+    [Fact]
+    public void ThenLineUpTheDeclaredTypes()
+        => Render(_respondOk with { SubjectUnderTest = "int", ReturnType = "string" })
+            .Does().Contain("Subject under test: int\nReturn type:        string\n");
+
+    /// <summary>
+    /// What the spec declares is the document's own apparatus and the clauses are specification, so a
+    /// blank line keeps the two apart where a heading states both.
+    /// </summary>
+    [Fact]
+    public void GivenAHeadingStatesBoth_ThenSetTheTypesApartFromTheClauses()
+        => Render(
+            Requirement("WhenGetRoom", "ThenA", Act("get"), Claim("then a"))
+                with { SubjectUnderTest = "HttpClient", ReturnType = "HttpResponseMessage" },
+            Requirement("WhenAdd", "ThenB", Act("add"), Claim("then b"))
+                with { SubjectUnderTest = "int", ReturnType = "int" })
+            .Does().Contain("## When add\n```\nSubject under test: int\nReturn type:        int\n\nWhen add\n```");
 
     [Fact]
     public void GivenSpecsDeclareDifferently_ThenStateItForEachSubject()
@@ -212,8 +265,8 @@ public class WhenRenderDocument : Spec
             Requirement("WhenAdd", "ThenB", Act("add"), Claim("then b"))
                 with { SubjectUnderTest = "int", ReturnType = "int" })
             .Does()
-            .Contain("## When get room\n```\nSubject under test: HttpClient\nReturn type: HttpResponseMessage\nWhen get\n```")
-            .and.Contain("## When add\n```\nSubject under test: int\nReturn type: int\nWhen add\n```");
+            .Contain("## When get room\n```\nSubject under test: HttpClient\n")
+            .and.Contain("## When add\n```\nSubject under test: int\n");
 
     /// <summary>Stated where it holds and not again below, since saying it once is the point.</summary>
     [Fact]
@@ -228,12 +281,23 @@ public class WhenRenderDocument : Spec
 
     // ----------- Sections are ordered by how much arrangement they carry, simplest first
 
-    /// The headings in the order they appear, which is all an ordering rule can be seen in.
-    private static string[] Headings(string document)
-        => [.. document.Split('\n').Where(line => line.StartsWith("##", StringComparison.Ordinal))];
+    /// <summary>
+    /// The document's sections in the order they appear: each heading as it reads, and each
+    /// requirement by the label that names it, which is all an ordering rule can be seen in.
+    /// </summary>
+    private static string[] Outline(string document)
+        => [.. document.Split('\n')
+            .Where(line => line.StartsWith("##", StringComparison.Ordinal) || IsItem(line))
+            .Select(line => IsItem(line) ? Label(line) : line)];
+
+    private static bool IsItem(string line) => line.StartsWith("- **", StringComparison.Ordinal);
+
+    /// An item's label, without the claim standing beside it.
+    private static string Label(string item)
+        => item[..(item.IndexOf("**", 4, StringComparison.Ordinal) + 2)];
 
     private static string[] SubjectHeadings(string document)
-        => [.. Headings(document).Where(heading => heading.StartsWith("## ", StringComparison.Ordinal))];
+        => [.. document.Split('\n').Where(line => line.StartsWith("## ", StringComparison.Ordinal))];
 
     /// <summary>
     /// The alphabetically first subject is the one that arranges more, and it comes last — so the
@@ -241,37 +305,37 @@ public class WhenRenderDocument : Spec
     /// </summary>
     [Fact]
     public void GivenOneSubjectArrangesMore_ThenPlaceTheSimplerFirst()
-        => Headings(Render(
+        => Outline(Render(
             new("WhenAddRoom", "GivenNoSuchRoom", "ThenA", [Act("post"), Claim("then a")]),
             new("WhenAddRoom", "GivenTheRoomExists", "ThenB", [Act("post"), Condition("post"), Claim("then b")]),
             new("WhenGetVersion", "", "ThenC", [Act("get"), Claim("then c")])))
             .Is().EqualTo([
                 "## When get version",
-                "### Then c",
+                "- **c**",
                 "## When add room",
                 "### Given no such room",
-                "#### Then a",
+                "- **a**",
                 "### Given the room exists",
-                "#### Then b"]);
+                "- **b**"]);
 
     [Fact]
     public void GivenOneBranchArrangesMore_ThenPlaceTheSimplerFirst()
-        => Headings(Render(
+        => Outline(Render(
             new("WhenGetRoom", "GivenAaa", "ThenA", [Act("get"), Condition("post"), Claim("then a")]),
             new("WhenGetRoom", "GivenZzz", "ThenB", [Act("get"), Claim("then b")])))
             .Is().EqualTo([
                 "## When get room",
                 "### Given zzz",
-                "#### Then b",
+                "- **b**",
                 "### Given aaa",
-                "#### Then a"]);
+                "- **a**"]);
 
     [Fact]
     public void GivenOneRequirementArrangesMore_ThenPlaceTheSimplerFirst()
-        => Headings(Render(
+        => Outline(Render(
             new("WhenGetRoom", "GivenX", "ThenA", [Act("get"), Condition("post"), Claim("then a")]),
             new("WhenGetRoom", "GivenX", "ThenB", [Act("get"), Claim("then b")])))
-            .Is().EqualTo(["## When get room", "### Given x", "#### Then b", "#### Then a"]);
+            .Is().EqualTo(["## When get room", "### Given x", "- **b**", "- **a**"]);
 
     /// <summary>
     /// Requirements that arrange alike are ordered by how much they claim, so a short status check
@@ -280,10 +344,10 @@ public class WhenRenderDocument : Spec
     /// </summary>
     [Fact]
     public void GivenTwoRequirementsArrangeAlike_ThenPlaceTheShorterClaimFirst()
-        => Headings(Render(
+        => Outline(Render(
             new("WhenGetRoom", "GivenX", "ThenA", [Act("get"), Claim("then the whole room is returned")]),
             new("WhenGetRoom", "GivenX", "ThenB", [Act("get"), Claim("then ok")])))
-            .Is().EqualTo(["## When get room", "### Given x", "#### Then b", "#### Then a"]);
+            .Is().EqualTo(["## When get room", "### Given x", "- **b**", "- **a**"]);
 
     /// <summary>
     /// Assertions are not counted, and this is why: a suite grows by claiming more, and a document
