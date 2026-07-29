@@ -156,7 +156,9 @@ public class WhenSendReport : Spec<EmailService, SendResult>
 }
 ```
 
-The chain reads as one sentence: *having signed in, having configured SmtpSettings, when sending a Report, until the outbox is flushed, until disconnected.*
+The chain reads as one sentence — and the specification states the order the clauses run in, since
+setups run outward from the action: *having signed in, after configuring SmtpSettings, when sending a
+Report, until the outbox is flushed, before disconnecting.*
 
 ### 2.1 Preparation
 
@@ -198,6 +200,11 @@ Setup is executed in reverse order of declaration, right after the subject under
 
 Example:
 `When(A).Having(B).Having(C)` will result in the execution order: C -> B -> A.
+
+The specification says so too. Clauses are listed in the order they were declared, and consecutive
+setups are joined by **after** rather than "and" — so `Having B after C` states the order they ran in,
+where "and" would leave a reader to remember the rule or, worse, to assume the wrong one. `Until`
+clauses run in declaration order and are joined by **before** for the same reason.
 
 #### 2.2.2 Executing the Behavior Under Test
 The lambda provided with `When()` will be executed right after setup.

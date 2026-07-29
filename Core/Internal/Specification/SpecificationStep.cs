@@ -78,6 +78,21 @@ internal static class StepFamilies
         _ => "Then",
     };
 
+    /// <summary>
+    /// The word joining a clause to the one before it, once the family has said its keyword.
+    /// </summary>
+    /// <remarks>
+    /// Setups run last-declared-first and teardowns first-declared-first, so for those the joining
+    /// word states which: "Having b after a" is true of the order they run in, where "and" would
+    /// leave the reader to know the rule — or, worse, to assume the wrong one.
+    /// </remarks>
+    internal static string Binder(this StepFamily family) => family switch
+    {
+        StepFamily.Having => "after",
+        StepFamily.Until => "before",
+        _ => "and",
+    };
+
     /// Every lead word there is — which is also every word a heading built from a test name can open
     /// with, since <c>ThenRespondOk</c> reads "Then respond ok".
     internal static IReadOnlyList<string> Keywords { get; } =

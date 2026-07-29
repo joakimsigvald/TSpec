@@ -33,6 +33,14 @@ app.MapPost("/rooms", (Room room) =>
 app.MapGet("/rooms/{roomNumber}", (string roomNumber)
     => Find(roomNumber) is { } room ? Results.Ok(room) : Results.NotFound());
 
+app.MapDelete("/rooms/{roomNumber}", (string roomNumber) =>
+{
+    if (Find(roomNumber) is not { } room)
+        return Results.NotFound();
+    rooms.Remove(room);
+    return Results.NoContent();
+});
+
 app.Run();
 
 public record VersionInfo(string Version);

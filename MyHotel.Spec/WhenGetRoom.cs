@@ -25,4 +25,16 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
     {
         [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
     }
+
+    /// <summary>
+    /// Setups run last-declared-first, so the room is created before it is deleted.
+    /// </summary>
+    public class GivenTheRoomWasDeleted : WhenGetRoom
+    {
+        public GivenTheRoomWasDeleted()
+            => Having(api => api.DeleteAsync($"/rooms/{The(_roomNumber)}"))
+                .Having(api => api.PostAsJsonAsync("/rooms", new Room(The(_roomNumber), An<int>())));
+
+        [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
+    }
 }

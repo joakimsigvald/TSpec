@@ -37,7 +37,7 @@ public abstract class WhenGetStateAfterSetStateWithHavingDelay : Spec<DelayedSta
                   and Delay is 100
                 When _.State
                 Having waited the Wait ms
-                  and _.SetState(the State)
+                  after _.SetState(the State)
                 Then Result is the State
                 """);
         }

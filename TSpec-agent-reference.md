@@ -27,8 +27,8 @@ Full human documentation: [README.md](https://github.com/joakimsigvald/TSpec#rea
 | `Given<TModel>(m => m.X = 1)` / `Given((int i) => i + 1)` | Setup/transform generated values of a type | Applied most-recent-first |
 | `Using(value)` / `Using(() => value)` / `Using(tag)` | Register default value/factory for a type | Optional scope: `For.Input`, `For.Subject`, `For.All` (default); `owned: true` = pipeline disposes it on teardown |
 | `Using<TTarget>().From<TSource>()` | Type conversion for generation | See Conversions |
-| `Having(_ => _.Setup())` | Setup on the SUT before `When` | Reverse declaration order |
-| `Until(_ => _.Cleanup())` | Teardown after the test | Declaration order |
+| `Having(_ => _.Setup())` | Setup on the SUT before `When` | Reverse declaration order; consecutive setups render joined by `after`, so the text states the order they ran in |
+| `Until(_ => _.Cleanup())` | Teardown after the test | Declaration order; consecutive teardowns render joined by `before` |
 | `Then()` | Run pipeline, start assertion | `Then(because: "reason")` adds rationale (once per test) |
 | `Because(reason)` | Sugar for `Then(because: reason)` | `Because("...").Result.Is(...)` |
 | `Then().Result` | The captured return value | Assert with `.Is(...)` etc. |

@@ -28,7 +28,7 @@ public class HavingWhenUntil : Spec<MyStateService, int>
             """
             When _.Counter *= 2
             Having _.Counter = 3
-              and _.Counter = 5
+              after _.Counter = 5
             Then Result is 6
             """);
     }
@@ -47,7 +47,7 @@ public class HavingWhenUntil : Spec<MyStateService, int>
             """
             When _.Counter = 1
             Until _.Counter = 3
-              and _.Counter = 2
+              before _.Counter = 2
             Then Result is 1
             """);
     }

@@ -78,12 +78,12 @@ internal static class SpecificationRenderer
 
         internal void EndMockRun() => _currentMock = null;
 
-        /// A family says its word once and reads "and" from then on, so consecutive steps of one
-        /// kind become a single statement. The order they are listed in is the order they were
-        /// declared in, which the keyword itself has always implied.
+        /// A family says its word once and is joined by its binder from then on, so consecutive steps
+        /// of one kind become a single statement. They are listed in the order they were declared,
+        /// and the binder is what says how that stands to the order they run in.
         internal string? LeadWord(StepFamily family)
             => family == StepFamily.None ? null
-            : _started.Add(family) ? family.Keyword() : "and";
+            : _started.Add(family) ? family.Keyword() : family.Binder();
 
         /// A service is named the first time it is spoken about, and again after
         /// any non-mock setup step has interrupted the run.
