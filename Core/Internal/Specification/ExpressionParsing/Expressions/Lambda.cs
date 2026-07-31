@@ -17,6 +17,11 @@ internal sealed record Lambda(string Raw, IReadOnlyList<string> Params, Expr Bod
             ? new ParamRefAssign(rcv, m, a.Op, a.Value)
             : null;
 
+    /// Match <c>p =&gt; p with { … }</c>, where the copy is of the parameter itself and naming it
+    /// would say nothing. A <c>with</c> over anything else has a target worth describing.
+    public With? AsParamRefWith() =>
+        Body is With { Target: Identifier rcv } w && IsParamRef(rcv) ? w : null;
+
     /// Match <c>p =&gt; p.Method(args)</c>.
     public ParamRefCall? AsParamRefCall() =>
         Body is Call { Target: Member { Target: Identifier rcv } m } c && IsParamRef(rcv)

@@ -18,11 +18,13 @@ internal sealed class ValueDescriber : Describer
         {
             Lambda l when l.Params.Count <= 2 && l.AsParamRefAssign() is { } pa
                 => $"{pa.Target.Name} {pa.Op} {Describe(pa.Value)}",
-            Lambda l when l.Params.Count <= 1 && l.Body is With w => DescribeAll(w.Init),
+            Lambda l when l.Params.Count <= 1 && l.AsParamRefWith() is { } w => DescribeAll(w.Init),
             Lambda l when l.Params.Count <= 1 => Describe(l.Body),
             Lambda l => l.ToSource(),
             Assign a => $"{AssignTargetName(a.Target)} {a.Op} {Describe(a.Value)}",
-            With w => DescribeAll(w.Init),
+            // The copy is of something the reader was told about, so it is named: a value described
+            // by its changes alone is not the value, and "BedCount = any int" is not a room.
+            With w => $"{Describe(w.Target)} with {{ {DescribeAll(w.Init)} }}",
             TupleExpr t => $"({DescribeAll(t.Items)})",
             ArrayLit arr => $"[{DescribeAll(arr.Items)}]",
             Binary b => $"{Describe(b.Left)} {b.Op} {Describe(b.Right)}",

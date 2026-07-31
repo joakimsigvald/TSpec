@@ -5,20 +5,15 @@ namespace MyHotel.Spec;
 
 public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
 {
-    protected static readonly Tag<string> _roomNumber = new();
-
-    protected WhenGetRoom() => When(api => api.GetAsync($"/rooms/{The(_roomNumber)}"));
+    protected WhenGetRoom() => When(api => api.GetAsync($"/rooms/{A<Room>().RoomNumber}"));
 
     public class GivenTheRoomExists : WhenGetRoom
     {
-        public GivenTheRoomExists()
-            => Having(api => api.PostAsJsonAsync("/rooms", new Room(The(_roomNumber), An<int>())));
+        public GivenTheRoomExists() => Having(api => api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact] public void ThenRespondOk() => Result.StatusCode.Is(OK);
 
-        [Fact]
-        public async Task ThenReturnTheRoom()
-            => (await Result.Read<Room>()).Is(new Room(The(_roomNumber), The<int>()));
+        [Fact] public async Task ThenReturnTheRoom() => (await Result.Read<Room>()).Is(The<Room>());
     }
 
     public class GivenNoSuchRoom : WhenGetRoom
@@ -32,8 +27,8 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
     public class GivenTheRoomWasDeleted : WhenGetRoom
     {
         public GivenTheRoomWasDeleted()
-            => Having(api => api.DeleteAsync($"/rooms/{The(_roomNumber)}"))
-                .Having(api => api.PostAsJsonAsync("/rooms", new Room(The(_roomNumber), An<int>())));
+            => Having(api => api.DeleteAsync($"/rooms/{The<Room>().RoomNumber}"))
+                .Having(api => api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
     }

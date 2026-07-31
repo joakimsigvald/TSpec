@@ -27,6 +27,8 @@ public class WhenDescribe : Spec<string>
     [InlineData("i => $\"{2 * i}\"", "\"{2 * i}\"")]
     [InlineData("_ => _ with { Name = A<string>() }", "Name = a string")]
     [InlineData("_ => _ with { Name = A<string>(), Id = 1 }", "Name = a string, Id = 1")]
+    [InlineData("The<MyModel>() with { Name = A<string>() }", "the MyModel with { Name = a string }")]
+    [InlineData("_ => _.Inner with { Name = A<string>() }", "_.Inner with { Name = a string }")]
     [InlineData("A<MyModel?>", "a MyModel?")]
     [InlineData("The<TimeSpan>() / 2", "the TimeSpan / 2")]
     [InlineData("The<int>() + TheSecond<int>()", "the int + the second int")]
