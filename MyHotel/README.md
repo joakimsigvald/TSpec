@@ -47,6 +47,7 @@ generated file — review it in diffs, never edit it by hand. Its version comes 
 | `GET` | `/rooms` | `200` with every room in the order it was created; `[]` when there are none |
 | `POST` | `/rooms` | `201` with the room and a `Location` header; `409` if the room number is taken |
 | `GET` | `/rooms/{roomNumber}` | `200` with the room, or `404` |
+| `PUT` | `/rooms/{roomNumber}` | `200` with the updated room, or `404` |
 | `DELETE` | `/rooms/{roomNumber}` | `204` and the room is gone, or `404` |
 
 A room is `{ "roomNumber": "101", "bedCount": 2 }`. The room number is the identity: it appears in

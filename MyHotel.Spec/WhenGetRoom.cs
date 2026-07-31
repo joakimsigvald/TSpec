@@ -32,4 +32,19 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
 
         [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
     }
+
+    /// <summary>
+    /// Setups run last-declared-first, so the room is created before it is updated.
+    /// </summary>
+    public class GivenTheRoomWasUpdated : WhenGetRoom
+    {
+        public GivenTheRoomWasUpdated()
+            => Having(api => api.PutAsJsonAsync(
+                $"/rooms/{The<Room>().RoomNumber}", The<Room>() with { BedCount = ASecond<int>() }))
+                .Having(api => api.PostAsJsonAsync("/rooms", The<Room>()));
+
+        [Fact]
+        public async Task ThenReturnTheUpdatedRoom()
+            => (await Result.Read<Room>()).Is(The<Room>() with { BedCount = ASecond<int>() });
+    }
 }

@@ -33,6 +33,14 @@ app.MapPost("/rooms", (Room room) =>
 app.MapGet("/rooms/{roomNumber}", (string roomNumber)
     => Find(roomNumber) is { } room ? Results.Ok(room) : Results.NotFound());
 
+app.MapPut("/rooms/{roomNumber}", (string roomNumber, Room room) =>
+{
+    if (Find(roomNumber) is not { } existing)
+        return Results.NotFound();
+    rooms[rooms.IndexOf(existing)] = room;
+    return Results.Ok(room);
+});
+
 app.MapDelete("/rooms/{roomNumber}", (string roomNumber) =>
 {
     if (Find(roomNumber) is not { } room)
