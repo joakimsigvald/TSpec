@@ -14,7 +14,7 @@ public class WhenMockString : Spec<StaticStringService, string>
             Specification.Is(
                 """
                 Using a string
-                When _.GetValue()
+                When GetValue()
                 Then Result is the string
                 """);
         }
@@ -33,7 +33,7 @@ public class WhenMockString : Spec<StaticStringService, string>
                 """
                 Using value
                   and a string
-                When _.GetValue()
+                When GetValue()
                 Then Result is value
                 """);
         }

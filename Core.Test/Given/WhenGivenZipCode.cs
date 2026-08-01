@@ -14,7 +14,7 @@ public class WhenGivenZipCode : Spec<MyValueTypeModel, MyZipCode>
         Specification.Is(
             """
             Using a MyZipCode
-            When _.ZipCode
+            When ZipCode
             Then Result is the MyZipCode
               and Result.Primitive is not less than 0
                 and less than 100_000

@@ -15,7 +15,7 @@ public class WhenUsingFrom : Spec<MyService, int>
             """
             Using MarkerRepository from int
               and 123 for Subject
-            When _.GetNextId()
+            When GetNextId()
             Then Result is not 42
             """
             );
@@ -83,7 +83,7 @@ public class WhenUsingFromWithScope : Spec<MyService, int>
             """
             Using MarkerRepository from int for Input
               and 123 for Subject
-            When _.GetNextId()
+            When GetNextId()
             Then Result is not 42
             """
             );

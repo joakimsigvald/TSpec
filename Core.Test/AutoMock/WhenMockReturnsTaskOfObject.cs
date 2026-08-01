@@ -12,7 +12,7 @@ public class WhenMockReturnsTaskOfObject : Spec<MyValueIntService, object>
         Result.GetType().Is(typeof(object));
         Specification.Is(
             """
-            When _.GetObjectAsync()
+            When GetObjectAsync()
             Then Result.GetType() is typeof object
             """);
     }

@@ -16,7 +16,7 @@ public class WhenSomeOtherWithIndexedTransform : Spec<MyRetriever, MyModel[]>
         Specification.Is(
             $$$"""
             Using some other MyModel { (m, i) => m with { Id = i }, an int { 1 + i % 10 } }
-            When _.List()
+            When List()
             Then Result has count 'the int' = {{{The<int>()}}}
             Result has all (m, i) => m.Id == i
             """);

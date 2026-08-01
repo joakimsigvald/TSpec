@@ -15,7 +15,7 @@ public class WhenMockObjectWithSpecifiedPropertyValue : Spec<StaticObjectService
             Specification.Is(
                 """
                 Using a first MyObject { Age = 3 }
-                When _.GetValue()
+                When GetValue()
                 Then Result.Age is 3
                 """);
         }
@@ -27,7 +27,7 @@ public class WhenMockObjectWithSpecifiedPropertyValue : Spec<StaticObjectService
             Specification.Is(
                 """
                 Using a MyObject { Age = 3 }
-                When _.GetValue()
+                When GetValue()
                 Then the MyObject's Age is 3
                 """);
         }

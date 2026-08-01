@@ -19,6 +19,7 @@ internal class ActionPhrases(SpecificationRecording recording)
         => recording.Record(() => recording.Add(new(StepLayout.SentenceOrPhrase)
         {
             Family = family,
-            Body = expr.DescribeCall() ?? string.Empty,
+            // The subject is named beside the requirements, not in every clause it acts in.
+            Body = expr.DescribeCall(skipSubjectRef: true) ?? string.Empty,
         }));
 }

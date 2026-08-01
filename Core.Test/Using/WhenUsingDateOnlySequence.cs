@@ -97,7 +97,7 @@ public class WhenDateOnlySequenceSpecification : Spec<MyService, int>
         Specification.Is(
             """
             Using DateOnly from DateOnly starting at _start spaced 7
-            When _.GetNextId()
+            When GetNextId()
             Then Result is greater than 0
             """
             );

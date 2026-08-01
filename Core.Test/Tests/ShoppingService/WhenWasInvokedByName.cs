@@ -15,7 +15,7 @@ public class WhenPlaceOrderInvocationsByName : ShoppingServiceSpec<object>
         Then<IOrderService>(nameof(IOrderService.CreateOrder), Once);
         Specification.Is(
             """
-            When _.PlaceOrder(a ShoppingCart)
+            When PlaceOrder(a ShoppingCart)
             Then IOrderService.CreateOrder was invoked once
             """);
     }
@@ -26,7 +26,7 @@ public class WhenPlaceOrderInvocationsByName : ShoppingServiceSpec<object>
         Then<ILogger>(nameof(ILogger.Warning), Never);
         Specification.Is(
             """
-            When _.PlaceOrder(a ShoppingCart)
+            When PlaceOrder(a ShoppingCart)
             Then ILogger.Warning was not invoked
             """);
     }
@@ -38,7 +38,7 @@ public class WhenPlaceOrderInvocationsByName : ShoppingServiceSpec<object>
             .And<ILogger>(nameof(ILogger.Warning), Never);
         Specification.Is(
             """
-            When _.PlaceOrder(a ShoppingCart)
+            When PlaceOrder(a ShoppingCart)
             Then IOrderService.CreateOrder was invoked once
               and ILogger.Warning was not invoked
             """);
@@ -51,7 +51,7 @@ public class WhenPlaceOrderInvocationsByName : ShoppingServiceSpec<object>
             .And<IOrderService>(nameof(IOrderService.CreateOrder), AtMost(2));
         Specification.Is(
             """
-            When _.PlaceOrder(a ShoppingCart)
+            When PlaceOrder(a ShoppingCart)
             Then IOrderService was invoked once
               and IOrderService.CreateOrder was invoked AtMost(2)
             """);
@@ -80,7 +80,7 @@ public class WhenCreateCartInvocationsByName : Spec<Subjects.ShoppingService, Sh
         Then<IOrderService>(nameof(IOrderService.CreateOrder), Never);
         Specification.Is(
             """
-            When _.CreateCart(an int)
+            When CreateCart(an int)
             Then IOrderService.CreateOrder was not invoked
             """);
     }

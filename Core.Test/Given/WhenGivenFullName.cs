@@ -16,7 +16,7 @@ public class WhenGivenFullName : Spec<MyValueTypeModel, MyFullName>
         Specification.Is(
             """
             Using a MyFullName
-            When _.Name
+            When Name
             Then Result is the MyFullName
               and Result.Primitive.first.Primitive is not null or empty
               and Result.Primitive.middle.Primitive is not null or empty

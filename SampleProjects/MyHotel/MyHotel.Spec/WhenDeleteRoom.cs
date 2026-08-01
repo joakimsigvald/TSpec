@@ -5,11 +5,11 @@ namespace MyHotel.Spec;
 
 public abstract class WhenDeleteRoom : ApiSpec<HttpResponseMessage>
 {
-    protected WhenDeleteRoom() => When(api => api.DeleteAsync($"/rooms/{A<Room>().RoomNumber}"));
+    protected WhenDeleteRoom() => When(_ => _.Api.DeleteAsync($"/rooms/{A<Room>().RoomNumber}"));
 
     public class GivenTheRoomExists : WhenDeleteRoom
     {
-        public GivenTheRoomExists() => Having(api => api.PostAsJsonAsync("/rooms", The<Room>()));
+        public GivenTheRoomExists() => Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact] public void ThenRespondNoContent() => Result.StatusCode.Is(NoContent);
     }

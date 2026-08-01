@@ -86,7 +86,7 @@ public class WhenTimeOnlySequenceSpecification : Spec<MyService, int>
         Specification.Is(
             """
             Using TimeOnly from TimeOnly starting at _start spaced _step
-            When _.GetNextId()
+            When GetNextId()
             Then Result is greater than 0
             """
             );

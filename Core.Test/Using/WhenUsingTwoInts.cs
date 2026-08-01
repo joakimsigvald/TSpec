@@ -12,7 +12,7 @@ public class WhenUsingTwoInts : Spec<MyListService, List<int>>
         Specification.Is(
             """
             Using two int's ToList()
-            When _.List
+            When List
             Then Result has count 2
             """);
     }

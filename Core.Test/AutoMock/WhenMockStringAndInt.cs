@@ -14,7 +14,7 @@ public class WhenMockStringAndInt : Spec<StaticStringAndIntService, string>
             """
             Using a string
               and an int
-            When _.GetValue()
+            When GetValue()
             Then Result is "{the string}:{the int}"
             """);
     }
@@ -31,7 +31,7 @@ public class WhenMockStringAndInt : Spec<StaticStringAndIntService, string>
                 Using value
                   and a string
                   and an int
-                When _.GetValue()
+                When GetValue()
                 Then Result contains value
                 """);
         }
@@ -50,7 +50,7 @@ public class WhenMockStringAndInt : Spec<StaticStringAndIntService, string>
                 Using value
                   and a string
                   and an int
-                When _.GetValue()
+                When GetValue()
                 Then Result contains "{value}"
                 """);
         }

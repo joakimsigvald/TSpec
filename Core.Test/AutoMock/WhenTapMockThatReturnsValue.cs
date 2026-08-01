@@ -24,7 +24,7 @@ public class WhenTapMockThatReturnsValue : Spec<MyValueIntService, string>
             """
             Given IMyValueIntRepo.Get(the MyValueInt) tap(i => _tappedValue = i)
                   returns RetVal
-            When _.GetValue(a MyValueInt)
+            When GetValue(a MyValueInt)
             Then _tappedValue is the MyValueInt
             """);
     }

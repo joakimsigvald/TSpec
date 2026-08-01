@@ -13,7 +13,7 @@ public class WhenMockCustomStruct : Spec<StaticValueService, MyValue<int>>
             Then().Result.Is().Not(A<MyValue<int>>()).And(Result).Value.Is().Not(0);
             Specification.Is(
                 """
-                When _.GetValue()
+                When GetValue()
                 Then Result is not a MyValue<int>
                   and Result.Value is not 0
                 """);
@@ -29,7 +29,7 @@ public class WhenMockCustomStruct : Spec<StaticValueService, MyValue<int>>
             Specification.Is(
                 """
                 Using a MyValue<int>
-                When _.GetValue()
+                When GetValue()
                 Then Result is the MyValue<int>
                 """);
         }

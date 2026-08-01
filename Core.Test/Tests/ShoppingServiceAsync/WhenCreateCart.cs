@@ -20,7 +20,7 @@ public abstract class WhenCreateCart : Spec<Subjects.ShoppingServiceAsync, Shopp
             Specification.Is(
                 """
                 Using _id = 1
-                When _.CreateCart(_id)
+                When CreateCart(_id)
                 Then Result.Id is _id
                 """);
         }
@@ -37,7 +37,7 @@ public abstract class WhenCreateCart : Spec<Subjects.ShoppingServiceAsync, Shopp
             Specification.Is(
                 """
                 Using _id = 2
-                When _.CreateCart(_id)
+                When CreateCart(_id)
                 Then Result.Id is _id
                 """);
         }

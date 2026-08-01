@@ -19,7 +19,7 @@ public class WhenGivenSetupValue : Spec<MyService, DateTime>
             """
             Using a DateTime
             Given a DateTime is _now
-            When _.GetTime()
+            When GetTime()
             Then Result is _now
             """);
     }
@@ -37,7 +37,7 @@ public class WhenGivenSetupValue : Spec<MyService, DateTime>
             Using a DateTime
             Given a DateTime is _anotherTime
               and a DateTime is _now
-            When _.GetTime()
+            When GetTime()
             Then Result is _now
             """);
     }

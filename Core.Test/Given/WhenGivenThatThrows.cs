@@ -15,7 +15,7 @@ public class WhenGivenThatThrows : Spec<MyService, MyModel>
         Specification.Is(
             """
             Given IMyRepository.GetModel() throws NotFound
-            When _.GetModel()
+            When GetModel()
             Then throws NotFound
             """);
     }
@@ -29,7 +29,7 @@ public class WhenGivenThatThrows : Spec<MyService, MyModel>
         Specification.Is(
             """
             Given IMyRepository throws NotFound
-            When _.GetModel()
+            When GetModel()
             Then throws NotFound
             """);
     }
@@ -43,7 +43,7 @@ public class WhenGivenThatThrows : Spec<MyService, MyModel>
         Specification.Is(
             """
             Given IMyRepository.GetModel() throws a NotFound
-            When _.GetModel()
+            When GetModel()
             Then throws the NotFound
             """);
     }
@@ -57,7 +57,7 @@ public class WhenGivenThatThrows : Spec<MyService, MyModel>
         Specification.Is(
             """
             Given IMyRepository throws a NotFound
-            When _.GetModel()
+            When GetModel()
             Then throws the NotFound
             """);
     }
@@ -73,7 +73,7 @@ public class WhenGivenThatThrows : Spec<MyService, MyModel>
             """
             Using new Exception(a string)
             Given IMyRepository.GetModel() throws an Exception
-            When _.GetModel()
+            When GetModel()
             Then throws the Exception
               and throws Exception where _.Message is the string
             """);
@@ -88,7 +88,7 @@ public class WhenGivenThatThrows : Spec<MyService, MyModel>
         Specification.Is(
             """
             Given IMyRepository.GetModel() throws new Exception(a string)
-            When _.GetModel()
+            When GetModel()
             Then throws Exception that Message is the string
             """);
     }
@@ -102,7 +102,7 @@ public class WhenGivenThatThrows : Spec<MyService, MyModel>
         Specification.Is(
             """
             Given IMyRepository.GetModel() throws a NotFound
-            When _.GetModel()
+            When GetModel()
             Then throws NotFound where _.Message is the NotFound's Message
             """);
     }
@@ -116,7 +116,7 @@ public class WhenGivenThatThrows : Spec<MyService, MyModel>
         Specification.Is(
             """
             Given IMyRepository.GetModel() throws a NotFound
-            When _.GetModel()
+            When GetModel()
             Then throws NotFound where _.Message == the NotFound's Message
             """);
     }

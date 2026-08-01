@@ -57,7 +57,7 @@ public class AutoDispose
         spec.Specification.Is(
             """
             Using owned mySut
-            When _.GetValue()
+            When GetValue()
             Then
             """);
         spec.Dispose();
@@ -74,7 +74,7 @@ public class AutoDispose
         spec.Specification.Is(
             """
             Using owned mySut
-            When _.GetValue()
+            When GetValue()
             Then
             """);
         spec.Dispose();
@@ -95,7 +95,7 @@ public class AutoDispose
             """
             Using log for Subject
               and owned new OrderedDependency(log)
-            When _.GetValue()
+            When GetValue()
             Until log.Entries.Add("until")
             Then
             """);

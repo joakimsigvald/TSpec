@@ -12,7 +12,7 @@ public class WhenSUTHasUriArg : Spec<UriHolder, Uri>
         Then().Result.Is().Not(null!);
         Specification.Is(
             """
-            When _.Get()
+            When Get()
             Then Result is not null
             """);
     }
@@ -28,7 +28,7 @@ public class WhenSUTHasTimeSpanArg : Spec<TimeSpanHolder, TimeSpan>
         Then().Result.Is().Not(TimeSpan.Zero);
         Specification.Is(
             """
-            When _.Get()
+            When Get()
             Then Result is not TimeSpan.Zero
             """);
     }
@@ -44,7 +44,7 @@ public class WhenSUTHasDateTimeOffsetArg : Spec<DateTimeOffsetHolder, DateTimeOf
         Then().Result.Is().Not(default(DateTimeOffset));
         Specification.Is(
             """
-            When _.Get()
+            When Get()
             Then Result is not default DateTimeOffset
             """);
     }
@@ -60,7 +60,7 @@ public class WhenSUTHasGuidArg : Spec<GuidHolder, Guid>
         Then().Result.Is().Not(Guid.Empty);
         Specification.Is(
             """
-            When _.Get()
+            When Get()
             Then Result is not Guid.Empty
             """);
     }
@@ -76,7 +76,7 @@ public class WhenSUTHasMixedBclArgs : Spec<MixedBclHolder, string>
         Then().Result.Is().Not(null!);
         Specification.Is(
             """
-            When _.Describe()
+            When Describe()
             Then Result is not null
             """);
     }

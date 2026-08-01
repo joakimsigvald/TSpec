@@ -135,7 +135,7 @@ public class WhenDateTimeSequenceSpecification : Spec<MyService, int>
         Specification.Is(
             """
             Using DateTime from DateTime starting at _start spaced _step for Input
-            When _.GetNextId()
+            When GetNextId()
             Then Result is greater than 0
             """
             );

@@ -50,7 +50,7 @@ public class WhenFromFactorySpecification : Spec<MyService, int>
         Specification.Is(
             """
             Using int from () => 42 for Subject
-            When _.GetNextId()
+            When GetNextId()
             Then Result is 42
             """
             );

@@ -20,7 +20,7 @@ public abstract class WhenCreateCart : ShoppingServiceSpec<ShoppingCart>
             Specification.Is(
                 """
                 Using _id = 1
-                When _.CreateCart(_id)
+                When CreateCart(_id)
                 Then Result.Id is 1
                 """);
         }
@@ -32,7 +32,7 @@ public abstract class WhenCreateCart : ShoppingServiceSpec<ShoppingCart>
             Specification.Is(
                 """
                 Using _id = 1
-                When _.CreateCart(_id)
+                When CreateCart(_id)
                 Then Result.Id is not 2
                 """);
         }
@@ -49,7 +49,7 @@ public abstract class WhenCreateCart : ShoppingServiceSpec<ShoppingCart>
             Specification.Is(
                 """
                 Using _id = 2
-                When _.CreateCart(_id)
+                When CreateCart(_id)
                 Then Result.Id is 2
                 """);
         }

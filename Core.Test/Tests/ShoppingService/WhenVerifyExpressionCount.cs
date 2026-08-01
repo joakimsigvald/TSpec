@@ -16,7 +16,7 @@ public class WhenVerifyExpressionCountPlaceOrder : ShoppingServiceSpec<object>
         Then<IOrderService>(_ => _.CreateOrder(The<ShoppingCart>()), Once);
         Specification.Is(
             """
-            When _.PlaceOrder(a ShoppingCart)
+            When PlaceOrder(a ShoppingCart)
             Then IOrderService.CreateOrder(the ShoppingCart) was invoked once
             """);
     }
@@ -27,7 +27,7 @@ public class WhenVerifyExpressionCountPlaceOrder : ShoppingServiceSpec<object>
         Then<IOrderService>(_ => _.CreateOrder(The<ShoppingCart>()));
         Specification.Is(
             """
-            When _.PlaceOrder(a ShoppingCart)
+            When PlaceOrder(a ShoppingCart)
             Then IOrderService.CreateOrder(the ShoppingCart)
             """);
     }
@@ -43,7 +43,7 @@ public class WhenVerifyExpressionCountCreateCart : Spec<Subjects.ShoppingService
         Then<IOrderService>(_ => _.CreateOrder(The<ShoppingCart>()), Never);
         Specification.Is(
             """
-            When _.CreateCart(an int)
+            When CreateCart(an int)
             Then IOrderService.CreateOrder(the ShoppingCart) was not invoked
             """);
     }

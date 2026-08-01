@@ -1,6 +1,7 @@
 using System.Reflection;
 using MyHotel.Core;
 using MyHotel.Entry;
+using MyHotel.Infra;
 using Scalar.AspNetCore;
 
 var version = Assembly.GetExecutingAssembly()
@@ -12,6 +13,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddCore();
 builder.Services.AddEntry();
+builder.Services.AddInfra(builder.Configuration["RoomStore:Path"] ?? "rooms.json");
 
 var app = builder.Build();
 

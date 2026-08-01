@@ -36,7 +36,7 @@ public class WhenUsingConcreteInstanceOfInterface : Spec<MyService, int>
             """
             Using FakeRepository
               and 123 for Subject
-            When _.GetNextId()
+            When GetNextId()
             Then Result is 123
             """
             );
@@ -50,7 +50,7 @@ public class WhenUsingConcreteInstanceOfInterface : Spec<MyService, int>
             """
             Using FakeRepository for Subject
               and 123 for Subject
-            When _.GetNextId()
+            When GetNextId()
             Then Result is 123
             """
             );

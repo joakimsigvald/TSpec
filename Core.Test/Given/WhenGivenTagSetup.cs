@@ -19,7 +19,7 @@ public class WhenGivenTagSetup : Spec<MyService, MyModel>
             Using Model for Subject
             Given Model has Id = an int
               and Model has Name = a string
-            When _.GetModel()
+            When GetModel()
             Then Result.Name is the string
               and Result.Id is the int
             """);
@@ -37,7 +37,7 @@ public class WhenGivenTagSetup : Spec<MyService, MyModel>
             """
             Given Model has Name = a string, Id = an int
               and IMyRepository returns Model
-            When _.GetModel()
+            When GetModel()
             Then Result.Name is the string
               and Result.Id is the int
             """);

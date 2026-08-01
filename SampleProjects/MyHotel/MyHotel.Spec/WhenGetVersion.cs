@@ -4,7 +4,7 @@ namespace MyHotel.Spec;
 
 public class WhenGetVersion : ApiSpec<HttpResponseMessage>
 {
-    public WhenGetVersion() => When(api => api.GetAsync("/version"));
+    public WhenGetVersion() => When(_ => _.Api.GetAsync("/version"));
 
     [Fact] public void ThenRespondOk() => Result.StatusCode.Is(OK);
 

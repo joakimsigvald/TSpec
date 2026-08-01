@@ -4,7 +4,8 @@ Stage 1 of [TSpec-vision.md](TSpec-vision.md) §4: one `SPECIFICATION.md` per Sp
 from the specifications a green test run produces. Branch `specification-generator`, shipping in
 **2.0.0**.
 
-**State:** feature complete, dogfooded on `MyHotel.Spec` — full CRUD, 20 requirements, 105 lines.
+**State:** feature complete, dogfooded on `MyHotel.Spec` — full CRUD plus a restart, 22 requirements,
+111 lines.
 
 **Caveat:** every §3 decision was settled against one shape of test — a single `MyHotel/Program.cs`,
 CRUD, HTTP end-to-end. Decided-for-this-shape, not proven general; §9 lists what would test it.
@@ -238,6 +239,7 @@ User-facing, in order — the material for release notes:
 | Requirements are a list | Two heading levels, not four; one line inline, several fenced. Halved the MyHotel document. |
 | `Having` / `Until` binders | Setups read `after`, teardowns `before`. **Changes per-test text**, not only the document — 3 pins moved. |
 | `with` expressions name their target | `The<Room>() with { … }` rendered as its members alone, which is not a room. Erasure narrowed to `p => p with { … }`. Also fixes `_ => _.Inner with { … }` dropping `_.Inner`. |
+| Subject parameter elided | `When(_ => _.Api.Get("/x"))` renders `When Api.Get("/x")`; `++_.Counter` renders `++Counter`. `When`/`Having`/`Until` only, wherever the parameter heads a chain. Mock setups, `Given` setups and assertion predicates keep theirs. **Changes per-test text** — 291 expectations re-pinned. |
 
 Notable internals: the two-phase engine (§3) was the largest change and the enabler for the rest;
 `Expr.ToSource()` rebuilds an expression from the tree so erased keywords cannot return through a
@@ -275,10 +277,9 @@ parent's raw text; `ExpressionParser` → `ExpressionDescriber`, and
    time — the family restarts when a block starts. Not a regression ("and" was equally silent), not
    reachable in MyHotel today; the one gap §3's binder rule leaves open.
 
-Found 2026-08-01 in a `Core.Spec` run that has since been reverted with the decomposition it
-specified (§9). All three are facts about the renderer, not about that suite, and will reappear as
-soon as any spec has a non-`HttpClient` subject. All three are invisible in a single-subject HTTP
-document, which is why nothing before now could have caught them.
+Found 2026-08-01 in a `Core.Spec` run since reverted (§9). All three are facts about the renderer,
+not about that suite, and reappear as soon as any spec has a non-`HttpClient` subject. All three are
+invisible in a single-subject HTTP document, which is why nothing before now could catch them.
 
 8. **The declared return type drops reference-type nullability.** `Spec<RoomService, Room?>` renders
    `Return type: Room`, directly above a requirement reading `return no room — Result is null`. The
@@ -296,6 +297,46 @@ document, which is why nothing before now could have caught them.
     subject level and `Subject under test: RoomService` is stated five times. Hoisting each line to
     the highest heading where *it* holds would state the subject once at the top. The pair is padded
     into a column (§3), so splitting them also asks what the column means when one line has moved.
+
+Found 2026-08-01 in `MyHotel.Spec`, and since designed out of it rather than fixed.
+
+11. **One outlier costs every sibling its hoisting.** §5 rule 2 is exact-match with no partial
+    credit, so one section that differs unhoists the whole level. A restart spec with subject
+    `Hotel` rather than `HttpClient` pushed the four shared lines — the declared pair plus two
+    `Using` clauses — out of the document header and into all six HTTP sections: 105 lines became
+    141 for one added requirement. The rule behaves as specified; the question is whether "shared by
+    every entry" should become "shared by all but the few that say otherwise", with the dissenters
+    restating. Interacts with §8.10 — per-line hoisting would have kept `Return type` at the top,
+    since every section still agreed on it.
+
+    Resolved for MyHotel by making `Hotel` the subject of *every* black-box spec, which was the
+    better statement anyway: the thing under test is the application, and `HttpClient` is how it is
+    reached. That also deleted `Using owned api / and owned api.CreateClient` from the page — pure
+    mechanism, present only because a client needs disposing, where `Hotel` is constructed and
+    disposed by the pipeline. 22 requirements now render in 111 lines against the old 20 in 105.
+    **The gap is unfixed**; MyHotel simply no longer exhibits it.
+**Fixed 2026-08-01**, unlike 8–11.
+
+12. ~~**The subject-under-test receiver is never elided.**~~ Every clause used to name it —
+    `_.Restart()`, `_.Api.GetAsync(…)` — under a heading block already saying `Subject under test:
+    Hotel`. That was the one repetition §3 did not erase, and it also forced a naming decision that
+    should never have been the author's: `_` reads fine in code but rendered verbatim, so the page
+    said `_.Api.PostAsJsonAsync(…)`, a name identifying nothing; calling the parameter `hotel`
+    only traded one repetition for another. Eliding made the choice invisible, which is what showed
+    it belonged to rendering rather than to naming.
+
+    `SubjectElision` rewrites the parameter out of the lambda body before description, wherever it
+    heads a chain — arguments included, since `new(_.GetNextId(), _.GetConnectionString())` is the
+    subject doing two things and eliding one but not the other would read as two different sources.
+    A bare `_` passed as a value stays: it names the subject rather than something it did, and there
+    would be nothing left to render. `Raw` is recomputed per rewritten node, since describers fall
+    back to it.
+
+    Two things the change turned up. `Lambda.IsParamRef` treats `_` as a wildcard matching *any*
+    receiver, which is right for recognising the shape but wrong for eliding — `_ => MyService.Echo(…)`
+    calls a static class, and elision has to check the receiver really is the parameter. And `_`
+    outside `When`/`Having`/`Until` is not the subject: mock setups name their service, `Given` value
+    setups and `throws … where _.Message` keep theirs. 291 pinned expectations moved.
 
 ## 9. Widening MyHotel
 

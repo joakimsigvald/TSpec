@@ -15,7 +15,7 @@ public class WhenAnyNumberOf : Spec<MyRetriever, MyModel[]>
             Specification.Is(
                 """
                 Using any number of MyModel
-                When _.List()
+                When List()
                 Then Result has count 1
                 """);
         }
@@ -34,7 +34,7 @@ public class WhenAnyNumberOf : Spec<MyRetriever, MyModel[]>
                 Using any number of MyModel
                   and zero MyModel
                   and any number of MyModel
-                When _.List()
+                When List()
                 Then Result has count 0
                 """);
         }

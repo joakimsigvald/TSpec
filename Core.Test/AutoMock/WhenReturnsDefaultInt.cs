@@ -13,7 +13,7 @@ public class WhenReturnsDefaultInt : Spec<MyDefaultService, int>
         Specification.Is(
             """
             Given IDefaultRetriever.GetInt() returns default
-            When _.GetInt()
+            When GetInt()
             Then Result is 0
             """);
     }
@@ -29,7 +29,7 @@ public class WhenReturnsDefaultModel : Spec<MyDefaultService, MyModel>
         Specification.Is(
             """
             Given IDefaultRetriever.GetModel() returns default
-            When _.GetModel()
+            When GetModel()
             Then Result is null
             """);
     }

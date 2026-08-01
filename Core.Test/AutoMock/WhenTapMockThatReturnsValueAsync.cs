@@ -22,7 +22,7 @@ public class WhenTapMockThatReturnsValueAsync : Spec<MyValueIntService, string>
             """
             Given IMyValueIntRepo.GetAsync(the MyValueInt)
                   tap((int value) => _tappedValue = value) returns RetVal
-            When _.GetValueAsync(a MyValueInt)
+            When GetValueAsync(a MyValueInt)
             Then _tappedValue is the MyValueInt
             """);
     }
@@ -41,7 +41,7 @@ public class WhenTapMockThatReturnsValueAsync : Spec<MyValueIntService, string>
             """
             Given IMyValueIntRepo.SetAsync(the MyValueInt)
                   tap((int value) => _tappedValue = value) returns
-            When _.SetValueAsync(a MyValueInt)
+            When SetValueAsync(a MyValueInt)
             Then _tappedValue is the MyValueInt
             """);
     }
@@ -60,7 +60,7 @@ public class WhenTapMockThatReturnsValueAsync : Spec<MyValueIntService, string>
             """
             Given IMyValueIntRepo.GetAsync(the MyValueInt) returns "{2 * i}"
               and Get(the MyValueInt) returns "{3 * i}"
-            When _.GetValueAsync(a MyValueInt)
+            When GetValueAsync(a MyValueInt)
             Then Result is "{2 * the MyValueInt}"
             """);
     }
@@ -79,7 +79,7 @@ public class WhenTapMockThatReturnsValueAsync : Spec<MyValueIntService, string>
             """
             Given IMyValueIntRepo.GetAsync(the MyValueInt) returns "{2 * i}"
               and Get(the MyValueInt) returns "{3 * i}"
-            When _.GetValue(a MyValueInt)
+            When GetValue(a MyValueInt)
             Then Result is "{3 * the MyValueInt}"
             """);
     }

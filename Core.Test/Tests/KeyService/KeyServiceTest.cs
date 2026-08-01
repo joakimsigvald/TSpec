@@ -17,7 +17,7 @@ public class WhenKeyKey : KeyServiceSpec
         Result.A.Is().not.NullOrEmpty();
         Specification.Is(
             """
-            When _.GetKey()
+            When GetKey()
             Then Result.A is not null or empty
             """);
     }

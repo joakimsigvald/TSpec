@@ -13,7 +13,7 @@ public class WhenSUTHasIEnumerableArg : Spec<EnumerableHolder, IEnumerable<int>>
         Then().Result.Is().Not(null!);
         Specification.Is(
             """
-            When _.Get()
+            When Get()
             Then Result is not null
             """);
     }
@@ -29,7 +29,7 @@ public class WhenSUTHasIListArg : Spec<ListHolder, IList<string>>
         Then().Result.Is().Not(null!);
         Specification.Is(
             """
-            When _.Get()
+            When Get()
             Then Result is not null
             """);
     }
@@ -45,7 +45,7 @@ public class WhenSUTHasIDictionaryArg : Spec<DictionaryHolder, IDictionary<strin
         Then().Result.Is().Not(null!);
         Specification.Is(
             """
-            When _.Get()
+            When Get()
             Then Result is not null
             """);
     }
@@ -61,7 +61,7 @@ public class WhenSUTHasIReadOnlyListArg : Spec<ReadOnlyListHolder, IReadOnlyList
         Then().Result.Is().Not(null!);
         Specification.Is(
             """
-            When _.Get()
+            When Get()
             Then Result is not null
             """);
     }

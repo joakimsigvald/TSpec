@@ -14,7 +14,7 @@ public class WhenReturnsDefaultValue : Spec<MyValueIntService, string>
         Specification.Is(
             """
             Given IMyValueIntRepo returns a string
-            When _.GetValue(a MyValueInt)
+            When GetValue(a MyValueInt)
             Then Result is the string
             """);
     }
@@ -31,7 +31,7 @@ public class WhenReturnsDefaultValue : Spec<MyValueIntService, string>
             """
             Given Name is a string
               and IMyValueIntRepo returns Name
-            When _.GetValue(a MyValueInt)
+            When GetValue(a MyValueInt)
             Then Result is the string
             """);
     }
@@ -45,7 +45,7 @@ public class WhenReturnsDefaultValue : Spec<MyValueIntService, string>
         Specification.Is(
             """
             Given IMyValueIntRepo returns a string
-            When _.GetValueAsync(a MyValueInt)
+            When GetValueAsync(a MyValueInt)
             Then Result is the string
             """);
     }
@@ -62,7 +62,7 @@ public class WhenReturnsDefaultValue : Spec<MyValueIntService, string>
             """
             Given IMyValueIntRepo returns a string
               and GetAsync(the MyValueInt) returns a second string
-            When _.GetValueAsync(a MyValueInt)
+            When GetValueAsync(a MyValueInt)
             Then Result is the second string
             """);
     }

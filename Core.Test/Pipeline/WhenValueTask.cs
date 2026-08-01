@@ -18,7 +18,7 @@ public abstract class WhenValueTaskFunction : Spec<CounterService, int>
             Specification.Is(
                 """
                 Given ICounterStore.GetCount("a") returns 7
-                When _.IncrementAndGet("a")
+                When IncrementAndGet("a")
                 Then Result is 7
                 """);
         }
@@ -43,7 +43,7 @@ public abstract class WhenValueTaskFunction : Spec<CounterService, int>
                 """
                 Given ICounterStore.GetCount("a") first returns 1
                   and next returns 2
-                When _.IncrementAndGet("a")
+                When IncrementAndGet("a")
                 Then Result is 1
                 """);
         }
@@ -103,7 +103,7 @@ public abstract class WhenValueTaskFunction : Spec<CounterService, int>
             Specification.Is(
                 """
                 Given ICounterStore.GetCount("a") returns 7
-                When _.IncrementAndGet("a")
+                When IncrementAndGet("a")
                 Having set offset _
                 Until record offset _
                 Then Result is 17
@@ -123,7 +123,7 @@ public class WhenValueTaskAction : Spec<CounterService>
         Then<ICounterStore>(_ => _.Increment("a"));
         Specification.Is(
             """
-            When _.Increment("a")
+            When Increment("a")
             Then ICounterStore.Increment("a")
             """);
     }

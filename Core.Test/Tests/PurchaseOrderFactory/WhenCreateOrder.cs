@@ -22,7 +22,7 @@ public class WhenCreateOrder : PurchaseOrderFactorySpec<OrderRecord>
             Specification.Is(
                 """
                 Given that _checkout = new() { Basket = new() { Id = BasketId } }
-                When _.CreateOrder(_checkout)
+                When CreateOrder(_checkout)
                 Then Result.QuotationId is BasketId
                 """);
         }
@@ -34,7 +34,7 @@ public class WhenCreateOrder : PurchaseOrderFactorySpec<OrderRecord>
             Specification.Is(
                 """
                 Given that _checkout = new() { Basket = new() { Id = BasketId } }
-                When _.CreateOrder(_checkout)
+                When CreateOrder(_checkout)
                 Then Result.OrderNo is "{BasketId}"
                 """);
         }

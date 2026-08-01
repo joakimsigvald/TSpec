@@ -5,7 +5,7 @@ namespace MyHotel.Spec;
 
 public abstract class WhenListRooms : ApiSpec<HttpResponseMessage>
 {
-    protected WhenListRooms() => When(api => api.GetAsync("/rooms"));
+    protected WhenListRooms() => When(_ => _.Api.GetAsync("/rooms"));
 
     [Fact] public void ThenRespondOk() => Result.StatusCode.Is(OK);
 
@@ -18,8 +18,8 @@ public abstract class WhenListRooms : ApiSpec<HttpResponseMessage>
     public class GivenTwoRooms : WhenListRooms
     {
         public GivenTwoRooms()
-            => Having(api => api.PostAsJsonAsync("/rooms", ASecond<Room>()))
-                .Having(api => api.PostAsJsonAsync("/rooms", A<Room>()));
+            => Having(_ => _.Api.PostAsJsonAsync("/rooms", ASecond<Room>()))
+                .Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
 
         [Fact]
         public async Task ThenReturnBothRoomsInTheOrderTheyWereCreated()

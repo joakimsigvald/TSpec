@@ -14,7 +14,7 @@ public class WhenMockNTuple : Spec<StaticNTupleService, (int, string, int, float
             Specification.Is(
                 """
                 Using a (int, string, int, float)
-                When _.GetValue()
+                When GetValue()
                 Then Result is the (int, string, int, float)
                 """);
         }
@@ -33,7 +33,7 @@ public class WhenMockNTuple : Spec<StaticNTupleService, (int, string, int, float
                 """
                 Using (v1, v2, v3, v4)
                   and a (int, string, int, float)
-                When _.GetValue()
+                When GetValue()
                 Then Result is (v1, v2, v3, v4)
                 """);
         }

@@ -36,14 +36,24 @@ internal sealed class CallDescriber(bool skipSubjectRef) : Describer
     private string DescribeOneArgLambda(Lambda l)
     {
         if (l.AsParamRefCall() is { } pc)
-            return Prefixed(pc.Receiver, pc.Target.Name, $"({DescribeAll(pc.Args)})");
+            return Prefixed(pc.Receiver, l.Params[0], pc.Target.Name, $"({DescribeAll(pc.Args)})");
         if (l.AsParamRefAssign() is { } pa)
-            return Prefixed(pa.Receiver, pa.Target.Name, $" {pa.Op} {Value.Describe(pa.Value)}");
+            return Prefixed(
+                pa.Receiver, l.Params[0], pa.Target.Name, $" {pa.Op} {Value.Describe(pa.Value)}");
         if (_skipSubjectRef && l.Body is Unknown u && u.Raw.StartsWith(l.Params[0] + "."))
             return u.Raw[(l.Params[0].Length + 1)..];
-        return Value.Describe(l.Body);
+        return Value.Describe(
+            _skipSubjectRef ? SubjectElision.Elide(l.Body, l.Params[0]) : l.Body);
     }
 
-    private string Prefixed(Identifier receiver, string memberName, string suffix) =>
-        _skipSubjectRef ? $"{memberName}{suffix}" : $"{receiver.Name}.{memberName}{suffix}";
+    /// <summary>
+    /// Drops the receiver only where it is the lambda's own parameter. <c>AsParamRefCall</c> accepts
+    /// any receiver when the parameter is <c>_</c>, which is right for *matching* the shape but not
+    /// for eliding: <c>_ =&gt; MyService.Echo(…)</c> calls a static class the specification has to
+    /// keep naming, and <c>_</c> there is a subject the test never touches.
+    /// </summary>
+    private string Prefixed(Identifier receiver, string parameter, string memberName, string suffix)
+        => _skipSubjectRef && receiver.Name == parameter
+            ? $"{memberName}{suffix}"
+            : $"{receiver.Name}.{memberName}{suffix}";
 }

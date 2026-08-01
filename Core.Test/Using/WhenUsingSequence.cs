@@ -169,7 +169,7 @@ public class WhenSequenceSpecification : Spec<MyService, int>
         Specification.Is(
             """
             Using int from int starting at 100 spaced 10 for Subject
-            When _.GetNextId()
+            When GetNextId()
             Then Result is 100
             """
             );

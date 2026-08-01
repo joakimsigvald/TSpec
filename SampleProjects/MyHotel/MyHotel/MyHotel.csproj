@@ -24,6 +24,7 @@
 		<ProjectReference Include="..\Contract\Contract.csproj" />
 		<ProjectReference Include="..\Core\Core.csproj" />
 		<ProjectReference Include="..\Entry\Entry.csproj" />
+		<ProjectReference Include="..\Infra\Infra.csproj" />
 	</ItemGroup>
 
 </Project>

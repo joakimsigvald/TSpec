@@ -30,7 +30,7 @@ public class WhenGivenValue : Spec<MyService, MyModel>
             """
             Using new MyModel() { Name = a string }
             Given IMyRepository.GetModel() returns a MyModel
-            When _.GetModel()
+            When GetModel()
             Then Result.Name is the string
             """);
     }
@@ -44,7 +44,7 @@ public class WhenGivenValue : Spec<MyService, MyModel>
         Specification.Is(
             """
             Given IMyRepository.GetModel() returns a new MyModel() { Name = a string }
-            When _.GetModel()
+            When GetModel()
             Then Result.Name is the string
             """);
     }
@@ -59,7 +59,7 @@ public class WhenGivenValue : Spec<MyService, MyModel>
             """
             Using (MyModel?)null
             Given IMyRepository.GetModel() returns a MyModel
-            When _.GetModel()
+            When GetModel()
             Then Result is null
             """);
     }

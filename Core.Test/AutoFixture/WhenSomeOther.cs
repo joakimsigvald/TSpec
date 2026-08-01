@@ -15,7 +15,7 @@ public abstract class WhenSomeOther : Spec<MyRetriever, MyModel[]>
             Specification.Is(
                 """
                 Using some other MyModel
-                When _.List()
+                When List()
                 Then Result has count 2
                 """);
         }
@@ -32,7 +32,7 @@ public abstract class WhenSomeOther : Spec<MyRetriever, MyModel[]>
             Specification.Is(
 @"Using some other MyModel
   and one MyModel
-When _.List()
+When List()
 Then Result has one item that is the MyModel");
         }
     }
@@ -48,7 +48,7 @@ Then Result has one item that is the MyModel");
             Specification.Is(
 @"Using some other MyModel
   and three MyModel
-When _.List()
+When List()
 Then Result has count 3");
         }
     }
@@ -65,7 +65,7 @@ Then Result has count 3");
 @"Using some other MyModel
   and one MyModel
   and some MyModel
-When _.List()
+When List()
 Then Result has count 1");
         }
     }
@@ -82,7 +82,7 @@ Then Result has count 1");
 @"Using some other MyModel
   and two MyModel
   and some MyModel
-When _.List()
+When List()
 Then Result is two MyModel");
         }
     }

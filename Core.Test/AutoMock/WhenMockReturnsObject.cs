@@ -12,7 +12,7 @@ public class WhenMockReturnsObject : Spec<MyValueIntService, object>
         Result.GetType().Is(typeof(object));
         Specification.Is(
             """
-            When _.GetObject()
+            When GetObject()
             Then Result.GetType() is typeof object
             """);
     }

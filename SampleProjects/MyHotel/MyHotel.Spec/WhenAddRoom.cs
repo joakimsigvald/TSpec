@@ -5,7 +5,7 @@ namespace MyHotel.Spec;
 
 public abstract class WhenAddRoom : ApiSpec<HttpResponseMessage>
 {
-    protected WhenAddRoom() => When(api => api.PostAsJsonAsync("/rooms", A<Room>()));
+    protected WhenAddRoom() => When(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
 
     public class GivenNoSuchRoom : WhenAddRoom
     {
@@ -21,7 +21,7 @@ public abstract class WhenAddRoom : ApiSpec<HttpResponseMessage>
     public class GivenTheRoomAlreadyExists : WhenAddRoom
     {
         public GivenTheRoomAlreadyExists()
-            => Having(api => api.PostAsJsonAsync("/rooms", The<Room>() with { BedCount = Any<int>() }));
+            => Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>() with { BedCount = Any<int>() }));
 
         [Fact] public void ThenRespondConflict() => Result.StatusCode.Is(Conflict);
     }

@@ -12,7 +12,7 @@ public class WhenGivenArrayOfValues : Spec<MyService, IEnumerable<int>>
         Specification.Is(
             """
             Using two int
-            When _.GetIds()
+            When GetIds()
             Then Result is two int
             """);
     }
@@ -24,7 +24,7 @@ public class WhenGivenArrayOfValues : Spec<MyService, IEnumerable<int>>
         Specification.Is(
             """
             Given MyModel has Values = two int
-            When _.GetIds()
+            When GetIds()
             Then Result is empty
             """);
     }
@@ -38,7 +38,7 @@ public class WhenGivenArrayOfValues : Spec<MyService, IEnumerable<int>>
         Specification.Is(
             """
             Given MyModel has Values = two int
-            When _.GetModel().Values
+            When GetModel().Values
             Then Result is two int
             """);
     }
@@ -54,7 +54,7 @@ public class WhenGivenArrayOfValues : Spec<MyService, IEnumerable<int>>
             """
             Given MyModel has Values = some int
             Using one int
-            When _.GetModel().Values
+            When GetModel().Values
             Then Result is one int
             """);
     }
@@ -70,7 +70,7 @@ public class WhenGivenArrayOfValues : Spec<MyService, IEnumerable<int>>
             """
             Given MyModel has Values = any number of int
             Using two int
-            When _.GetModel().Values
+            When GetModel().Values
             Then Result is two int
             """);
     }
@@ -86,7 +86,7 @@ public class WhenGivenArrayOfValues : Spec<MyService, IEnumerable<int>>
             """
             Given MyModel has Values = some int
             Using zero int
-            When _.GetModel().Values
+            When GetModel().Values
             Then Result has count 2
             """);
     }
@@ -102,7 +102,7 @@ public class WhenGivenArrayOfValues : Spec<MyService, IEnumerable<int>>
             """
             Given MyModel has Values = many int
             Using zero int
-            When _.GetModel().Values
+            When GetModel().Values
             Then Result has count 3
             """);
     }

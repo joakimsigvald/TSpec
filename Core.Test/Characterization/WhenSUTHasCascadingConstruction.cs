@@ -12,7 +12,7 @@ public class WhenSUTHasMultiLevelConcreteDeps : Spec<CascadeRoot, CascadeLeaf>
         Then().Result.Is().Not(null!);
         Specification.Is(
             """
-            When _.GetLeaf()
+            When GetLeaf()
             Then Result is not null
             """);
     }
@@ -28,7 +28,7 @@ public class WhenSUTSharesMockedInterfaceAcrossDeps : Spec<MockShareSUT, bool>
         Then().Result.Is(true);
         Specification.Is(
             """
-            When _.DirectAndIndirectShareSameInstance()
+            When DirectAndIndirectShareSameInstance()
             Then Result is true
             """);
     }

@@ -17,7 +17,7 @@ public class WhenSetupMultipleMethodsOnMock : Spec<MyValueIntService, string>
             """
             Given IMyValueIntRepo.GetAsync(the MyValueInt) returns a string
               and Get(the MyValueInt) returns a second string
-            When _.GetValue(a MyValueInt)
+            When GetValue(a MyValueInt)
             Then Result is the second string
             """);
     }

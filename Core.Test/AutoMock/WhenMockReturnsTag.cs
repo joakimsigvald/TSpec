@@ -20,7 +20,7 @@ public class WhenMockReturnsTag : Spec<InterfaceService, int>
             """
             Given Value is _123
               and IMyService.GetValue() returns Value
-            When _.GetServiceValue()
+            When GetServiceValue()
             Then Result is _123
             """);
     }
@@ -39,7 +39,7 @@ public class WhenMockWithTag : Spec<InterfaceService>
         Specification.Is(
             """
             Given IMyService.SetValue(the Value) throws new ArgumentException()
-            When _.SetValue(the Value)
+            When SetValue(the Value)
             Then throws ArgumentException
             """);
     }
@@ -53,7 +53,7 @@ public class WhenMockWithTag : Spec<InterfaceService>
         Specification.Is(
             """
             Given IMyService.SetValue(the Value) throws ArgumentException
-            When _.SetValue(the Value)
+            When SetValue(the Value)
             Then throws ArgumentException
             """);
     }

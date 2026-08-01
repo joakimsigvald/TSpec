@@ -19,7 +19,7 @@ public class WhenGivenSUT : Spec<MyService, (int, string)>
             Using new MyService(an IMyRepository, new MySettings { ConnectionString = a
                   string }, DateTime.Now)
             Given IMyRepository.GetNextId() returns an int
-            When new(_.GetNextId(), _.GetConnectionString())
+            When new(GetNextId(), GetConnectionString())
             Then Result is (the int, the string)
             """);
     }

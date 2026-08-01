@@ -6,12 +6,12 @@ namespace MyHotel.Spec;
 public abstract class WhenUpdateRoom : ApiSpec<HttpResponseMessage>
 {
     protected WhenUpdateRoom()
-        => When(api => api.PutAsJsonAsync(
+        => When(_ => _.Api.PutAsJsonAsync(
             $"/rooms/{A<Room>().RoomNumber}", The<Room>() with { BedCount = ASecond<int>() }));
 
     public class GivenTheRoomExists : WhenUpdateRoom
     {
-        public GivenTheRoomExists() => Having(api => api.PostAsJsonAsync("/rooms", The<Room>()));
+        public GivenTheRoomExists() => Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact] public void ThenRespondOk() => Result.StatusCode.Is(OK);
 

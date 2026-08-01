@@ -16,7 +16,7 @@ public class WhenMany : Spec<MyRetriever, MyModel[]>
             Result.Is(Many<MyModel>());
             Specification.Is(
 @"Given many MyModel
-When _.List()
+When List()
 Then Result is many MyModel");
         }
 
@@ -26,7 +26,7 @@ Then Result is many MyModel");
             Result.Has().Count(3);
             Specification.Is(
 @"Given many MyModel
-When _.List()
+When List()
 Then Result has count 3");
         }
 
@@ -36,7 +36,7 @@ Then Result has count 3");
             Then(Many<MyModel>()).Is(Many<MyModel>());
             Specification.Is(
 @"Given many MyModel
-When _.List()
+When List()
 Then many MyModel is many MyModel");
         }
 
@@ -47,7 +47,7 @@ Then many MyModel is many MyModel");
             Specification.Is(
 """
 Given many MyModel
-When _.List()
+When List()
 Then "Hej" is "Hej"
 """);
         }
@@ -63,7 +63,7 @@ Then "Hej" is "Hej"
             Result.Is().Not(Three<MyModel>());
             Specification.Is(
 @"Given two MyModel
-When _.List()
+When List()
 Then Result is not three MyModel");
         }
 
@@ -73,7 +73,7 @@ Then Result is not three MyModel");
             Result.Has().Count(2);
             Specification.Is(
 @"Given two MyModel
-When _.List()
+When List()
 Then Result has count 2");
         }
 
@@ -83,7 +83,7 @@ Then Result has count 2");
             Then(TheThird<MyModel>()).Is(Three<MyModel>().Last());
             Specification.Is(
 @"Given two MyModel
-When _.List()
+When List()
 Then the third MyModel is three MyModel's Last()");
         }
 
@@ -93,7 +93,7 @@ Then the third MyModel is three MyModel's Last()");
             Then(Three<MyModel>()).Is().EqualTo(Three<MyModel>());
             Specification.Is(
 @"Given two MyModel
-When _.List()
+When List()
 Then three MyModel is equal to three MyModel");
         }
     }
@@ -108,7 +108,7 @@ Then three MyModel is equal to three MyModel");
             Result.Is().Not(Three<MyModel>());
             Specification.Is(
 @"Given four MyModel
-When _.List()
+When List()
 Then Result is not three MyModel");
         }
 
@@ -118,7 +118,7 @@ Then Result is not three MyModel");
             Result.Has().Count(4);
             Specification.Is(
 @"Given four MyModel
-When _.List()
+When List()
 Then Result has count 4");
         }
 
@@ -128,7 +128,7 @@ Then Result has count 4");
             Then(Three<MyModel>()).Is().EqualTo(Three<MyModel>());
             Specification.Is(
 @"Given four MyModel
-When _.List()
+When List()
 Then three MyModel is equal to three MyModel");
         }
     }
@@ -144,7 +144,7 @@ Then three MyModel is equal to three MyModel");
                 """
                 Using two MyModel
                 Given IMyRepository.List() returns many MyModel
-                When _.List()
+                When List()
                 Then Result has count 2
                 """);
         }
@@ -160,7 +160,7 @@ Then three MyModel is equal to three MyModel");
             Specification.Is(
 @"Using four MyModel
 Given IMyRepository.List() returns many MyModel
-When _.List()
+When List()
 Then Result has count 4");
         }
     }
@@ -175,7 +175,7 @@ Then Result has count 4");
             Specification.Is(
 @"Using one MyModel
 Given IMyRepository.List() returns many MyModel
-When _.List()
+When List()
 Then Result has count 3");
         }
     }
@@ -196,7 +196,7 @@ public class WhenMockReturnsFewerElementsThanPreviouslyMentioned : Spec<MyRetrie
         Specification.Is(
 @"Using 3
 Given IMyRepository.Create(three MyModel's Length) returns two MyModel
-When _.Create(an int)
+When Create(an int)
 Then Result has count 2");
     }
 }

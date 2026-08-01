@@ -14,7 +14,7 @@ public class WhenMockFuncOfDateTime : Spec<DateService, DateTime>
             Then().Result.Is().Not(The<DateTime>()).And(Result).Ticks.Is().Not(0);
             Specification.Is(
                 """
-                When _.GetNow()
+                When GetNow()
                 Then Result is not the DateTime
                   and Result.Ticks is not 0
                 """);
@@ -30,7 +30,7 @@ public class WhenMockFuncOfDateTime : Spec<DateService, DateTime>
             Specification.Is(
                 """
                 Using a DateTime
-                When _.GetNow()
+                When GetNow()
                 Then Result is the DateTime
                 """);
         }

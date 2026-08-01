@@ -22,7 +22,7 @@ public class WhenTapMock : Spec<MyValueIntService, string>
             """
             Given IMyValueIntRepo.Get(the MyValueInt) tap(i => _tappedValue = i)
                   returns RetVal
-            When _.GetValue(a MyValueInt)
+            When GetValue(a MyValueInt)
             Then _tappedValue is the MyValueInt
             """);
     }
@@ -40,7 +40,7 @@ public class WhenTapMock : Spec<MyValueIntService, string>
         Specification.Is(
             """
             Given IMyValueIntRepo.Set(the MyValueInt) tap(i => _tappedValue = i) returns
-            When _.SetValue(a MyValueInt)
+            When SetValue(a MyValueInt)
             Then _tappedValue is the MyValueInt
             """);
     }

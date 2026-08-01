@@ -3,40 +3,44 @@ using MyHotel.Contract;
 namespace MyHotel.Core;
 
 /// <summary>
-/// Rooms held in a list, because they are listed in the order they were created. Nothing here
-/// actually waits — the methods are async because the interface is, so that a real store can
-/// replace this one without the endpoints changing.
+/// Rooms are kept in the order they were created, which is the order the store returns them in.
 /// </summary>
-public class RoomService : IRoomService
+public class RoomService(IRoomStore store) : IRoomService
 {
-    private readonly List<Room> _rooms = [];
+    public async Task<IReadOnlyList<Room>> List() => await store.Load();
 
-    public Task<IReadOnlyList<Room>> List() => Task.FromResult<IReadOnlyList<Room>>(_rooms);
+    public async Task<Room> Get(string roomNumber) => Existing(await store.Load(), roomNumber);
 
-    public Task<Room> Get(string roomNumber) => Task.FromResult(Existing(roomNumber));
-
-    public Task<Room> Add(Room room)
+    public async Task<Room> Add(Room room)
     {
-        if (Find(room.RoomNumber) is not null)
+        var rooms = await Rooms();
+        if (Find(rooms, room.RoomNumber) is not null)
             throw new RoomAlreadyExists(room.RoomNumber);
-        _rooms.Add(room);
-        return Task.FromResult(room);
+        rooms.Add(room);
+        await store.Save(rooms);
+        return room;
     }
 
-    public Task<Room> Update(string roomNumber, Room room)
+    public async Task<Room> Update(string roomNumber, Room room)
     {
-        _rooms[_rooms.IndexOf(Existing(roomNumber))] = room;
-        return Task.FromResult(room);
+        var rooms = await Rooms();
+        rooms[rooms.IndexOf(Existing(rooms, roomNumber))] = room;
+        await store.Save(rooms);
+        return room;
     }
 
-    public Task Delete(string roomNumber)
+    public async Task Delete(string roomNumber)
     {
-        _rooms.Remove(Existing(roomNumber));
-        return Task.CompletedTask;
+        var rooms = await Rooms();
+        rooms.Remove(Existing(rooms, roomNumber));
+        await store.Save(rooms);
     }
 
-    private Room Existing(string roomNumber)
-        => Find(roomNumber) ?? throw new RoomNotFound(roomNumber);
+    private async Task<List<Room>> Rooms() => [.. await store.Load()];
 
-    private Room? Find(string roomNumber) => _rooms.Find(room => room.RoomNumber == roomNumber);
+    private static Room Existing(IEnumerable<Room> rooms, string roomNumber)
+        => Find(rooms, roomNumber) ?? throw new RoomNotFound(roomNumber);
+
+    private static Room? Find(IEnumerable<Room> rooms, string roomNumber)
+        => rooms.FirstOrDefault(room => room.RoomNumber == roomNumber);
 }

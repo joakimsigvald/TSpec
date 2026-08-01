@@ -18,7 +18,7 @@ public class WhenMockReturnsValue_GivenImplicitlyCastPrimitive : Spec<MyValueInt
         Specification.Is(
             """
             Given IMyValueIntRepo.Get(the MyValueInt) returns RetVal
-            When _.GetValue(a MyValueInt)
+            When GetValue(a MyValueInt)
             Then Result is RetVal
             """);
     }

@@ -88,7 +88,7 @@ public class WhenDateTimeOffsetSequenceSpecification : Spec<MyService, int>
         Specification.Is(
             """
             Using DateTimeOffset from DateTimeOffset starting at _start spaced _step
-            When _.GetNextId()
+            When GetNextId()
             Then Result is greater than 0
             """
             );

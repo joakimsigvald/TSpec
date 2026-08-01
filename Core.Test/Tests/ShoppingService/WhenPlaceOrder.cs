@@ -19,7 +19,7 @@ public class WhenPlaceOrder : ShoppingServiceSpec<object>
         Specification.Is(
             """
             Using shopId
-            When _.PlaceOrder(a ShoppingCart)
+            When PlaceOrder(a ShoppingCart)
             Then IOrderService.CreateOrder(the ShoppingCart)
               and ILogger.ForContext("ShopId", shopId)
             """);
@@ -34,7 +34,7 @@ public class WhenPlaceOrder : ShoppingServiceSpec<object>
         Specification.Is(
             """
             Using (a string, a second string)
-            When _.PlaceOrder(a ShoppingCart)
+            When PlaceOrder(a ShoppingCart)
             Then ILogger.Information(It.Is<string>(s.Contains(a string) && s.Contains(a
                   second string)))
             """);

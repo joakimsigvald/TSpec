@@ -14,7 +14,7 @@ public class GivenOneSpecificElement : WhenList
         Specification.Is(
 @"Given one MyModel is _theModel
   and IMyRepository.List() returns a MyModel[]
-When _.List()
+When List()
 Then Result has one item that is _theModel");
     }
 }
@@ -30,7 +30,7 @@ public class GivenOneElement : WhenList
         Specification.Is(
 @"Given one MyModel
   and IMyRepository.List() returns a MyModel[]
-When _.List()
+When List()
 Then Result is the MyModel[]");
     }
 
@@ -41,7 +41,7 @@ Then Result is the MyModel[]");
         Specification.Is(
 @"Given one MyModel
   and IMyRepository.List() returns a MyModel[]
-When _.List()
+When List()
 Then Result has count 1");
     }
 
@@ -52,7 +52,7 @@ Then Result has count 1");
         Specification.Is(
 @"Given one MyModel
   and IMyRepository.List() returns a MyModel[]
-When _.List()
+When List()
 Then Result.Single() is the MyModel");
     }
 }
@@ -69,7 +69,7 @@ public class GivenOneElementWithSetup : WhenList
         Specification.Is(
 @"Given one MyModel has Name = a string
   and IMyRepository.List() returns a MyModel[]
-When _.List()
+When List()
 Then Result.Single().Name is the string");
     }
 }
@@ -86,7 +86,7 @@ public class GivenOneElementWithTransform : WhenList
         Specification.Is(
 @"Given one MyModel has Name = a string
   and IMyRepository.List() returns a MyModel[]
-When _.List()
+When List()
 Then Result.Single().Name is the string");
     }
 }

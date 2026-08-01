@@ -5,11 +5,11 @@ namespace MyHotel.Spec;
 
 public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
 {
-    protected WhenGetRoom() => When(api => api.GetAsync($"/rooms/{A<Room>().RoomNumber}"));
+    protected WhenGetRoom() => When(_ => _.Api.GetAsync($"/rooms/{A<Room>().RoomNumber}"));
 
     public class GivenTheRoomExists : WhenGetRoom
     {
-        public GivenTheRoomExists() => Having(api => api.PostAsJsonAsync("/rooms", The<Room>()));
+        public GivenTheRoomExists() => Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact] public void ThenRespondOk() => Result.StatusCode.Is(OK);
 
@@ -27,8 +27,8 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
     public class GivenTheRoomWasDeleted : WhenGetRoom
     {
         public GivenTheRoomWasDeleted()
-            => Having(api => api.DeleteAsync($"/rooms/{The<Room>().RoomNumber}"))
-                .Having(api => api.PostAsJsonAsync("/rooms", The<Room>()));
+            => Having(_ => _.Api.DeleteAsync($"/rooms/{The<Room>().RoomNumber}"))
+                .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
     }
@@ -39,12 +39,27 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
     public class GivenTheRoomWasUpdated : WhenGetRoom
     {
         public GivenTheRoomWasUpdated()
-            => Having(api => api.PutAsJsonAsync(
+            => Having(_ => _.Api.PutAsJsonAsync(
                 $"/rooms/{The<Room>().RoomNumber}", The<Room>() with { BedCount = ASecond<int>() }))
-                .Having(api => api.PostAsJsonAsync("/rooms", The<Room>()));
+                .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact]
         public async Task ThenReturnTheUpdatedRoom()
             => (await Result.Read<Room>()).Is(The<Room>() with { BedCount = ASecond<int>() });
+    }
+
+    /// <summary>
+    /// Setups run last-declared-first, so the room is added before the application is restarted.
+    /// Nothing is carried over in memory, so whatever answers afterwards was read back from storage.
+    /// </summary>
+    public class GivenTheApplicationWasRestarted : WhenGetRoom
+    {
+        public GivenTheApplicationWasRestarted()
+            => Having(_ => _.Restart())
+                .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
+
+        [Fact] public void ThenRespondOk() => Result.StatusCode.Is(OK);
+
+        [Fact] public async Task ThenReturnTheRoom() => (await Result.Read<Room>()).Is(The<Room>());
     }
 }

@@ -16,7 +16,7 @@ public class WhenWasInvokedDeprecated : ShoppingServiceSpec<object>
         Then<IOrderService>().WasInvoked(Once);
         Specification.Is(
             """
-            When _.PlaceOrder(a ShoppingCart)
+            When PlaceOrder(a ShoppingCart)
             Then IOrderService was invoked once
             """);
     }

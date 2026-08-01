@@ -29,7 +29,7 @@ public abstract class WhenCallAsyncFunctionTwice : Spec<InterfaceService, int>
             Specification.Is(
                 """
                 Given IMyService.GetValueAsync() returns 1
-                When try get _ + _.GetServiceValueAsync()
+                When try get _ + GetServiceValueAsync()
                 Then Result is 2
                 """);
         }
@@ -48,7 +48,7 @@ public abstract class WhenCallAsyncFunctionTwice : Spec<InterfaceService, int>
                 """
                 Given IMyService.GetValueAsync() first returns 1
                   and next returns 2
-                When try get _ + _.GetServiceValueAsync()
+                When try get _ + GetServiceValueAsync()
                 Then Result is 3
                 """);
         }
@@ -71,7 +71,7 @@ public abstract class WhenCallAsyncFunctionTwice : Spec<InterfaceService, int>
                 Given IMyService.GetValueAsync() first returns 1
                   and next throws an ArgumentException
                   and next returns
-                When try get _ + _.GetServiceValueAsync()
+                When try get _ + GetServiceValueAsync()
                 Then throws the ArgumentException
                 """);
         }
@@ -90,7 +90,7 @@ public abstract class WhenCallAsyncFunctionTwice : Spec<InterfaceService, int>
                 """
                 Given IMyService.GetValueAsync() first throws an ArgumentException
                   and next returns an int
-                When try get _ + _.GetServiceValueAsync()
+                When try get _ + GetServiceValueAsync()
                 Then Result is the int
                 """);
         }

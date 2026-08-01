@@ -14,7 +14,7 @@ public class WhenUsingConcreteForInterface_NoGiven : Spec<GreeterUser, string>
         Specification.Is(
             """
             Using new StaticGreeter()
-            When _.Greet()
+            When Greet()
             Then Result is "static-hello"
             """);
     }
@@ -33,7 +33,7 @@ public class WhenGivenThatForInterface_NoUsing : Spec<GreeterUser, string>
         Specification.Is(
             """
             Given IGreeter.Hello() returns "mocked-hello"
-            When _.Greet()
+            When Greet()
             Then Result is "mocked-hello"
             """);
     }
@@ -54,7 +54,7 @@ public class WhenBothUsingConcreteAndGivenThat : Spec<GreeterUser, string>
             """
             Using new StaticGreeter()
             Given IGreeter.Hello() returns "mocked-hello"
-            When _.Greet()
+            When Greet()
             Then Result is "static-hello"
             """);
     }

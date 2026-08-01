@@ -14,7 +14,7 @@ public class WhenGivenReturnDefault : Spec<MyService, MyModel>
         Specification.Is(
             """
             Given IMyRepository returns a MyModel
-            When _.GetModel()
+            When GetModel()
             Then Result is the MyModel
             """);
     }
@@ -30,7 +30,7 @@ public class WhenGivenReturnDefault : Spec<MyService, MyModel>
             """
             Given MyModel has Name = a string
               and IMyRepository returns a MyModel
-            When _.GetModel()
+            When GetModel()
             Then Result.Name is the string
             """);
     }

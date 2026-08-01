@@ -13,7 +13,7 @@ public class WhenSUTHasUriArg_FallbackProducesTSpecHost : Spec<UriHolder, string
         Then().Result.Is("xspec.dev");
         Specification.Is(
             """
-            When _.Get().Host
+            When Get().Host
             Then Result is "xspec.dev"
             """);
     }
@@ -30,7 +30,7 @@ public class WhenSUTHasUriArg_FallbackProducesHttpsScheme : Spec<UriHolder, stri
         Then().Result.Is("https");
         Specification.Is(
             """
-            When _.Get().Scheme
+            When Get().Scheme
             Then Result is "https"
             """);
     }

@@ -30,7 +30,7 @@ public class WhenGivenValueSetup : Spec<MyService, MyModel>
             """
             Given MyModel has Name = a string
               and IMyRepository.GetModel() returns a MyModel
-            When _.GetModel()
+            When GetModel()
             Then Result.Name is the string
             """);
     }
@@ -60,7 +60,7 @@ public class WhenGivenValueSetup : Spec<MyService, MyModel>
         Specification.Is(
             """
             Using "abc".ToUpper().ToLower()
-            When _.GetModel()
+            When GetModel()
             Then Result.Name has char.IsLower(_[0])
             """);
     }
@@ -77,7 +77,7 @@ public class WhenGivenValueSetup : Spec<MyService, MyModel>
             """
             Using "abc".ToUpper().ToLower().ToUpper().ToLower().ToUpper().ToLower().ToUpper(
                   ).ToLower().ToUpper().ToLower().ToUpper().ToLower().ToUpper().ToLower()
-            When _.GetModel()
+            When GetModel()
             Then Result.Name has char.IsLower(_[0])
             """);
     }

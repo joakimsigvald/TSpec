@@ -11,7 +11,7 @@ public class WhenBecause : Spec<MyStateService, int>
         When(_ => ++_.Counter).Then(because: "incrementing zero yields one").Result.Is(1);
         Specification.Is(
             """
-            When ++_.Counter
+            When ++Counter
             Then Result is 1, because incrementing zero yields one
             """);
     }
@@ -23,7 +23,7 @@ public class WhenBecause : Spec<MyStateService, int>
         Because("incrementing zero yields one").Result.Is(1);
         Specification.Is(
             """
-            When ++_.Counter
+            When ++Counter
             Then Result is 1, because incrementing zero yields one
             """);
     }

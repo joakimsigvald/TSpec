@@ -16,7 +16,7 @@ public class WhenPlaceOrderInvocations : ShoppingServiceSpec<object>
         Then<IOrderService>(wasInvoked: AtLeastOnce);
         Specification.Is(
             """
-            When _.PlaceOrder(a ShoppingCart)
+            When PlaceOrder(a ShoppingCart)
             Then IOrderService was invoked
             """);
     }
@@ -27,7 +27,7 @@ public class WhenPlaceOrderInvocations : ShoppingServiceSpec<object>
         Then<IOrderService>(wasInvoked: Once);
         Specification.Is(
             """
-            When _.PlaceOrder(a ShoppingCart)
+            When PlaceOrder(a ShoppingCart)
             Then IOrderService was invoked once
             """);
     }
@@ -39,7 +39,7 @@ public class WhenPlaceOrderInvocations : ShoppingServiceSpec<object>
             .And<IOrderService>(wasInvoked: AtMost(2));
         Specification.Is(
             """
-            When _.PlaceOrder(a ShoppingCart)
+            When PlaceOrder(a ShoppingCart)
             Then IOrderService was invoked Exactly(1)
               and IOrderService was invoked AtMost(2)
             """);
@@ -52,7 +52,7 @@ public class WhenPlaceOrderInvocations : ShoppingServiceSpec<object>
             .And<IOrderService>(_ => _.CreateOrder(The<ShoppingCart>()));
         Specification.Is(
             """
-            When _.PlaceOrder(a ShoppingCart)
+            When PlaceOrder(a ShoppingCart)
             Then IOrderService was invoked once
               and IOrderService.CreateOrder(the ShoppingCart)
             """);
@@ -65,7 +65,7 @@ public class WhenPlaceOrderInvocations : ShoppingServiceSpec<object>
             .And<IOrderService>(wasInvoked: Once);
         Specification.Is(
             """
-            When _.PlaceOrder(a ShoppingCart)
+            When PlaceOrder(a ShoppingCart)
             Then IOrderService.CreateOrder(the ShoppingCart)
               and IOrderService was invoked once
             """);
@@ -96,7 +96,7 @@ public class WhenCreateCartInvocations : Spec<Subjects.ShoppingService, Shopping
         Then<IOrderService>(wasInvoked: Never);
         Specification.Is(
             """
-            When _.CreateCart(an int)
+            When CreateCart(an int)
             Then IOrderService was not invoked
             """);
     }

@@ -14,7 +14,7 @@ public class GivenThreeElements : WhenList
             """
                 Given three MyModel
                   and IMyRepository.List() returns a MyModel[]
-                When _.List()
+                When List()
                 Then Result has count 3
                 """);
     }
@@ -27,7 +27,7 @@ public class GivenThreeElements : WhenList
             """
                 Given three MyModel
                   and IMyRepository.List() returns a MyModel[]
-                When _.List()
+                When List()
                 Then Result.First() is not Result.Last()
                 """);
     }
@@ -40,7 +40,7 @@ public class GivenThreeElements : WhenList
             """
                 Given three MyModel
                   and IMyRepository.List() returns a MyModel[]
-                When _.List()
+                When List()
                 Then Result.Last() is the third MyModel
                 """);
     }
@@ -58,7 +58,7 @@ public class GivenFourElements : WhenList
             """
                 Given four MyModel
                   and IMyRepository.List() returns a MyModel[]
-                When _.List()
+                When List()
                 Then Result has count 4
                 """);
     }
@@ -71,7 +71,7 @@ public class GivenFourElements : WhenList
             """
                 Given four MyModel
                   and IMyRepository.List() returns a MyModel[]
-                When _.List()
+                When List()
                 Then Result.Last() is the fourth MyModel
                 """);
     }
@@ -89,7 +89,7 @@ public class GivenFiveElements : WhenList
             """
                 Given five MyModel
                   and IMyRepository.List() returns a MyModel[]
-                When _.List()
+                When List()
                 Then Result has count 5
                 """);
     }
@@ -102,7 +102,7 @@ public class GivenFiveElements : WhenList
             """
                 Given five MyModel
                   and IMyRepository.List() returns a MyModel[]
-                When _.List()
+                When List()
                 Then Result.Last() is the fifth MyModel
                 """);
     }
@@ -126,7 +126,7 @@ public class GivenSomeSpecificElements : WhenList
         Specification.Is(
 @"Given some MyModel is [_one, _two, _three]
   and IMyRepository.List() returns a MyModel[]
-When _.List()
+When List()
 Then Result has count 3
 Result[0].Id is 1
 Result[1].Id is 2

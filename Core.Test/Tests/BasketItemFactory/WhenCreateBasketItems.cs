@@ -20,7 +20,7 @@ public class WhenCreateBasketItems : Spec<Subjects.Shopping.BasketItemFactory, B
             Specification.Is(
                 """
                 Given one NewBasketItem
-                When _.CreateBasketItems(an int, a second int, a NewBasketItem[])
+                When CreateBasketItems(an int, a second int, a NewBasketItem[])
                 Then throws BasketItemNotBuyable
                 """);
         }

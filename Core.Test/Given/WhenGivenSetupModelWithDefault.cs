@@ -16,7 +16,7 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
         Specification.Is(
             """
             Given MyModel has Name = DefaultName
-            When _.GetModel()
+            When GetModel()
             Then Result.Name is DefaultName
             """);
     }
@@ -32,7 +32,7 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
             """
             Given MyModel has Name = DefaultName
               and IMyRepository.GetModel() returns a second MyModel
-            When _.GetModel()
+            When GetModel()
             Then Result.Name is DefaultName
             """);
     }
@@ -50,7 +50,7 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
             Given MyModel has Name = "123"
               and MyModel has Name = DefaultName
               and IMyRepository.GetModel() returns a second MyModel
-            When _.GetModel()
+            When GetModel()
             Then Result.Name is DefaultName
             """);
     }
@@ -68,7 +68,7 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
             Given MyModel has Id = 123
               and MyModel has Name = DefaultName
               and IMyRepository.GetModel() returns a second MyModel
-            When _.GetModel()
+            When GetModel()
             Then Result.Name is DefaultName
               and Result.Id is 123
             """);
@@ -87,7 +87,7 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
             Using DefaultName
             Given MyModel has Name = a string
               and IMyRepository.GetModel() returns a second MyModel
-            When _.GetModel()
+            When GetModel()
             Then Result.Name is DefaultName
             """);
     }
@@ -105,7 +105,7 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
             Given MyModel has Name = DefaultName
               and a second MyModel has Name = "Altered"
               and IMyRepository.GetModel() returns a second MyModel
-            When _.GetModel()
+            When GetModel()
             Then Result.Name is "Altered"
             """);
     }
@@ -139,7 +139,7 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
             Given MyModel has Name = DefaultName
               and a second MyModel is new MyModel() { Name = "My model" }
               and IMyRepository.GetModel() returns a second MyModel
-            When _.GetModel()
+            When GetModel()
             Then Result.Name is "My model"
             """);
     }
@@ -155,7 +155,7 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
             """
             Using DefaultName
             Given IMyRepository.GetModel() returns a second MyModel
-            When _.GetModel()
+            When GetModel()
             Then Result.Name is DefaultName
             """);
     }
@@ -193,7 +193,7 @@ public class OverrideDefaultSetupAfterWhenReturn : Spec<MyService, MyModel>
             """
             Given MyModel has Name = "Something"
               and MyModel has Name = TheName
-            When _.GetModel()
+            When GetModel()
             Then Result.Name is TheName
             """);
     }
@@ -214,7 +214,7 @@ public class OverrideDefaultValueAfterWhenReturn : Spec<MyService, MyModel>
             """
             Using "Something"
             Given MyModel has Name = TheName
-            When _.GetModel()
+            When GetModel()
             Then Result.Name is TheName
             """);
     }

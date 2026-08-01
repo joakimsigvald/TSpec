@@ -11,8 +11,8 @@ public class HavingWhenUntil : Spec<MyStateService, int>
         When(_ => ++_.Counter).Having(_ => _.Counter++).Then().Result.Is(2);
         Specification.Is(
             """
-            When ++_.Counter
-            Having _.Counter++
+            When ++Counter
+            Having Counter++
             Then Result is 2
             """);
     }
@@ -26,9 +26,9 @@ public class HavingWhenUntil : Spec<MyStateService, int>
             .Then().Result.Is(6);
         Specification.Is(
             """
-            When _.Counter *= 2
-            Having _.Counter = 3
-              after _.Counter = 5
+            When Counter *= 2
+            Having Counter = 3
+              after Counter = 5
             Then Result is 6
             """);
     }
@@ -45,9 +45,9 @@ public class HavingWhenUntil : Spec<MyStateService, int>
             .Then().Result.Is(1);
         Specification.Is(
             """
-            When _.Counter = 1
-            Until _.Counter = 3
-              before _.Counter = 2
+            When Counter = 1
+            Until Counter = 3
+              before Counter = 2
             Then Result is 1
             """);
     }
@@ -79,9 +79,9 @@ public class HavingWhenUntil : Spec<MyStateService, int>
         Specification.Is(
             """
             Using 1
-            When ++_.Counter
-            Having _.Counter++
-            Until ++_.Counter
+            When ++Counter
+            Having Counter++
+            Until ++Counter
             Then Result is 2
             """);
     }
@@ -97,8 +97,8 @@ public class GivenTearDown : Spec<MyStateService, int>
         When(_ => ++_.Counter).Until(_ => _theCounterAfterTest = --_.Counter).Then().Result.Is(1);
         Specification.Is(
             """
-            When ++_.Counter
-            Until _theCounterAfterTest = --_.Counter
+            When ++Counter
+            Until _theCounterAfterTest = --Counter
             Then Result is 1
             """);
         Xunit.Assert.Equal(-1, _theCounterAfterTest); //Teardown is performed after executing the test method

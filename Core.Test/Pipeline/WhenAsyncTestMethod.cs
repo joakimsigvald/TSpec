@@ -17,7 +17,7 @@ public class WhenAsyncTestMethod : Spec<MyStateService, int>
         Then().Result.Is(1);
         Specification.Is(
             """
-            When ++_.Counter
+            When ++Counter
             Then Result is 1
             """);
     }

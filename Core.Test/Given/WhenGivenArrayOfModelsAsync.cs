@@ -19,7 +19,7 @@ public abstract class WhenGivenArrayOfModelsAsync : Spec<MyService, MyModel[]>
             Specification.Is(
                 """
             Given IMyRepository returns an IEnumerable<MyModel>
-            When _.GetModelsAsync()
+            When GetModelsAsync()
             Then does not throw
             """);
         }

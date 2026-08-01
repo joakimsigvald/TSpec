@@ -18,7 +18,7 @@ public class WhenMockReturnsValue_GivenTaskOfImplicitlyCastPrimitive : Spec<MyVa
         Specification.Is(
             """
             Given IMyValueIntRepo.GetAsync(the MyValueInt) returns RetVal
-            When _.GetValueAsync(a MyValueInt)
+            When GetValueAsync(a MyValueInt)
             Then Result is RetVal
             """);
     }

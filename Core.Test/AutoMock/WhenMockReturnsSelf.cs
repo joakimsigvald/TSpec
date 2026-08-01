@@ -12,7 +12,7 @@ public class WhenMockReturnsSelf : Spec<MyValueIntService, IMyValueIntRepo>
         Result.GetObject().GetType().Is(typeof(object));
         Specification.Is(
             """
-            When _.GetRepo()
+            When GetRepo()
             Then Result.GetObject().GetType() is typeof object
             """);
     }

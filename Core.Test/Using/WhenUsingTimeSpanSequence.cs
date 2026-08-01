@@ -134,7 +134,7 @@ public class WhenTimeSpanSequenceSpecification : Spec<MyService, int>
         Specification.Is(
             """
             Using TimeSpan from TimeSpan starting at _start spaced _step for Input
-            When _.GetNextId()
+            When GetNextId()
             Then Result is greater than 0
             """
             );

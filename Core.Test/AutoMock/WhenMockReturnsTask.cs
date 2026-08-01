@@ -17,7 +17,7 @@ public class WhenMockReturnsTask : Spec<MyValueIntService, string>
         Then<IMyValueIntRepo>(_ => _.SetAsync(The<int>())).and.Result.Is().Not(null!);
         Specification.Is(
             """
-            When _.SetAndGetValueAsync(an int)
+            When SetAndGetValueAsync(an int)
             Then IMyValueIntRepo.SetAsync(the int)
               and Result is not null
             """);

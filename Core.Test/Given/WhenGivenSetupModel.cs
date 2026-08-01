@@ -18,7 +18,7 @@ public class WhenGivenSetupModel : Spec<MyService, MyModel>
             """
             Given a second MyModel is _myModel
               and IMyRepository.GetModel() returns a second MyModel
-            When _.GetModel()
+            When GetModel()
             Then Result is _myModel
             """);
     }
@@ -34,7 +34,7 @@ public class WhenGivenSetupModel : Spec<MyService, MyModel>
             """
             Given a second MyModel is (MyModel?)null
               and IMyRepository.GetModel() returns a second MyModel
-            When _.GetModel()
+            When GetModel()
             Then Result is null
             """);
     }
@@ -50,7 +50,7 @@ public class WhenGivenSetupModel : Spec<MyService, MyModel>
             """
             Given a MyModel is (MyModel?)null
               and IMyRepository.GetModels() returns one MyModel
-            When _.GetModel()
+            When GetModel()
             Then Result is not null
             """);
     }

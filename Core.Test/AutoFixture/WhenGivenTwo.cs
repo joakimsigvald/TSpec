@@ -14,7 +14,7 @@ public class GivenTwoElements : WhenList
         Specification.Is(
 @"Given two MyModel
   and IMyRepository.List() returns a MyModel[]
-When _.List()
+When List()
 Then Result has count 2");
     }
 
@@ -32,7 +32,7 @@ Then Result has count 2");
         Specification.Is(
 @"Given two MyModel
   and IMyRepository.List() returns a MyModel[]
-When _.List()
+When List()
 Then Result.First() is not Result.Last()");
     }
 
@@ -43,7 +43,7 @@ Then Result.First() is not Result.Last()");
         Specification.Is(
 @"Given two MyModel
   and IMyRepository.List() returns a MyModel[]
-When _.List()
+When List()
 Then Result.Last() is the second MyModel");
     }
 }
@@ -60,7 +60,7 @@ public class GivenTwoElementsWithSetup : WhenList
         Specification.Is(
 @"Given two MyModel has Name = a string
   and IMyRepository.List() returns a MyModel[]
-When _.List()
+When List()
 Then Result has count 2");
     }
 
@@ -71,7 +71,7 @@ Then Result has count 2");
         Specification.Is(
 @"Given two MyModel has Name = a string
   and IMyRepository.List() returns a MyModel[]
-When _.List()
+When List()
 Then Result.First().Name is the string");
     }
 
@@ -82,7 +82,7 @@ Then Result.First().Name is the string");
         Specification.Is(
 @"Given two MyModel has Name = a string
   and IMyRepository.List() returns a MyModel[]
-When _.List()
+When List()
 Then Result.Last().Name is the string");
     }
 }
@@ -99,7 +99,7 @@ public class GivenTwoElementsWithTransform : WhenList
         Specification.Is(
 @"Given two MyModel has Name = a string
   and IMyRepository.List() returns a MyModel[]
-When _.List()
+When List()
 Then Result.Last().Name is the string");
     }
 }
@@ -117,7 +117,7 @@ public class GivenTwoElementsWithIndexedSetup : WhenList
             """
                 Given two MyModel has Name = "X{i + 1}"
                   and IMyRepository.List() returns a MyModel[]
-                When _.List()
+                When List()
                 Then Result has count 2
                 """);
     }
@@ -130,7 +130,7 @@ public class GivenTwoElementsWithIndexedSetup : WhenList
             """
                 Given two MyModel has Name = "X{i + 1}"
                   and IMyRepository.List() returns a MyModel[]
-                When _.List()
+                When List()
                 Then Result.First().Name is "X1"
                 """);
     }
@@ -143,7 +143,7 @@ public class GivenTwoElementsWithIndexedSetup : WhenList
             """
                 Given two MyModel has Name = "X{i + 1}"
                   and IMyRepository.List() returns a MyModel[]
-                When _.List()
+                When List()
                 Then Result.Last().Name is "X2"
                 """);
     }

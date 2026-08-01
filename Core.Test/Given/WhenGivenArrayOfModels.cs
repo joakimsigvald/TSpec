@@ -21,7 +21,7 @@ public abstract class WhenGetArrayOfModels : Spec<MyService, MyModel[]>
             Given MyModel has Name = a string
             Using two MyModel
               and IMyRepository.GetModels() returns a MyModel[]
-            When _.GetModels()
+            When GetModels()
             Then Result is two MyModel
               and Result.First().Name is the string
             """);

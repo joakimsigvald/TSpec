@@ -12,7 +12,8 @@ plays Host, because the deployable is the application.
 | `MyHotel` | `MyHotel` | everything | Host: startup and DI, almost nothing else |
 | `Entry` | `MyHotel.Entry` | Contract | the REST endpoints, as thin as possible |
 | `Contract` | `MyHotel.Contract` | nothing | the models and interfaces Entry needs — the public shape |
-| `Core` | `MyHotel.Core` | Contract | all the logic, structured vertically by subdomain |
+| `Core` | `MyHotel.Core` | Contract | all the logic, and the interfaces it needs storage to satisfy |
+| `Infra` | `MyHotel.Infra` | Core | storage and outward calls; thin and logic-free |
 
 **Entry and Core never reference each other**, and the compiler is what enforces it. When Entry needs
 a model that lives in Core there are two moves, both cheap: promote it to Contract, or duplicate it
@@ -21,8 +22,11 @@ in Contract and map. Never add the reference.
 **Core is structured vertically** — subdomains that name their purpose (`Core/Rooms/`), not another
 horizontal layer inside. Beyond Contract, Core takes no dependency that would hurt its testability.
 
-**No Infra yet.** Neat puts data access and outward calls there, referencing Core. Storage is in
-memory, so the layer would be empty. Add it when something real is stored.
+**Storage is a JSON file, so rooms outlive the process.** `IRoomStore` is declared in Core and
+implemented in Infra — whole-list load and save, because a store that knew how to find or replace one
+room would be holding rules that belong to Core. The path comes from configuration
+(`RoomStore:Path`), which is what lets a spec give each test its own file; see `TestApi`. A spec that
+shares a store with another spec is a broken spec, not a slow one.
 
 **An endpoint calls one service method and builds a response — nothing else.** `IRoomService` has one
 method per endpoint, taking what the endpoint takes. What would have been an early return is thrown
@@ -46,8 +50,9 @@ behaviour has not been observed yet. Never write production code that no failing
 
 **Spec at the layer that owns the claim.** Two suites, stating different things:
 
-- `MyHotel.Spec` — black-box, subject `HttpClient` against an in-memory API. States the *HTTP
-  contract*: routes, status codes, response bodies.
+- `MyHotel.Spec` — black-box, subject `Hotel`: the running application reached over HTTP, with its
+  own room file. States the *HTTP contract* — routes, status codes, response bodies — and, because
+  `Hotel` can restart, what survives one.
 - `Core.Spec` — subject is a Core type, no HTTP. States the *domain rules*: what is unique, what
   order things come back in, what an operation does to later reads. Empty until Core is.
 

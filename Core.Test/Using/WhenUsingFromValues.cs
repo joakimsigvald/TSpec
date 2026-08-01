@@ -59,7 +59,7 @@ public class WhenFromValuesSpecification : Spec<MyService, int>
         Specification.Is(
             """
             Using int from [42, 43] for Subject
-            When _.GetNextId()
+            When GetNextId()
             Then Result is 42
             """
             );

@@ -15,7 +15,7 @@ public class WhenSome : Spec<MyRetriever, MyModel[]>
             Specification.Is(
                 """
                 Using some MyModel
-                When _.List()
+                When List()
                 Then Result has count 2
                 """);
         }
@@ -32,7 +32,7 @@ public class WhenSome : Spec<MyRetriever, MyModel[]>
             Specification.Is(
 @"Using some MyModel
   and one MyModel
-When _.List()
+When List()
 Then Result has count 1");
         }
     }
@@ -48,7 +48,7 @@ Then Result has count 1");
             Specification.Is(
 @"Using some MyModel
   and three MyModel
-When _.List()
+When List()
 Then Result has count 3");
         }
     }
@@ -64,7 +64,7 @@ Then Result has count 3");
             Specification.Is(
 @"Using some MyModel
   and Array.Empty<MyModel>
-When _.List()
+When List()
 Then Result has count 0");
         }
     }
@@ -80,7 +80,7 @@ Then Result has count 0");
             Specification.Is(
 @"Using some MyModel
   and many MyModel
-When _.List()
+When List()
 Then Result has count 2");
         }
     }
@@ -97,7 +97,7 @@ Then Result has count 2");
 @"Using some MyModel
   and one MyModel
   and some MyModel
-When _.List()
+When List()
 Then Result has count 1");
         }
     }
@@ -114,7 +114,7 @@ Then Result has count 1");
 @"Using some MyModel
   and two MyModel
   and some MyModel
-When _.List()
+When List()
 Then Result has count 2");
         }
     }
@@ -131,7 +131,7 @@ Then Result has count 2");
 @"Using some MyModel
   and Array.Empty<MyModel>
   and some MyModel
-When _.List()
+When List()
 Then Result has count 2");
         }
     }
@@ -148,7 +148,7 @@ Then Result has count 2");
 @"Using some MyModel
   and many MyModel
   and some MyModel
-When _.List()
+When List()
 Then Result has count 2");
         }
     }
