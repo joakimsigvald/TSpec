@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<AssemblyName>MyHotel.Core.Spec</AssemblyName>
+		<RootNamespace>MyHotel.Core.Spec</RootNamespace>
+		<OutputType>Exe</OutputType>
+		<UseAppHost>true</UseAppHost>
+		<IsPackable>false</IsPackable>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="xunit.v3" Version="3.2.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\Core\Core.csproj" />
+		<ProjectReference Include="..\Contract\Contract.csproj" />
+		<ProjectReference Include="..\Core\Core.csproj" />
+	</ItemGroup>
+
+</Project>

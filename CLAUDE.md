@@ -20,6 +20,11 @@ A code change is not complete until both documents reflect it. Also update
 
 ## MyHotel
 
-`MyHotel/` and `MyHotel.Spec/` are the reference application TSpec is developed against, not part
-of the shipped package. They have their own rules — read `MyHotel/CLAUDE.md` before changing
-anything in either directory.
+`SampleProjects/MyHotel/` is the reference application TSpec is developed against, not part of the
+shipped package. It is being layered per the Neat architecture — `MyHotel` (host), `Entry`,
+`Contract`, `Core` — with two spec projects, `MyHotel.Spec` (black-box, HTTP) and `Core.Spec`
+(domain rules). The layer projects are still empty. It has its own rules: read
+`SampleProjects/MyHotel/CLAUDE.md` before changing anything under it.
+
+Note `SampleProjects/MyHotel/Core/` is MyHotel's business layer and is unrelated to `Core/`, which
+is TSpec itself.

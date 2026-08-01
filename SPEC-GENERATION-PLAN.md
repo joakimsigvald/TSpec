@@ -1,7 +1,8 @@
 # SPECIFICATION.md generation
 
 Stage 1 of [TSpec-vision.md](TSpec-vision.md) §4: one `SPECIFICATION.md` per Spec project, generated
-from the specifications a green test run produces. Branch `specification-generator`, targeting 2.1.0.
+from the specifications a green test run produces. Branch `specification-generator`, shipping in
+**2.0.0**.
 
 **State:** feature complete, dogfooded on `MyHotel.Spec` — full CRUD, 20 requirements, 105 lines.
 
@@ -274,20 +275,63 @@ parent's raw text; `ExpressionParser` → `ExpressionDescriber`, and
    time — the family restarts when a block starts. Not a regression ("and" was equally silent), not
    reachable in MyHotel today; the one gap §3's binder rule leaves open.
 
+Found 2026-08-01 in a `Core.Spec` run that has since been reverted with the decomposition it
+specified (§9). All three are facts about the renderer, not about that suite, and will reappear as
+soon as any spec has a non-`HttpClient` subject. All three are invisible in a single-subject HTTP
+document, which is why nothing before now could have caught them.
+
+8. **The declared return type drops reference-type nullability.** `Spec<RoomService, Room?>` renders
+   `Return type: Room`, directly above a requirement reading `return no room — Result is null`. The
+   document contradicts itself on the page. `Room?` is `Room` plus a `NullableAttribute` in IL, and
+   the §3 walk up the closed `Spec<,>` reads `Type` only, so the `?` is gone before rendering.
+   `int?` survives, being a distinct type — which is why §3's load-bearing erasure case never caught
+   this. Reading it needs `NullabilityInfoContext` over the generic argument.
+9. **`AsTitle` does not split on `.`.** `MyHotel.Core` titles its document `# My Hotel. Core`, which
+   reads as two sentences. `AsHeading` already splits on `.` and joins with `". "`, deliberately,
+   because a branch path is a sequence of sentences; a title is one name and wants a space.
+   Untestable before a subject name contained a dot, which needed a second production project.
+10. **The declared pair does not hoist independently.** §3 hoists `Subject under test` and
+    `Return type` together, to the highest heading where every requirement agrees. In `Core.Spec` the
+    subject agrees everywhere (`RoomService`) but the return type does not, so *both* fall to the
+    subject level and `Subject under test: RoomService` is stated five times. Hoisting each line to
+    the highest heading where *it* holds would state the subject once at the top. The pair is padded
+    into a column (§3), so splitting them also asks what the column means when one line has moved.
+
 ## 9. Widening MyHotel
 
-Shapes the document has never rendered, ordered by how much of §3 each puts under load:
+**In progress 2026-08-01: MyHotel moves to Neat**, the PO's architecture. Everything now sits under
+`SampleProjects/MyHotel/`. `MyHotel` keeps its name and plays Host, because the deployable is the
+application; `Entry` (endpoints), `Contract` (the public shape, referencing nothing) and `Core`
+(logic, vertical subdomains) exist as empty projects, plus `Core.Spec`. Entry and Core never
+reference each other; the compiler is the boundary. Infra skipped — storage is a list, so the layer
+would be empty. Placement rules are in `SampleProjects/MyHotel/CLAUDE.md`.
 
-- **Several subjects, layered** (endpoints → service → repository) — makes §8.3 live and is the first
-  real test of `ComplexityNumber` ordering *across* subjects rather than within one.
+**Open: how `Program.cs` decomposes into the layers.** The PO leads this; a first attempt was made
+and reverted unasked-for. What the decomposition has to settle: which models and interfaces belong
+in Contract, whether Core exposes one service per subdomain or finer types, and how a Core operation
+reports an outcome that Entry turns into a status code without Core knowing HTTP exists.
+
+One constraint on that, found while attempting it: **assertions only see `Result`**. TSpec exposes no
+subject to the test, so a spec claims only what its `When` returns. An operation reporting a bare
+`bool` can therefore only be stated as that flag; its *effect* must be stated under the read that
+observes it. This is §8.1's lesson arriving as a structural constraint, and it makes the Contract's
+shape a question about what the document can say, not only about layering.
+
+Shapes still unexercised:
+
+- **Namespace grouping (§8.3), which does not follow from layering.** Each layer gets its own Spec
+  project and therefore its own document, so layers produce *more documents*, not more namespaces
+  within one. The `##` heading is the operation (`When add room`); grouping becomes visible only when
+  one Spec project holds operations in different namespaces — under Neat, a **second vertical
+  subdomain** in Core. Rooms alone will not raise it.
+- **A subject that is not `HttpClient`, and return types other than `HttpResponseMessage`** — what
+  `Core.Spec` is for.
 - **Unit specs with mocked collaborators** — `Using`/`Given` carrying the arrangement instead of
-  `Having`, and mock-name elision in a document rather than in failure output.
-- **Return types other than `HttpResponseMessage`** — value returns, `void`/`Task`, and non-generic
-  `Spec` where the declared-type lines are omitted entirely.
+  `Having`, and mock-name elision in a document rather than in failure output. Needs a Core type
+  that depends on another; a service over an in-memory list has no collaborators.
 - **Exception and failure specs** — nothing says what a thrown expectation looks like as a claim.
 - **Branch trees three or more levels deep** — where the two-level heading structure and §5's
   hoisting are pushed hardest.
-- **A second Spec project** — one-file-per-project is untested with more than one file.
 
 ## 10. Before release
 
@@ -296,17 +340,18 @@ Shapes the document has never rendered, ordered by how much of §3 each puts und
 2. **Scratch project for the §2 xunit facts.** Fixture wiring, `TestState` at `Dispose` and
    end-of-assembly ordering cannot be self-tested from inside the same assembly; today they are
    verified only by `MyHotel.Spec` passing, which will not catch a regression precisely.
-3. **Version and release decision.** `PackageVersion`/`PackageReleaseNotes` are untouched at 1.5.0,
-   and the premise has moved: the branch is **no longer purely additive**. The `Having`/`Until`
-   binders and the `with` fix change text 1.5.0 already emits, so a project with pinned expectations
-   sees failures on upgrade. Nothing in the *API* breaks, but "additive" was the argument against a
-   major.
+3. **Set `PackageVersion`/`PackageReleaseNotes`**, untouched at 1.5.0.
 
-| Version | Content |
-|---|---|
-| **1.6.0** | `TODO.txt` line 1 — fail a test whose pipeline never ran. Minor, not a patch: a green suite going red must not arrive in a patch upgrade. |
-| **2.0.0** | Removals only — the three `[Obsolete]` members plus `IVerifyService`/`VerifyService`, per IMPROVEMENT-PLAN.md. |
-| **2.1.0** | This work. |
+**Everything ships as 2.0.0.** Decided by the PO 2026-08-01: no 1.6.0 in between, since this project
+has their full attention until it is finished and nothing needs to reach users before it does. The
+earlier plan staged 1.6.0 → 2.0.0 → 2.1.0 to keep the generator from holding the deprecation cleanup
+hostage; with no gap between them there is nothing to decouple, and the generator is a breaking
+release in its own right anyway (the `Having`/`Until` binders and the `with` fix both change text
+1.5.0 already emits, so a project with pinned `Specification.Is(…)` expectations sees failures on
+upgrade).
 
-Decoupled deliberately: the generator does not justify a major of its own, and bundling it would hold
-the deprecation cleanup hostage.
+2.0.0 therefore carries: the specification generator; the removals — three `[Obsolete]` members plus
+`IVerifyService`/`VerifyService`, per IMPROVEMENT-PLAN.md; and `TODO.txt` line 1, failing a test
+whose pipeline never ran. The release notes must state the rendering changes separately from the API
+removals — they break different things and a reader hitting re-pinned expectations will not look
+under a heading about deleted types.
