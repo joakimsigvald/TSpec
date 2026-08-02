@@ -50,6 +50,8 @@ public class WhenDescribe : Spec<string>
                 + ASecond<string>()
         """, "Name = a string + a second string")]
     [InlineData("() => The(delay)", "the Delay")]
+    // A drilldown after a tag reads possessively, as one after a mention does
+    [InlineData("The(_updatedRoom).RoomNumber", "the UpdatedRoom's RoomNumber")]
     [InlineData("obj?.Name", "obj.Name")]
     [InlineData("obj?.Method()", "obj.Method()")]
     [InlineData("_ => _.Inner?.Value", "_.Inner.Value")]

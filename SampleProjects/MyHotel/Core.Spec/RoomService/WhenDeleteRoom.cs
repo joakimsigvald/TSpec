@@ -16,6 +16,8 @@ public abstract class WhenDeleteRoom : Spec<Core.RoomService>
     {
         public GivenNoSuchRoom() => Given<IRoomStore>().That(_ => _.Load()).Returns(Zero<Room>);
 
-        [Fact] public void ThenThrowNotFound() => Then().Throws<RoomNotFound>();
+        [Fact]
+        public void ThenThrowNotFound()
+            => Then().Throws<RoomNotFound>().that.Message.Does().Contain(The<Room>().RoomNumber);
     }
 }

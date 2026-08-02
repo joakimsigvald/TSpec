@@ -45,7 +45,9 @@ public abstract class WhenUpdateRoom : Spec<Core.RoomService, Room>
             Given<IRoomStore>().That(_ => _.Load()).Returns(Zero<Room>);
         }
 
-        [Fact] public void ThenThrowNotFound() => Then().Throws<RoomNotFound>();
+        [Fact]
+        public void ThenThrowNotFound()
+            => Then().Throws<RoomNotFound>().that.Message.Does().Contain(The<Room>().RoomNumber);
     }
 
     /// <summary>
@@ -56,6 +58,8 @@ public abstract class WhenUpdateRoom : Spec<Core.RoomService, Room>
     {
         public GivenTheUpdatedRoomHasAnotherNumber() => Given(_updatedRoom).Is(ASecond<Room>());
 
-        [Fact] public void ThenThrowRoomNumberMismatch() => Then().Throws<RoomNumberMismatch>();
+        [Fact]
+        public void ThenThrowRoomNumberMismatch()
+            => Then().Throws<RoomNumberMismatch>().that.Message.Does().Contain(The(_updatedRoom).RoomNumber);
     }
 }

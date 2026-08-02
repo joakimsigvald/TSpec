@@ -17,5 +17,9 @@ public abstract class WhenDeleteRoom : ApiSpec<HttpResponseMessage>
     public class GivenNoSuchRoom : WhenDeleteRoom
     {
         [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
+
+        [Fact]
+        public async Task ThenSayWhichRoom()
+            => (await Result.Read<ErrorBody>()).Error.Does().Contain(The<Room>().RoomNumber);
     }
 }

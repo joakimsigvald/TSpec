@@ -19,6 +19,10 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
     public class GivenNoSuchRoom : WhenGetRoom
     {
         [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
+
+        [Fact]
+        public async Task ThenSayWhichRoom()
+            => (await Result.Read<ErrorBody>()).Error.Does().Contain(The<Room>().RoomNumber);
     }
 
     /// <summary>
@@ -31,6 +35,10 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
+
+        [Fact]
+        public async Task ThenSayWhichRoom()
+            => (await Result.Read<ErrorBody>()).Error.Does().Contain(The<Room>().RoomNumber);
     }
 
     /// <summary>

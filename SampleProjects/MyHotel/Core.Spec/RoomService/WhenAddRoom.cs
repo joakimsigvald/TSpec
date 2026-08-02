@@ -22,6 +22,8 @@ public abstract class WhenAddRoom : Spec<Core.RoomService, Room>
             => Given<IRoomStore>().That(_ => _.Load())
                 .Returns(() => [The<Room>() with { BedCount = Any<int>() }]);
 
-        [Fact] public void ThenThrowRoomAlreadyExists() => Then().Throws<RoomAlreadyExists>();
+        [Fact]
+        public void ThenThrowRoomAlreadyExists()
+            => Then().Throws<RoomAlreadyExists>().that.Message.Does().Contain(The<Room>().RoomNumber);
     }
 }

@@ -38,6 +38,10 @@ internal sealed class ValueDescriber : Describer
             New n => DescribeNew(n),
             Call c when c.IsDefaultOf() => $"default {Describe(c.Args[0])}",
             Call c when c.AsTagReference() is { } tag => $"the {tag.AsTagName()}",
+            // A drilldown after a tag reads possessively — "the UpdatedRoom's RoomNumber" — which is
+            // the rule a drilldown after a mention already follows.
+            Member { Target: Call tagged } m when tagged.AsTagReference() is { } tag
+                => $"the {tag.AsTagName()}'s {m.Name}",
             Call c when c.AsNaturalLanguageCall() is { } verb => $"{verb.AsWords()} {DescribeAll(c.Args)}",
             Call c => $"{c.Target.AsPath()}({DescribeAll(c.Args)})",
             NamedArg na => $"{na.Name}: {Describe(na.Value)}",

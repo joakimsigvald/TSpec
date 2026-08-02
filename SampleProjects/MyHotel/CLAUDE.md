@@ -66,6 +66,11 @@ its `When` returns. An operation reporting a bare `bool` can state only that fla
 to be stated under the read that observes it. Worth knowing before designing an interface Core.Spec
 will have to describe.
 
+**An assertion that checks only an absence proves nothing.** `Result.StatusCode is NotFound` holds
+just as well when the route does not exist, so every refusal also states something only a handler
+could produce — `say which room` reads the error body for the room number. Statuses the framework
+itself never returns (409, 400) do not have the problem.
+
 **Smallest thing that works, within the layout.** The layers are fixed; what goes in them is not.
 Extract a type inside a layer only when leaving it where it is makes the *current* change harder. No
 interface without a mock or a second implementation that needs it, no repository per entity, no

@@ -237,6 +237,10 @@ expression; `Name` labels a value in a failure report. A tag is named after its 
 *field* initializer, since `[CallerMemberName]` reports the enclosing member. Names must be unique
 within a test; a clash throws `SetupFailed`, which catches two locals sharing their method's name.
 
+**A drilldown after a tag reads possessively**, as one after a mention does — `The(_updatedRoom).RoomNumber`
+is "the UpdatedRoom's RoomNumber". Added 2026-08-02: the possessive rule lived only in the mention
+describer, so a member access on a tag fell through to raw source and put C# on the page.
+
 **A tag says what a constant cannot.** `const RoomNumber = "101"` renders as its name and hides the
 value; a tag renders as `the RoomNumber` — the *identity*, which was the actual claim. Where the
 value matters, write it literally and it renders.
@@ -277,6 +281,7 @@ User-facing, in order — the material for release notes:
 | Requirements are a list | Two heading levels, not four; one line inline, several fenced. Halved the MyHotel document. |
 | `Having` / `Until` binders | Setups read `after`, teardowns `before`. **Changes per-test text**, not only the document — 3 pins moved. |
 | `with` expressions name their target | `The<Room>() with { … }` rendered as its members alone, which is not a room. Erasure narrowed to `p => p with { … }`. Also fixes `_ => _.Inner with { … }` dropping `_.Inner`. |
+| Tag drilldown reads possessively | `The(_room).RoomNumber` renders "the Room's RoomNumber" where it showed the raw expression. Mentions already did this; tags did not. |
 | Return type said on the act | Where a heading states both, `Return type: Room` joins the act as `When Add(a Room), returns Room` instead of standing as a label. Document-only. |
 | Declared types sit on the clauses | The blank line between `Return type:` and the clauses below it is gone — it cost a line of height on every heading stating both, and a label sets itself apart by being one. Document-only. |
 | Hoisting decoupled from position | A clause shared by every requirement is stated at the heading wherever it sits, so a branch's own `Given` no longer keeps the subject's `When` out of the heading named after it. Multiplicity respected: a clause rises as often as the requirement saying it fewest times says it. Document-only. |
@@ -293,11 +298,19 @@ parent's raw text; `ExpressionParser` → `ExpressionDescriber`, and
 
 ## 8. Known gaps
 
-1. **A weak assertion cannot tell "not implemented" from "correctly absent."**
-   `GivenNoSuchRoom.ThenRespondNotFound` passed before any endpoint existed — an unmatched route also
-   returns 404. Three such requirements now (get, delete, update); delete and update were watched
-   failing with `405` before their handlers existed, which proves those 404s come from a handler
-   *today* but does not persist. **Fix:** assert on something only the implementation can produce.
+1. ~~**A weak assertion cannot tell "not implemented" from "correctly absent."**~~ **Fixed
+   2026-08-02.** `GivenNoSuchRoom.ThenRespondNotFound` passed before any endpoint existed — an
+   unmatched route also returns 404, so the claim held whether or not anything implemented it. Each
+   of the four 404 branches now also states `say which room` — the refusal names the room it refused
+   — which only a handler can produce, since an unmatched path answers with an empty body. Verified
+   by deleting every route on `/rooms/{roomNumber}`: `respond not found` still passes, `say which
+   room` fails. That the body existed to assert on is recent; before the global exception handler
+   there was nothing there to name.
+
+   The general form is worth keeping in view: **an assertion that only checks an absence cannot
+   distinguish "not implemented" from "correctly absent."** Assert something only the implementation
+   can produce. A 409 does not have the problem — an unmatched route answers 404, not 409 — so the
+   rule bites on whatever status the framework itself would give.
 2. **Opt-out attributes.** `[Specification]` / `[ExcludeFromSpecification]`, nearest declaration
    wins, default include. Nothing has needed to opt out. Polarity: the framework cannot detect tests
    that were never written, so absence never certified coverage.

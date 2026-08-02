@@ -44,7 +44,7 @@ Mentions generate-and-remember values **per type, per test** — the same mentio
 - With inline setup: `A<Cart>(_ => _.Id = 3)`.
 - Collections: `Zero<T>()`, `One<T>()`, `Two<T>()`, `Three<T>()`, `Four<T>()`, `Five<T>()`, `Some<T>()` (≥1), `Many<T>()` (≥2), `AnyNumberOf<T>()`. Everything but `One` renders the type as a plural — `Two<Room>()` reads "two Rooms", `Many<Query>()` reads "many Queries". Regular spelling only, so an irregular noun comes out regular (`Two<Child>()` reads "two Childs").
 - Throwaway values (never referenced again): `Any<T>()`, `Another<T>()`.
-- Tags name values of the same type: `static Tag<string> name = new(nameof(name));` then `Given(name).Is("Ada")`, reference with `The(name)`, or register as default with `Using(name, For.Subject)`.
+- Tags name values of the same type: `static Tag<string> name = new(nameof(name));` then `Given(name).Is("Ada")`, reference with `The(name)`, or register as default with `Using(name, For.Subject)`. `nameof(...)` is optional — `new()` takes the field's name. Renders as "the Name", and a member access after it reads possessively: `The(room).RoomNumber` is "the Room's RoomNumber".
 
 Value resolution order when a value is requested: (1) already-mentioned value; (2) registered conversion/value source, then explicit `Using` value/factory; (3) built-in generation (primitives, enums, collections, mocks for interfaces/abstract types, constructed concrete classes); then any `Given` setup/transform lambdas are applied.
 

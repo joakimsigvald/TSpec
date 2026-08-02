@@ -322,7 +322,11 @@ protected static Tag<string> name = new(nameof(name));
 protected static Tag<int> age = new(nameof(age)), shoeSize = new(nameof(shoeSize));
 ```
 Providing a name for the tag improves diagnostic output.
-The parameterless constructor `new()` may also be used.
+The parameterless constructor `new()` may also be used — the tag takes the name of the field it is
+assigned to.
+
+In a specification a tag reads as "the Name", and a member access after it reads possessively:
+`The(room).RoomNumber` renders "the Room's RoomNumber".
 
 #### 3.2.1 Set and reference tagged values
 Tags can be used to set or reference values during pipeline configuration and execution.
