@@ -14,7 +14,7 @@ public class WhenGivenUniqueInt : Spec<int[]>
         Specification.Is(
             """
             Given int is i % range
-            When five int
+            When five ints
             Then Result is distinct
                 and has all i >= 0 && i < range
             """);
@@ -29,7 +29,7 @@ public class WhenGivenUniqueInt : Spec<int[]>
             .and.Has().All(i => i >= 0 && i < range);
         Specification.Is(
             """
-            When five int { i % range }
+            When five ints { i % range }
             Then Result is distinct
                 and has all i >= 0 && i < range
             """);

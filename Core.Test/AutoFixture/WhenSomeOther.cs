@@ -47,7 +47,7 @@ Then Result has one item that is the MyModel");
             Result.Has().Count(3);
             Specification.Is(
 @"Using some other MyModel
-  and three MyModel
+  and three MyModels
 When List()
 Then Result has count 3");
         }
@@ -64,7 +64,7 @@ Then Result has count 3");
             Specification.Is(
 @"Using some other MyModel
   and one MyModel
-  and some MyModel
+  and some MyModels
 When List()
 Then Result has count 1");
         }
@@ -80,10 +80,10 @@ Then Result has count 1");
             Result.Is(Two<MyModel>());
             Specification.Is(
 @"Using some other MyModel
-  and two MyModel
-  and some MyModel
+  and two MyModels
+  and some MyModels
 When List()
-Then Result is two MyModel");
+Then Result is two MyModels");
         }
     }
 

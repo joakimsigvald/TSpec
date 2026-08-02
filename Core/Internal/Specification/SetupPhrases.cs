@@ -18,10 +18,10 @@ internal class SetupPhrases(SpecificationRecording recording)
     internal void AddGiven<TValue>(string setupExpr, bool isCustomExpression, string? article)
         => RecordSetup(() => Given(isCustomExpression
             ? setupExpr
-            : $"{ArticlePrefix(article)}{DescribeSetupExpression<TValue>(setupExpr)}"));
+            : $"{ArticlePrefix(article)}{DescribeSetupExpression<TValue>(setupExpr, article)}"));
 
     internal void AddGivenCount<TModel>(string count)
-        => RecordSetup(() => Given($"{ArticlePrefix(count)}{typeof(TModel).Alias()}"));
+        => RecordSetup(() => Given($"{ArticlePrefix(count)}{typeof(TModel).Alias().CountedBy(count)}"));
 
     internal void AddGivenThat(string customArrangementExpr)
         => recording.Record(() => Given($"that {customArrangementExpr.Describe()}"));
@@ -100,11 +100,11 @@ internal class SetupPhrases(SpecificationRecording recording)
     private void Add(StepLayout layout, StepFamily family, string body)
         => recording.Add(new(layout) { Family = family, Body = body });
 
-    private static string DescribeSetupExpression<TValue>(string setupExpr)
+    private static string DescribeSetupExpression<TValue>(string setupExpr, string? article)
     {
         var value = setupExpr.Describe();
         var verb = value.Contains('=') && !value.StartsWith("new") ? "has" : "is";
-        return $"{typeof(TValue).Alias()} {verb} {value}";
+        return $"{typeof(TValue).Alias().CountedBy(article ?? string.Empty)} {verb} {value}";
     }
 
     private static string ArticlePrefix(string? article)

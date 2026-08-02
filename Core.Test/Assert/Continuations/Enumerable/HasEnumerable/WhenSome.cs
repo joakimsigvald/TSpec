@@ -9,7 +9,7 @@ public class WhenSome : Spec
     public void GivenEmpty_ThenGetException()
     {
         var ex = Xunit.Assert.Throws<XunitException>(() => Zero<int>().Has().Some(it => it > 3));
-        ex.HasMessage($"Expected zero int to have some element satisfying the condition but found []", "Zero int has some it > 3");
+        ex.HasMessage($"Expected zero ints to have some element satisfying the condition but found []", "Zero ints has some it > 3");
     }
 
     [Fact]

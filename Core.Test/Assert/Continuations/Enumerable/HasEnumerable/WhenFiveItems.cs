@@ -10,7 +10,7 @@ public class WhenFiveItems : Spec
         Five<int>().Has().FiveItems().and.Is().not.Empty();
         Specification.Is(
             """
-            Five int has five items
+            Five ints has five items
                 and is not empty
             """);
     }
@@ -19,6 +19,6 @@ public class WhenFiveItems : Spec
     public void GivenFiveItems_AndVerifyIt()
     {
         Five<int>().Has().FiveItems().that.fifth.Is(TheFifth<int>());
-        Specification.Is("Five int has five items that fifth is the fifth int");
+        Specification.Is("Five ints has five items that fifth is the fifth int");
     }
 }

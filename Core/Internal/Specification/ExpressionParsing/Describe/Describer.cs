@@ -27,16 +27,23 @@ internal abstract class Describer
         if (expr.AsMention() is not { } m)
             return null;
 
-        string head = $"{m.Verb.AsWords()} {m.TypeArgs}";
+        var typeArgs = m.TypeArgs.CountedBy(m.Verb);
+        string head = $"{m.Verb.AsWords()} {typeArgs}";
         return m.Constraints is { Count: > 0 }
             ? $"{head} {{ {DescribeAll(m.Constraints)} }}"
-            : DescribeWithDrilldown(head, expr.Raw, m.Boundary);
+            : DescribeWithDrilldown(head, expr.Raw, m.Boundary, plural: typeArgs != m.TypeArgs);
     }
 
-    /// A member-access drilldown after the mention (<c>The&lt;Cart&gt;().Foo</c>)
-    /// reads possessively: "the Cart's Foo". Any other suffix means the
-    /// expression is more than a mention — not describable here (null).
-    private static string? DescribeWithDrilldown(string head, string raw, string boundary)
+    /// <summary>
+    /// A member-access drilldown after the mention (<c>The&lt;Cart&gt;().Foo</c>) reads possessively:
+    /// "the Cart's Foo". Any other suffix means the expression is more than a mention — not
+    /// describable here (null).
+    /// </summary>
+    /// <remarks>
+    /// A plural takes the bare apostrophe, so a count that made the type read as "MyModels" does not
+    /// then write "MyModels's".
+    /// </remarks>
+    private static string? DescribeWithDrilldown(string head, string raw, string boundary, bool plural)
     {
         if (raw.Length <= boundary.Length || !raw.StartsWith(boundary))
             return head;
@@ -45,7 +52,7 @@ internal abstract class Describer
         if (suffix.Length == 0)
             return head;
 
-        return suffix.StartsWith('.') ? $"{head}'s {suffix[1..]}" : null;
+        return suffix.StartsWith('.') ? $"{head}'{(plural ? "" : "s")} {suffix[1..]}" : null;
     }
 
     protected static string DescribeNew(New n)

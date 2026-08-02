@@ -14,7 +14,7 @@ public class WhenSome : Spec<MyRetriever, MyModel[]>
             Result.Has().Count(2);
             Specification.Is(
                 """
-                Using some MyModel
+                Using some MyModels
                 When List()
                 Then Result has count 2
                 """);
@@ -30,7 +30,7 @@ public class WhenSome : Spec<MyRetriever, MyModel[]>
         {
             Result.Has().Count(1);
             Specification.Is(
-@"Using some MyModel
+@"Using some MyModels
   and one MyModel
 When List()
 Then Result has count 1");
@@ -46,8 +46,8 @@ Then Result has count 1");
         {
             Result.Has().Count(3);
             Specification.Is(
-@"Using some MyModel
-  and three MyModel
+@"Using some MyModels
+  and three MyModels
 When List()
 Then Result has count 3");
         }
@@ -62,7 +62,7 @@ Then Result has count 3");
         {
             Result.Has().Count(0);
             Specification.Is(
-@"Using some MyModel
+@"Using some MyModels
   and Array.Empty<MyModel>
 When List()
 Then Result has count 0");
@@ -78,8 +78,8 @@ Then Result has count 0");
         {
             Result.Has().Count(2);
             Specification.Is(
-@"Using some MyModel
-  and many MyModel
+@"Using some MyModels
+  and many MyModels
 When List()
 Then Result has count 2");
         }
@@ -94,9 +94,9 @@ Then Result has count 2");
         {
             Result.Has().Count(1);
             Specification.Is(
-@"Using some MyModel
+@"Using some MyModels
   and one MyModel
-  and some MyModel
+  and some MyModels
 When List()
 Then Result has count 1");
         }
@@ -111,9 +111,9 @@ Then Result has count 1");
         {
             Result.Has().Count(2);
             Specification.Is(
-@"Using some MyModel
-  and two MyModel
-  and some MyModel
+@"Using some MyModels
+  and two MyModels
+  and some MyModels
 When List()
 Then Result has count 2");
         }
@@ -128,9 +128,9 @@ Then Result has count 2");
         {
             Result.Has().Count(2);
             Specification.Is(
-@"Using some MyModel
+@"Using some MyModels
   and Array.Empty<MyModel>
-  and some MyModel
+  and some MyModels
 When List()
 Then Result has count 2");
         }
@@ -145,9 +145,9 @@ Then Result has count 2");
         {
             Result.Has().Count(2);
             Specification.Is(
-@"Using some MyModel
-  and many MyModel
-  and some MyModel
+@"Using some MyModels
+  and many MyModels
+  and some MyModels
 When List()
 Then Result has count 2");
         }

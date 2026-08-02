@@ -6,20 +6,46 @@ internal static class StringExtensions
     {
         var words = str.ToWords();
         if (verbalizationStrategy == VerbalizationStrategy.PresentSingularS)
-        {
-            var firstWord = words[0];
-            if (firstWord.EndsWith('y'))
-                words[0] = $"{firstWord[..^1]}ies";
-            else if (firstWord.EndsWith("ve"))
-                words[0] = $"{firstWord[..^2]}s";
-            else if (firstWord.EndsWith('s') || firstWord.EndsWith('x') || firstWord.EndsWith('z')
-                || firstWord.EndsWith("ch") || firstWord.EndsWith("sh"))
-                words[0] = $"{firstWord}es";
-            else
-                words[0] = $"{firstWord}s";
-        }
+            // "have" is the one irregular an assertion verb reaches; the rest is the shared rule.
+            words[0] = words[0].EndsWith("ve") ? $"{words[0][..^2]}s" : AddS(words[0]);
         return string.Join(' ', words);
     }
+
+    /// <summary>
+    /// The plural of a noun. English spells noun plurals and third-person verbs alike, so this is
+    /// the same rule <see cref="AsWords"/> applies for <c>PresentSingularS</c> rather than a second
+    /// copy of it. Anything that is not a plain identifier was never a noun to inflect — a generic
+    /// or an array has no spelling that reads as a plural — and is returned as written.
+    /// </summary>
+    /// <remarks>
+    /// Regular nouns only. An irregular one comes out as though it were regular, and no author can
+    /// fix that by renaming their domain type; it is accepted because it is the same kind of wrong
+    /// as the bare singular it replaces, and far rarer.
+    /// </remarks>
+    internal static string Pluralize(this string noun)
+        => IsIdentifier(noun) ? AddS(noun) : noun;
+
+    /// <summary>
+    /// A type named alongside a count reads as a plural — "two Rooms". <c>One</c> is a count too and
+    /// stays singular, which is why the factories are listed rather than inferred from the count.
+    /// </summary>
+    internal static string CountedBy(this string typeName, string factory)
+        => _pluralFactories.Contains(factory) ? typeName.Pluralize() : typeName;
+
+    private static readonly HashSet<string> _pluralFactories =
+        ["Zero", "Two", "Three", "Four", "Five", "Some", "Many", "AnyNumberOf"];
+
+    /// <summary>
+    /// A sibilant needs a syllable of its own, and <c>-y</c> becomes <c>-ies</c> only after a
+    /// consonant — "query" gives "queries" where "key" gives "keys".
+    /// </summary>
+    private static string AddS(string word)
+        => word.Length > 1 && word.EndsWith('y') && !IsVowel(word[^2]) ? $"{word[..^1]}ies"
+        : word.EndsWith('s') || word.EndsWith('x') || word.EndsWith('z')
+            || word.EndsWith("ch") || word.EndsWith("sh") ? $"{word}es"
+        : $"{word}s";
+
+    private static bool IsVowel(char c) => "aeiouAEIOU".Contains(c);
 
     /// <summary>
     /// Breaks an identifier into words. An underscore separates clauses rather than words, so
@@ -89,9 +115,15 @@ internal static class StringExtensions
     internal static string AsHeading(this string name)
         => string.Join(". ", name.Split('.').Select(part => part.AsWords().Capitalize()));
 
-    /// <summary>A subject name as a document title: <c>MyHotel</c> reads "My Hotel".</summary>
+    /// <summary>
+    /// A subject name as a document title: <c>MyHotel</c> reads "My Hotel", and the dotted
+    /// <c>MyHotel.Core</c> reads "My Hotel Core". The dot separates parts of one name here, unlike
+    /// in <see cref="AsHeading"/>, where a branch path really is a sequence of sentences.
+    /// </summary>
     internal static string AsTitle(this string name)
-        => string.Join(' ', name.ToWords().Select(word => word.Capitalize()));
+        => string.Join(' ', name.Split('.')
+            .SelectMany(part => part.ToWords())
+            .Select(word => word.Capitalize()));
 
     internal static string NormalizeLineEndings(this string str)
         => str.Replace("\r\n", "\n").Replace('\r', '\n');

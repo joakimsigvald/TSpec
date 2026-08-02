@@ -20,10 +20,15 @@ public class WhenReadDeclaredTypes : Spec
     public void ThenReadBothTypeArguments()
         => TestIdentity.Declares(typeof(Subject)).Is(("MyModel", "int"));
 
-    /// <summary>Spec&lt;T&gt; is Spec&lt;T, T&gt;, and both lines are stated even so.</summary>
+    /// <summary>
+    /// Spec&lt;T&gt; is Spec&lt;T, T&gt;, so a return type read from it would only say the subject's
+    /// name a second time. It is also the spelling for a subject whose result is not asserted, where
+    /// naming a return type at all would be a claim the spec never makes — so the subject is stated
+    /// and the return type is left unsaid. Recognising it has to come before Spec&lt;,&gt;.
+    /// </summary>
     [Fact]
-    public void GivenOneTypeArgument_ThenReadItAsBoth()
-        => TestIdentity.Declares(typeof(SubjectIsAlsoTheResult)).Is(("MyModel", "MyModel"));
+    public void GivenOneTypeArgument_ThenReadOnlyTheSubject()
+        => TestIdentity.Declares(typeof(SubjectIsAlsoTheResult)).Is(("MyModel", null));
 
     /// <summary>
     /// The non-generic Spec is Spec&lt;object, object&gt;, so recognising it has to come first —

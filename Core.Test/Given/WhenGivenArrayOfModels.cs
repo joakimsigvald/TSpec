@@ -19,10 +19,10 @@ public abstract class WhenGetArrayOfModels : Spec<MyService, MyModel[]>
             Specification.Is(
                 """
             Given MyModel has Name = a string
-            Using two MyModel
+            Using two MyModels
               and IMyRepository.GetModels() returns a MyModel[]
             When GetModels()
-            Then Result is two MyModel
+            Then Result is two MyModels
               and Result.First().Name is the string
             """);
         }

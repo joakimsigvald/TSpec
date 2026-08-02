@@ -82,8 +82,9 @@ teardowns **before**, so the text states the order they ran in. `Given` keeps "a
 order is precedence between values, not a sequence of acts. Chosen over reordering clauses into
 execution order, which hides the inversion where the binder makes it legible.
 
-**The document states subject-under-test and return type** at the highest heading where every
-requirement below agrees, per subject otherwise:
+**The document states subject-under-test and return type**, each at the highest heading where every
+requirement below agrees on *it* — independently, so a subject can hold for a whole document while
+every section returns something different:
 
 ```
 Subject under test: HttpClient
@@ -92,8 +93,14 @@ Return type: HttpResponseMessage
 
 Labels, not a sentence — no one phrasing survives `Spec<int>` over a static calculation. Inside the
 fence because a return type can contain `<` and `>` (§6). `Spec<T>` states the type twice rather than
-earn a special case; non-generic `Spec` omits both lines. Padded into a column and set apart by a
-blank line: apparatus and specification are different kinds of statement.
+earn a special case; non-generic `Spec` omits both lines. Set apart by a blank line: apparatus and
+specification are different kinds of statement. Stated together they are padded into a column,
+because two labels read as a pair; alone a label has nothing to line up with and is written plainly.
+
+Corrected 2026-08-02: `Spec<T>` now states the subject alone. It *is* `Spec<T, T>`, so a return type
+read from it only repeats the subject's name — and it is also the spelling for a spec whose result is
+not asserted, where naming a return type claims something the spec never says. `Spec<>` is therefore
+recognised before `Spec<,>`, the same ordering the non-generic `Spec` already needed.
 
 **That pair is apparatus, not a step.** As a `SpecificationStep` it would enter every per-test
 specification and move all 1400-odd pins. Excluded from `ComplexityNumber`, where it cancels anyway.
@@ -239,6 +246,10 @@ User-facing, in order — the material for release notes:
 | Requirements are a list | Two heading levels, not four; one line inline, several fenced. Halved the MyHotel document. |
 | `Having` / `Until` binders | Setups read `after`, teardowns `before`. **Changes per-test text**, not only the document — 3 pins moved. |
 | `with` expressions name their target | `The<Room>() with { … }` rendered as its members alone, which is not a room. Erasure narrowed to `p => p with { … }`. Also fixes `_ => _.Inner with { … }` dropping `_.Inner`. |
+| `Spec<T>` states the subject alone | Was `Subject under test: T` / `Return type: T`; the second line only repeated the first, and made `Spec<T>` unusable as "subject, result not asserted". Document-only. |
+| Dotted subject names title cleanly | `MyHotel.Core.Spec` titles its document `# My Hotel Core`, where it read `# My Hotel. Core`. Document-only. |
+| Collection mentions pluralize | `Two<Room>()` renders "two Rooms" where it read "two Room"; `Many<Query>()` gives "many Queries". Everything but `One`. A plural drilldown takes the bare apostrophe — `three MyModels' Last()`. **Changes per-test text** — 57 expectations re-pinned. |
+| Declared labels hoist independently | `Subject under test:` and `Return type:` each rise to the highest heading where every requirement agrees on that label, instead of both falling when either disagrees. A lone label is written without the column. |
 | Subject parameter elided | `When(_ => _.Api.Get("/x"))` renders `When Api.Get("/x")`; `++_.Counter` renders `++Counter`. `When`/`Having`/`Until` only, wherever the parameter heads a chain. Mock setups, `Given` setups and assertion predicates keep theirs. **Changes per-test text** — 291 expectations re-pinned. |
 
 Notable internals: the two-phase engine (§3) was the largest change and the enabler for the rest;
@@ -287,16 +298,18 @@ invisible in a single-subject HTTP document, which is why nothing before now cou
    the §3 walk up the closed `Spec<,>` reads `Type` only, so the `?` is gone before rendering.
    `int?` survives, being a distinct type — which is why §3's load-bearing erasure case never caught
    this. Reading it needs `NullabilityInfoContext` over the generic argument.
-9. **`AsTitle` does not split on `.`.** `MyHotel.Core` titles its document `# My Hotel. Core`, which
-   reads as two sentences. `AsHeading` already splits on `.` and joins with `". "`, deliberately,
-   because a branch path is a sequence of sentences; a title is one name and wants a space.
-   Untestable before a subject name contained a dot, which needed a second production project.
-10. **The declared pair does not hoist independently.** §3 hoists `Subject under test` and
-    `Return type` together, to the highest heading where every requirement agrees. In `Core.Spec` the
-    subject agrees everywhere (`RoomService`) but the return type does not, so *both* fall to the
-    subject level and `Subject under test: RoomService` is stated five times. Hoisting each line to
-    the highest heading where *it* holds would state the subject once at the top. The pair is padded
-    into a column (§3), so splitting them also asks what the column means when one line has moved.
+9. ~~**`AsTitle` does not split on `.`.**~~ **Fixed 2026-08-02.** `MyHotel.Core` titled its document
+   `# My Hotel. Core`, which reads as two sentences. It now splits on `.` before splitting words and
+   joins with a space — `# My Hotel Core`. Deliberately unlike `AsHeading`, which splits on `.` and
+   joins with `". "`: a branch path is a sequence of sentences where a title is one name. Untestable
+   before a subject name contained a dot, which needed a second production project.
+10. ~~**The declared pair does not hoist independently.**~~ **Fixed 2026-08-02.** The two labels were
+    hoisted together, so `Core.Spec` — where the subject agrees everywhere but the return type does
+    not — stated `Subject under test: RoomService` five times. Each label now hoists to the highest
+    heading where *it* holds. The column was the open question: a lone label has nothing to line up
+    with, so it is written plainly, and being one line it renders inline rather than fenced, which
+    the existing one-line rule already decided. `Core.Spec` went from 123 lines to 108;
+    `MyHotel.Spec`, where both still agree, is unchanged.
 
 Found 2026-08-01 in `MyHotel.Spec`, and since designed out of it rather than fixed.
 
@@ -315,6 +328,39 @@ Found 2026-08-01 in `MyHotel.Spec`, and since designed out of it rather than fix
     mechanism, present only because a client needs disposing, where `Hotel` is constructed and
     disposed by the pipeline. 22 requirements now render in 111 lines against the old 20 in 105.
     **The gap is unfixed**; MyHotel simply no longer exhibits it.
+Found 2026-08-02 in `Core.Spec`, the first document built on mocked collaborators.
+
+13. ~~**No way to declare a subject with no result.**~~ **Fixed 2026-08-02.** A `void`/`Task` method
+    on a subject had nowhere honest to go: `WhenDeleteRoom : Spec<RoomService>` printed
+    `Return type: RoomService`, which is false, and `Spec<RoomService, Task>` declared the wrapper
+    rather than the absence. `Spec<T>` now states the subject and says nothing about the return
+    type, which reads correctly both ways — as "the result is the subject's type, so there is
+    nothing to add" and as "the result is not what this spec is about". Note the declaration is
+    still not *true* of a `Task`-returning method; the document has stopped making a false claim
+    rather than started making a true one.
+14. **`Given` loses its word under a `Given` heading.** A branch block opens
+    `IRoomStore.Load() returns zero Room` with no lead word, because §3 drops a block's opening word
+    where something above says it, and the heading is `### Given no such room`. But the heading's
+    "Given" is part of a *name* and the clause's is a family keyword; dropping one because the other
+    is spelled the same leaves a bare sentence with no grammatical subject. Not reachable in
+    `MyHotel.Spec`, where every branch block opens with `Having`.
+15. **A collection mention wrapping an expression reads badly.** `One(The<Room>() with { … })`
+    renders `one the Room with { BedCount = any int }` — "one the Room" is not English. `One<T>()`
+    alone is fine (`one Room`); the fault is `one` in front of an already-articled mention.
+    **No longer exhibited**: the spec that raised it was wrapping a value that was already a
+    mention, so `One(…)` bought nothing and a collection expression says it plainly —
+    `returns [the Room with { BedCount = any int }]`. The gap is unfixed; `One(expr)` over an
+    articled expression still reads this way.
+
+    Unrelated to the plural spelling, fixed 2026-08-02: `Two<Room>()` now reads "two Rooms". The
+    orthography is shared with `PresentSingularS` rather than copied, since English spells noun
+    plurals and third-person verbs alike — which also fixed a latent bug there, `-y` becoming
+    `-ies` after a vowel. Three call sites needed it (mention, `Given` count, `Given` count with a
+    setup), so the factory list lives once in `StringExtensions.CountedBy`.
+16. **An array argument renders as source.** `Save(new[] { the third Room, the second Room })` keeps
+    `new[] { … }`, where a collection mention would have said `two Room`. Honest but noisy, and it is
+    the only place in either document where C# syntax survives into a claim.
+
 **Fixed 2026-08-01**, unlike 8–11.
 
 12. ~~**The subject-under-test receiver is never elided.**~~ Every clause used to name it —
@@ -358,19 +404,24 @@ subject to the test, so a spec claims only what its `When` returns. An operation
 observes it. This is §8.1's lesson arriving as a structural constraint, and it makes the Contract's
 shape a question about what the document can say, not only about layering.
 
+**`Core.Spec` written 2026-08-02** — 12 requirements over `RoomService` with `IRoomStore` mocked, in
+a `RoomService/` folder per the PO's convention. Four shapes at once: a subject that is not
+`HttpClient`; return types `Room`, `IReadOnlyList<Room>` and `Task`; arrangement carried by `Given`
+mock setups instead of `Having`; and exception claims (`throws RoomNotFound`). It is also the second
+`SPECIFICATION.md`, so one-file-per-project is exercised for the first time. It produced §8.13–16 and
+put §8.9 and §8.10 back in the repo as visible evidence.
+
 Shapes still unexercised:
 
 - **Namespace grouping (§8.3), which does not follow from layering.** Each layer gets its own Spec
   project and therefore its own document, so layers produce *more documents*, not more namespaces
   within one. The `##` heading is the operation (`When add room`); grouping becomes visible only when
   one Spec project holds operations in different namespaces — under Neat, a **second vertical
-  subdomain** in Core. Rooms alone will not raise it.
-- **A subject that is not `HttpClient`, and return types other than `HttpResponseMessage`** — what
-  `Core.Spec` is for.
-- **Unit specs with mocked collaborators** — `Using`/`Given` carrying the arrangement instead of
-  `Having`, and mock-name elision in a document rather than in failure output. Needs a Core type
-  that depends on another; a service over an in-memory list has no collaborators.
-- **Exception and failure specs** — nothing says what a thrown expectation looks like as a claim.
+  subdomain** in Core. Neither rooms alone nor the `RoomService/` folder will raise it: one folder is
+  one namespace.
+- **A nullable return type (§8.8).** `RoomService.Get` throws rather than returning `Room?`, so the
+  dropped `?` is still invisible in both documents. It needs a Core method that answers "no" with a
+  value instead of an exception.
 - **Branch trees three or more levels deep** — where the two-level heading structure and §5's
   hoisting are pushed hardest.
 

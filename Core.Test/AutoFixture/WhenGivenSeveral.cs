@@ -12,7 +12,7 @@ public class GivenThreeElements : WhenList
         Then().Result.Has().Count(3);
         Specification.Is(
             """
-                Given three MyModel
+                Given three MyModels
                   and IMyRepository.List() returns a MyModel[]
                 When List()
                 Then Result has count 3
@@ -25,7 +25,7 @@ public class GivenThreeElements : WhenList
         Then().Result.First().Is().Not(Result.Last());
         Specification.Is(
             """
-                Given three MyModel
+                Given three MyModels
                   and IMyRepository.List() returns a MyModel[]
                 When List()
                 Then Result.First() is not Result.Last()
@@ -38,7 +38,7 @@ public class GivenThreeElements : WhenList
         Then().Result.Last().Is(TheThird<MyModel>());
         Specification.Is(
             """
-                Given three MyModel
+                Given three MyModels
                   and IMyRepository.List() returns a MyModel[]
                 When List()
                 Then Result.Last() is the third MyModel
@@ -56,7 +56,7 @@ public class GivenFourElements : WhenList
         Then().Result.Has().Count(4);
         Specification.Is(
             """
-                Given four MyModel
+                Given four MyModels
                   and IMyRepository.List() returns a MyModel[]
                 When List()
                 Then Result has count 4
@@ -69,7 +69,7 @@ public class GivenFourElements : WhenList
         Then().Result.Last().Is(TheFourth<MyModel>());
         Specification.Is(
             """
-                Given four MyModel
+                Given four MyModels
                   and IMyRepository.List() returns a MyModel[]
                 When List()
                 Then Result.Last() is the fourth MyModel
@@ -87,7 +87,7 @@ public class GivenFiveElements : WhenList
         Then().Result.Has().Count(5);
         Specification.Is(
             """
-                Given five MyModel
+                Given five MyModels
                   and IMyRepository.List() returns a MyModel[]
                 When List()
                 Then Result has count 5
@@ -100,7 +100,7 @@ public class GivenFiveElements : WhenList
         Then().Result.Last().Is(TheFifth<MyModel>());
         Specification.Is(
             """
-                Given five MyModel
+                Given five MyModels
                   and IMyRepository.List() returns a MyModel[]
                 When List()
                 Then Result.Last() is the fifth MyModel
@@ -124,7 +124,7 @@ public class GivenSomeSpecificElements : WhenList
         Result[1].Id.Is(2);
         Result[2].Id.Is(3);
         Specification.Is(
-@"Given some MyModel is [_one, _two, _three]
+@"Given some MyModels is [_one, _two, _three]
   and IMyRepository.List() returns a MyModel[]
 When List()
 Then Result has count 3

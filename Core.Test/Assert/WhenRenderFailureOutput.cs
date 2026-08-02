@@ -126,12 +126,12 @@ public class WhenRenderFailureOutput : Spec<int>
         => AssertOutput(
             () => Two<int>().Has().All(it => it.Is().LessThan(2)),
             """
-            Expected two int to have all elements satisfying the assertion but found [1, 2]
+            Expected two ints to have all elements satisfying the assertion but found [1, 2]
             Expected it to be less than 2 but found 2
             """,
             """
 
-            Two int has all it.Is().LessThan(2)
+            Two ints has all it.Is().LessThan(2)
 
             === VALUES ===
             int:1 = 1
@@ -161,12 +161,12 @@ public class WhenRenderFailureOutput : Spec<int>
         => AssertOutput(
             () => { Any<Fussy>(); Two<int>().Has().All(it => it.Is().LessThan(2)); },
             """
-            Expected two int to have all elements satisfying the assertion but found [2, 3]
+            Expected two ints to have all elements satisfying the assertion but found [2, 3]
             Expected it to be less than 2 but found 2
             """,
             $"""
 
-            Two int has all it.Is().LessThan(2)
+            Two ints has all it.Is().LessThan(2)
 
             === WARNINGS ===
             {Warning}

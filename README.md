@@ -297,6 +297,10 @@ For collections of generated values:
 `Zero`, `One`, `Two`, `Three`, `Four`, `Five`
 `Some` (at least one), `Many` (at least two), `AnyNumberOf`
 
+All of these but `One` name the type as a plural in the specification, so `Two<Room>()` reads
+"two Rooms" and `Many<Query>()` reads "many Queries". The spelling is the regular one, so a noun
+with an irregular plural is written as though it were regular — `Two<Child>()` reads "two Childs".
+
 **Unreferenced values**
 For auto-generated values that are not intended to be referenced again:
 `Any`, `Another`
@@ -876,7 +880,9 @@ Return type:        HttpResponseMessage
 
 Headings read as prose, and what every requirement below a heading opens with is stated once at that
 heading rather than repeated in each block — above, the subject and return type hold for the whole
-document, and the `When` for the whole subject. Assertions never move up:
+document, and the `When` for the whole subject. Those two labels hoist independently, each to the
+highest heading where every requirement below agrees on it, so a single subject can head the document
+while each section states the return type of its own method. Assertions never move up:
 two requirements agreeing on one is worth seeing. What a spec declares about the code is the
 document's own apparatus rather than specification, so a blank line sets it apart from the clauses.
 

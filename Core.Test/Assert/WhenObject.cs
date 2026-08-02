@@ -87,6 +87,6 @@ public class WhenObject : Spec<object>
     public void WhenOneOf()
     {
         A<MyModel>().Is().OneOf(Three<MyModel>());
-        Specification.Is("A MyModel is one of three MyModel");
+        Specification.Is("A MyModel is one of three MyModels");
     }
 }

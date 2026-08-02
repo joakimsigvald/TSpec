@@ -10,7 +10,7 @@ public class WhenTwoItems : Spec
         Two<int>().Has().TwoItems().and.Is().not.Empty();
         Specification.Is(
             """
-            Two int has two items
+            Two ints has two items
                 and is not empty
             """);
     }
@@ -22,7 +22,7 @@ public class WhenTwoItems : Spec
         first.Is(TheFirst<int>());
         second.Is(TheSecond<int>());
         Specification.Is("""
-            Two int has two items that first is the first int
+            Two ints has two items that first is the first int
             Second is the second int
             """);
     }

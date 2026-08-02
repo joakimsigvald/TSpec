@@ -10,7 +10,7 @@ public class WhenNone : Spec
     public void GivenEmpty_ThenDoesNotThrow()
     {
         Zero<int>().Has().None(it => it > 3);
-        Specification.Is("Zero int has not some it > 3");
+        Specification.Is("Zero ints has not some it > 3");
     }
 
     [Fact]

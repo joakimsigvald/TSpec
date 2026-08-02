@@ -6,7 +6,8 @@ Full human documentation: [README.md](https://github.com/joakimsigvald/TSpec#rea
 
 ## Core model — read this first
 
-- A test class subclasses `Spec<TSUT, TResult>` (subject type, return type of the method under test). Variants: `Spec<T>` = `Spec<T, T>`; non-generic `Spec` = no subject, no result (static/void).
+- A test class subclasses `Spec<TSUT, TResult>` (subject type, return type of the method under test). Variants: `Spec<T>` = `Spec<T, T>`, also the spelling for a subject whose result is not asserted; non-generic `Spec` = no subject, no result (static/void).
+- In `SPECIFICATION.md`, `Spec<TSUT, TResult>` states both types, `Spec<T>` states the subject only (a return type would just repeat it), and non-generic `Spec` states neither.
 - **Execution is deferred**: nothing runs until the first `Then()` call or `Result` access. The pipeline runs **at most once** per test method.
 - **Declaration order of arrange steps does not matter.** Effective execution order is always: `Given` → `Having` → `When` → `Until`.
   - `Having` steps run in **reverse** declaration order (last declared runs first), just before `When`.
@@ -41,7 +42,7 @@ Mentions generate-and-remember values **per type, per test** — the same mentio
 
 - Single values: `A<T>()`, `An<T>()`, `The<T>()`, `AFirst<T>()`, `TheFirst<T>()`, `ASecond<T>()`, `TheSecond<T>()` … up to `Fifth` (5 numbered slots per type).
 - With inline setup: `A<Cart>(_ => _.Id = 3)`.
-- Collections: `Zero<T>()`, `One<T>()`, `Two<T>()`, `Three<T>()`, `Four<T>()`, `Five<T>()`, `Some<T>()` (≥1), `Many<T>()` (≥2), `AnyNumberOf<T>()`.
+- Collections: `Zero<T>()`, `One<T>()`, `Two<T>()`, `Three<T>()`, `Four<T>()`, `Five<T>()`, `Some<T>()` (≥1), `Many<T>()` (≥2), `AnyNumberOf<T>()`. Everything but `One` renders the type as a plural — `Two<Room>()` reads "two Rooms", `Many<Query>()` reads "many Queries". Regular spelling only, so an irregular noun comes out regular (`Two<Child>()` reads "two Childs").
 - Throwaway values (never referenced again): `Any<T>()`, `Another<T>()`.
 - Tags name values of the same type: `static Tag<string> name = new(nameof(name));` then `Given(name).Is("Ada")`, reference with `The(name)`, or register as default with `Using(name, For.Subject)`.
 
@@ -134,7 +135,7 @@ Opt in with one line in the spec project; the document is written to the spec pr
 - Headings read as prose (`WhenListRooms` → `## When list rooms`): `## Subject` → `### Given…`, then each passing requirement as a list item, its name in bold and its claim in a code span beside it. Deduplicated, so theories contribute one entry and execution order never shows.
 - One line of specification is written inline, several keep a fence (indented into the item when a requirement's own specification is more than its claim). No lead word is repeated where something above it already says it: a `When` heading is not followed by `When`, and a list item drops the `Then` its position states.
 - **The SUT parameter is elided** in `When`/`Having`/`Until`: `When(_ => _.Api.GetAsync("/rooms"))` renders `When Api.GetAsync("/rooms")`, `When(_ => ++_.Counter)` renders `When ++Counter`. Everywhere it heads a chain, arguments included, since the subject is already named at `Subject under test:`. A bare `_` passed as a value stays. Elsewhere `_` is not the subject and is untouched — mock setups (`Given<T>().That(_ => _.Call())`, which name the service instead), `Given` value setups, and assertion predicates like `throws Ex where _.Message is …`.
-- What every requirement below a heading opens with is stated once at that heading instead of repeated — including `Subject under test:` and `Return type:` from the spec's `Spec<TSUT, TResult>`, which sit at the highest heading where they hold. Assertions never move up.
+- What every requirement below a heading opens with is stated once at that heading instead of repeated — including `Subject under test:` and `Return type:` from the spec's `Spec<TSUT, TResult>`. Those two hoist **independently**, each to the highest heading where every requirement below agrees on it, so one subject can head a whole document while each section states its own return type. Assertions never move up.
 - Sections are ordered simplest first by how much arrangement each carries (its own `Using`/`Given`/`When`/`Having`/`Until` clauses plus its children's); ties fall back to the name, and among requirements to the length of the claim. Assertions are not counted, so adding one never reorders the document.
 - Written only when **every** non-skipped test in the assembly reported a pass. A filtered run, a failure, or a constructor that threw all leave the file untouched, with the missing requirements named. There is no "was anything red" flag — non-passing tests simply never report, so one set comparison covers every case.
 - Deterministic: sorted, deduplicated, LF-normalized, and the header names the build (spec assembly MVID). Verify freshness in CI with `dotnet test && git diff --exit-code -- "**/SPECIFICATION.md"`.

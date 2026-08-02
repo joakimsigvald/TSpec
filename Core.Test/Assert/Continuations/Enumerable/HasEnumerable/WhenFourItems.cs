@@ -10,7 +10,7 @@ public class WhenFourItems : Spec
         Four<int>().Has().FourItems().and.Is().not.Empty();
         Specification.Is(
             """
-            Four int has four items
+            Four ints has four items
                 and is not empty
             """);
     }
@@ -19,6 +19,6 @@ public class WhenFourItems : Spec
     public void GivenFourItems_AndVerifyIt()
     {
         Four<int>().Has().FourItems().that.fourth.Is(TheFourth<int>());
-        Specification.Is("Four int has four items that fourth is the fourth int");
+        Specification.Is("Four ints has four items that fourth is the fourth int");
     }
 }

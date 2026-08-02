@@ -9,7 +9,7 @@ public class WhenDistinct : Spec
     public void GivenEmpty_ThenDoesNotThrow()
     {
         Zero<int>().Is().Distinct();
-        Specification.Is("Zero int is distinct");
+        Specification.Is("Zero ints is distinct");
     }
 
     [Fact]

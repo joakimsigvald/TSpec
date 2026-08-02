@@ -27,14 +27,14 @@ internal static class DocumentRenderer
         var requirements = Distinct(entries).ToArray();
         var declared = Declaration(requirements);
         var whole = SharedOpening(requirements);
-        text.Append(HeadingBlock(declared, whole, stated: null));
+        text.Append(HeadingBlock(declared.Text, whole, stated: null));
 
         foreach (var subjectNode in Subjects(requirements, whole.Count))
         {
             var subjectHeading = subjectNode.Key.AsHeading();
             text.Append($"\n## {subjectHeading}\n")
                 .Append(HeadingBlock(
-                    declared is null ? subjectNode.Declaration : null,
+                    subjectNode.Declaration.Except(declared).Text,
                     subjectNode.Shared,
                     StatedWord(subjectHeading)));
 
@@ -106,8 +106,9 @@ internal static class DocumentRenderer
         => clauses.Count(clause => clause.Phase != StepPhase.Assert);
 
     /// <summary>
-    /// What a heading declares about the code it describes, or null when its requirements disagree
-    /// and the statement belongs further down instead.
+    /// What a heading declares about the code it describes. Each label is carried separately, and
+    /// null where the requirements below disagree and the statement belongs further down instead —
+    /// a subject can hold for a whole document while every section returns something different.
     /// </summary>
     /// <remarks>
     /// Stated rather than phrased, because no one phrasing survives every spec: <c>Spec&lt;int&gt;</c>
@@ -116,19 +117,37 @@ internal static class DocumentRenderer
     /// step, or it would appear in every per-test specification too. It stays out of
     /// <c>ComplexityNumber</c> for the same reason, and would cancel anyway.
     /// </remarks>
-    private static string? Declaration(Requirement[] requirements)
+    private readonly record struct Declared(string? Subject, string? ReturnType)
+    {
+        internal Declared Except(Declared stated)
+            => new(stated.Subject is null ? Subject : null,
+                stated.ReturnType is null ? ReturnType : null);
+
+        /// <summary>
+        /// Two labels read as a pair, so where both are stated their values are set in a column.
+        /// Alone, a label has nothing to line up with and is written plainly.
+        /// </summary>
+        internal string? Text => (Subject, ReturnType) switch
+        {
+            (null, null) => null,
+            (not null, null) => $"{SubjectLabel} {Subject}",
+            (null, not null) => $"{ReturnLabel} {ReturnType}",
+            _ => $"{SubjectLabel} {Subject}\n"
+                + $"{ReturnLabel.PadRight(SubjectLabel.Length)} {ReturnType}",
+        };
+    }
+
+    private static Declared Declaration(Requirement[] requirements)
     {
         var first = requirements.FirstOrDefault()?.Entry;
         if (first?.SubjectUnderTest is null)
-            return null;
+            return default;
 
-        return requirements.All(requirement
-                => requirement.Entry.SubjectUnderTest == first.SubjectUnderTest
-                && requirement.Entry.ReturnType == first.ReturnType)
-            // Two labels read as a pair, so their values are set in a column under one another.
-            ? $"{SubjectLabel} {first.SubjectUnderTest}\n"
-                + $"{ReturnLabel.PadRight(SubjectLabel.Length)} {first.ReturnType}"
-            : null;
+        return new(
+            requirements.All(r => r.Entry.SubjectUnderTest == first.SubjectUnderTest)
+                ? first.SubjectUnderTest : null,
+            requirements.All(r => r.Entry.ReturnType == first.ReturnType)
+                ? first.ReturnType : null);
     }
 
     private const string SubjectLabel = "Subject under test:";
@@ -266,7 +285,7 @@ internal static class DocumentRenderer
 
     /// A subject and its branches, each already stripped of what is stated above it.
     private sealed record SubjectNode(
-        string Key, IReadOnlyList<SpecificationClause> Shared, string? Declaration, BranchNode[] Branches)
+        string Key, IReadOnlyList<SpecificationClause> Shared, Declared Declaration, BranchNode[] Branches)
     {
         internal int ComplexityNumber
             => Arrangement(Shared) + Branches.Sum(branch => branch.ComplexityNumber);

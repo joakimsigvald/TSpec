@@ -53,8 +53,9 @@ behaviour has not been observed yet. Never write production code that no failing
 - `MyHotel.Spec` — black-box, subject `Hotel`: the running application reached over HTTP, with its
   own room file. States the *HTTP contract* — routes, status codes, response bodies — and, because
   `Hotel` can restart, what survives one.
-- `Core.Spec` — subject is a Core type, no HTTP. States the *domain rules*: what is unique, what
-  order things come back in, what an operation does to later reads. Empty until Core is.
+- `Core.Spec` — subject is a Core type with its collaborators mocked, no HTTP. States the *domain
+  rules*: what is unique, what order things are kept in, what is refused. One folder per class under
+  test (`RoomService/`), one `When…` class per method.
 
 `Contract` and `Entry` hold no logic and get no specs — Entry's mapping is stated end-to-end. Do not
 narrow a spec to a layer when the behaviour is only observable end-to-end, and do not restate a

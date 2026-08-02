@@ -35,6 +35,16 @@ public class WhenRenderDocument : Spec
     public void ThenNameTheBuildTheDocumentCameFrom()
         => Render().Does().Contain("Version 0.1.0+4f2a9c1e");
 
+    /// <summary>
+    /// A project named for a layer is dotted — "MyHotel.Core" — and there the dot separates parts of
+    /// one name, not one sentence from the next. A branch path is the opposite case, which is why
+    /// <c>AsHeading</c> splits it into sentences and a title does not.
+    /// </summary>
+    [Fact]
+    public void GivenADottedSubjectName_ThenTitleItAsOneName()
+        => DocumentRenderer.Render(new("MyHotel.Core", "0.1.0"), "MyHotel.Core.Spec", "4f2a9c1e", [])
+            .Does().StartWith("# My Hotel Core\n");
+
     [Fact]
     public void ThenRenderTheRequirementUnderItsSubject()
         => Render(_respondOk).Is(
@@ -278,6 +288,49 @@ public class WhenRenderDocument : Spec
     [Fact]
     public void GivenTheSpecDeclaresNothing_ThenSayNothingAboutTypes()
         => Render(_respondOk).Does().not.Contain("Subject under test");
+
+    /// One subject throughout, each section returning something of its own.
+    private static SpecificationEntry[] OneSubjectManyReturnTypes()
+        => [Requirement("WhenGetRoom", "ThenA", Act("get"), Claim("then a"))
+                with { SubjectUnderTest = "RoomService", ReturnType = "Room" },
+            Requirement("WhenListRooms", "ThenB", Act("list"), Claim("then b"))
+                with { SubjectUnderTest = "RoomService", ReturnType = "Room[]" }];
+
+    /// <summary>
+    /// The two labels are hoisted one at a time. Held together, a single disagreeing return type
+    /// would drag the subject down with it and have every section restate a name that never changes.
+    /// </summary>
+    [Fact]
+    public void GivenOneSubjectDeclaresSeveralReturnTypes_ThenStillStateTheSubjectForTheDocument()
+        => Render(OneSubjectManyReturnTypes()).Does()
+            .Contain("-->\n`Subject under test: RoomService`\n")
+            .and.Contain("## When get room\n```\nReturn type: Room\n\nWhen get\n```")
+            .and.Contain("## When list rooms\n```\nReturn type: Room[]\n\nWhen list\n```");
+
+    /// <summary>Hoisted is stated once: the subject does not come back under each section.</summary>
+    [Fact]
+    public void GivenTheDocumentStatesTheSubject_ThenDoNotRepeatItPerSubject()
+        => Render(OneSubjectManyReturnTypes()).Split("Subject under test").Length.Is(2);
+
+    /// <summary>The same the other way round, so neither label is the one that happens to work.</summary>
+    [Fact]
+    public void GivenSeveralSubjectsDeclareOneReturnType_ThenStillStateItForTheDocument()
+        => Render(
+            Requirement("WhenGetRoom", "ThenA", Act("get"), Claim("then a"))
+                with { SubjectUnderTest = "RoomService", ReturnType = "Room" },
+            Requirement("WhenAdd", "ThenB", Act("add"), Claim("then b"))
+                with { SubjectUnderTest = "RoomStore", ReturnType = "Room" })
+            .Does()
+            .Contain("-->\n`Return type: Room`\n")
+            .and.Contain("## When add\n```\nSubject under test: RoomStore\n\nWhen add\n```");
+
+    /// <summary>
+    /// The column is what makes two labels read as a pair. One standing on its own has nothing to
+    /// line up with, so padding it would leave a gap the reader has to account for.
+    /// </summary>
+    [Fact]
+    public void GivenAHeadingStatesOneLabelAlone_ThenWriteItWithoutTheColumn()
+        => Render(OneSubjectManyReturnTypes()).Does().not.Contain("Return type:  ");
 
     // ----------- Sections are ordered by how much arrangement they carry, simplest first
 

@@ -17,7 +17,7 @@ public class WhenGivenUniqueRecords : Spec<MyRecord[]>
             """
             Given int is i % range
             Using "Abc" for Input
-            When five MyRecord
+            When five MyRecords
             Then Result is distinct
                 and has all m.Id >= 0 && m.Id < range
             """);

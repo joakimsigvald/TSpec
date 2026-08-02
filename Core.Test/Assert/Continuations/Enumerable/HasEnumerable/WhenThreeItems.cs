@@ -10,7 +10,7 @@ public class WhenThreeItems : Spec
         Three<int>().Has().ThreeItems().and.Is().not.Empty();
         Specification.Is(
             """
-            Three int has three items
+            Three ints has three items
                 and is not empty
             """);
     }
@@ -23,7 +23,7 @@ public class WhenThreeItems : Spec
         second.Is(TheSecond<int>());
         third.Is(TheThird<int>());
         Specification.Is("""
-            Three int has three items that first is the first int
+            Three ints has three items that first is the first int
             Second is the second int
             Third is the third int
             """);
