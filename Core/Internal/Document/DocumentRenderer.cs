@@ -16,9 +16,6 @@ internal static class DocumentRenderer
         SpecificationSubject subject, string specAssemblyName, string buildId,
         IEnumerable<SpecificationEntry> entries)
     {
-        // Version and build id are provenance: they answer "which build produced this" for a diff
-        // or a pipeline, never a question a reader of requirements has. Kept in the generated-file
-        // comment, they stay in the file — and in its diff — without occupying the page.
         var text = new StringBuilder()
             .Append($"# {subject.Name.AsTitle()}\n\n")
             .Append($"<!-- Version {subject.Version}+{buildId}, ")
@@ -46,8 +43,6 @@ internal static class DocumentRenderer
                     text.Append($"\n### {branchHeading}\n")
                         .Append(HeadingBlock(default, branch.Shared, StatedWord(branchHeading)));
                 }
-                // A blank line opens the list, so no renderer has to decide whether a bullet may
-                // interrupt the line above it. It costs no height: a margin is there either way.
                 text.Append('\n');
                 foreach (var requirement in branch.Requirements)
                     text.Append(Leaf(requirement));
@@ -161,19 +156,13 @@ internal static class DocumentRenderer
         Declared declared, IReadOnlyList<SpecificationClause> shared, string? stated)
     {
         var act = shared.FirstOrDefault(clause => clause.Family == StepFamily.When);
-        // A return type is what the act yields, so where both are stated here it is said on the act
-        // rather than as a label of its own — which also lets the act's own heading word drop.
         var says = act is null ? declared : declared with { ReturnType = null };
-        // A label written above the clauses is what the block opens with, so the heading's word is
-        // not the one they would repeat and they keep it.
+        // A label above the clauses opens the block, so the clauses keep the heading's word.
         var clauses = shared.Count == 0 ? null : Render(
             Compose(shared, because: null, returns: act is null ? null : declared.ReturnType)
                 .Without(says.Text is null ? stated : null),
             DocumentWidth);
         string?[] parts = [says.Text, clauses];
-        // No blank line between them. They are not the same kind of statement — what a spec declares
-        // about the code is the document's own apparatus, and the clauses are specification — but the
-        // labels already say so by being labels, and a gap costs a line on every heading with both.
         var body = string.Join("\n", parts.Where(part => !string.IsNullOrEmpty(part)));
         return body.Length == 0 ? string.Empty : Block(body);
     }
@@ -188,21 +177,14 @@ internal static class DocumentRenderer
     private static string Leaf(Requirement requirement)
     {
         var name = requirement.Entry.Requirement.AsHeading();
-        // An item's place in the list is what says "then", so neither its label nor its claim says
-        // it. Only the opening word goes: what follows keeps its own, which is what orders it.
         var label = Without(StatedWord(name), name);
         var text = Compose(requirement.Clauses, requirement.Entry.Because)
             .Without(StepFamily.Then.Keyword());
-        // Measured for the narrowest line a one-line claim can be written on, which is the line under
-        // a label rather than the one beside it. Needing more than that is what a fence is for, and a
-        // fence is wider, so it is measured again for the width it gets.
         var claim = Render(text, ClaimWidth);
         if (claim.Contains('\n'))
             return $"- **{label}**\n{Indent($"```\n{Render(text, FenceWidth)}\n```")}\n";
 
-        // The dash joins a label to its claim where both fit on the line. Where they do not, the
-        // line break joins them instead and the dash has nothing left to say. The break is a hard
-        // one — a soft break would be reflowed away, putting back the very line it was breaking.
+        // Hard break: a soft one would be reflowed away, putting back the line it broke.
         var beside = $"- **{label}** — `{claim}`";
         return beside.Length <= DocumentWidth
             ? $"{beside}\n"
@@ -241,9 +223,8 @@ internal static class DocumentRenderer
         {
             if (shared.Count == limit)
                 break;
-            // How often a clause is stated is part of what it states — two identical Having steps
-            // are two invocations. So a clause rises as many times as the requirement saying it
-            // fewest times says it, and the rest stay below where they still count.
+            // Repetition is part of what a clause states, so a clause rises only as many times as
+            // the requirement that states it fewest times.
             var taken = shared.Count(hoisted => hoisted.Matches(clause));
             if (clause.Phase != StepPhase.Assert
                 && requirements.All(requirement => requirement.Clauses.Count(clause.Matches) > taken))
@@ -284,8 +265,7 @@ internal static class DocumentRenderer
     private static IEnumerable<SpecificationStep> Steps(
         IReadOnlyList<SpecificationClause> clauses, string? returns)
         => clauses.SelectMany(clause => returns is not null && clause.Family == StepFamily.When
-            // No family: it qualifies the act rather than continuing it, so it takes no lead word
-            // and none of the "and" that a second step of a family would get.
+            // No family: it qualifies the act rather than continuing it, so it takes no lead word.
             ? [.. clause.Steps, new SpecificationStep(StepLayout.Word)
                 {
                     Body = $"returns {returns}",
