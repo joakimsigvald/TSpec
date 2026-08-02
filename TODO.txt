@@ -5,6 +5,16 @@
     doesn't trip it (Specification.Is and Then<TService>(...) must count as assertions).
   - Compile time: Roslyn analyzer warning on a [Fact] in a Spec subclass that reaches no assertion.
     Ships alongside, generates no code, suppressible. Do this only if the runtime check earns its keep.
+* Let a spec declare Nothing as a type argument, alongside today's implicit rule. Implicit is in
+  place: a type argument reaches SPECIFICATION.md only where the act uses it in that capacity - an
+  act taking no subject states none, an act yielding no result states no return type. That covers
+  the common cases without ceremony, but it cannot be checked, and Spec<T> still has to mean
+  "T in whichever capacity is used".
+  - Explicit form: Spec<RoomService, Nothing>, Spec<Nothing, string>, or Spec<Nothing> for neither.
+    Declaring Nothing and then using that capacity throws SetupFailed, so the declaration is
+    enforced rather than merely honoured.
+  - Breaking: the non-generic Spec becomes Spec<Nothing, Nothing> instead of Spec<object, object>,
+    which is what it has always meant. Fits 2.0.0; do not slip it into a minor.
 * auto-convert look for first public static method with one argument of type TSource that returns TTarget
 * Sequence uniqueness check: fixed spacings now use an O(1) check; the collect-all-values check
   remains only for step-function sequences (Spaced with lambda). If users generate large numbers

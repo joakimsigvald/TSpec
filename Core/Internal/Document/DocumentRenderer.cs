@@ -26,10 +26,10 @@ internal static class DocumentRenderer
 
         var requirements = Distinct(entries).ToArray();
         var declared = Declaration(requirements);
-        var whole = SharedOpening(requirements);
+        var whole = SharedClauses(requirements);
         text.Append(HeadingBlock(declared.Text, whole, stated: null));
 
-        foreach (var subjectNode in Subjects(requirements, whole.Count))
+        foreach (var subjectNode in Subjects(requirements, whole))
         {
             var subjectHeading = subjectNode.Key.AsHeading();
             text.Append($"\n## {subjectHeading}\n")
@@ -68,7 +68,8 @@ internal static class DocumentRenderer
     /// worth seeing in the diff. Counting size instead would reshuffle whole subjects because one
     /// line was added, spending the very thing the document is reviewed for.
     /// </remarks>
-    private static IEnumerable<SubjectNode> Subjects(Requirement[] requirements, int hoisted)
+    private static IEnumerable<SubjectNode> Subjects(
+        Requirement[] requirements, IReadOnlyList<SpecificationClause> hoisted)
         => requirements
             .Select(requirement => requirement.Without(hoisted))
             .GroupBy(requirement => requirement.Entry.Subject)
@@ -79,9 +80,9 @@ internal static class DocumentRenderer
     private static SubjectNode ToSubject(IGrouping<string, Requirement> group)
     {
         var ofSubject = group.ToArray();
-        var shared = SharedOpening(ofSubject);
+        var shared = SharedClauses(ofSubject);
         return new(group.Key, shared, Declaration(ofSubject), [.. ofSubject
-            .Select(requirement => requirement.Without(shared.Count))
+            .Select(requirement => requirement.Without(shared))
             .GroupBy(requirement => requirement.Entry.Branch)
             .Select(ToBranch)
             .OrderBy(branch => branch.ComplexityNumber)
@@ -92,9 +93,9 @@ internal static class DocumentRenderer
     {
         var ofBranch = group.ToArray();
         // Without a branch heading there is nothing for a shared opening to be stated under.
-        var shared = group.Key.Length > 0 ? SharedOpening(ofBranch) : [];
+        var shared = group.Key.Length > 0 ? SharedClauses(ofBranch) : [];
         return new(group.Key, shared, [.. ofBranch
-            .Select(requirement => requirement.Without(shared.Count))
+            .Select(requirement => requirement.Without(shared))
             .OrderBy(requirement => Arrangement(requirement.Clauses))
             .ThenBy(requirement => Render(requirement.Clauses, requirement.Entry.Because).Length)
             .ThenBy(requirement => requirement.Entry.Requirement, StringComparer.Ordinal)
@@ -159,9 +160,10 @@ internal static class DocumentRenderer
         string? declaration, IReadOnlyList<SpecificationClause> shared, string? stated)
     {
         string?[] parts = [declaration, shared.Count > 0 ? Render(shared, because: null) : null];
-        // A blank line between them, because they are not the same kind of statement: what a spec
-        // declares about the code is the document's own apparatus, and the clauses are specification.
-        var body = string.Join("\n\n", parts.Where(part => !string.IsNullOrEmpty(part)));
+        // No blank line between them. They are not the same kind of statement — what a spec declares
+        // about the code is the document's own apparatus, and the clauses are specification — but the
+        // labels already say so by being labels, and a gap costs a line on every heading with both.
+        var body = string.Join("\n", parts.Where(part => !string.IsNullOrEmpty(part)));
         return body.Length == 0 ? string.Empty : Block(Without(stated, body));
     }
 
@@ -186,33 +188,46 @@ internal static class DocumentRenderer
     }
 
     /// <summary>
-    /// The clauses every requirement here opens with — stated once under the heading instead of
+    /// The clauses every requirement here states — written once under the heading instead of
     /// repeated in each block. Whole clauses only, never a fragment of one, and no minimum number of
     /// requirements: a lone one still belongs under the heading that names its context.
     /// </summary>
     /// <remarks>
-    /// Assertions are excluded on principle, and it is that exclusion rather than any counting rule
-    /// that keeps a block from being hollowed out: they are the claim each requirement exists to
-    /// make, so two requirements agreeing on one is a coincidence to leave visible, not repetition
-    /// to factor out. Arrangement and action are context, and context is what a heading is for.
+    /// Each clause is decided on its own, not as part of a shared opening. Position cannot be the
+    /// test, because the specification is written in the order the pipeline runs — arrangement
+    /// before the act — so a branch that arranges anything of its own sits in front of the
+    /// <c>When</c> the whole subject shares, and a rule keyed on the opening would leave that
+    /// <c>When</c> out of the very heading named after it.
+    /// <para>
+    /// Assertions are excluded on principle: they are the claim each requirement exists to make, so
+    /// two requirements agreeing on one is a coincidence to leave visible, not repetition to factor
+    /// out. Arrangement and action are context, and context is what a heading is for. The one
+    /// counting rule left is that hoisting must never empty a block.
+    /// </para>
     /// A leading "and ..." can never be left behind, because lead words are assigned while
     /// rendering — whatever clause a block now opens with is given its family's word.
     /// </remarks>
-    private static IReadOnlyList<SpecificationClause> SharedOpening(Requirement[] requirements)
+    private static IReadOnlyList<SpecificationClause> SharedClauses(Requirement[] requirements)
     {
         if (requirements.Length == 0)
             return [];
 
-        var first = requirements[0].Clauses;
         // Hoisting must never empty a block, so the shortest requirement always keeps one clause.
         var limit = requirements.Min(requirement => requirement.Clauses.Count) - 1;
-        var shared = 0;
-        while (shared < limit
-            && first[shared].Phase != StepPhase.Assert
-            && requirements.All(requirement => requirement.Clauses[shared].Matches(first[shared])))
-            shared++;
-
-        return [.. first.Take(shared)];
+        List<SpecificationClause> shared = [];
+        foreach (var clause in requirements[0].Clauses)
+        {
+            if (shared.Count == limit)
+                break;
+            // How often a clause is stated is part of what it states — two identical Having steps
+            // are two invocations. So a clause rises as many times as the requirement saying it
+            // fewest times says it, and the rest stay below where they still count.
+            var taken = shared.Count(hoisted => hoisted.Matches(clause));
+            if (clause.Phase != StepPhase.Assert
+                && requirements.All(requirement => requirement.Clauses.Count(clause.Matches) > taken))
+                shared.Add(clause);
+        }
+        return shared;
     }
 
     /// Rendered up front because identity is the rendered text: a theory reports once per case, and
@@ -279,8 +294,21 @@ internal static class DocumentRenderer
     private sealed record Requirement(
         SpecificationEntry Entry, IReadOnlyList<SpecificationClause> Clauses, string Specification)
     {
-        internal Requirement Without(int hoisted)
-            => hoisted == 0 ? this : this with { Clauses = [.. Clauses.Skip(hoisted)] };
+        /// <summary>
+        /// The requirement with what a heading above already states removed. Matched rather than
+        /// counted, since a hoisted clause need not have been at the front — one occurrence of each,
+        /// so a clause repeated within a requirement still says itself the second time.
+        /// </summary>
+        internal Requirement Without(IReadOnlyList<SpecificationClause> hoisted)
+        {
+            if (hoisted.Count == 0)
+                return this;
+
+            List<SpecificationClause> remaining = [.. Clauses];
+            foreach (var clause in hoisted)
+                remaining.Remove(remaining.FirstOrDefault(clause.Matches)!);
+            return this with { Clauses = remaining };
+        }
     }
 
     /// A subject and its branches, each already stripped of what is stated above it.

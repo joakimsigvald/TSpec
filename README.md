@@ -878,13 +878,19 @@ Return type:        HttpResponseMessage
 - **return no rooms** — `Result.Read<Room[]>() is empty`
 ````
 
-Headings read as prose, and what every requirement below a heading opens with is stated once at that
-heading rather than repeated in each block — above, the subject and return type hold for the whole
-document, and the `When` for the whole subject. Those two labels hoist independently, each to the
+Headings read as prose, and any clause every requirement below a heading states is written once at
+that heading rather than repeated in each block — above, the subject and return type hold for the
+whole document, and the `When` for the whole subject. Position is not part of the test: a branch that
+arranges something of its own does not keep the shared `When` out of the heading named after it. A
+clause rises as many times as the requirement stating it fewest times does, since two identical
+setups are two invocations. The two declared labels hoist independently, each to the
 highest heading where every requirement below agrees on it, so a single subject can head the document
-while each section states the return type of its own method. Assertions never move up:
+while each section states the return type of its own method. Each is stated only where the `When`
+uses it in that capacity — an act written `When(() => …)` names no subject, and one returning `void`,
+`Task` or `ValueTask` names no return type. Assertions never move up:
 two requirements agreeing on one is worth seeing. What a spec declares about the code is the
-document's own apparatus rather than specification, so a blank line sets it apart from the clauses.
+document's own apparatus rather than specification, and the labels say so themselves — they sit
+directly above the clauses rather than paying a blank line to be set apart.
 
 Requirements themselves are a list rather than a fourth heading level, so the two heading levels above
 them stay distinguishable. A single line of specification is written inline and a fence is kept for

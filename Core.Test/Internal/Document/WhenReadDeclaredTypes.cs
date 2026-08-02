@@ -16,19 +16,18 @@ public class WhenReadDeclaredTypes : Spec
 
     private sealed class NoSubject : Spec;
 
+    /// A spec that both acts on its subject and yields a result, which is the ordinary case.
+    private static (string?, string?)? Declares(Type testClass)
+        => TestIdentity.Declares(testClass, actsOnSubject: true, yieldsResult: true);
+
     [Fact]
     public void ThenReadBothTypeArguments()
-        => TestIdentity.Declares(typeof(Subject)).Is(("MyModel", "int"));
+        => Declares(typeof(Subject)).Is(("MyModel", "int"));
 
-    /// <summary>
-    /// Spec&lt;T&gt; is Spec&lt;T, T&gt;, so a return type read from it would only say the subject's
-    /// name a second time. It is also the spelling for a subject whose result is not asserted, where
-    /// naming a return type at all would be a claim the spec never makes — so the subject is stated
-    /// and the return type is left unsaid. Recognising it has to come before Spec&lt;,&gt;.
-    /// </summary>
+    /// <summary>Spec&lt;T&gt; is Spec&lt;T, T&gt;, and a spec using it as both states both.</summary>
     [Fact]
-    public void GivenOneTypeArgument_ThenReadOnlyTheSubject()
-        => TestIdentity.Declares(typeof(SubjectIsAlsoTheResult)).Is(("MyModel", null));
+    public void GivenOneTypeArgument_ThenReadItAsBoth()
+        => Declares(typeof(SubjectIsAlsoTheResult)).Is(("MyModel", "MyModel"));
 
     /// <summary>
     /// The non-generic Spec is Spec&lt;object, object&gt;, so recognising it has to come first —
@@ -36,12 +35,34 @@ public class WhenReadDeclaredTypes : Spec
     /// </summary>
     [Fact]
     public void GivenNoTypeArguments_ThenReadNothing()
-        => TestIdentity.Declares(typeof(NoSubject)).Is().Null();
+        => Declares(typeof(NoSubject)).Is().Null();
 
     /// <summary>A branch declares what its outer class does, since it derives from it.</summary>
     [Fact]
     public void GivenANestedBranch_ThenReadWhatItInherits()
-        => TestIdentity.Declares(typeof(Outer.GivenSomething)).Is(("MyModel", "int"));
+        => Declares(typeof(Outer.GivenSomething)).Is(("MyModel", "int"));
+
+    /// <summary>
+    /// A type argument states something only where the spec uses it in that capacity. An act taking
+    /// no subject leaves a generated value nothing ever reads, and naming it "subject under test"
+    /// would document a value the requirement is not about.
+    /// </summary>
+    [Fact]
+    public void GivenTheActTakesNoSubject_ThenReadOnlyTheReturnType()
+        => TestIdentity.Declares(typeof(Subject), actsOnSubject: false, yieldsResult: true)
+            .Is((null, "int"));
+
+    /// <summary>An act yielding nothing has no return type to state, whatever TResult says.</summary>
+    [Fact]
+    public void GivenTheActYieldsNothing_ThenReadOnlyTheSubject()
+        => TestIdentity.Declares(typeof(Subject), actsOnSubject: true, yieldsResult: false)
+            .Is(("MyModel", null));
+
+    /// <summary>Neither used is the same as declaring neither, so the document says nothing.</summary>
+    [Fact]
+    public void GivenNeitherIsUsed_ThenReadNothing()
+        => TestIdentity.Declares(typeof(Subject), actsOnSubject: false, yieldsResult: false)
+            .Is().Null();
 
     private class Outer : Spec<MyModel, int>
     {

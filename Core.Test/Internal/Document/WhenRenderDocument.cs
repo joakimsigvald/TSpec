@@ -219,12 +219,19 @@ public class WhenRenderDocument : Spec
             .Contain("-->\n```\nUsing api\nWhen get\n```\n")
             .and.Contain("- **Thena** — `a`\n");
 
+    /// <summary>
+    /// One requirement saying something else keeps that clause in every block — but only that one.
+    /// What the others still agree on is decided on its own and rises anyway.
+    /// </summary>
     [Fact]
-    public void GivenOneRequirementOpensDifferently_ThenLeaveTheOpeningInPlace()
+    public void GivenOneRequirementSaysSomethingElse_ThenLeaveThatClauseInPlace()
     {
         var requirements = TwoSubjects()[..3];
         requirements[2] = requirements[2] with { Steps = [Using("other"), Act("get"), Claim("then c")] };
-        Render(requirements).Does().Contain("-->\n\n## ");
+        Render(requirements).Does()
+            .Contain("-->\n`When get`\n")
+            .and.Contain("- **Thena**\n  ```\n  Using api\n  Then a\n  ```\n")
+            .and.Contain("- **Thenc**\n  ```\n  Using other\n  Then c\n  ```\n");
     }
 
     /// <summary>Hoisting must never empty a block, so a requirement that is only the opening blocks it.</summary>
@@ -235,6 +242,70 @@ public class WhenRenderDocument : Spec
         requirements[2] = requirements[2] with { Steps = [Using("api")] };
         Render(requirements).Does().Contain("-->\n\n## ");
     }
+
+    /// <summary>
+    /// A clause is stated at a heading because every requirement below says it, not because it comes
+    /// first. Arrangement runs before the act, so a branch that arranges anything of its own would
+    /// otherwise sit in front of the shared <c>When</c> and keep it out of the heading that names it.
+    /// </summary>
+    [Fact]
+    public void GivenTheSharedClauseSitsBehindADifferingOne_ThenStillStateItAtTheHeading()
+        => Render(
+            Requirement("WhenDeleteRoom", "ThenA", Condition("load none"), Act("delete"), Claim("then a")),
+            Requirement("WhenDeleteRoom", "ThenB", Condition("load one"), Act("delete"), Claim("then b")),
+            Requirement("WhenAddRoom", "ThenC", Condition("load one"), Act("add"), Claim("then c")))
+            .Does()
+            .Contain("## When delete room\n`delete`\n")
+            .and.Contain("- **a**\n  ```\n  Having load none\n  Then a\n  ```\n");
+
+    /// <summary>The mirror: what differs may come second and what is shared first.</summary>
+    [Fact]
+    public void GivenTheSharedClauseComesFirst_ThenStillStateItAtTheHeading()
+        => Render(
+            Requirement("WhenGetRoom", "ThenA", Act("get"), Condition("post once"), Claim("then a")),
+            Requirement("WhenGetRoom", "ThenB", Act("get"), Condition("post twice"), Claim("then b")),
+            Requirement("WhenAddRoom", "ThenC", Act("add"), Condition("post once"), Claim("then c")))
+            .Does().Contain("## When get room\n`get`\n");
+
+    /// <summary>
+    /// How often a clause is stated is part of what it states — two identical setups are two
+    /// invocations — so a clause rises only as many times as every requirement says it. Hoisting it
+    /// twice above a requirement that says it once would put a claim on the page nothing made.
+    /// </summary>
+    [Fact]
+    public void GivenOneRequirementSaysAClauseFewerTimes_ThenRaiseItOnlyThatOften()
+        => Render(
+            Requirement("WhenGetRoom", "ThenA",
+                Condition("post"), Condition("post"), Act("get"), Claim("then a")),
+            Requirement("WhenGetRoom", "ThenB", Condition("post"), Act("get"), Claim("then b")))
+            .Does()
+            .Contain("-->\n```\nHaving post\nWhen get\n```\n")
+            .and.Contain("- **a**\n  ```\n  Having post\n  Then a\n  ```\n")
+            .and.Contain("- **b** — `b`\n");
+
+    /// <summary>Said twice by every requirement, so it rises twice and none of it is left below.</summary>
+    [Fact]
+    public void GivenEveryRequirementSaysAClauseTwice_ThenRaiseItTwice()
+        => Render(
+            Requirement("WhenGetRoom", "ThenA", Condition("post"), Condition("post"), Claim("then a")),
+            Requirement("WhenGetRoom", "ThenB", Condition("post"), Condition("post"), Claim("then b")))
+            .Does()
+            .Contain("-->\n```\nHaving post\n  after post\n```\n")
+            .and.Contain("- **a** — `a`\n");
+
+    /// <summary>
+    /// One requirement not saying it is enough to keep it out — no partial credit. The clause every
+    /// requirement does share still rises, so the two are decided one at a time.
+    /// </summary>
+    [Fact]
+    public void GivenOneRequirementLacksTheClause_ThenLeaveThatOneInEachBlock()
+        => Render(
+            Requirement("WhenGetRoom", "ThenA", Condition("load"), Act("get"), Claim("then a")),
+            Requirement("WhenGetRoom", "ThenB", Condition("load"), Act("get"), Claim("then b")),
+            Requirement("WhenGetRoom", "ThenC", Condition("load"), Claim("then c")))
+            .Does()
+            .Contain("-->\n`Having load`\n")
+            .and.not.Contain("## When get room\n`get`\n");
 
     // ----------- What the spec declares about the code, stated where it holds
 
@@ -255,17 +326,18 @@ public class WhenRenderDocument : Spec
             .Does().Contain("Subject under test: int\nReturn type:        string\n");
 
     /// <summary>
-    /// What the spec declares is the document's own apparatus and the clauses are specification, so a
-    /// blank line keeps the two apart where a heading states both.
+    /// The declared types and the clauses sit in one block. They are different kinds of statement,
+    /// but a blank line between them costs a line of height on every heading that states both, and
+    /// the labels already set themselves apart by being labels.
     /// </summary>
     [Fact]
-    public void GivenAHeadingStatesBoth_ThenSetTheTypesApartFromTheClauses()
+    public void GivenAHeadingStatesBoth_ThenWriteTheTypesAboveTheClauses()
         => Render(
             Requirement("WhenGetRoom", "ThenA", Act("get"), Claim("then a"))
                 with { SubjectUnderTest = "HttpClient", ReturnType = "HttpResponseMessage" },
             Requirement("WhenAdd", "ThenB", Act("add"), Claim("then b"))
                 with { SubjectUnderTest = "int", ReturnType = "int" })
-            .Does().Contain("## When add\n```\nSubject under test: int\nReturn type:        int\n\nWhen add\n```");
+            .Does().Contain("## When add\n```\nSubject under test: int\nReturn type:        int\nWhen add\n```");
 
     [Fact]
     public void GivenSpecsDeclareDifferently_ThenStateItForEachSubject()
@@ -304,8 +376,8 @@ public class WhenRenderDocument : Spec
     public void GivenOneSubjectDeclaresSeveralReturnTypes_ThenStillStateTheSubjectForTheDocument()
         => Render(OneSubjectManyReturnTypes()).Does()
             .Contain("-->\n`Subject under test: RoomService`\n")
-            .and.Contain("## When get room\n```\nReturn type: Room\n\nWhen get\n```")
-            .and.Contain("## When list rooms\n```\nReturn type: Room[]\n\nWhen list\n```");
+            .and.Contain("## When get room\n```\nReturn type: Room\nWhen get\n```")
+            .and.Contain("## When list rooms\n```\nReturn type: Room[]\nWhen list\n```");
 
     /// <summary>Hoisted is stated once: the subject does not come back under each section.</summary>
     [Fact]
@@ -322,7 +394,7 @@ public class WhenRenderDocument : Spec
                 with { SubjectUnderTest = "RoomStore", ReturnType = "Room" })
             .Does()
             .Contain("-->\n`Return type: Room`\n")
-            .and.Contain("## When add\n```\nSubject under test: RoomStore\n\nWhen add\n```");
+            .and.Contain("## When add\n```\nSubject under test: RoomStore\nWhen add\n```");
 
     /// <summary>
     /// The column is what makes two labels read as a pair. One standing on its own has nothing to

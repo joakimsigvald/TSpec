@@ -93,14 +93,25 @@ Return type: HttpResponseMessage
 
 Labels, not a sentence — no one phrasing survives `Spec<int>` over a static calculation. Inside the
 fence because a return type can contain `<` and `>` (§6). `Spec<T>` states the type twice rather than
-earn a special case; non-generic `Spec` omits both lines. Set apart by a blank line: apparatus and
-specification are different kinds of statement. Stated together they are padded into a column,
-because two labels read as a pair; alone a label has nothing to line up with and is written plainly.
+earn a special case; non-generic `Spec` omits both lines. Stated together they are padded into a
+column, because two labels read as a pair; alone a label has nothing to line up with and is written
+plainly. They sit directly above the clauses, with no blank line: apparatus and specification are
+different kinds of statement, but a label already announces itself as one, and the gap cost a line of
+height on every heading that states both. Corrected 2026-08-02, having set them apart at first.
 
-Corrected 2026-08-02: `Spec<T>` now states the subject alone. It *is* `Spec<T, T>`, so a return type
-read from it only repeats the subject's name — and it is also the spelling for a spec whose result is
-not asserted, where naming a return type claims something the spec never says. `Spec<>` is therefore
-recognised before `Spec<,>`, the same ordering the non-generic `Spec` already needed.
+**A type argument states something only where the act uses it in that capacity.** Corrected
+2026-08-02, after a first attempt read `Spec<T>` as "subject only" — which is wrong, since
+`Spec<TSUTorResult>` is named for the ambiguity and the one argument may be either or both. Nothing
+in the declaration can settle it, but the act can: every `When` overload knows from its own signature
+whether it is handed the subject and whether it yields a result, so it tells the pipeline instead of
+being inferred from. An act taking no subject leaves a generated value nothing reads; one returning
+`void`, `Task` or `ValueTask` has no return type whatever `TResult` says. `Spec<T>` then needs no
+case of its own — it states T twice where both are used, once where one is.
+
+This is inference, so it cannot be checked: a spec that means "no subject" and an act that merely
+ignores one are indistinguishable. The explicit form — declaring `Nothing` and having `SetupFailed`
+enforce it — is in `TODO.txt`, and is breaking because the non-generic `Spec` would become
+`Spec<Nothing, Nothing>`.
 
 **That pair is apparatus, not a step.** As a `SpecificationStep` it would enter every per-test
 specification and move all 1400-odd pins. Excluded from `ComplexityNumber`, where it cancels anyway.
@@ -167,12 +178,22 @@ a reason that looks nothing like its cause.
 What every requirement under a heading opens with is stated once, under that heading.
 
 1. **Whole clauses only** — never a line, never a fragment.
-2. **Shared by every entry.** Exact match, no partial credit.
-3. **No minimum number of entries.** The rule was *repetition*, the intent is *placement*; hoisting
+2. **Shared by every entry, each clause decided on its own.** Exact match, no partial credit, and
+   position is not a test. Corrected 2026-08-02: the rule used to take the shared *opening*, a common
+   prefix. But the specification is written in the order the pipeline runs — arrangement before the
+   act — so a branch arranging anything of its own sits in front of the `When` its whole subject
+   shares, and the prefix stopped there. `MyHotel.Spec` was right only because nothing precedes its
+   acts; `Core.Spec` broke the moment a `Given` did, leaving `When Delete(…)` restated in every
+   branch of the heading named after it. The coupling was the fault, not the order.
+3. **As many times as every entry says it.** How often a clause is stated is part of what it states —
+   two identical `Having` steps are two invocations — so a clause rises the fewest number of times
+   any entry says it, and the remainder stays below. Hoisting a repeat above an entry that says it
+   once would put a claim on the page nothing made.
+4. **No minimum number of entries.** The rule was *repetition*, the intent is *placement*; hoisting
    is not compression, and at one or two sharers it costs more lines in fences than it saves.
-4. **Every level the document has**, today document → `##` subject → `###` branch. Not generalised to
+5. **Every level the document has**, today document → `##` subject → `###` branch. Not generalised to
    arbitrary depth; a new level would add one.
-5. **Assertions never hoist** — two requirements agreeing on one is a coincidence worth seeing, and
+6. **Assertions never hoist** — two requirements agreeing on one is a coincidence worth seeing, and
    with no threshold this is the only thing guaranteeing a requirement block still says something.
    Qualified by §8.5.
 
@@ -246,7 +267,9 @@ User-facing, in order — the material for release notes:
 | Requirements are a list | Two heading levels, not four; one line inline, several fenced. Halved the MyHotel document. |
 | `Having` / `Until` binders | Setups read `after`, teardowns `before`. **Changes per-test text**, not only the document — 3 pins moved. |
 | `with` expressions name their target | `The<Room>() with { … }` rendered as its members alone, which is not a room. Erasure narrowed to `p => p with { … }`. Also fixes `_ => _.Inner with { … }` dropping `_.Inner`. |
-| `Spec<T>` states the subject alone | Was `Subject under test: T` / `Return type: T`; the second line only repeated the first, and made `Spec<T>` unusable as "subject, result not asserted". Document-only. |
+| Declared types sit on the clauses | The blank line between `Return type:` and the clauses below it is gone — it cost a line of height on every heading stating both, and a label sets itself apart by being one. Document-only. |
+| Hoisting decoupled from position | A clause shared by every requirement is stated at the heading wherever it sits, so a branch's own `Given` no longer keeps the subject's `When` out of the heading named after it. Multiplicity respected: a clause rises as often as the requirement saying it fewest times says it. Document-only. |
+| Declared types follow the act | `Subject under test:` is stated only where the `When` takes the subject, `Return type:` only where it yields a result — so a `Task`-returning act names no return type and `When(() => …)` names no subject. Makes `Spec<T>` work for either role. Document-only. |
 | Dotted subject names title cleanly | `MyHotel.Core.Spec` titles its document `# My Hotel Core`, where it read `# My Hotel. Core`. Document-only. |
 | Collection mentions pluralize | `Two<Room>()` renders "two Rooms" where it read "two Room"; `Many<Query>()` gives "many Queries". Everything but `One`. A plural drilldown takes the bare apostrophe — `three MyModels' Last()`. **Changes per-test text** — 57 expectations re-pinned. |
 | Declared labels hoist independently | `Subject under test:` and `Return type:` each rise to the highest heading where every requirement agrees on that label, instead of both falling when either disagrees. A lone label is written without the column. |
@@ -276,7 +299,7 @@ parent's raw text; `ExpressionParser` → `ExpressionDescriber`, and
    assertions carry no `StepFamily`, and synthesising the group means knowing where it ends while
    phase 2 streams steps one at a time. **Trigger:** phase 2 buffers a whole assertion.
 5. **A subject-wide assertion repeats under every branch.** `ThenRespondOk` on `WhenListRooms` is
-   inherited by both branches and stated twice. §5 rule 5 holds for branches that merely *agree*, but
+   inherited by both branches and stated twice. §5 rule 6 holds for branches that merely *agree*, but
    an assertion *declared above* them is a claim about the subject and the document cannot tell the
    two apart. Same missing input as §5's "deliberately not built".
 6. **A `with` block wraps badly.** `{` is a break-after cue in `TextBuilder`, so a long `with` breaks
@@ -313,7 +336,7 @@ invisible in a single-subject HTTP document, which is why nothing before now cou
 
 Found 2026-08-01 in `MyHotel.Spec`, and since designed out of it rather than fixed.
 
-11. **One outlier costs every sibling its hoisting.** §5 rule 2 is exact-match with no partial
+11. **One outlier costs every sibling its hoisting.** §5 rule 2 was exact-match on a shared opening with no partial
     credit, so one section that differs unhoists the whole level. A restart spec with subject
     `Hotel` rather than `HttpClient` pushed the four shared lines — the declared pair plus two
     `Using` clauses — out of the document header and into all six HTTP sections: 105 lines became
@@ -333,11 +356,14 @@ Found 2026-08-02 in `Core.Spec`, the first document built on mocked collaborator
 13. ~~**No way to declare a subject with no result.**~~ **Fixed 2026-08-02.** A `void`/`Task` method
     on a subject had nowhere honest to go: `WhenDeleteRoom : Spec<RoomService>` printed
     `Return type: RoomService`, which is false, and `Spec<RoomService, Task>` declared the wrapper
-    rather than the absence. `Spec<T>` now states the subject and says nothing about the return
-    type, which reads correctly both ways — as "the result is the subject's type, so there is
-    nothing to add" and as "the result is not what this spec is about". Note the declaration is
-    still not *true* of a `Task`-returning method; the document has stopped making a false claim
-    rather than started making a true one.
+    rather than the absence. Each label is now stated only where the act uses that capacity (§3), so
+    the same rule also covers the opposite case — a static method under `Spec<int>`, which claimed a
+    subject that is only an unread generated value. `Core.Test`'s own
+    `WhenSplitIdentifierIntoWords : Spec<string>` was one.
+
+    My first attempt read `Spec<T>` as "subject only", which the PO rejected: `Spec<TSUTorResult>`
+    is named for the ambiguity and the argument may be either or both. The declaration cannot settle
+    it; the act can.
 14. **`Given` loses its word under a `Given` heading.** A branch block opens
     `IRoomStore.Load() returns zero Room` with no lead word, because §3 drops a block's opening word
     where something above says it, and the heading is `### Given no such room`. But the heading's
@@ -360,6 +386,16 @@ Found 2026-08-02 in `Core.Spec`, the first document built on mocked collaborator
 16. **An array argument renders as source.** `Save(new[] { the third Room, the second Room })` keeps
     `new[] { … }`, where a collection mention would have said `two Room`. Honest but noisy, and it is
     the only place in either document where C# syntax survives into a claim.
+
+17. ~~**A shared clause behind a differing one never rises.**~~ **Fixed 2026-08-02.** Hoisting took the
+    shared *opening* — a common prefix — but the specification is written in pipeline order,
+    arrangement before act, so a branch's own `Given` sat in front of the `When` its whole subject
+    shares and stopped the prefix dead. `Core.Spec` restated `When Delete(…)` under both branches of
+    the heading named after it, and ran `IRoomStore.Load() returns zero Rooms` straight into
+    `When Delete(…)` as though one sentence. `MyHotel.Spec` had been right only because nothing
+    precedes its acts. The order was never the problem — Given–When–Then is correct, arrangement does
+    run first — the coupling was: each clause is now decided on its own (§5 rules 2–3), including how
+    many times it is stated. `Core.Spec` went from 108 lines to 91.
 
 **Fixed 2026-08-01**, unlike 8–11.
 

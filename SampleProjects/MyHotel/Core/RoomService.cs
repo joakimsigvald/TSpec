@@ -23,6 +23,8 @@ public class RoomService(IRoomStore store) : IRoomService
 
     public async Task<Room> Update(string roomNumber, Room room)
     {
+        if (room.RoomNumber != roomNumber)
+            throw new RoomNumberMismatch(roomNumber, room.RoomNumber);
         var rooms = await Rooms();
         rooms[rooms.IndexOf(Existing(rooms, roomNumber))] = room;
         await store.Save(rooms);

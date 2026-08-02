@@ -15,7 +15,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     public ITestPipeline<TSUT, TResult> When(
         Action act,
         [CallerArgumentExpression(nameof(act))] string? expr = null)
-        => SetAction(act, expr!);
+        => SetAction(act, expr!, false, false);
 
     /// <summary>
     /// Provide the method-under-test to the test-pipeline
@@ -26,7 +26,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     public ITestPipeline<TSUT, TResult> When(
         Action<TSUT> act,
         [CallerArgumentExpression(nameof(act))] string? expr = null)
-        => SetAction(act, expr!);
+        => SetAction(act, expr!, true, false);
 
     /// <summary>
     /// Provide the method-under-test to the test-pipeline
@@ -37,7 +37,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     public ITestPipeline<TSUT, TResult> When(
     Func<TSUT, TResult?> act,
         [CallerArgumentExpression(nameof(act))] string? expr = null)
-        => SetAction(act, expr!);
+        => SetAction(act, expr!, true, true);
 
     /// <summary>
     /// Provide the method-under-test to the test-pipeline
@@ -47,7 +47,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
     public ITestPipeline<TSUT, TResult> When(
     Func<TResult?> act, [CallerArgumentExpression(nameof(act))] string? expr = null)
-        => SetAction(act, expr!);
+        => SetAction(act, expr!, false, true);
 
     /// <summary>
     /// Provide the async method-under-test to the test-pipeline
@@ -57,7 +57,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
     public ITestPipeline<TSUT, TResult> When(
         Func<TSUT, Task> act, [CallerArgumentExpression(nameof(act))] string? expr = null)
-        => SetAction(act, expr!);
+        => SetAction(act, expr!, true, false);
 
     /// <summary>
     /// Provide the async method-under-test to the test-pipeline
@@ -67,7 +67,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
     public ITestPipeline<TSUT, TResult> When(
         Func<Task> act, [CallerArgumentExpression(nameof(act))] string? expr = null)
-        => SetAction(act, expr!);
+        => SetAction(act, expr!, false, false);
 
     /// <summary>
     /// Provide the async method-under-test to the test-pipeline
@@ -77,7 +77,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
     public ITestPipeline<TSUT, TResult> When(
         Func<TSUT, Task<TResult>> act, [CallerArgumentExpression(nameof(act))] string? expr = null)
-        => SetAction(act, expr!);
+        => SetAction(act, expr!, true, true);
 
     /// <summary>
     /// Provide the async method-under-test to the test-pipeline
@@ -87,7 +87,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
     public ITestPipeline<TSUT, TResult> When(
         Func<Task<TResult>> act, [CallerArgumentExpression(nameof(act))] string? expr = null)
-        => SetAction(act, expr!);
+        => SetAction(act, expr!, false, true);
 
     /// <summary>
     /// Provide the async method-under-test to the test-pipeline
@@ -98,7 +98,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
     public ITestPipeline<TSUT, TResult> When(
         Func<TSUT, ValueTask> act, [CallerArgumentExpression(nameof(act))] string? expr = null, Ignore _ = default)
-        => SetAction(act, expr!);
+        => SetAction(act, expr!, true, false);
 
     /// <summary>
     /// Provide the async method-under-test to the test-pipeline
@@ -109,7 +109,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
     public ITestPipeline<TSUT, TResult> When(
         Func<ValueTask> act, [CallerArgumentExpression(nameof(act))] string? expr = null, Ignore _ = default)
-        => SetAction(act, expr!);
+        => SetAction(act, expr!, false, false);
 
     /// <summary>
     /// Provide the async method-under-test to the test-pipeline
@@ -120,7 +120,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
     public ITestPipeline<TSUT, TResult> When(
         Func<TSUT, ValueTask<TResult>> act, [CallerArgumentExpression(nameof(act))] string? expr = null, Ignore _ = default)
-        => SetAction(act, expr!);
+        => SetAction(act, expr!, true, true);
 
     /// <summary>
     /// Provide the async method-under-test to the test-pipeline
@@ -131,7 +131,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
     public ITestPipeline<TSUT, TResult> When(
         Func<ValueTask<TResult>> act, [CallerArgumentExpression(nameof(act))] string? expr = null, Ignore _ = default)
-        => SetAction(act, expr!);
+        => SetAction(act, expr!, false, true);
 
     /// <summary>
     /// Provide a teardown to the test-pipeline. Teardowns run in declaration order, after the method-under-test.
@@ -228,9 +228,15 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         PrependSetUp((Func<TSUT, Task>)(_ => Task.Delay(delayMs())), $"waited {delayExpr.Describe()} ms");
     }
 
-    private Spec<TSUT, TResult> SetAction(Delegate act, string expr)
+    /// <summary>
+    /// Each overload states what its own signature already settles: whether the act is handed the
+    /// subject, and whether it yields a result. A <c>Task</c> or <c>ValueTask</c> without a type
+    /// argument is how an act says it yields nothing.
+    /// </summary>
+    private Spec<TSUT, TResult> SetAction(
+        Delegate act, string expr, bool actsOnSubject, bool yieldsResult)
     {
-        Pipeline.SetAction(act, expr);
+        Pipeline.SetAction(act, expr, actsOnSubject, yieldsResult);
         return this;
     }
 

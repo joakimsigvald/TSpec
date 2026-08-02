@@ -114,11 +114,22 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
     internal TValue[] ApplyMany<TValue>(Mutation<TValue> mutation, int count)
         => _context.ApplyMany(mutation, count);
 
-    internal void SetAction(Delegate act, string actExpr)
+    /// <summary>
+    /// Whether the act was given the subject, and whether it yields a result. Each <c>When</c>
+    /// overload knows both from its own signature, so they are stated rather than inferred — the
+    /// document names a declared type only where the spec uses it in that capacity.
+    /// </summary>
+    internal bool ActsOnSubject { get; private set; }
+
+    internal bool YieldsResult { get; private set; }
+
+    internal void SetAction(Delegate act, string actExpr, bool actsOnSubject, bool yieldsResult)
     {
         if (_methodUnderTest is not null)
             throw new SetupFailed("Cannot call When twice in the same pipeline");
         _methodUnderTest = new(act ?? throw new SetupFailed("Act cannot be null"), actExpr);
+        ActsOnSubject = actsOnSubject;
+        YieldsResult = yieldsResult;
     }
 
     internal TestResult<TSUT, TResult> TestResult => _result ??= Run();
