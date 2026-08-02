@@ -3,28 +3,39 @@ using System.Text;
 namespace TSpec.Internal.Specification;
 
 /// <summary>
-/// Builds the specification text, handling line-wrapping, indentation and capitalization
+/// Lays composed text out: line-wrapping and indentation, at the width it is given. The last phase,
+/// and the only one that decides where a line ends — which is why it must be handed text nothing
+/// will shorten or lengthen afterwards.
 /// </summary>
-internal class TextBuilder(int maxLineLength = 80, int indentationSize = 2)
+internal class TextBuilder(int maxLineLength = TextBuilder.PageWidth, int indentationSize = 2)
 {
+    /// How wide specification text is written when nothing indents it.
+    internal const int PageWidth = 80;
+
     private const int WrapIndentation = 3;
     private static readonly char[] _breakAfterCues = ['.', '(', '[', '{'];
     private readonly StringBuilder _sb = new();
     private int _currentLineLength;
 
-    internal void AddPhraseOrSentence(string phrase)
+    internal void Add(TextUnit unit)
     {
-        if (char.IsUpper(phrase[0]))
-            AddSentence(phrase);
+        if (unit.Indentation is { } indentation)
+            AddLine(unit.Text, indentation);
         else
-            AddPhrase(phrase);
+            AddWord(unit.Text, unit.Binder);
     }
 
-    internal void AddSentence(string phrase) => AddLine(phrase.Capitalize(), 0);
+    /// <summary>
+    /// The laid-out text. Its first character is capitalized because it starts a sentence — unless
+    /// the sentence was started above it, which is what <paramref name="opensSentence"/> says.
+    /// </summary>
+    internal string Build(bool opensSentence)
+    {
+        var text = _sb.ToString().Trim();
+        return opensSentence ? text.Capitalize() : text;
+    }
 
-    internal void AddPhrase(string phrase, int indentation = 1) => AddLine(phrase, indentation);
-
-    internal void AddWord(string word, string binder = " ")
+    private void AddWord(string word, string binder)
     {
         if (!string.IsNullOrEmpty(word))
             AddText($"{binder}{word}");
@@ -48,12 +59,6 @@ internal class TextBuilder(int maxLineLength = 80, int indentationSize = 2)
             AddLine(rest, WrapIndentation);
         return _sb;
     }
-
-    /// <summary>
-    /// Get the built text
-    /// </summary>
-    /// <returns>The built text, trimmed and capitalized</returns>
-    public override string ToString() => _sb.ToString().Trim().Capitalize();
 
     private void AddLine(string line, int indentation)
     {

@@ -66,10 +66,19 @@ is text a passing test produced. A second renderer would leave every requirement
 unpinned. The document may add *structure around* the text — headings, grouping, hoisting — never a
 different version of it.
 
-**Two phases.** Phase 1 (the phrase classes) describes each step into a `SpecificationStep`: what it
-says, no layout. Phase 2 (`SpecificationRenderer`) holds everything positional — lead words,
-mock-name elision, whether an assertion starts a sentence. Phase 1's output is what both consumers
-see, which is what lets the document arrange clauses without becoming a second renderer.
+**Three phases.** Phase 1 (the phrase classes) describes each step into a `SpecificationStep`: what
+it says, no layout. Phase 2 (`SpecificationRenderer`) holds everything positional — lead words,
+mock-name elision, whether an assertion starts a sentence — and returns a `ComposedText`: every word
+settled, no line broken. Phase 3 (`TextBuilder`) lays that out at the width it is given. Phase 1's
+output is what lets the document arrange clauses without becoming a second renderer; phase 2's is
+what lets it take text off before anything has been measured.
+
+**Layout is last.** A line is broken against the text that reaches the page, so nothing may shorten
+or lengthen it afterwards. The document removes the word its heading already said, and knows a
+fenced item is indented two columns, *before* it calls phase 3 — each consumer wraps at its own
+width. What phase 3 must never be handed is text something else still intends to edit. The composed
+form keeps its pieces separate rather than concatenating them, because their boundaries are what
+`FitsOnOwnLine` reads.
 
 **A clause is the unit, not a line** — one line-starting step plus everything appending to it, so
 `Given IMyService.GetValue() first returns 1 and next returns 2` is one clause from three steps. Line
@@ -289,6 +298,8 @@ User-facing, in order — the material for release notes:
 | Dotted subject names title cleanly | `MyHotel.Core.Spec` titles its document `# My Hotel Core`, where it read `# My Hotel. Core`. Document-only. |
 | Collection mentions pluralize | `Two<Room>()` renders "two Rooms" where it read "two Room"; `Many<Query>()` gives "many Queries". Everything but `One`. A plural drilldown takes the bare apostrophe — `three MyModels' Last()`. **Changes per-test text** — 57 expectations re-pinned. |
 | Declared labels hoist independently | `Subject under test:` and `Return type:` each rise to the highest heading where every requirement agrees on that label, instead of both falling when either disagrees. A lone label is written without the column. |
+| Layout applied last | Wrapping counted the `Then` the document then stripped, so a 76-character claim measured 81, broke, and took a fence it never needed. Compose and lay out are separate phases now, each consumer wrapping at its own width. Document-only; per-test text byte-identical. |
+| An item breaks where it no longer fits | A claim was measured for its fence but written beside its label, uncounted — 14 item lines ran past 80, the longest 113. A claim that no longer fits beside its label now takes the line under it, the break saying what the dash said. No line of either document exceeds 80. Document-only. |
 | Subject parameter elided | `When(_ => _.Api.Get("/x"))` renders `When Api.Get("/x")`; `++_.Counter` renders `++Counter`. `When`/`Having`/`Until` only, wherever the parameter heads a chain. Mock setups, `Given` setups and assertion predicates keep theirs. **Changes per-test text** — 291 expectations re-pinned. |
 
 Notable internals: the two-phase engine (§3) was the largest change and the enabler for the rest;
@@ -326,10 +337,13 @@ parent's raw text; `ExpressionParser` → `ExpressionDescriber`, and
    inherited by both branches and stated twice. §5 rule 6 holds for branches that merely *agree*, but
    an assertion *declared above* them is a claim about the subject and the document cannot tell the
    two apart. Same missing input as §5's "deliberately not built".
-6. **A `with` block wraps badly.** `{` is a break-after cue in `TextBuilder`, so a long `with` breaks
-   after the brace and orphans the closing `})`. Visible in `When update room`. Fix: stop treating
-   `{` as a cue when the block would fit on a continuation line, as `FitsOnOwnLine` already does for
-   phrases. Touches every wrapped specification in the suite, so it wants its own session.
+6. **A `with` block wraps badly.** `{` is a break-after cue in `TextBuilder` and the greedy fit takes
+   the last cue that fits, so a long `with` breaks inside itself. Visible in `When update room`,
+   which reads `… the Room with { BedCount = a` / `second int })`. Worse since layout moved last
+   (§7): the heading no longer measures the `When` it drops, so five more characters fit and the
+   last cue that fits is a worse one. Fix: stop treating `{` as a cue when the block would fit on a
+   continuation line, as `FitsOnOwnLine` already does for phrases. Touches every wrapped
+   specification in the suite, so it wants its own session.
 7. **The binder is silent across a hoist boundary.** A branch sharing its first `Having` but not its
    second gets `Having X` in the heading and `Having Y` in the item, with nothing relating them in
    time — the family restarts when a block starts. Not a regression ("and" was equally silent), not

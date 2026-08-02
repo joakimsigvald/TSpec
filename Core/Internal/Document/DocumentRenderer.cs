@@ -97,7 +97,8 @@ internal static class DocumentRenderer
         return new(group.Key, shared, [.. ofBranch
             .Select(requirement => requirement.Without(shared))
             .OrderBy(requirement => Arrangement(requirement.Clauses))
-            .ThenBy(requirement => Render(requirement.Clauses, requirement.Entry.Because).Length)
+            .ThenBy(requirement => Render(
+                Compose(requirement.Clauses, requirement.Entry.Because), TextBuilder.PageWidth).Length)
             .ThenBy(requirement => requirement.Entry.Requirement, StringComparer.Ordinal)
             .ThenBy(requirement => requirement.Specification, StringComparer.Ordinal)]);
     }
@@ -163,16 +164,18 @@ internal static class DocumentRenderer
         // A return type is what the act yields, so where both are stated here it is said on the act
         // rather than as a label of its own — which also lets the act's own heading word drop.
         var says = act is null ? declared : declared with { ReturnType = null };
-        string?[] parts =
-        [
-            says.Text,
-            shared.Count > 0 ? Render(shared, because: null, returns: act is null ? null : declared.ReturnType) : null,
-        ];
+        // A label written above the clauses is what the block opens with, so the heading's word is
+        // not the one they would repeat and they keep it.
+        var clauses = shared.Count == 0 ? null : Render(
+            Compose(shared, because: null, returns: act is null ? null : declared.ReturnType)
+                .Without(says.Text is null ? stated : null),
+            TextBuilder.PageWidth);
+        string?[] parts = [says.Text, clauses];
         // No blank line between them. They are not the same kind of statement — what a spec declares
         // about the code is the document's own apparatus, and the clauses are specification — but the
         // labels already say so by being labels, and a gap costs a line on every heading with both.
         var body = string.Join("\n", parts.Where(part => !string.IsNullOrEmpty(part)));
-        return body.Length == 0 ? string.Empty : Block(Without(stated, body));
+        return body.Length == 0 ? string.Empty : Block(body);
     }
 
     /// <summary>
@@ -188,11 +191,22 @@ internal static class DocumentRenderer
         // An item's place in the list is what says "then", so neither its label nor its claim says
         // it. Only the opening word goes: what follows keeps its own, which is what orders it.
         var label = Without(StatedWord(name), name);
-        var claim = Without(
-            StepFamily.Then.Keyword(), Render(requirement.Clauses, requirement.Entry.Because));
-        return claim.Contains('\n')
-            ? $"- **{label}**\n{Indent($"```\n{claim}\n```")}\n"
-            : $"- **{label}** — `{claim}`\n";
+        var text = Compose(requirement.Clauses, requirement.Entry.Because)
+            .Without(StepFamily.Then.Keyword());
+        // Measured for the narrowest line a one-line claim can be written on, which is the line under
+        // a label rather than the one beside it. Needing more than that is what a fence is for, and a
+        // fence is wider, so it is measured again for the width it gets.
+        var claim = Render(text, ClaimWidth);
+        if (claim.Contains('\n'))
+            return $"- **{label}**\n{Indent($"```\n{Render(text, FenceWidth)}\n```")}\n";
+
+        // The dash joins a label to its claim where both fit on the line. Where they do not, the
+        // line break joins them instead and the dash has nothing left to say. The break is a hard
+        // one — a soft break would be reflowed away, putting back the very line it was breaking.
+        var beside = $"- **{label}** — `{claim}`";
+        return beside.Length <= TextBuilder.PageWidth
+            ? $"{beside}\n"
+            : $"- **{label}**\\\n{Indent($"`{claim}`")}\n";
     }
 
     /// <summary>
@@ -250,14 +264,17 @@ internal static class DocumentRenderer
                 requirement.Entry.Requirement,
                 requirement.Specification));
 
+    /// The specification of a whole entry, as its identity and as the last word on ordering. Neither
+    /// is written to the page, so it is measured at the page width and nothing is taken off it.
     private static string Render(SpecificationEntry entry)
-        => Render(SpecificationClause.Split(entry.Steps), entry.Because);
+        => Render(Compose(SpecificationClause.Split(entry.Steps), entry.Because), TextBuilder.PageWidth);
 
-    private static string Render(
+    private static ComposedText Compose(
         IReadOnlyList<SpecificationClause> clauses, string? because, string? returns = null)
-        => SpecificationRenderer
-            .Render(Steps(clauses, returns), because, new TextBuilder())
-            .NormalizeLineEndings();
+        => SpecificationRenderer.Compose(Steps(clauses, returns), because);
+
+    private static string Render(ComposedText text, int maxLineLength)
+        => text.Render(maxLineLength).NormalizeLineEndings();
 
     /// <summary>
     /// The steps of every clause, with the return type appended to the act as a trailing phrase —
@@ -292,9 +309,20 @@ internal static class DocumentRenderer
             ? $"```\n{specification}\n```\n"
             : $"`{specification}`\n";
 
+    /// How far anything written under a list item's label sits from the margin, and so how much of
+    /// the page it loses. What indents the text and what measures it read the same number.
+    private const int ItemIndentation = 2;
+
+    /// What a fenced block inside an item has left of the page.
+    private const int FenceWidth = TextBuilder.PageWidth - ItemIndentation;
+
+    /// What a claim has, which is two columns less again: it wears backticks and a fence does not.
+    private const int ClaimWidth = FenceWidth - 2;
+
     /// A block inside a list item is indented to the item's own text, or it would end the list.
     private static string Indent(string block)
-        => string.Join("\n", block.Split('\n').Select(line => $"  {line}"));
+        => string.Join("\n",
+            block.Split('\n').Select(line => $"{new string(' ', ItemIndentation)}{line}"));
 
     /// <summary>
     /// The lead word a heading states, which is then the one word the specification beneath it does

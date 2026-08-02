@@ -7,56 +7,64 @@ namespace TSpec.Internal.Specification;
 /// one — so that the same steps rendered in a different arrangement come out
 /// correct rather than merely re-ordered.
 /// </summary>
+/// <remarks>
+/// It composes, it does not lay out. What comes back says everything it will say and breaks no
+/// lines, so a caller that still has text to remove or a width of its own can do that before
+/// <see cref="ComposedText.Render"/> measures anything.
+/// </remarks>
 internal static class SpecificationRenderer
 {
-    internal static string Render(
-        IEnumerable<SpecificationStep> steps, string? because, TextBuilder text)
+    internal static ComposedText Compose(IEnumerable<SpecificationStep> steps, string? because)
     {
         var position = new Position();
+        List<TextUnit> units = [];
         foreach (var step in steps)
-            Append(text, step, position);
+            Append(units, step, position);
 
         if (because is not null)
-            text.AddWord($"because {because}", ", ");
+            units.Add(TextUnit.Word($"because {because}", ", "));
 
-        return text.ToString();
+        return new(units);
     }
 
-    private static void Append(TextBuilder text, SpecificationStep step, Position position)
+    private static void Append(List<TextUnit> units, SpecificationStep step, Position position)
     {
         if (step.EndsMockRun)
             position.EndMockRun();
         if (step.Layout == StepLayout.Silent)
             return;
 
-        var content = Compose(step, position);
+        var content = Content(step, position);
         switch (step.Layout)
         {
             case StepLayout.Sentence:
-                text.AddSentence(content);
+                units.Add(Sentence(content));
                 break;
             case StepLayout.Phrase:
-                text.AddPhrase(content, step.Indentation);
+                units.Add(TextUnit.Line(content, step.Indentation));
                 break;
             case StepLayout.SentenceOrPhrase:
-                text.AddPhraseOrSentence(content);
+                units.Add(char.IsUpper(content[0]) ? Sentence(content) : TextUnit.Line(content, 1));
                 break;
             case StepLayout.AssertionHead:
-                if (position.IsAssertionChainOpen)
-                    text.AddWord(content);
-                else
-                    text.AddSentence(content);
+                units.Add(position.IsAssertionChainOpen
+                    ? TextUnit.Word(content, " ")
+                    : Sentence(content));
                 position.CloseAssertionChain();
                 break;
             default:
-                text.AddWord(content, step.Binder);
+                units.Add(TextUnit.Word(content, step.Binder));
                 break;
         }
         if (step.OpensAssertionChain)
             position.OpenAssertionChain();
     }
 
-    private static string Compose(SpecificationStep step, Position position)
+    /// A sentence is capitalized while it is composed, not while it is laid out: case is a fact
+    /// about the words, and layout has to be given the very text it will measure.
+    private static TextUnit Sentence(string content) => TextUnit.Line(content.Capitalize(), 0);
+
+    private static string Content(SpecificationStep step, Position position)
     {
         var tail = position.MockName(step.MockService, step.MockBinder) + step.Body;
         var lead = position.LeadWord(step.Family);
