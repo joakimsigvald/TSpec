@@ -33,8 +33,6 @@ internal class SpecificationRecording
     /// The reason given for the requirement, rendered after the last step.
     internal string? Because => _because;
 
-    /// Composed, then laid out. Nothing comes between the two here — a test's specification is
-    /// written as it stands, with no heading above it to drop a word and nothing indenting it.
     public override string ToString()
         => _cachedSpecification ??= SpecificationRenderer
             .Compose(Steps, _because)

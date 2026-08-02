@@ -98,7 +98,7 @@ internal static class DocumentRenderer
             .Select(requirement => requirement.Without(shared))
             .OrderBy(requirement => Arrangement(requirement.Clauses))
             .ThenBy(requirement => Render(
-                Compose(requirement.Clauses, requirement.Entry.Because), TextBuilder.PageWidth).Length)
+                Compose(requirement.Clauses, requirement.Entry.Because), DocumentWidth).Length)
             .ThenBy(requirement => requirement.Entry.Requirement, StringComparer.Ordinal)
             .ThenBy(requirement => requirement.Specification, StringComparer.Ordinal)]);
     }
@@ -169,7 +169,7 @@ internal static class DocumentRenderer
         var clauses = shared.Count == 0 ? null : Render(
             Compose(shared, because: null, returns: act is null ? null : declared.ReturnType)
                 .Without(says.Text is null ? stated : null),
-            TextBuilder.PageWidth);
+            DocumentWidth);
         string?[] parts = [says.Text, clauses];
         // No blank line between them. They are not the same kind of statement — what a spec declares
         // about the code is the document's own apparatus, and the clauses are specification — but the
@@ -204,7 +204,7 @@ internal static class DocumentRenderer
         // line break joins them instead and the dash has nothing left to say. The break is a hard
         // one — a soft break would be reflowed away, putting back the very line it was breaking.
         var beside = $"- **{label}** — `{claim}`";
-        return beside.Length <= TextBuilder.PageWidth
+        return beside.Length <= DocumentWidth
             ? $"{beside}\n"
             : $"- **{label}**\\\n{Indent($"`{claim}`")}\n";
     }
@@ -267,7 +267,7 @@ internal static class DocumentRenderer
     /// The specification of a whole entry, as its identity and as the last word on ordering. Neither
     /// is written to the page, so it is measured at the page width and nothing is taken off it.
     private static string Render(SpecificationEntry entry)
-        => Render(Compose(SpecificationClause.Split(entry.Steps), entry.Because), TextBuilder.PageWidth);
+        => Render(Compose(SpecificationClause.Split(entry.Steps), entry.Because), DocumentWidth);
 
     private static ComposedText Compose(
         IReadOnlyList<SpecificationClause> clauses, string? because, string? returns = null)
@@ -309,12 +309,19 @@ internal static class DocumentRenderer
             ? $"```\n{specification}\n```\n"
             : $"`{specification}`\n";
 
+    /// <summary>
+    /// How wide the document writes specification text. Wider than a test writes its own, which is
+    /// read in source beside the code that produced it and shares the page with it; the document is
+    /// read on its own and looks thin at that width.
+    /// </summary>
+    private const int DocumentWidth = 90;
+
     /// How far anything written under a list item's label sits from the margin, and so how much of
     /// the page it loses. What indents the text and what measures it read the same number.
     private const int ItemIndentation = 2;
 
     /// What a fenced block inside an item has left of the page.
-    private const int FenceWidth = TextBuilder.PageWidth - ItemIndentation;
+    private const int FenceWidth = DocumentWidth - ItemIndentation;
 
     /// What a claim has, which is two columns less again: it wears backticks and a fence does not.
     private const int ClaimWidth = FenceWidth - 2;
