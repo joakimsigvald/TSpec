@@ -326,18 +326,23 @@ public class WhenRenderDocument : Spec
             .Does().Contain("Subject under test: int\nReturn type:        string\n");
 
     /// <summary>
-    /// The declared types and the clauses sit in one block. They are different kinds of statement,
-    /// but a blank line between them costs a line of height on every heading that states both, and
-    /// the labels already set themselves apart by being labels.
+    /// A return type is what the act yields, so where a heading states both it joins the act instead
+    /// of standing as a label of its own. The subject has no clause to belong to and stays a label.
     /// </summary>
     [Fact]
-    public void GivenAHeadingStatesBoth_ThenWriteTheTypesAboveTheClauses()
+    public void GivenAHeadingStatesTheReturnTypeAndTheAct_ThenSayItOnTheAct()
         => Render(
             Requirement("WhenGetRoom", "ThenA", Act("get"), Claim("then a"))
                 with { SubjectUnderTest = "HttpClient", ReturnType = "HttpResponseMessage" },
             Requirement("WhenAdd", "ThenB", Act("add"), Claim("then b"))
                 with { SubjectUnderTest = "int", ReturnType = "int" })
-            .Does().Contain("## When add\n```\nSubject under test: int\nReturn type:        int\nWhen add\n```");
+            .Does().Contain("## When add\n```\nSubject under test: int\nWhen add, returns int\n```");
+
+    /// <summary>With no act at the heading it has nothing to join, so it stays a label.</summary>
+    [Fact]
+    public void GivenAHeadingStatesTheReturnTypeAlone_ThenKeepItALabel()
+        => Render(_respondOk with { SubjectUnderTest = "HttpClient", ReturnType = "HttpResponseMessage" })
+            .Does().Contain("Return type:        HttpResponseMessage\n");
 
     [Fact]
     public void GivenSpecsDeclareDifferently_ThenStateItForEachSubject()
@@ -376,8 +381,8 @@ public class WhenRenderDocument : Spec
     public void GivenOneSubjectDeclaresSeveralReturnTypes_ThenStillStateTheSubjectForTheDocument()
         => Render(OneSubjectManyReturnTypes()).Does()
             .Contain("-->\n`Subject under test: RoomService`\n")
-            .and.Contain("## When get room\n```\nReturn type: Room\nWhen get\n```")
-            .and.Contain("## When list rooms\n```\nReturn type: Room[]\nWhen list\n```");
+            .and.Contain("## When get room\n`get, returns Room`\n")
+            .and.Contain("## When list rooms\n`list, returns Room[]`\n");
 
     /// <summary>Hoisted is stated once: the subject does not come back under each section.</summary>
     [Fact]

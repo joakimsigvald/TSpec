@@ -91,6 +91,16 @@ Subject under test: HttpClient
 Return type: HttpResponseMessage
 ```
 
+**Where a heading states both a return type and the act, the type is said on the act** —
+`When Add(a Room), returns Room` — since what a method returns is a fact about it, not about the
+section. Added 2026-08-02. It takes the shape `because` already has after an assertion: a trailing
+word-step with `", "` for a binder and no family, so it qualifies the act rather than continuing it.
+The subject has no clause to belong to and stays a label. Where the two land at different headings —
+as in `MyHotel.Spec`, whose return type holds for the whole document while each act sits at its
+subject — the label stands alone as before. This does put apparatus inside a clause, which the
+"never a step" rule below otherwise keeps out; the cost is one rendering rule, and the gain is that
+every declared-type block in `Core.Spec` collapsed from a fence to one inline line.
+
 Labels, not a sentence — no one phrasing survives `Spec<int>` over a static calculation. Inside the
 fence because a return type can contain `<` and `>` (§6). `Spec<T>` states the type twice rather than
 earn a special case; non-generic `Spec` omits both lines. Stated together they are padded into a
@@ -267,6 +277,7 @@ User-facing, in order — the material for release notes:
 | Requirements are a list | Two heading levels, not four; one line inline, several fenced. Halved the MyHotel document. |
 | `Having` / `Until` binders | Setups read `after`, teardowns `before`. **Changes per-test text**, not only the document — 3 pins moved. |
 | `with` expressions name their target | `The<Room>() with { … }` rendered as its members alone, which is not a room. Erasure narrowed to `p => p with { … }`. Also fixes `_ => _.Inner with { … }` dropping `_.Inner`. |
+| Return type said on the act | Where a heading states both, `Return type: Room` joins the act as `When Add(a Room), returns Room` instead of standing as a label. Document-only. |
 | Declared types sit on the clauses | The blank line between `Return type:` and the clauses below it is gone — it cost a line of height on every heading stating both, and a label sets itself apart by being one. Document-only. |
 | Hoisting decoupled from position | A clause shared by every requirement is stated at the heading wherever it sits, so a branch's own `Given` no longer keeps the subject's `When` out of the heading named after it. Multiplicity respected: a clause rises as often as the requirement saying it fewest times says it. Document-only. |
 | Declared types follow the act | `Subject under test:` is stated only where the `When` takes the subject, `Return type:` only where it yields a result — so a `Task`-returning act names no return type and `When(() => …)` names no subject. Makes `Spec<T>` work for either role. Document-only. |

@@ -27,14 +27,14 @@ internal static class DocumentRenderer
         var requirements = Distinct(entries).ToArray();
         var declared = Declaration(requirements);
         var whole = SharedClauses(requirements);
-        text.Append(HeadingBlock(declared.Text, whole, stated: null));
+        text.Append(HeadingBlock(declared, whole, stated: null));
 
         foreach (var subjectNode in Subjects(requirements, whole))
         {
             var subjectHeading = subjectNode.Key.AsHeading();
             text.Append($"\n## {subjectHeading}\n")
                 .Append(HeadingBlock(
-                    subjectNode.Declaration.Except(declared).Text,
+                    subjectNode.Declaration.Except(declared),
                     subjectNode.Shared,
                     StatedWord(subjectHeading)));
 
@@ -44,7 +44,7 @@ internal static class DocumentRenderer
                 {
                     var branchHeading = branch.Key.AsHeading();
                     text.Append($"\n### {branchHeading}\n")
-                        .Append(HeadingBlock(null, branch.Shared, StatedWord(branchHeading)));
+                        .Append(HeadingBlock(default, branch.Shared, StatedWord(branchHeading)));
                 }
                 // A blank line opens the list, so no renderer has to decide whether a bullet may
                 // interrupt the line above it. It costs no height: a margin is there either way.
@@ -157,9 +157,17 @@ internal static class DocumentRenderer
     /// The specification under a heading: what it declares, then the clauses hoisted to it. Nothing
     /// to say means nothing is written at all, so a heading never opens an empty block.
     private static string HeadingBlock(
-        string? declaration, IReadOnlyList<SpecificationClause> shared, string? stated)
+        Declared declared, IReadOnlyList<SpecificationClause> shared, string? stated)
     {
-        string?[] parts = [declaration, shared.Count > 0 ? Render(shared, because: null) : null];
+        var act = shared.FirstOrDefault(clause => clause.Family == StepFamily.When);
+        // A return type is what the act yields, so where both are stated here it is said on the act
+        // rather than as a label of its own — which also lets the act's own heading word drop.
+        var says = act is null ? declared : declared with { ReturnType = null };
+        string?[] parts =
+        [
+            says.Text,
+            shared.Count > 0 ? Render(shared, because: null, returns: act is null ? null : declared.ReturnType) : null,
+        ];
         // No blank line between them. They are not the same kind of statement — what a spec declares
         // about the code is the document's own apparatus, and the clauses are specification — but the
         // labels already say so by being labels, and a gap costs a line on every heading with both.
@@ -245,10 +253,28 @@ internal static class DocumentRenderer
     private static string Render(SpecificationEntry entry)
         => Render(SpecificationClause.Split(entry.Steps), entry.Because);
 
-    private static string Render(IReadOnlyList<SpecificationClause> clauses, string? because)
+    private static string Render(
+        IReadOnlyList<SpecificationClause> clauses, string? because, string? returns = null)
         => SpecificationRenderer
-            .Render(clauses.SelectMany(clause => clause.Steps), because, new TextBuilder())
+            .Render(Steps(clauses, returns), because, new TextBuilder())
             .NormalizeLineEndings();
+
+    /// <summary>
+    /// The steps of every clause, with the return type appended to the act as a trailing phrase —
+    /// the same shape <c>because</c> takes after an assertion, and for the same reason: it qualifies
+    /// the statement it follows rather than making one of its own.
+    /// </summary>
+    private static IEnumerable<SpecificationStep> Steps(
+        IReadOnlyList<SpecificationClause> clauses, string? returns)
+        => clauses.SelectMany(clause => returns is not null && clause.Family == StepFamily.When
+            // No family: it qualifies the act rather than continuing it, so it takes no lead word
+            // and none of the "and" that a second step of a family would get.
+            ? [.. clause.Steps, new SpecificationStep(StepLayout.Word)
+                {
+                    Body = $"returns {returns}",
+                    Binder = ", ",
+                }]
+            : clause.Steps);
 
     /// <summary>
     /// Specification text placed under a heading. One line goes inline, because a fence is an element

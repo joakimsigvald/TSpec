@@ -883,7 +883,9 @@ that heading rather than repeated in each block — above, the subject and retur
 whole document, and the `When` for the whole subject. Position is not part of the test: a branch that
 arranges something of its own does not keep the shared `When` out of the heading named after it. A
 clause rises as many times as the requirement stating it fewest times does, since two identical
-setups are two invocations. The two declared labels hoist independently, each to the
+setups are two invocations. Where a heading states the return type and the act together, the type is
+said on the act — `When Add(a Room), returns Room` — since what a method returns is a fact about it
+rather than about the section. The two declared labels hoist independently, each to the
 highest heading where every requirement below agrees on it, so a single subject can head the document
 while each section states the return type of its own method. Each is stated only where the `When`
 uses it in that capacity — an act written `When(() => …)` names no subject, and one returning `void`,
