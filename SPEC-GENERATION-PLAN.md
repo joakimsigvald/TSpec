@@ -11,9 +11,7 @@ reverse silently, and the open work.
 `Core.Spec` (28 over `RoomService` and `BookingService`, their stores mocked). MyHotel grew a
 Bookings subdomain on 2026-08-03 — `POST`/`GET`/`GET {id}`/`DELETE` over `/bookings`, with a
 half-open `[from, to)` overlap law — which is what more than doubled both documents. Still to
-come there, and the readings awaiting the PO, are in
-[`SampleProjects/MyHotel/BOOKINGS-PLAN.md`](SampleProjects/MyHotel/BOOKINGS-PLAN.md) — that work
-outlives this file.
+come there, and what the PO still has to rule on, is §8.
 
 **Out of scope:** laws, cross-assembly merging, CLI/MSBuild orchestration, the CI staleness gate.
 
@@ -241,3 +239,45 @@ re-pinned expectations will not look under a heading about deleted types.
 
 Removing those lets `IVerifyService`/`VerifyService` go — nothing else produces them. Also
 `TODO.txt` line 1, failing a test whose pipeline never ran.
+
+## 8. MyHotel bookings
+
+The feature the documents are being grown against, started 2026-08-03. Here because the next
+session continues it; it is the one part of this file that outlives the merge, and moves to MyHotel
+when it does.
+
+**Built: the bookings resource.** `POST /bookings` (`201` + `Location`), `GET /bookings`,
+`GET /bookings/{id}`, `DELETE /bookings/{id}`. Refusals: `400` when the period is not at least one
+night, `404` for an unknown room or booking, `409` when the room is taken for any of those nights.
+Decisions the code alone does not record:
+
+- **Nights are half-open, `[from, to)`** — the guest departs on `to`, so that night is free for the
+  next booking and two stays meeting at a date do not collide. The boundary case has a branch of
+  its own in both suites, so the law cannot weaken silently.
+- **The id is the hotel's, not the caller's**, hence `BookingRequest` beside `Booking`. Ids are
+  `max + 1` over the whole book, so a cancelled booking's number is never reused.
+- **Bookings get their own store and file**, `IBookingStore`/`bookings.json`, whole-list load and
+  save like rooms and for the same reason: the rules stay in Core.
+- **A cancelled booking frees its nights** — stated under `When book room`, not under cancelling,
+  because the act that observes it is booking.
+- **Core went vertical**, `Core/Rooms/` and `Core/Bookings/`, both spec projects mirroring the
+  production folders.
+
+**Next, in the order the PO set:**
+
+1. **`GET /bookings?roomNumber=`** — one room's bookings, as a filter on the list endpoint rather
+   than a route of its own.
+2. **`PUT /bookings/{id}`** — amending a booking, re-stating the refusals booking makes. Left out of
+   the resource because cancel-and-rebook covered it; asked for explicitly.
+3. **Refuse `DELETE /rooms/{roomNumber}` while the room has bookings** (`409`). The first rule
+   crossing subdomains — watch what it does to Core's layering, since rooms must consult bookings.
+4. **Out of service.** `PUT /rooms/{n}/out-of-service` sets it, `DELETE` on the same path reverses
+   it, and the state shows in `GET`. The term is hotel usage — *out of order* is maintenance, *out
+   of service* is temporarily off inventory — and is the PO's to rename once it can be read in the
+   document. A room out of service takes no new bookings; what becomes of the bookings it already
+   has is **undecided and needs a ruling before this is built**.
+
+**Awaiting the PO on three readings of the current text:** whether `Core.Spec`'s booking headings
+(`When book`, `When get`) should match the rooms' fuller `When add room`; whether
+`new(2026, 8, 10)` should say `new DateOnly(…)` so a reader can see the type; and §5.11, whether a
+refused input should stay its own section or become a branch by making the dates a tag.
