@@ -18,6 +18,19 @@ A code change is not complete until both documents reflect it. Also update
   (filter with `-class Namespace.ClassName`).
 - The library multi-targets net8.0/net9.0/net10.0 — run the full suite on all three before a release.
 
+## Releasing
+
+1. Update `PackageVersion` and `PackageReleaseNotes` in `Core/Core.csproj`, and the agent
+   reference's "covers TSpec x.y" line — it ships inside the package and had gone four minor
+   versions stale by 1.5.0.
+2. Run the full suite on all three target frameworks.
+3. `dotnet pack Core -c Release`, then upload `Core/bin/Release/TSpec.<version>.nupkg` **manually at
+   nuget.org**. That folder keeps every previously packed version, so pick the file by name rather
+   than globbing.
+4. Optional: tag the published commit `v<version>` — worth it only if a GitHub Releases page is
+   wanted. Without a tag, the commit a version shipped from is still findable with
+   `git log -S "<version>" -- Core/Core.csproj`.
+
 ## MyHotel
 
 `SampleProjects/MyHotel/` is the reference application TSpec is developed against, not part of the

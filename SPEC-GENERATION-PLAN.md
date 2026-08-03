@@ -187,8 +187,17 @@ the document is 90 columns wide.
 3. **Set `PackageVersion`/`PackageReleaseNotes`**, untouched at 1.5.0.
 
 **Everything ships as 2.0.0**, decided 2026-08-01: the generator is a breaking release in its own
-right (§6, second list), so there is nothing to stage. It also carries the removals — three
-`[Obsolete]` members plus `IVerifyService`/`VerifyService`, per IMPROVEMENT-PLAN.md — and `TODO.txt`
-line 1. Keep the rendering changes under their own heading, separate from the removals: they break
-different things, and a reader hitting re-pinned expectations will not look under a heading about
-deleted types.
+right (§6, second list), so there is nothing to stage. Keep the rendering changes under their own
+heading, separate from the removals below — they break different things, and a reader hitting
+re-pinned expectations will not look under a heading about deleted types.
+
+2.0.0 also drops the deprecated surface accumulated in 1.x, verified against the code 2026-08-03:
+
+| Removed | Replacement |
+|---|---|
+| `Then<TService>()` — parameterless, on `Spec_Then`, `ITestPipeline` and `TestPipeline` | `Then<TService>(wasInvoked: Times)` |
+| `And<TObject>()` — parameterless, on `IAndVerify` and `AndVerify` | `And<TObject>(wasInvoked: Times)` |
+| `HasObject.Type<TObject>()` | `Is().A<T>()` / `Is().An<T>()` |
+
+Removing those lets `IVerifyService`/`VerifyService` go — nothing else produces them. Also
+`TODO.txt` line 1, failing a test whose pipeline never ran.
