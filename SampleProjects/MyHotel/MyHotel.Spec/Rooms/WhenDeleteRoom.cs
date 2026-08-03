@@ -1,7 +1,7 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using static System.Net.HttpStatusCode;
 
-namespace MyHotel.Spec;
+namespace MyHotel.Spec.Rooms;
 
 public abstract class WhenDeleteRoom : ApiSpec<HttpResponseMessage>
 {

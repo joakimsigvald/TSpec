@@ -1,6 +1,6 @@
-namespace MyHotel.Core.Spec.RoomService;
+﻿namespace MyHotel.Core.Spec.Rooms.RoomService;
 
-public abstract class WhenGetRoom : Spec<Core.RoomService, Room>
+public abstract class WhenGetRoom : Spec<Core.Rooms.RoomService, Room>
 {
     protected WhenGetRoom() => When(_ => _.Get(A<Room>().RoomNumber));
 

@@ -1,6 +1,6 @@
 using MyHotel.Contract;
 
-namespace MyHotel.Core;
+namespace MyHotel.Core.Rooms;
 
 /// <summary>
 /// Where rooms are kept. Declared here and implemented outward, so Core owns the shape of its own

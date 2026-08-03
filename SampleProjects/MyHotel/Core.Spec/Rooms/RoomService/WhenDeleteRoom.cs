@@ -1,6 +1,6 @@
-namespace MyHotel.Core.Spec.RoomService;
+﻿namespace MyHotel.Core.Spec.Rooms.RoomService;
 
-public abstract class WhenDeleteRoom : Spec<Core.RoomService>
+public abstract class WhenDeleteRoom : Spec<Core.Rooms.RoomService>
 {
     protected WhenDeleteRoom() => When(_ => _.Delete(A<Room>().RoomNumber));
 

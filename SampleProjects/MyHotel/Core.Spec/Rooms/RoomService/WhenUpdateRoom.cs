@@ -1,10 +1,10 @@
-namespace MyHotel.Core.Spec.RoomService;
+﻿namespace MyHotel.Core.Spec.Rooms.RoomService;
 
 /// <summary>
 /// The room number identifies the room, so the update carries the room it becomes rather than a
 /// number of its own. A tag names that room, and each branch says which one it is.
 /// </summary>
-public abstract class WhenUpdateRoom : Spec<Core.RoomService, Room>
+public abstract class WhenUpdateRoom : Spec<Core.Rooms.RoomService, Room>
 {
     private readonly Tag<Room> _updatedRoom = new();
 

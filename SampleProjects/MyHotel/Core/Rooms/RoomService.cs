@@ -1,6 +1,6 @@
 using MyHotel.Contract;
 
-namespace MyHotel.Core;
+namespace MyHotel.Core.Rooms;
 
 /// <summary>
 /// Rooms are kept in the order they were created, which is the order the store returns them in.

@@ -1,6 +1,6 @@
-namespace MyHotel.Core.Spec.RoomService;
+﻿namespace MyHotel.Core.Spec.Rooms.RoomService;
 
-public abstract class WhenListRooms : Spec<Core.RoomService, IReadOnlyList<Room>>
+public abstract class WhenListRooms : Spec<Core.Rooms.RoomService, IReadOnlyList<Room>>
 {
     protected WhenListRooms() => When(_ => _.List());
 

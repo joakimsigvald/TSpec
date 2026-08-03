@@ -1,6 +1,6 @@
 using System.Text.Json;
 using MyHotel.Contract;
-using MyHotel.Core;
+using MyHotel.Core.Rooms;
 
 namespace MyHotel.Infra;
 

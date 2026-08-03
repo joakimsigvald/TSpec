@@ -7,10 +7,13 @@ The code and the ~1400 pinned `Specification.Is(…)` expectations already recor
 so what belongs here is only what neither can say: facts nothing tests, decisions a change could
 reverse silently, and the open work.
 
-**State:** feature complete, dogfooded on `MyHotel.Spec` (22 requirements, black-box HTTP) and
-`Core.Spec` (12 over `RoomService`, `IRoomStore` mocked). Before release, MyHotel grows a
-Bookings subdomain (decided 2026-08-03) — expected to fire §5.2's trigger and push on the
-unexercised shapes at the end of §5.
+**State:** feature complete, dogfooded on `MyHotel.Spec` (50 requirements, black-box HTTP) and
+`Core.Spec` (28 over `RoomService` and `BookingService`, their stores mocked). MyHotel grew a
+Bookings subdomain on 2026-08-03 — `POST`/`GET`/`GET {id}`/`DELETE` over `/bookings`, with a
+half-open `[from, to)` overlap law — which is what more than doubled both documents. Still to
+come there, and the readings awaiting the PO, are in
+[`SampleProjects/MyHotel/BOOKINGS-PLAN.md`](SampleProjects/MyHotel/BOOKINGS-PLAN.md) — that work
+outlives this file.
 
 **Out of scope:** laws, cross-assembly merging, CLI/MSBuild orchestration, the CI staleness gate.
 
@@ -120,8 +123,12 @@ test classes. **Trigger:** a clause above the heading that names it. Gap §5.4 w
 1. **Opt-out attributes.** `[Specification]` / `[ExcludeFromSpecification]`, nearest declaration
    wins, default include. Nothing has needed to opt out, and absence could never certify coverage
    anyway. Both docs carry a work-in-progress note about it (§7.1).
-2. **Namespace as a grouping level.** Not collected — with few subjects it is a heading level for
-   nothing. **Trigger:** a second vertical subdomain in Core, since one folder is one namespace.
+2. **Namespace as a grouping level.** Not collected. **Its trigger has fired** (2026-08-03): Core is
+   now `Rooms/` and `Bookings/`, both spec projects mirror that, and each document holds two
+   subjects' sections interleaved — `Core.Spec` sorts `When book`, `When cancel` and `When get`
+   among the room sections, so the two services read as one list. What a namespace level would fix
+   is exactly that; what it costs is a heading level above subjects that most documents do not
+   need. Decide before release, since it moves every section: a level, or sorting subjects together.
 3. **A second assertion starts an orphaned sentence.** Only the first gets `Then`, so
    `Second is new Room(…)` reads as a claim about nothing. Pinned deliberately in
    `WhenTwoItems.cs:24` and `HavingWhenUntil.cs:67`. Blocked with two neighbours — lowercase
@@ -149,10 +156,30 @@ test classes. **Trigger:** a clause above the heading that names it. Gap §5.4 w
 9. **Two cosmetic warts**, neither exhibited nor blocking: `One(expr)` over an already-articled
    expression reads `one the Room with { … }`; an array argument keeps `new[] { … }`, the only place
    C# syntax survives into a claim.
+10. **A trailing comma in an initializer emits a stray `}`.** `{ … To = new(2026, 8, 10), }` renders
+    `… To = new(2026, 8, 10), } }]`: `ParseList` reads the comma as introducing another item and
+    parses the closing brace as that item, which then prints alongside the real one. Exhibited twice
+    in `Core.Spec`'s `When book` — deliberately, since the trailing comma is ordinary C# and
+    removing it from the spec source only hides the defect. A parse bug, not a rendering one, so a
+    pin belongs in `Core.Test` beside the other `ParseList` cases.
+11. **An act that varies cannot be a branch, so it becomes a section.** One `When` per spec class
+    means two spellings of the same call — booking a valid period and a zero-night one — are
+    sibling `##` sections rather than `###` branches of one act, and the document cannot tell that
+    they are the same endpoint. The workaround is to make what varies a tag and let branches supply
+    it, which buys the branch structure at the cost of hiding the varying value from the heading.
+    Not a defect so much as the shape the constraint forces; noted because every document with a
+    refused-input case will meet it.
+12. **A wrapped trailing phrase starts its line with the binder's comma.** `When Book(…)` followed by
+    `, returns Booking` breaks as `…))` / `    , returns Booking`, because `AddWord` composes binder
+    and word into one piece and layout moves the piece whole. The comma belongs to the line it binds
+    to: a break has to fall *after* a binder, never before it. Exhibited twice in `Core.Spec`, and
+    reachable by any long act with a return type. The fix is in composition, not layout — the binder
+    wants to be its own unit, or to travel with the text it follows.
 
-**Shapes not yet exercised**, where the next gaps will come from: a nullable return type (§5.6),
-namespace grouping (§5.2), and branch trees three or more levels deep — where the two-level heading
-structure and §4 are pushed hardest.
+**Shapes not yet exercised**, where the next gaps will come from: a nullable return type (§5.6) and
+branch trees three or more levels deep — where the two-level heading structure and §4 are pushed
+hardest. Bookings exercised the rest: two subjects per document (§5.2), a second store to mock, a
+`400` refusal, and acts that vary (§5.11).
 
 ## 6. Release notes material
 

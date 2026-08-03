@@ -13,8 +13,7 @@ Being layered per **Neat**: `Contract` is the public shape and references nothin
 endpoints, `Core` holds the logic, and `MyHotel` is the host that wires them together. Entry and Core
 cannot see each other, so nothing internal can leak out through the API by accident. Two spec
 projects state different things: [`MyHotel.Spec`](MyHotel.Spec) the HTTP contract, and
-[`Core.Spec`](Core.Spec) the domain rules — the latter still empty. Development rules are in
-[CLAUDE.md](CLAUDE.md).
+[`Core.Spec`](Core.Spec) the domain rules. Development rules are in [CLAUDE.md](CLAUDE.md).
 
 ## Running it
 
@@ -52,10 +51,21 @@ generated file — review it in diffs, never edit it by hand. Its version comes 
 | `GET` | `/rooms/{roomNumber}` | `200` with the room, or `404` |
 | `PUT` | `/rooms/{roomNumber}` | `200` with the updated room, or `404` |
 | `DELETE` | `/rooms/{roomNumber}` | `204` and the room is gone, or `404` |
+| `GET` | `/bookings` | `200` with every booking in the order it was made; `[]` when there are none |
+| `POST` | `/bookings` | `201` with the booking and a `Location` header; `400` if the period is not at least one night; `404` if there is no such room; `409` if the room is already booked for any of those nights |
+| `GET` | `/bookings/{id}` | `200` with the booking, or `404` |
+| `DELETE` | `/bookings/{id}` | `204` and the booking is cancelled, or `404` |
 
 A room is `{ "roomNumber": "101", "bedCount": 2 }`. The room number is the identity: it appears in
-the URL and cannot be changed — to renumber a room, delete it and add a new one. Rooms are held in
-memory, in creation order, and are gone when the process stops.
+the URL and cannot be changed — to renumber a room, delete it and add a new one.
 
-`404` and `409` carry `{ "error": "…" }`. They come from exceptions `Core` throws and `Contract`
-declares; anything else reaches the pipeline unhandled and answers `500`.
+A booking is
+`{ "id": 1, "roomNumber": "101", "guestName": "Smith", "from": "2026-08-10", "to": "2026-08-12" }`.
+It is booked with the same fields minus the `id`, which the hotel assigns. Nights are half-open,
+`[from, to)`: the guest departs on `to`, so that night is free for the next booking and two stays
+meeting at a date do not collide.
+
+Rooms and bookings are each kept in a JSON file, in creation order, so they outlive the process.
+
+`400`, `404` and `409` carry `{ "error": "…" }`. They come from exceptions `Core` throws and
+`Contract` declares; anything else reaches the pipeline unhandled and answers `500`.

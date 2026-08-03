@@ -13,7 +13,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddCore();
 builder.Services.AddEntry();
-builder.Services.AddInfra(builder.Configuration["RoomStore:Path"] ?? "rooms.json");
+builder.Services.AddInfra(
+    builder.Configuration["RoomStore:Path"] ?? "rooms.json",
+    builder.Configuration["BookingStore:Path"] ?? "bookings.json");
 
 var app = builder.Build();
 
@@ -24,6 +26,7 @@ app.MapScalarApiReference();
 
 app.MapVersionEndpoint(version);
 app.MapRoomEndpoints();
+app.MapBookingEndpoints();
 
 app.Run();
 

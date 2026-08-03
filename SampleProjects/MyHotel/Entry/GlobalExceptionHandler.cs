@@ -19,6 +19,9 @@ public class GlobalExceptionHandler : IExceptionHandler
             RoomNotFound => StatusCodes.Status404NotFound,
             RoomAlreadyExists => StatusCodes.Status409Conflict,
             RoomNumberMismatch => StatusCodes.Status400BadRequest,
+            RoomAlreadyBooked => StatusCodes.Status409Conflict,
+            InvalidBookingPeriod => StatusCodes.Status400BadRequest,
+            BookingNotFound => StatusCodes.Status404NotFound,
             _ => 0
         };
         if (status is 0)
