@@ -9,16 +9,24 @@ namespace TSpec.Internal.Specification;
 /// (<see cref="Wrap"/>) at the shallowest nesting wins, then whitespace, then a punctuation cue,
 /// then mid-word.
 /// </summary>
-internal class TextBuilder(int maxLineLength = TextBuilder.PageWidth, int indentationSize = 2)
+internal class TextBuilder(
+    int maxLineLength = TextBuilder.PageWidth, int indentationSize = 2, int wrapIndentation = 3)
 {
     /// How wide specification text is written when nothing indents it.
     internal const int PageWidth = 80;
 
-    private const int WrapIndentation = 3;
     private static readonly char[] _breakAfterCues = ['.', '(', '[', '{'];
     private readonly StringBuilder _sb = new();
     private int _currentLineLength;
+    private int _lineIndentation;
     private int _depth;
+
+    /// <summary>
+    /// Where a continuation sits: the step of the line it continues plus the wrap delta, so the
+    /// step sequence stays self-describing — one step down is structure, more is a wrap. Every
+    /// continuation of one line takes this same column; only a structural line moves it.
+    /// </summary>
+    private int ContinuationIndentation => _lineIndentation + wrapIndentation;
 
     internal void Add(TextUnit unit)
     {
@@ -56,7 +64,7 @@ internal class TextBuilder(int maxLineLength = TextBuilder.PageWidth, int indent
         if (IsExceedingMaxLineLength(segment.Length) && FitsOnOwnLine(segment.Text)
             && _currentLineLength > 0)
         {
-            AddLine(segment.Trim(), WrapIndentation);
+            AddLine(segment.Trim(), ContinuationIndentation);
             return;
         }
 
@@ -71,11 +79,11 @@ internal class TextBuilder(int maxLineLength = TextBuilder.PageWidth, int indent
         _sb.Append(first);
         _currentLineLength += first.Length;
         if (rest.Length > 0)
-            AddLine(rest, WrapIndentation);
+            AddLine(rest, ContinuationIndentation);
     }
 
     private void AddLine(string line, int indentation)
-        => AddLine(Segment.Parse(line, ref _depth), indentation);
+        => AddLine(Segment.Parse(line, ref _depth), _lineIndentation = indentation);
 
     private void AddLine(Segment line, int indentation)
     {
@@ -91,7 +99,7 @@ internal class TextBuilder(int maxLineLength = TextBuilder.PageWidth, int indent
     /// there beats breaking it: what arrives as one piece is one expression, and a break inside it
     /// orphans part of it — where an expression that fits nowhere has to be broken regardless.
     private bool FitsOnOwnLine(string text)
-        => text.Trim().Length + WrapIndentation * indentationSize <= maxLineLength;
+        => text.Trim().Length + ContinuationIndentation * indentationSize <= maxLineLength;
 
     private (string first, Segment rest) BreakLine(Segment segment)
     {

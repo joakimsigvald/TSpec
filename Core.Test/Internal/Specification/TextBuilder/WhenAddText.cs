@@ -129,4 +129,23 @@ public class WhenAddText
         """)]
     public void GivenNoBreakPoints_ThenWhitespaceOutranksPunctuation(string text, string expected)
         => Xunit.Assert.Equal(expected.NormalizeLineEndings(), AddText(text));
+
+    [Fact]
+    public void GivenNarrowerWrapIndentation_ThenContinuationLinesIndentLess()
+        => Xunit.Assert.Equal(
+            "12345\n  678901",
+            new TSpec.Internal.Specification.TextBuilder(10, 1, wrapIndentation: 2)
+                .AddText("12345 678901").ToString().NormalizeLineEndings());
+
+    /// A continuation indents relative to the line it continues — its step plus the wrap delta —
+    /// and does not compound: every continuation of one line takes the same column.
+    [Fact]
+    public void GivenIndentedLine_ThenContinuationsIndentRelativeToIt()
+    {
+        var builder = new TSpec.Internal.Specification.TextBuilder(10, 1, wrapIndentation: 2);
+        builder.Add(TextUnit.Line("AB CD EFG HI JKL MN", 1));
+        Xunit.Assert.Equal(
+            "AB CD\n   EFG HI\n   JKL MN",
+            builder.Build(opensSentence: false).NormalizeLineEndings());
+    }
 }

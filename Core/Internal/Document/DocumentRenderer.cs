@@ -255,7 +255,7 @@ internal static class DocumentRenderer
         => SpecificationRenderer.Compose(Steps(clauses, returns), because);
 
     private static string Render(ComposedText text, int maxLineLength)
-        => text.Render(maxLineLength).NormalizeLineEndings();
+        => text.Render(maxLineLength, ContinuationIndentation).NormalizeLineEndings();
 
     /// <summary>
     /// The steps of every clause, with the return type appended to the act as a trailing phrase —
@@ -299,6 +299,13 @@ internal static class DocumentRenderer
     /// How far anything written under a list item's label sits from the margin, and so how much of
     /// the page it loses. What indents the text and what measures it read the same number.
     private const int ItemIndentation = 2;
+
+    /// <summary>
+    /// How deep a wrapped line continues, in indentation steps: two — one deeper than a phrase,
+    /// so a continuation cannot be read as structure. The test-spec keeps three; it is read
+    /// beside code and failure output, where the extra distance earns its keep.
+    /// </summary>
+    private const int ContinuationIndentation = 2;
 
     /// What a fenced block inside an item has left of the page.
     private const int FenceWidth = DocumentWidth - ItemIndentation;

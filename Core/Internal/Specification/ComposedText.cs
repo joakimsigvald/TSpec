@@ -63,9 +63,9 @@ internal sealed record ComposedText(IReadOnlyList<TextUnit> Units, bool OpensSen
     }
 
     /// The text laid out for the width it is written into. The last thing done to it.
-    internal string Render(int maxLineLength)
+    internal string Render(int maxLineLength, int wrapIndentation = 3)
     {
-        var text = new TextBuilder(maxLineLength);
+        var text = new TextBuilder(maxLineLength, wrapIndentation: wrapIndentation);
         foreach (var unit in Units)
             text.Add(unit);
         return text.Build(OpensSentence);

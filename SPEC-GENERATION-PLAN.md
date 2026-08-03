@@ -41,8 +41,14 @@ one that reported in — covering all three ways a run can be incomplete: filter
   the repo unpinned. The document may add structure *around* the text, never a second version of it.
 - **Layout is last.** `TextBuilder` must never be handed text something else still intends to edit:
   the document strips its heading's word and accounts for the fence indent *first*, then each
-  consumer wraps at its own width — source 80, document 90. Violating this made a 76-character claim
-  measure 81 and take a fence it never needed.
+  consumer wraps at its own width — source 80, document 90 — and its own continuation indent —
+  source three steps, document two, decided 2026-08-03: the page needs a continuation to sit deeper
+  than a phrase, not terminal-proof distance. Violating the ordering made a 76-character claim
+  measure 81 and take a fence it never needed. The continuation indent is *relative* — the line's
+  own step plus the wrap delta, never compounding across a line's several continuations — so the
+  step delta is self-describing: one step down is a subordinate clause, more is the same statement
+  wrapped, at any depth. Hanging indents were considered and rejected: no crisp lead word on every
+  line kind, and per-statement columns leave the grid.
 - **Where a line may break is structure, recorded while it still exists.** Describers write
   unprintable markers (`Wrap`) into the text — `Enter`/`Exit` rank by nesting; a `Point` after the
   opening paren and each argument comma, before a brace block, at each call-chain joint — and
