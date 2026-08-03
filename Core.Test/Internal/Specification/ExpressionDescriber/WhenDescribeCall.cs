@@ -19,7 +19,8 @@ public class WhenDescribeCall : Spec<string>
 
         y
         """, "x y")]
+    // Break-point markers are pinned separately in WhenPlaceBreakPoints; here the wording is.
     public void ThenReturnDescription(string? callExpr, string? expected)
-        => When(_ => callExpr.DescribeCall())
+        => When(_ => callExpr.DescribeCall()?.StripWrapMarkers())
         .Then().Result.Is(expected);
 }

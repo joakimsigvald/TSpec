@@ -86,4 +86,47 @@ public class WhenAddText
     public void GivenHasTextAndNextWordDoesNotFit_ThenBreakBeforeWord(
         string? existingText, string? newText, string expected)
         => Xunit.Assert.Equal(expected.NormalizeLineEndings(), AddText(newText, existingText));
+
+    /// « enters a nesting level, » exits it, ¦ marks a break point ranked by its depth —
+    /// stand-ins for the Wrap markers, which are unprintable.
+    private static string AddMarkedText(string text)
+        => AddText(text
+            .Replace('«', Wrap.Enter)
+            .Replace('»', Wrap.Exit)
+            .Replace('¦', Wrap.Point));
+
+    [Theory]
+    [InlineData("A(«¦BC»)", "A(BC)")]
+    [InlineData("AB CD(«¦EF GH»)",
+        """
+        AB CD(
+           EF GH)
+        """)]
+    [InlineData("ABC(«¦DE, ¦FG»)",
+        """
+        ABC(DE,
+           FG)
+        """)]
+    [InlineData("A(«¦BB, ¦CC(«¦DD, ¦EE»)»)",
+        """
+        A(BB,
+           CC(DD,
+           EE))
+        """)]
+    [InlineData("AB with« ¦{CD}»",
+        """
+        AB with
+           {CD}
+        """)]
+    public void GivenBreakPoints_ThenBreakAtLastPointOfShallowestRank(string text, string expected)
+        => Xunit.Assert.Equal(expected.NormalizeLineEndings(), AddMarkedText(text));
+
+    [Theory]
+    [InlineData("ABCDE FG(H)",
+        """
+        ABCDE
+           FG(H)
+        """)]
+    public void GivenNoBreakPoints_ThenWhitespaceOutranksPunctuation(string text, string expected)
+        => Xunit.Assert.Equal(expected.NormalizeLineEndings(), AddText(text));
 }

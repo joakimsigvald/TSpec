@@ -8,7 +8,9 @@ so what belongs here is only what neither can say: facts nothing tests, decision
 reverse silently, and the open work.
 
 **State:** feature complete, dogfooded on `MyHotel.Spec` (22 requirements, black-box HTTP) and
-`Core.Spec` (12 over `RoomService`, `IRoomStore` mocked).
+`Core.Spec` (12 over `RoomService`, `IRoomStore` mocked). Before release, MyHotel grows a
+Bookings subdomain (decided 2026-08-03) — expected to fire §5.2's trigger and push on the
+unexercised shapes at the end of §5.
 
 **Out of scope:** laws, cross-assembly merging, CLI/MSBuild orchestration, the CI staleness gate.
 
@@ -41,6 +43,14 @@ one that reported in — covering all three ways a run can be incomplete: filter
   the document strips its heading's word and accounts for the fence indent *first*, then each
   consumer wraps at its own width — source 80, document 90. Violating this made a 76-character claim
   measure 81 and take a fence it never needed.
+- **Where a line may break is structure, recorded while it still exists.** Describers write
+  unprintable markers (`Wrap`) into the text — `Enter`/`Exit` rank by nesting; a `Point` after the
+  opening paren and each argument comma, before a brace block, at each call-chain joint — and
+  `TextBuilder` breaks at the last point of the shallowest rank that fits, then whitespace, then
+  punctuation, then mid-word. Markers never reach output: layout strips them while measuring, and
+  the one path splicing described text straight into a failure message
+  (`Constraint.GetException`) strips them itself — any new sink of described text must do the
+  same, or control characters leak into terminals.
 - **Erasure is semantic, never taste** — see the `specification-erasure-principle` memory. The
   load-bearing case is `?` on a type, kept because `int?` and `int` differ in what values can occur.
 - **Section order is a file format, not an implementation detail.** Sections sort by
@@ -114,32 +124,27 @@ test classes. **Trigger:** a clause above the heading that names it. Gap §5.4 w
 4. **A subject-wide assertion repeats under every branch.** `ThenRespondOk` on `WhenListRooms` is
    inherited by both and stated twice; an assertion *declared above* branches is a claim about the
    subject, and the document cannot tell that from two branches agreeing. Wants §4's missing input.
-5. **A `with` block wraps badly.** `{` is a break-after cue and the greedy fit takes the last cue
-   that fits, so a long `with` breaks inside itself: `When update room` reads
-   `… the Room with { BedCount = a` / `second int })`. Fix: stop treating `{` as a cue when the block
-   would fit on a continuation line, as `FitsOnOwnLine` already does for phrases. Touches every
-   wrapped specification in the suite, so it wants its own session.
-6. **The binder is silent across a hoist boundary.** A branch sharing its first `Having` but not its
+5. **The binder is silent across a hoist boundary.** A branch sharing its first `Having` but not its
    second gets `Having X` in the heading and `Having Y` in the item, with nothing relating them in
    time. Not reachable in MyHotel today.
-7. **The declared return type drops reference-type nullability.** `Spec<RoomService, Room?>` renders
+6. **The declared return type drops reference-type nullability.** `Spec<RoomService, Room?>` renders
    `Return type: Room` directly above a requirement reading `Result is null`. `Room?` is `Room` plus
    a `NullableAttribute` in IL, so reading it needs `NullabilityInfoContext` over the generic
    argument; `int?` survives, being a distinct type. Not exhibited — `RoomService.Get` throws instead.
-8. **One outlier costs every sibling its hoisting.** Exact match with no partial credit, so a single
+7. **One outlier costs every sibling its hoisting.** Exact match with no partial credit, so a single
    differing section unhoists the whole level — a restart spec with its own subject once pushed four
    shared lines into all six HTTP sections, 105 lines becoming 141. Open question: should "shared by
    every entry" become "shared by all but the few that say otherwise", with the dissenters restating?
    Unfixed; MyHotel no longer exhibits it, `Hotel` now being the subject of every black-box spec.
-9. **`Given` loses its word under a `Given` heading.** A block opens `IRoomStore.Load() returns zero
+8. **`Given` loses its word under a `Given` heading.** A block opens `IRoomStore.Load() returns zero
    Room` bare, because a block's opening word is dropped where something above says it — but the
    heading's "Given" is part of a *name* and the clause's is a family keyword. Not reachable in
    `MyHotel.Spec`, where every branch block opens with `Having`.
-10. **Two cosmetic warts**, neither exhibited nor blocking: `One(expr)` over an already-articled
-    expression reads `one the Room with { … }`; an array argument keeps `new[] { … }`, the only place
-    C# syntax survives into a claim.
+9. **Two cosmetic warts**, neither exhibited nor blocking: `One(expr)` over an already-articled
+   expression reads `one the Room with { … }`; an array argument keeps `new[] { … }`, the only place
+   C# syntax survives into a claim.
 
-**Shapes not yet exercised**, where the next gaps will come from: a nullable return type (§5.7),
+**Shapes not yet exercised**, where the next gaps will come from: a nullable return type (§5.6),
 namespace grouping (§5.2), and branch trees three or more levels deep — where the two-level heading
 structure and §4 are pushed hardest.
 
@@ -162,6 +167,8 @@ they hold; sections ordered simplest first.
 | Subject parameter elided — `When(_ => _.Api.Get("/x"))` renders `When Api.Get("/x")`; `When`/`Having`/`Until` only, mock setups and assertion predicates keep theirs | 291 |
 | Collection mentions pluralize — `Two<Room>()` reads "two Rooms"; a plural drilldown takes the bare apostrophe | 57 |
 | Wrapping keeps expressions whole — an over-long phrase moves to the next line entire | 19 |
+| Wrapping breaks at structure — after the last argument comma that fits (the paren when none does), before a brace block that fits a continuation line, at call-chain joints; whitespace outranks punctuation | 3 |
+| Arguments of a chained call are described — `obj.Foo(An<int>()).Bar()` reads `obj.Foo(an int).Bar()`, no longer quoting the source | — |
 | Noise erased — `await`, `async`, `!`, `?.` no longer appear | — |
 | Interpolation holes described as prose rather than source | — |
 | `with` expressions name their target instead of rendering as their members alone | — |

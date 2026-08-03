@@ -75,8 +75,9 @@ public class WhenGivenValueSetup : Spec<MyService, MyModel>
             .Then().Result.Name.Has(_ => char.IsLower(_[0]));
         Specification.Is(
             """
-            Using "abc".ToUpper().ToLower().ToUpper().ToLower().ToUpper().ToLower().ToUpper(
-                  ).ToLower().ToUpper().ToLower().ToUpper().ToLower().ToUpper().ToLower()
+            Using "abc".ToUpper().ToLower().ToUpper().ToLower().ToUpper().ToLower()
+                  .ToUpper().ToLower().ToUpper().ToLower().ToUpper().ToLower().ToUpper()
+                  .ToLower()
             When GetModel()
             Then Result.Name has char.IsLower(_[0])
             """);

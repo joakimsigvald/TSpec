@@ -24,9 +24,9 @@ internal sealed class ValueDescriber : Describer
             Assign a => $"{AssignTargetName(a.Target)} {a.Op} {Describe(a.Value)}",
             // The copy is of something the reader was told about, so it is named: a value described
             // by its changes alone is not the value, and "BedCount = any int" is not a room.
-            With w => $"{Describe(w.Target)} with {{ {DescribeAll(w.Init)} }}",
-            TupleExpr t => $"({DescribeAll(t.Items)})",
-            ArrayLit arr => $"[{DescribeAll(arr.Items)}]",
+            With w => $"{Describe(w.Target)} with{Braced(w.Init)}",
+            TupleExpr t => $"({Wrap.Enter}{DescribeAll(t.Items)}{Wrap.Exit})",
+            ArrayLit arr => $"[{Wrap.Enter}{DescribeAll(arr.Items)}{Wrap.Exit}]",
             Binary b => $"{Describe(b.Left)} {b.Op} {Describe(b.Right)}",
             Unary u => $"{u.Op}{Describe(u.Operand)}",
             Postfix p => $"{Describe(p.Operand)}{p.Op}",
@@ -43,11 +43,11 @@ internal sealed class ValueDescriber : Describer
             Member { Target: Call tagged } m when tagged.AsTagReference() is { } tag
                 => $"the {tag.AsTagName()}'s {m.Name}",
             Call c when c.AsNaturalLanguageCall() is { } verb => $"{verb.AsWords()} {DescribeAll(c.Args)}",
-            Call c => $"{c.Target.AsPath()}({DescribeAll(c.Args)})",
+            Call c => $"{Path(c.Target)}{ArgList(c.Args)}",
             NamedArg na => $"{na.Name}: {Describe(na.Value)}",
             Identifier id => id.Name,
             Unknown u => u.Raw,
-            _ => expr.AsPath(),
+            _ => Path(expr),
         };
     }
 

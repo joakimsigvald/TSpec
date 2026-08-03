@@ -16,8 +16,8 @@ public class WhenGivenSUT : Spec<MyService, (int, string)>
         Then().Result.Is((The<int>(), The<string>()));
         Specification.Is(
             """
-            Using new MyService(an IMyRepository, new MySettings { ConnectionString = a
-                  string }, DateTime.Now)
+            Using new MyService(an IMyRepository,
+                  new MySettings { ConnectionString = a string }, DateTime.Now)
             Given IMyRepository.GetNextId() returns an int
             When new(GetNextId(), GetConnectionString())
             Then Result is (the int, the string)

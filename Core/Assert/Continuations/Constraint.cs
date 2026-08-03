@@ -165,7 +165,8 @@ public abstract record Constraint<TActual, TContinuation>
         }
 
         Xunit.Sdk.XunitException GetException(Xunit.Sdk.XunitException? innerEx)
-            => new($"Expected {ActualExpr} to {GetExpectation()} but found {Describe(Actual, methodName!)}", innerEx);
+            => new($"Expected {ActualExpr} to {GetExpectation()} but found {Describe(Actual, methodName!)}"
+                .StripWrapMarkers(), innerEx);
 
         string GetExpectation() => $"{GetVerb()} {expected}".Trim();
 

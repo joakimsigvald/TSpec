@@ -19,7 +19,7 @@ internal sealed class CallDescriber(bool skipSubjectRef) : Describer
         {
             Lambda l => DescribeLambda(l),
             New n => DescribeNew(n),
-            Call c => $"{c.Target.AsPath()}({DescribeAll(c.Args)})",
+            Call c => $"{Path(c.Target)}{ArgList(c.Args)}",
             _ when DescribeMention(expr) is { } m => m,
             _ => Value.Describe(expr),
         };
@@ -36,7 +36,7 @@ internal sealed class CallDescriber(bool skipSubjectRef) : Describer
     private string DescribeOneArgLambda(Lambda l)
     {
         if (l.AsParamRefCall() is { } pc)
-            return Prefixed(pc.Receiver, l.Params[0], pc.Target.Name, $"({DescribeAll(pc.Args)})");
+            return Prefixed(pc.Receiver, l.Params[0], pc.Target.Name, ArgList(pc.Args));
         if (l.AsParamRefAssign() is { } pa)
             return Prefixed(
                 pa.Receiver, l.Params[0], pa.Target.Name, $" {pa.Op} {Value.Describe(pa.Value)}");

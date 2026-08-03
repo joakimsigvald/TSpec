@@ -1,4 +1,5 @@
 ﻿using TSpec.Assert;
+using TSpec.Internal.Specification;
 using static TSpec.Internal.Specification.ExpressionDescriber;
 
 namespace TSpec.Test.Internal.Specification.ExpressionDescriber;
@@ -79,9 +80,10 @@ public class WhenDescribe : Spec<string>
     // A comma inside the expression is not the alignment separator
     [InlineData("$\"{_.Foo(a, b)}\"", "\"{_.Foo(a, b)}\"")]
     [InlineData("$@\"{The(x)}\"", "\"{the X}\"")]
+    // Break-point markers are pinned separately in WhenPlaceBreakPoints; here the wording is.
     public void ThenReturnDescription(string? valueExpr, string expected)
     {
-        When(_ => valueExpr.Describe())
+        When(_ => valueExpr.Describe().StripWrapMarkers())
             .Then().Result.Is(expected);
     }
 }

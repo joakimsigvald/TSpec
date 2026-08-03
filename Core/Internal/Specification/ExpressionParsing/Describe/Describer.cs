@@ -18,7 +18,27 @@ internal abstract class Describer
     protected abstract string Render(Expr expr);
 
     protected static string DescribeAll(IEnumerable<Expr> exprs) =>
-        string.Join(", ", exprs.Select(Value.Describe));
+        string.Join($", {Wrap.Point}", exprs.Select(Value.Describe));
+
+    /// An argument list is a nested construct: after the opening paren and after each comma the
+    /// remainder may move to a continuation line, ranked one below the construct the call sits in.
+    protected static string ArgList(IReadOnlyList<Expr> args)
+        => args.Count == 0 ? "()" : $"({Wrap.Enter}{Wrap.Point}{DescribeAll(args)}{Wrap.Exit})";
+
+    /// A brace block prefers moving whole to a continuation line — the point before the brace —
+    /// over breaking inside it, and its members rank one level deeper still.
+    protected static string Braced(IEnumerable<Expr> init)
+        => $"{Wrap.Enter} {Wrap.Point}{{ {Wrap.Enter}{DescribeAll(init)}{Wrap.Exit} }}{Wrap.Exit}";
+
+    /// <summary>
+    /// A dotted path — with a break point at each joint where the dot connects two calls, never at
+    /// the dots of a plain path. The call left of such a joint is a value like any other, so it is
+    /// described rather than quoted: its arguments read as prose.
+    /// </summary>
+    protected static string Path(Expr expr)
+        => expr.WithoutNoise() is Member m && m.Target.WithoutNoise() is Call chained
+            ? $"{Value.Describe(chained)}{Wrap.Point}.{m.Name}"
+            : expr.AsPath();
 
     /// Render TSpec's <c>A&lt;T&gt;</c> / <c>An&lt;T&gt;</c> / <c>The&lt;T&gt;</c>
     /// factory shapes, or null if <paramref name="expr"/> is no mention.
@@ -30,7 +50,7 @@ internal abstract class Describer
         var typeArgs = m.TypeArgs.CountedBy(m.Verb);
         string head = $"{m.Verb.AsWords()} {typeArgs}";
         return m.Constraints is { Count: > 0 }
-            ? $"{head} {{ {DescribeAll(m.Constraints)} }}"
+            ? $"{head}{Braced(m.Constraints)}"
             : DescribeWithDrilldown(head, expr.Raw, m.Boundary, plural: typeArgs != m.TypeArgs);
     }
 
@@ -58,7 +78,7 @@ internal abstract class Describer
     protected static string DescribeNew(New n)
     {
         string head = NewHead(n);
-        string init = n.Init is null ? "" : $" {{ {DescribeAll(n.Init)} }}";
+        string init = n.Init is null ? "" : Braced(n.Init);
         return head + init;
     }
 
@@ -75,6 +95,6 @@ internal abstract class Describer
         }
         var prefix = string.IsNullOrEmpty(n.TypeName) ? "new" : $"new {n.TypeName}";
         bool omitArgs = n.Init is not null && n.Args.Count == 0;
-        return omitArgs ? prefix : $"{prefix}({DescribeAll(n.Args)})";
+        return omitArgs ? prefix : $"{prefix}{ArgList(n.Args)}";
     }
 }
