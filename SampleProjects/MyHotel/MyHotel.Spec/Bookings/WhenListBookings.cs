@@ -22,17 +22,17 @@ public abstract class WhenListBookings : ApiSpec<HttpResponseMessage>
     {
         public GivenTwoBookings()
             => Having(_ => _.Api.PostAsJsonAsync("/bookings", new BookingRequest(
-                The<Room>().RoomNumber, ASecond<string>(), new(2026, 8, 20), new(2026, 8, 22))))
+                The<Room>().RoomNumber, ASecond<string>(), A<DateOnly>(), ASecond<DateOnly>())))
                 .Having(_ => _.Api.PostAsJsonAsync("/bookings", new BookingRequest(
-                    The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12))))
+                    The<Room>().RoomNumber, A<string>(), AThird<DateOnly>(), AFourth<DateOnly>())))
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
 
         [Fact]
         public async Task ThenReturnBothBookingsInTheOrderTheyWereMade()
             => (await Result.Read<Booking[]>()).Is().EqualTo([
                 new Booking(
-                    1, The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12)),
+                    1, The<Room>().RoomNumber, The<string>(), TheThird<DateOnly>(), TheFourth<DateOnly>()),
                 new Booking(
-                    2, The<Room>().RoomNumber, ASecond<string>(), new(2026, 8, 20), new(2026, 8, 22))]);
+                    2, The<Room>().RoomNumber, TheSecond<string>(), The<DateOnly>(), TheSecond<DateOnly>())]);
     }
 }

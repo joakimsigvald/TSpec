@@ -8,7 +8,7 @@ public class WhenBookZeroNights : Spec<Core.Bookings.BookingService, Booking>
 {
     public WhenBookZeroNights()
         => When(_ => _.Book(new BookingRequest(
-            A<string>(), ASecond<string>(), new(2026, 8, 10), new(2026, 8, 10))));
+            A<string>(), ASecond<string>(), A<DateOnly>(), The<DateOnly>())));
 
     [Fact]
     public void ThenThrowInvalidBookingPeriod()

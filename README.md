@@ -873,6 +873,10 @@ Subject under test: Hotel
 Return type:        HttpResponseMessage
 ```
 
+---
+
+# Rooms
+
 ## When list rooms
 `Api.GetAsync("/rooms")`
 
@@ -881,6 +885,15 @@ Return type:        HttpResponseMessage
 - **respond ok** — `Result.StatusCode is OK`
 - **return no rooms** — `Result.Read<Room[]>() is empty`
 ````
+
+Spec classes are laid out in folders, and the document follows that: the namespace segment they
+differ in heads a section of its own — `# Rooms` above — holding the subjects written there. Only
+the first differing segment; anything below it names the class under test, which the spec declares
+itself. A project whose specs all share one namespace gets no such heading, a heading spanning the
+whole document telling nothing apart, and a spec at the shared root is written under the title,
+before the first section that would otherwise swallow it. Sections head at the title's own level,
+there being no level above it, so a rule closes what the document says of itself — the name and
+what holds throughout, which are one block and stay together above it.
 
 Headings read as prose, and any clause every requirement below a heading states is written once at
 that heading rather than repeated in each block — above, the subject and return type hold for the
@@ -898,8 +911,8 @@ two requirements agreeing on one is worth seeing. What a spec declares about the
 document's own apparatus rather than specification, and the labels say so themselves — they sit
 directly above the clauses rather than paying a blank line to be set apart.
 
-Requirements themselves are a list rather than a fourth heading level, so the two heading levels above
-them stay distinguishable. A single line of specification is written inline and a fence is kept for
+Requirements themselves are a list rather than another heading level, so the headings above them
+stay distinguishable. A single line of specification is written inline and a fence is kept for
 several, which is then what tells you there are several. Nothing repeats a lead word something above
 it has already said: a `When` heading is not followed by `When`, a list item does not spell out the
 `Then` its place in the list already states, and the subject-under-test parameter is dropped from the
@@ -908,10 +921,10 @@ because `Subject under test:` has named it already. That applies wherever the pa
 chain, arguments included; a bare `_` passed as a value stays, and `_` outside these clauses is not
 the subject at all — a mock setup names its service, and an assertion predicate keeps its own.
 
-Sections are ordered simplest first, by how much arrangement each carries — its own `Using`, `Given`,
-`When`, `Having` and `Until` clauses plus those of everything under it — so a reader meets
-preconditions gradually. Ties fall back to the name, and among requirements to the length of the
-claim. Assertions are not counted, so adding one never reorders the document. Identical entries
+Sections are ordered simplest first at every level, by how much arrangement each carries — its own
+`Using`, `Given`, `When`, `Having` and `Until` clauses plus those of everything under it — so a
+reader meets preconditions gradually. Ties fall back to the name, and among requirements to the
+length of the claim. Assertions are not counted, so adding one never reorders the document. Identical entries
 collapse to one, so a theory contributes a single entry and parallel execution order never reaches
 the page.
 

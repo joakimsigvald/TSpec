@@ -25,36 +25,102 @@ internal static class DocumentRenderer
         var declared = Declaration(requirements);
         var whole = SharedClauses(requirements);
         text.Append(HeadingBlock(declared, whole, stated: null));
+        // An area heads at the title's own level, there being none above it, so a rule closes what
+        // the document says of itself — without one the first area would read as a sibling of the
+        // title. It belongs under that block rather than under the title alone, which would put a
+        // rule between two things that are one: the document's name and what holds throughout it.
+        if (requirements.Length > 0)
+            text.Append("\n---\n");
 
-        foreach (var subjectNode in Subjects(requirements, whole))
+        foreach (var area in Areas(requirements, whole))
         {
-            var subjectHeading = subjectNode.Key.AsHeading();
-            text.Append($"\n## {subjectHeading}\n")
-                .Append(HeadingBlock(
-                    subjectNode.Declaration.Except(declared),
-                    subjectNode.Shared,
-                    StatedWord(subjectHeading)));
+            if (area.Key.Length > 0)
+                text.Append(Heading(1, area.Key, area.Declaration.Except(declared), area.Shared));
 
-            foreach (var branch in subjectNode.Branches)
+            foreach (var subjectNode in area.Subjects)
             {
-                if (branch.Key.Length > 0)
+                text.Append(Heading(2, subjectNode.Key,
+                    subjectNode.Declaration.Except(declared).Except(area.Declaration),
+                    subjectNode.Shared));
+
+                foreach (var branch in subjectNode.Branches)
                 {
-                    var branchHeading = branch.Key.AsHeading();
-                    text.Append($"\n### {branchHeading}\n")
-                        .Append(HeadingBlock(default, branch.Shared, StatedWord(branchHeading)));
+                    if (branch.Key.Length > 0)
+                        text.Append(Heading(3, branch.Key, default, branch.Shared));
+                    text.Append('\n');
+                    foreach (var requirement in branch.Requirements)
+                        text.Append(Leaf(requirement));
                 }
-                text.Append('\n');
-                foreach (var requirement in branch.Requirements)
-                    text.Append(Leaf(requirement));
             }
         }
         return text.ToString();
     }
 
+    /// A heading at its level, followed by whatever the level below no longer has to say.
+    private static string Heading(
+        int level, string key, Declared declared, IReadOnlyList<SpecificationClause> shared)
+    {
+        var heading = key.AsHeading();
+        return $"\n{new string('#', level)} {heading}\n"
+            + HeadingBlock(declared, shared, StatedWord(heading));
+    }
+
     /// <summary>
-    /// The subjects, simplest first. A node's <c>ComplexityNumber</c> is the arrangement stated at
-    /// its own heading plus that of everything under it, so a reader meets preconditions gradually
-    /// rather than all at once — and ties fall back to the name, which is stable.
+    /// The areas of the system — one per namespace segment the specs differ in, which is the folder
+    /// they were written in. Specs at the shared root belong to no area and keep the title as their
+    /// heading, so that key comes first; the rest are ordered the way subjects are.
+    /// </summary>
+    private static IEnumerable<AreaNode> Areas(
+        Requirement[] requirements, IReadOnlyList<SpecificationClause> hoisted)
+    {
+        var root = SharedRoot(requirements);
+        return requirements
+            .Select(requirement => requirement.Without(hoisted))
+            .GroupBy(requirement => Area(requirement.Entry.Namespace, root))
+            .Select(ToArea)
+            .OrderBy(area => area.Key.Length == 0 ? 0 : 1)
+            .ThenBy(area => area.ComplexityNumber)
+            .ThenBy(area => area.Key, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// How many leading namespace segments every spec in the document shares. Below that is where
+    /// they differ, and the segment right below it names an area — so a document whose specs share
+    /// one namespace has no areas at all, which is the right answer twice over: nothing to tell
+    /// apart, and a heading spanning everything states nothing.
+    /// </summary>
+    private static int SharedRoot(Requirement[] requirements)
+    {
+        var paths = requirements.Select(requirement => Segments(requirement.Entry.Namespace)).ToArray();
+        if (paths.Length == 0)
+            return 0;
+
+        var shared = paths[0].Length;
+        foreach (var path in paths)
+        {
+            var common = 0;
+            while (common < shared && common < path.Length && path[common] == paths[0][common])
+                common++;
+            shared = common;
+        }
+        return shared;
+    }
+
+    /// The area a spec belongs to: the first namespace segment below the shared root. Only the first
+    /// — what is under it names the class the spec drives, which the spec declares itself.
+    private static string Area(string? @namespace, int root)
+    {
+        var segments = Segments(@namespace);
+        return segments.Length > root ? segments[root] : string.Empty;
+    }
+
+    private static string[] Segments(string? @namespace)
+        => @namespace?.Split('.', StringSplitOptions.RemoveEmptyEntries) ?? [];
+
+    /// <summary>
+    /// The subjects of one area, simplest first. A node's <c>ComplexityNumber</c> is the arrangement
+    /// stated at its own heading plus that of everything under it, so a reader meets preconditions
+    /// gradually rather than all at once — and ties fall back to the name, which is stable.
     /// </summary>
     /// <remarks>
     /// Assertions are not counted, and that is what makes summing upward safe: adding a requirement
@@ -63,14 +129,19 @@ internal static class DocumentRenderer
     /// worth seeing in the diff. Counting size instead would reshuffle whole subjects because one
     /// line was added, spending the very thing the document is reviewed for.
     /// </remarks>
-    private static IEnumerable<SubjectNode> Subjects(
-        Requirement[] requirements, IReadOnlyList<SpecificationClause> hoisted)
-        => requirements
-            .Select(requirement => requirement.Without(hoisted))
+    private static AreaNode ToArea(IGrouping<string, Requirement> group)
+    {
+        var ofArea = group.ToArray();
+        // Without an area heading there is nothing for what it would state to be stated under.
+        var shared = group.Key.Length > 0 ? SharedClauses(ofArea) : [];
+        var declared = group.Key.Length > 0 ? Declaration(ofArea) : default;
+        return new(group.Key, shared, declared, [.. ofArea
+            .Select(requirement => requirement.Without(shared))
             .GroupBy(requirement => requirement.Entry.Subject)
             .Select(ToSubject)
             .OrderBy(subject => subject.ComplexityNumber)
-            .ThenBy(subject => subject.Key, StringComparer.Ordinal);
+            .ThenBy(subject => subject.Key, StringComparer.Ordinal)]);
+    }
 
     private static SubjectNode ToSubject(IGrouping<string, Requirement> group)
     {
@@ -240,6 +311,7 @@ internal static class DocumentRenderer
             .Select(entry => new Requirement(
                 entry, SpecificationClause.Split(entry.Steps), Render(entry)))
             .DistinctBy(requirement => (
+                requirement.Entry.Namespace,
                 requirement.Entry.Subject,
                 requirement.Entry.Branch,
                 requirement.Entry.Requirement,
@@ -357,6 +429,15 @@ internal static class DocumentRenderer
                 remaining.Remove(remaining.FirstOrDefault(clause.Matches)!);
             return this with { Clauses = remaining };
         }
+    }
+
+    /// An area and its subjects, each already stripped of what is stated above it. The one keyed
+    /// empty holds the specs that sit at the shared root, and writes no heading of its own.
+    private sealed record AreaNode(
+        string Key, IReadOnlyList<SpecificationClause> Shared, Declared Declaration, SubjectNode[] Subjects)
+    {
+        internal int ComplexityNumber
+            => Arrangement(Shared) + Subjects.Sum(subject => subject.ComplexityNumber);
     }
 
     /// A subject and its branches, each already stripped of what is stated above it.

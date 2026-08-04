@@ -15,6 +15,8 @@ namespace TSpec.Internal.Document;
 /// declares none. Named in full because <c>Subject</c> already means the heading a requirement
 /// sits under.</param>
 /// <param name="ReturnType">The return type of the method under test; null with the above.</param>
+/// <param name="Namespace">The namespace of the test class, whole. What the document heads a section
+/// with is the segment the namespaces differ in, which only the whole set of them can tell.</param>
 internal sealed record SpecificationEntry(
     string Subject,
     string Branch,
@@ -22,4 +24,5 @@ internal sealed record SpecificationEntry(
     IReadOnlyList<SpecificationStep> Steps,
     string? Because = null,
     string? SubjectUnderTest = null,
-    string? ReturnType = null);
+    string? ReturnType = null,
+    string? Namespace = null);

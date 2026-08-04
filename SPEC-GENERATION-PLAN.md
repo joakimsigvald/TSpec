@@ -60,6 +60,18 @@ one that reported in — covering all three ways a run can be incomplete: filter
   same, or control characters leak into terminals.
 - **Erasure is semantic, never taste** — see the `specification-erasure-principle` memory. The
   load-bearing case is `?` on a type, kept because `int?` and `int` differ in what values can occur.
+- **The outermost level is the namespace, honestly named.** Areas come from `Type.Namespace`, not
+  from the folder they conventionally mirror — the run has no file paths, and a portable-PDB read
+  would be the only faithful source. Both docs say namespace and mean it, since a project that
+  declares a namespace not matching its folders would otherwise read as a defect. What heads an
+  area is the *first* segment below the root shared by every spec: below that lies the class under
+  test, which `Subject under test:` already names. The root is computed rather than taken from the
+  assembly name (`RootNamespace` need not match), which is self-correcting — specs sharing one
+  namespace leave no segment to differ in, and a heading spanning the whole document states
+  nothing. Areas head at `#`, the title's own level — a fourth heading level would render at body
+  size (§4's leaf reasoning), and there is nothing above `#` — so a rule closes what the document
+  says of itself. Under that whole block, not under the title alone: the name and what holds
+  throughout it are one thing, and ruling between them reads as a second line under the heading.
 - **Section order is a file format, not an implementation detail.** Sections sort by
   `ComplexityNumber`, which measures arrangement rather than size — assertions contribute nothing, so
   order moves only when arrangement does. Leaf ties break on rendered length, then alphabetically,
@@ -108,76 +120,70 @@ Each cost a session to find; none is guarded by a test.
 
 What every requirement under a heading opens with is stated once under it: whole clauses only, shared
 by every entry, each judged on its own, rising as often as the entry saying it fewest times says it.
-Assertions never hoist. Levels are document → `##` subject → `###` branch.
+Assertions never hoist. Levels are document → `#` area → `##` subject → `###` branch.
 
 **Deliberately not built.** Placement is inferred from sharing, a proxy — TSpec does not record which
 class declared a clause, so a `Having` from a branch constructor and one from a `[Fact]` are
 indistinguishable. The successor is a family-to-level ceiling (`When` no higher than its subject,
 `Having` no higher than its branch, arrangement anywhere), needing a naming convention enforced on
-test classes. **Trigger:** a clause above the heading that names it. Gap §5.4 wants the same input.
+test classes. **Trigger:** a clause above the heading that names it. Gap §5.3 wants the same input.
 
 ## 5. Open gaps
 
 1. **Opt-out attributes.** `[Specification]` / `[ExcludeFromSpecification]`, nearest declaration
    wins, default include. Nothing has needed to opt out, and absence could never certify coverage
    anyway. Both docs carry a work-in-progress note about it (§7.1).
-2. **Namespace as a grouping level.** Not collected. **Its trigger has fired** (2026-08-03): Core is
-   now `Rooms/` and `Bookings/`, both spec projects mirror that, and each document holds two
-   subjects' sections interleaved — `Core.Spec` sorts `When book`, `When cancel` and `When get`
-   among the room sections, so the two services read as one list. What a namespace level would fix
-   is exactly that; what it costs is a heading level above subjects that most documents do not
-   need. Decide before release, since it moves every section: a level, or sorting subjects together.
-3. **A second assertion starts an orphaned sentence.** Only the first gets `Then`, so
+2. **A second assertion starts an orphaned sentence.** Only the first gets `Then`, so
    `Second is new Room(…)` reads as a claim about nothing. Pinned deliberately in
    `WhenTwoItems.cs:24` and `HavingWhenUntil.cs:67`. Blocked with two neighbours — lowercase
    continuation, breaking after `that` — on one input: assertions carry no `StepFamily`, and phase 2
    streams steps one at a time. **Trigger:** phase 2 buffers a whole assertion.
-4. **A subject-wide assertion repeats under every branch.** `ThenRespondOk` on `WhenListRooms` is
+3. **A subject-wide assertion repeats under every branch.** `ThenRespondOk` on `WhenListRooms` is
    inherited by both and stated twice; an assertion *declared above* branches is a claim about the
    subject, and the document cannot tell that from two branches agreeing. Wants §4's missing input.
-5. **The binder is silent across a hoist boundary.** A branch sharing its first `Having` but not its
+4. **The binder is silent across a hoist boundary.** A branch sharing its first `Having` but not its
    second gets `Having X` in the heading and `Having Y` in the item, with nothing relating them in
    time. Not reachable in MyHotel today.
-6. **The declared return type drops reference-type nullability.** `Spec<RoomService, Room?>` renders
+5. **The declared return type drops reference-type nullability.** `Spec<RoomService, Room?>` renders
    `Return type: Room` directly above a requirement reading `Result is null`. `Room?` is `Room` plus
    a `NullableAttribute` in IL, so reading it needs `NullabilityInfoContext` over the generic
    argument; `int?` survives, being a distinct type. Not exhibited — `RoomService.Get` throws instead.
-7. **One outlier costs every sibling its hoisting.** Exact match with no partial credit, so a single
+6. **One outlier costs every sibling its hoisting.** Exact match with no partial credit, so a single
    differing section unhoists the whole level — a restart spec with its own subject once pushed four
    shared lines into all six HTTP sections, 105 lines becoming 141. Open question: should "shared by
    every entry" become "shared by all but the few that say otherwise", with the dissenters restating?
    Unfixed; MyHotel no longer exhibits it, `Hotel` now being the subject of every black-box spec.
-8. **`Given` loses its word under a `Given` heading.** A block opens `IRoomStore.Load() returns zero
+7. **`Given` loses its word under a `Given` heading.** A block opens `IRoomStore.Load() returns zero
    Room` bare, because a block's opening word is dropped where something above says it — but the
    heading's "Given" is part of a *name* and the clause's is a family keyword. Not reachable in
    `MyHotel.Spec`, where every branch block opens with `Having`.
-9. **Two cosmetic warts**, neither exhibited nor blocking: `One(expr)` over an already-articled
+8. **Two cosmetic warts**, neither exhibited nor blocking: `One(expr)` over an already-articled
    expression reads `one the Room with { … }`; an array argument keeps `new[] { … }`, the only place
    C# syntax survives into a claim.
-10. **A trailing comma in an initializer emits a stray `}`.** `{ … To = new(2026, 8, 10), }` renders
-    `… To = new(2026, 8, 10), } }]`: `ParseList` reads the comma as introducing another item and
-    parses the closing brace as that item, which then prints alongside the real one. Exhibited twice
-    in `Core.Spec`'s `When book` — deliberately, since the trailing comma is ordinary C# and
-    removing it from the spec source only hides the defect. A parse bug, not a rendering one, so a
-    pin belongs in `Core.Test` beside the other `ParseList` cases.
-11. **An act that varies cannot be a branch, so it becomes a section.** One `When` per spec class
+9. **A trailing comma in an initializer emits a stray `}`.** `{ … To = new(2026, 8, 10), }` renders
+   `… To = new(2026, 8, 10), } }]`: `ParseList` reads the comma as introducing another item and
+   parses the closing brace as that item, which then prints alongside the real one. Exhibited twice
+   in `Core.Spec`'s `When book` — deliberately, since the trailing comma is ordinary C# and
+   removing it from the spec source only hides the defect. A parse bug, not a rendering one, so a
+   pin belongs in `Core.Test` beside the other `ParseList` cases.
+10. **An act that varies cannot be a branch, so it becomes a section.** One `When` per spec class
     means two spellings of the same call — booking a valid period and a zero-night one — are
     sibling `##` sections rather than `###` branches of one act, and the document cannot tell that
     they are the same endpoint. The workaround is to make what varies a tag and let branches supply
     it, which buys the branch structure at the cost of hiding the varying value from the heading.
     Not a defect so much as the shape the constraint forces; noted because every document with a
     refused-input case will meet it.
-12. **A wrapped trailing phrase starts its line with the binder's comma.** `When Book(…)` followed by
+11. **A wrapped trailing phrase starts its line with the binder's comma.** `When Book(…)` followed by
     `, returns Booking` breaks as `…))` / `    , returns Booking`, because `AddWord` composes binder
     and word into one piece and layout moves the piece whole. The comma belongs to the line it binds
     to: a break has to fall *after* a binder, never before it. Exhibited twice in `Core.Spec`, and
     reachable by any long act with a return type. The fix is in composition, not layout — the binder
     wants to be its own unit, or to travel with the text it follows.
 
-**Shapes not yet exercised**, where the next gaps will come from: a nullable return type (§5.6) and
-branch trees three or more levels deep — where the two-level heading structure and §4 are pushed
-hardest. Bookings exercised the rest: two subjects per document (§5.2), a second store to mock, a
-`400` refusal, and acts that vary (§5.11).
+**Shapes not yet exercised**, where the next gaps will come from: a nullable return type (§5.5) and
+branch trees three or more levels deep — where the heading structure and §4 are pushed
+hardest. Bookings exercised the rest: two subjects per document, a second store to mock, a
+`400` refusal, and acts that vary (§5.10).
 
 ## 6. Release notes material
 
@@ -186,9 +192,9 @@ Three lists. A consumer upgrading from 1.5.0 with pinned expectations cares only
 **New in 2.0.0** — the generator: opt-in by
 `[assembly: AssemblyFixture(typeof(SpecificationDocument))]`; subject resolved by convention and
 verified against `deps.json`, failing before the first test; collection restricted to passing tests,
-written only on a complete run; document layout (title, provenance, subject → branch headings,
-requirements as a list, shared clauses hoisted); subject-under-test and return type declared where
-they hold; sections ordered simplest first.
+written only on a complete run; document layout (title, provenance, area → subject → branch
+headings, requirements as a list, shared clauses hoisted); subject-under-test and return type
+declared where they hold; sections ordered simplest first.
 
 **Changes text 1.5.0 already emits** — pinned expectations will fail on upgrade:
 
@@ -279,5 +285,5 @@ Decisions the code alone does not record:
 
 **Awaiting the PO on three readings of the current text:** whether `Core.Spec`'s booking headings
 (`When book`, `When get`) should match the rooms' fuller `When add room`; whether
-`new(2026, 8, 10)` should say `new DateOnly(…)` so a reader can see the type; and §5.11, whether a
+`new(2026, 8, 10)` should say `new DateOnly(…)` so a reader can see the type; and §5.10, whether a
 refused input should stay its own section or become a branch by making the dates a tag.
