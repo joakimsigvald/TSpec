@@ -332,13 +332,16 @@ public class WhenRenderDocument : Spec
     [Fact]
     public void GivenEverySpecDeclaresTheSame_ThenStateItForTheDocument()
         => Render(_respondOk with { SubjectUnderTest = "HttpClient", ReturnType = "HttpResponseMessage" })
-            .Does().Contain("-->\n```\nSubject under test: HttpClient\nReturn type:        HttpResponseMessage\n");
+            .Does().Contain("-->\n```\nSubject under test: HttpClient\nReturn type: HttpResponseMessage\n");
 
-    /// <summary>The two values are read as a pair, so they are set in a column under one another.</summary>
+    /// <summary>
+    /// One space after each label, never a column: aligning them would make where a value starts
+    /// depend on which other label happens to be stated beside it.
+    /// </summary>
     [Fact]
     public void ThenLineUpTheDeclaredTypes()
         => Render(_respondOk with { SubjectUnderTest = "int", ReturnType = "string" })
-            .Does().Contain("Subject under test: int\nReturn type:        string\n");
+            .Does().Contain("Subject under test: int\nReturn type: string\n");
 
     /// <summary>
     /// A return type is what the act yields, so where a heading states both it joins the act instead
@@ -353,11 +356,31 @@ public class WhenRenderDocument : Spec
                 with { SubjectUnderTest = "int", ReturnType = "int" })
             .Does().Contain("## When add\n```\nSubject under test: int\nWhen add, returns int\n```");
 
+    /// An act with no room left on its line for a trailing phrase.
+    private const string LongAct =
+        "Book(a request that is quite long, with a good many words in it to fill the line)";
+
+    /// <summary>
+    /// The type joins the act only where it costs no line. Wrapped, the phrase would start a line
+    /// with the binder's comma — a statement broken where nothing relates the halves — so it
+    /// becomes a label of its own, written under the act it qualifies rather than above it.
+    /// </summary>
+    [Fact]
+    public void GivenTheReturnTypeWouldNotFitOnTheAct_ThenWriteItUnderTheAct()
+        => Render(
+            Requirement("WhenBook", "ThenA", Act(LongAct), Claim("then a"))
+                with { SubjectUnderTest = "BookingService", ReturnType = "Booking" },
+            Requirement("WhenAdd", "ThenB", Act("add"), Claim("then b"))
+                with { SubjectUnderTest = "int", ReturnType = "int" })
+            .Does().Contain(
+                "## When book\n```\nSubject under test: BookingService\n"
+                + $"When {LongAct}\nReturn type: Booking\n```");
+
     /// <summary>With no act at the heading it has nothing to join, so it stays a label.</summary>
     [Fact]
     public void GivenAHeadingStatesTheReturnTypeAlone_ThenKeepItALabel()
         => Render(_respondOk with { SubjectUnderTest = "HttpClient", ReturnType = "HttpResponseMessage" })
-            .Does().Contain("Return type:        HttpResponseMessage\n");
+            .Does().Contain("Return type: HttpResponseMessage\n");
 
     [Fact]
     public void GivenSpecsDeclareDifferently_ThenStateItForEachSubject()
@@ -416,12 +439,8 @@ public class WhenRenderDocument : Spec
             .Contain("-->\n`Return type: Room`\n")
             .and.Contain("## When add\n```\nSubject under test: RoomStore\nWhen add\n```");
 
-    /// <summary>
-    /// The column is what makes two labels read as a pair. One standing on its own has nothing to
-    /// line up with, so padding it would leave a gap the reader has to account for.
-    /// </summary>
     [Fact]
-    public void GivenAHeadingStatesOneLabelAlone_ThenWriteItWithoutTheColumn()
+    public void GivenAHeadingStatesOneLabelAlone_ThenStillWriteItWithOneSpace()
         => Render(OneSubjectManyReturnTypes()).Does().not.Contain("Return type:  ");
 
     // ----------- Sections are ordered by how much arrangement they carry, simplest first

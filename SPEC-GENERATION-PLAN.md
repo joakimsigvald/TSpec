@@ -176,9 +176,11 @@ test classes. **Trigger:** a clause above the heading that names it. Gap §5.3 w
 11. **A wrapped trailing phrase starts its line with the binder's comma.** `When Book(…)` followed by
     `, returns Booking` breaks as `…))` / `    , returns Booking`, because `AddWord` composes binder
     and word into one piece and layout moves the piece whole. The comma belongs to the line it binds
-    to: a break has to fall *after* a binder, never before it. Exhibited twice in `Core.Spec`, and
-    reachable by any long act with a return type. The fix is in composition, not layout — the binder
-    wants to be its own unit, or to travel with the text it follows.
+    to: a break has to fall *after* a binder, never before it. **No longer exhibited** (2026-08-04):
+    the return type only joins the act where it costs no line, and stays a `Return type:` label
+    otherwise, which is the document deciding rather than the defect being fixed. Any other trailing
+    phrase — `because` after an assertion — still meets it. The fix is in composition, not layout:
+    the binder wants to be its own unit, or to travel with the text it follows.
 
 **Shapes not yet exercised**, where the next gaps will come from: a nullable return type (§5.5) and
 branch trees three or more levels deep — where the heading structure and §4 are pushed

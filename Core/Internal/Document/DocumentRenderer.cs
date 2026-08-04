@@ -192,17 +192,20 @@ internal static class DocumentRenderer
                 stated.ReturnType is null ? ReturnType : null);
 
         /// <summary>
-        /// Two labels read as a pair, so where both are stated their values are set in a column.
-        /// Alone, a label has nothing to line up with and is written plainly.
+        /// One space after each label, never a column: the two hoist independently, so aligning
+        /// them would make where a value starts depend on which other label happens to be stated
+        /// beside it — and a label standing alone has nothing to line up with anyway.
         /// </summary>
         internal string? Text => (Subject, ReturnType) switch
         {
             (null, null) => null,
             (not null, null) => $"{SubjectLabel} {Subject}",
-            (null, not null) => $"{ReturnLabel} {ReturnType}",
-            _ => $"{SubjectLabel} {Subject}\n"
-                + $"{ReturnLabel.PadRight(SubjectLabel.Length)} {ReturnType}",
+            (null, not null) => ReturnLine,
+            _ => $"{SubjectLabel} {Subject}\n{ReturnLine}",
         };
+
+        /// The return type as a label of its own, for where it follows the clauses instead.
+        internal string? ReturnLine => ReturnType is null ? null : $"{ReturnLabel} {ReturnType}";
     }
 
     private static Declared Declaration(Requirement[] requirements)
@@ -226,17 +229,41 @@ internal static class DocumentRenderer
     private static string HeadingBlock(
         Declared declared, IReadOnlyList<SpecificationClause> shared, string? stated)
     {
-        var act = shared.FirstOrDefault(clause => clause.Family == StepFamily.When);
-        var says = act is null ? declared : declared with { ReturnType = null };
-        // A label above the clauses opens the block, so the clauses keep the heading's word.
-        var clauses = shared.Count == 0 ? null : Render(
-            Compose(shared, because: null, returns: act is null ? null : declared.ReturnType)
-                .Without(says.Text is null ? stated : null),
-            DocumentWidth);
-        string?[] parts = [says.Text, clauses];
+        var above = declared with { ReturnType = null };
+        var joins = declared.ReturnType is not null
+            && shared.Any(clause => clause.Family == StepFamily.When)
+            && Joins(above, shared, declared.ReturnType, stated);
+        // Said under the clauses where it did not fit on the act: it qualifies what they say, so it
+        // follows them rather than heading a block it is not part of. With no clauses to follow it
+        // has only the subject to stand beside, and stays where that is.
+        var trails = !joins && declared.ReturnType is not null && shared.Count > 0;
+        var says = joins || trails ? above : declared;
+        var clauses = shared.Count == 0
+            ? null
+            : Clauses(says, shared, joins ? declared.ReturnType : null, stated);
+        string?[] parts = [says.Text, clauses, trails ? declared.ReturnLine : null];
         var body = string.Join("\n", parts.Where(part => !string.IsNullOrEmpty(part)));
         return body.Length == 0 ? string.Empty : Block(body);
     }
+
+    /// <summary>
+    /// Whether the return type may be said on the act, which it may only where it costs no line: a
+    /// trailing phrase that wraps starts its line with the binder's comma, breaking a statement
+    /// where nothing relates the halves. Where it does not fit it stays the label it already is at
+    /// a heading with no act — said once either way, only in the other of its two forms.
+    /// </summary>
+    private static bool Joins(
+        Declared says, IReadOnlyList<SpecificationClause> shared, string returns, string? stated)
+        => Lines(Clauses(says, shared, returns, stated)) == Lines(Clauses(says, shared, null, stated));
+
+    /// A label above the clauses opens the block, so the clauses keep the heading's word.
+    private static string Clauses(
+        Declared says, IReadOnlyList<SpecificationClause> shared, string? returns, string? stated)
+        => Render(
+            Compose(shared, because: null, returns).Without(says.Text is null ? stated : null),
+            DocumentWidth);
+
+    private static int Lines(string text) => text.Count(character => character == '\n');
 
     /// <summary>
     /// A requirement as an item of a list. It gets no heading of its own: a heading here would be a
