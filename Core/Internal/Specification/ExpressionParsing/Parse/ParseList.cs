@@ -18,13 +18,12 @@ internal static class ParseList
     public static bool TryParse(this TokenStream ts, string terminator, out IReadOnlyList<Expr> items)
     {
         var list = new List<Expr>();
-        if (!ts.IsSym(terminator))
+        // Tested every round, not just before the first item: that is what lets the list end on a
+        // separator, which C# allows an initializer to do.
+        while (!ts.IsSym(terminator))
         {
-            while (true)
-            {
-                list.Add(ParseItem(ts));
-                if (!ts.AcceptSym(",")) break;
-            }
+            list.Add(ParseItem(ts));
+            if (!ts.AcceptSym(",")) break;
         }
         items = list;
         return ts.AcceptSym(terminator);

@@ -39,6 +39,10 @@ public class WhenDescribe : Spec<string>
     [InlineData("_ => _ with { Name = A<string>(), Id = 1 }", "Name = a string, Id = 1")]
     [InlineData("The<MyModel>() with { Name = A<string>() }", "the MyModel with { Name = a string }")]
     [InlineData("_ => _.Inner with { Name = A<string>() }", "_.Inner with { Name = a string }")]
+    // A trailing comma is legal C# and closes nothing — the list ends at its terminator
+    [InlineData("The<MyModel>() with { Name = A<string>(), }", "the MyModel with { Name = a string }")]
+    [InlineData("new MyModel { Name = A<string>(), Id = 1, }", "new MyModel { Name = a string, Id = 1 }")]
+    [InlineData("new[] { An<int>(), A<string>(), }", "new[] { an int, a string }")]
     [InlineData("A<MyModel?>", "a MyModel?")]
     [InlineData("The<TimeSpan>() / 2", "the TimeSpan / 2")]
     [InlineData("The<int>() + TheSecond<int>()", "the int + the second int")]
