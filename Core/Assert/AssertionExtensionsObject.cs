@@ -52,17 +52,4 @@ public static class AssertionExtensionsObject
         Ignore _ = default,
         [CallerArgumentExpression(nameof(actual))] string? actualExpr = null)
         => IsObject.Create(actual, actualExpr!);
-
-    /// <summary>
-    /// Get available assertions for the given object
-    /// </summary>
-    /// <param name="actual">The value to assert on</param>
-    /// <param name="_">Ignore this parameter — it exists only to distinguish overloads</param>
-    /// <param name="actualExpr">Captured automatically by the compiler — do not provide</param>
-    /// <returns>A continuation for making further assertions on the value</returns>
-    public static HasObject Has(
-        this object? actual,
-        Ignore _ = default,
-        [CallerArgumentExpression(nameof(actual))] string? actualExpr = null)
-        => HasObject.Create(actual, actualExpr!);
 }

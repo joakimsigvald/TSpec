@@ -1,6 +1,5 @@
 ﻿using TSpec.Test.Subjects;
 using Moq;
-using TSpec.Assert;
 
 namespace TSpec.Test.Tests.ShoppingService;
 

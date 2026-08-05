@@ -11,16 +11,6 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
     internal AndVerify(TestResult<TSUT, TResult> parent) : base(parent) { }
 
     /// <summary>
-    /// Continuation to assert on the aggregate invocations of a mocked service
-    /// </summary>
-    [Obsolete("Use And<TObject>(wasInvoked: Times) instead, e.g. And<IEmailSender>(wasInvoked: Never).")]
-    public IVerifyService<TResult> And<TObject>() where TObject : class
-    {
-        SpecificationContext.Current.AddThen();
-        return _parent.VerifyService<TObject>();
-    }
-
-    /// <summary>
     /// Continuation to verify how many times the mocked service was invoked in aggregate, any method or property access
     /// </summary>
     public IAndVerify<TResult> And<TObject>(Ignore _ = default, Times? wasInvoked = null,

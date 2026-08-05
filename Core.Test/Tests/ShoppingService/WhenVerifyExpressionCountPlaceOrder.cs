@@ -1,8 +1,6 @@
 using Moq;
 using static Moq.Times;
-using TSpec.Assert;
 using TSpec.Test.Subjects;
-using Xunit.Sdk;
 
 namespace TSpec.Test.Tests.ShoppingService;
 

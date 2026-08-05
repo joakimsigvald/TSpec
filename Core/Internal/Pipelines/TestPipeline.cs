@@ -151,10 +151,6 @@ internal abstract class TestPipeline<TSUT, TResult, TParent>(TParent parent) whe
         [CallerArgumentExpression(nameof(subject))] string? subjectExpr = null)
         => _parent.Then(subject, subjectExpr);
 
-    [Obsolete("Use Then<TService>(wasInvoked: Times) instead, e.g. Then<IEmailSender>(wasInvoked: Never).")]
-    public IVerifyService<TResult> Then<TService>() where TService : class
-        => _parent.Then<TService>();
-
     public IAndVerify<TResult> Then<TService>(Ignore _ = default, Times? wasInvoked = null,
         [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class
         => _parent.Then<TService>(_, wasInvoked, wasInvokedExpr!);

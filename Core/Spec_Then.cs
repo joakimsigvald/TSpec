@@ -36,16 +36,6 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         => Pipeline.Then(subject, subjectExpr!);
 
     /// <summary>
-    /// Run the test-pipeline and continue with an aggregate invocation assertion on the given mocked service.
-    /// </summary>
-    /// <remarks>Deprecated: use <c>Then&lt;TService&gt;(wasInvoked: Times)</c> instead.</remarks>
-    /// <typeparam name="TService">The mocked type to assert invocations on</typeparam>
-    /// <returns>A continuation to assert on the aggregate invocations of the service</returns>
-    [Obsolete("Use Then<TService>(wasInvoked: Times) instead, e.g. Then<IEmailSender>(wasInvoked: Never).")]
-    public IVerifyService<TResult> Then<TService>() where TService : class
-        => Pipeline.Then<TService>();
-
-    /// <summary>
     /// Run the test-pipeline and verify how many times the mocked service was invoked in aggregate — any method,
     /// property get/set or indexer access.
     /// </summary>

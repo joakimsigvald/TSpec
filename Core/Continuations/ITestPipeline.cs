@@ -49,15 +49,6 @@ public interface ITestPipeline<TSUT, TResult>
         where TService : class;
 
     /// <summary>
-    /// Run the test-pipeline and continue with an aggregate invocation assertion on the given mocked service.
-    /// </summary>
-    /// <remarks>Deprecated: use <c>Then&lt;TService&gt;(wasInvoked: Times)</c> instead.</remarks>
-    /// <typeparam name="TService">The mocked type to assert invocations on</typeparam>
-    /// <returns>A continuation to assert on the aggregate invocations of the service</returns>
-    [Obsolete("Use Then<TService>(wasInvoked: Times) instead, e.g. Then<IEmailSender>(wasInvoked: Never).")]
-    IVerifyService<TResult> Then<TService>() where TService : class;
-
-    /// <summary>
     /// Run the test-pipeline and verify how many times the mocked service was invoked in aggregate — any method,
     /// property get/set or indexer access.
     /// </summary>

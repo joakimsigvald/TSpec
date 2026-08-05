@@ -17,28 +17,21 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>1.5.0</PackageVersion>
+		<PackageVersion>2.0.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			NEW
-			* Invocation counts everywhere: a wasInvoked: argument (a Moq.Times) on expression, named-method and whole-service verification.
-			* ValueTask: When/Having/Until and mocked members take it like Task. No more .AsTask().
-			* Dictionaries and strings keep their vocabulary when chaining: dict.Has().Count(2).and.Key("a").
-			* Failures report what TSpec had to work around, under a WARNINGS section.
+			* TODO
 
 			CHANGED
-			* Enum generation varies instead of always yielding the first member. Mentions vary but are not unique — the docs overstated this.
-			* IsInt, IsByte, ... are now IsIntegral&lt;T&gt; / IsNullableIntegral&lt;T&gt;. Assertions unchanged.
-			* For.None is rejected with a clear SetupFailed wherever a scope is given, instead of failing obscurely later.
+			* TODO
 
 			BREAKING
-			* An async lambda, or one that is a bare throw, must state its return type: When(async Task&lt;int&gt; (_) =&gt; ...). Otherwise Task and ValueTask are ambiguous.
-			* Write Has().Order() — Has().Order&lt;int&gt;() is gone.
-			* Deprecated: the Then/And&lt;TService&gt;().WasInvoked(Times) continuation.
-			* Binary-breaking: HasEnumerable gained a type parameter. Recompile.
-	</PackageReleaseNotes>
+			* Removed deprecated methods
+			* TODO
+		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 	</PropertyGroup>
