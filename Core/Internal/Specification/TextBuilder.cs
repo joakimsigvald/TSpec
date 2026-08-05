@@ -9,8 +9,16 @@ namespace TSpec.Internal.Specification;
 /// (<see cref="Wrap"/>) at the shallowest nesting wins, then whitespace, then a punctuation cue,
 /// then mid-word.
 /// </summary>
+/// <remarks>
+/// The width has a tolerance: how far past it a line may run rather than break at all. A line a
+/// little over costs a reader nothing; breaking it costs a second line and a seam through the
+/// middle of one expression. It decides only whether a line breaks, never where — the break itself
+/// always falls at the width, so a continuation is never wider than the page. A line spends the
+/// tolerance once: having broken, it runs at the width until a new statement starts one afresh.
+/// </remarks>
 internal class TextBuilder(
-    int maxLineLength = TextBuilder.PageWidth, int indentationSize = 2, int wrapIndentation = 3)
+    int maxLineLength = TextBuilder.PageWidth, int indentationSize = 2, int wrapIndentation = 3,
+    int tolerance = 0)
 {
     /// How wide specification text is written when nothing indents it.
     internal const int PageWidth = 80;
@@ -20,6 +28,7 @@ internal class TextBuilder(
     private int _currentLineLength;
     private int _lineIndentation;
     private int _depth;
+    private bool _hasBroken;
 
     /// <summary>
     /// Where a continuation sits: the step of the line it continues plus the wrap delta, so the
@@ -28,10 +37,17 @@ internal class TextBuilder(
     /// </summary>
     private int ContinuationIndentation => _lineIndentation + wrapIndentation;
 
+    /// How far the statement in hand may run before it has to break, which is the tolerance until
+    /// it has broken once and the width from then on.
+    private int Tolerated => _hasBroken ? maxLineLength : maxLineLength + tolerance;
+
     internal void Add(TextUnit unit)
     {
         if (unit.Indentation is { } indentation)
+        {
+            _hasBroken = false;
             AddLine(unit.Text, indentation);
+        }
         else
             AddWord(unit.Text, unit.Binder);
     }
@@ -64,7 +80,7 @@ internal class TextBuilder(
         if (IsExceedingMaxLineLength(segment.Length) && FitsOnOwnLine(segment.Text)
             && _currentLineLength > 0)
         {
-            AddLine(segment.Trim(), ContinuationIndentation);
+            AddContinuation(segment.Trim());
             return;
         }
 
@@ -79,7 +95,15 @@ internal class TextBuilder(
         _sb.Append(first);
         _currentLineLength += first.Length;
         if (rest.Length > 0)
-            AddLine(rest, ContinuationIndentation);
+            AddContinuation(rest);
+    }
+
+    /// Continues the statement on a line of its own — which spends its tolerance: what is already
+    /// costing a reader a seam gains nothing from lines wider than the page.
+    private void AddContinuation(Segment rest)
+    {
+        _hasBroken = true;
+        AddLine(rest, ContinuationIndentation);
     }
 
     private void AddLine(string line, int indentation)
@@ -93,7 +117,7 @@ internal class TextBuilder(
     }
 
     private bool IsExceedingMaxLineLength(int length)
-        => length + _currentLineLength > maxLineLength;
+        => length + _currentLineLength > Tolerated;
 
     /// Whether the whole text would fit on a continuation line of its own. When it would, moving it
     /// there beats breaking it: what arrives as one piece is one expression, and a break inside it
@@ -103,7 +127,9 @@ internal class TextBuilder(
 
     private (string first, Segment rest) BreakLine(Segment segment)
     {
-        var window = maxLineLength - _currentLineLength;
+        // Never the tolerance: a line that breaks is written to the width, and a line the tolerance
+        // already carried past the width has no window left at all.
+        var window = Math.Max(maxLineLength - _currentLineLength, 0);
         var cut = MarkedCut(segment, window)
             ?? WhitespaceCut(segment.Text, window)
             ?? CueCut(segment.Text, window);

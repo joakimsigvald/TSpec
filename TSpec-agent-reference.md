@@ -126,26 +126,17 @@ One test project per production project (`X.Spec`); one folder per class under t
 
 ## Generating SPECIFICATION.md
 
-Opt in with one line in the spec project; the document is written to the spec project root when the run ends.
+Opt in with one line in the spec project; the document is written to the spec project root when the run ends. Without it, nothing is collected and nothing changes.
 
 ```csharp
 [assembly: AssemblyFixture(typeof(SpecificationDocument))]
 ```
 
-- Headings read as prose (`WhenListRooms` → `## When list rooms`): `# Area` → `## Subject` → `### Given…`, then each passing requirement as a list item, its name in bold and its claim in a code span beside it. Deduplicated, so theories contribute one entry and execution order never shows.
-- **An area is the namespace segment the specs differ in** — the folder they sit in (`Rooms/` → `# Rooms`). Only the first differing segment: below it is the class under test, which `Subject under test:` already names. Specs all sharing one namespace get no area heading (it would tell nothing apart), and one at the shared root is written under the title before the first area. Areas head at the title's level, there being none above, so a `---` closes what the document says of itself — the title, the provenance comment and the clauses holding throughout — before the first section.
-- One line of specification is written inline, several keep a fence (indented into the item when a requirement's own specification is more than its claim). No lead word is repeated where something above it already says it: a `When` heading is not followed by `When`, and a list item drops the `Then` its position states.
-- **The SUT parameter is elided** in `When`/`Having`/`Until`: `When(_ => _.Api.GetAsync("/rooms"))` renders `When Api.GetAsync("/rooms")`, `When(_ => ++_.Counter)` renders `When ++Counter`. Everywhere it heads a chain, arguments included, since the subject is already named at `Subject under test:`. A bare `_` passed as a value stays. Elsewhere `_` is not the subject and is untouched — mock setups (`Given<T>().That(_ => _.Call())`, which name the service instead), `Given` value setups, and assertion predicates like `throws Ex where _.Message is …`.
-- Any clause every requirement below a heading states is written once at that heading instead of repeated in each block, wherever it sits in the specification — so a branch's own `Given` does not keep the subject's shared `When` out of the heading named after it. A clause rises as many times as the requirement stating it fewest times does, since two identical setups are two invocations. Assertions never move up.
-- `Subject under test:` and `Return type:` from the spec's `Spec<TSUT, TResult>` hoist the same way but **independently**, each to the highest heading where every requirement below agrees on it — with one folder per class under test, the subject lands on the area heading — so one subject can head a whole document while each section states its own return type. Where a heading states the return type and the act together, the type is said on the act: `When Add(a Room), returns Room` — but only where it fits on that line; an act too long for it gets `Return type:` as a label of its own on the line under the act.
-- A type argument is stated only where the `When` uses it in that capacity: `When(() => …)` takes no subject so none is named, and an act returning `void`/`Task`/`ValueTask` yields no result so no return type is named. This is what makes `Spec<T>` work for both roles — it names T twice when the act uses both, once when it uses one.
-- Sections are ordered simplest first at every level, by how much arrangement each carries (its own `Using`/`Given`/`When`/`Having`/`Until` clauses plus its children's); ties fall back to the name, and among requirements to the length of the claim. Assertions are not counted, so adding one never reorders the document.
-- Written only when **every** non-skipped test in the assembly reported a pass. A filtered run, a failure, or a constructor that threw all leave the file untouched, with the missing requirements named. There is no "was anything red" flag — non-passing tests simply never report, so one set comparison covers every case.
+- **The spec assembly must be named after the project it describes**, minus one suffix (`MyHotel.Spec` → `MyHotel`; any suffix works, `.Spec` preferred and `.Test` fine), and must reference that project **directly** — a transitive reference is not enough. Either half failing throws `SetupFailed` before the first test. The version in the header is that project's `<Version>`.
+- **The document's structure is the test structure**, so names are the whole of what you control: folder → `# Area`, `When…` class → `## Subject`, `Given…` class → `### Given…`, `Then…` method → a list item, each read as prose (`WhenListRooms` → `## When list rooms`). Name a test method after the claim it makes.
+- **Written only when every non-skipped test in the assembly passed.** A filtered run, a failure, or a constructor that threw all leave the file untouched, with the missing requirements named — so run the whole suite before expecting a diff.
 - Deterministic: sorted, deduplicated, LF-normalized, and the header names the build (spec assembly MVID). Verify freshness in CI with `dotnet test && git diff --exit-code -- "**/SPECIFICATION.md"`.
 - **Work in progress:** no `[Specification]` / `[ExcludeFromSpecification]` opt-out attributes yet.
-- Subject name = spec assembly name minus its last suffix (`MyHotel.Spec` → `MyHotel`; any suffix works, `.Spec` preferred and `.Test` fine). It is then verified against the spec assembly's **direct** project references — a transitive reference is not enough. If either half fails, `SetupFailed` is thrown before the first test, stating both expectations and listing the references found.
-- Version = the version the build resolved for that project, i.e. `<Version>` in the production project file.
-- Without the attribute, nothing changes.
 
 ## Complete examples
 

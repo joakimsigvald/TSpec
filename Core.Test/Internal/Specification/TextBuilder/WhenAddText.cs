@@ -148,4 +148,49 @@ public class WhenAddText
             "AB CD\n   EFG HI\n   JKL MN",
             builder.Build(opensSentence: false).NormalizeLineEndings());
     }
+
+    /// Laid out ten columns wide, tolerating three more — so a statement breaks at ten,
+    /// but only once it is past thirteen.
+    private static string Tolerated(params TextUnit[] units)
+    {
+        var builder = new TSpec.Internal.Specification.TextBuilder(
+            10, 1, wrapIndentation: 2, tolerance: 3);
+        foreach (var unit in units)
+            builder.Add(unit);
+        return builder.Build(opensSentence: false).NormalizeLineEndings();
+    }
+
+    [Theory]
+    [InlineData("12345 678901", "12345 678901")]
+    [InlineData("12345 6789012", "12345 6789012")]
+    [InlineData("12345 67890123",
+        """
+        12345
+          67890123
+        """)]
+    public void GivenTolerance_ThenLeaveAStatementWithinItWhole(string text, string expected)
+        => Xunit.Assert.Equal(expected.NormalizeLineEndings(), Tolerated(TextUnit.Line(text, 0)));
+
+    /// A statement arrives a piece at a time, and the pieces share the one tolerance the line has —
+    /// the whole of it is one expression, so what fits is not broken between two of them.
+    [Fact]
+    public void GivenTolerance_ThenLetTheWholeStatementRunIntoIt()
+        => Xunit.Assert.Equal(
+            "12345 678901", Tolerated(TextUnit.Line("12345", 0), TextUnit.Word("678901", " ")));
+
+    /// The tolerance decides whether a line breaks, never where: past it, the break falls at the
+    /// width, so what continues is no wider than an untolerated line.
+    [Fact]
+    public void GivenAStatementPastTheTolerance_ThenWrapItAtTheWidth()
+        => Xunit.Assert.Equal(
+            "12345\n  67890\n  12345".NormalizeLineEndings(),
+            Tolerated(TextUnit.Line("12345 67890 12345", 0)));
+
+    /// A statement that wraps spends its own tolerance and no one else's: the next one starts a
+    /// line of its own, and a line that has not broken has the whole tolerance to run into.
+    [Fact]
+    public void GivenOneStatementIsPastTheTolerance_ThenStillLeaveTheNextOneWhole()
+        => Xunit.Assert.Equal(
+            "12345\n  67890\n  12345\n12345 678901".NormalizeLineEndings(),
+            Tolerated(TextUnit.Line("12345 67890 12345", 0), TextUnit.Line("12345 678901", 0)));
 }

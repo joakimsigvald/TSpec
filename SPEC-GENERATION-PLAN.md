@@ -42,14 +42,26 @@ one that reported in — covering all three ways a run can be incomplete: filter
   the repo unpinned. The document may add structure *around* the text, never a second version of it.
 - **Layout is last.** `TextBuilder` must never be handed text something else still intends to edit:
   the document strips its heading's word and accounts for the fence indent *first*, then each
-  consumer wraps at its own width — source 80, document 90 — and its own continuation indent —
-  source three steps, document two, decided 2026-08-03: the page needs a continuation to sit deeper
+  consumer wraps at its own width — source 80, document 90 with the tolerance below — and its own
+  continuation indent — source three steps, document two, decided 2026-08-03: the page needs a
+  continuation to sit deeper
   than a phrase, not terminal-proof distance. Violating the ordering made a 76-character claim
   measure 81 and take a fence it never needed. The continuation indent is *relative* — the line's
   own step plus the wrap delta, never compounding across a line's several continuations — so the
   step delta is self-describing: one step down is a subordinate clause, more is the same statement
   wrapped, at any depth. Hanging indents were considered and rejected: no crisp lead word on every
   line kind, and per-statement columns leave the grid.
+- **The document's width has a tolerance — 90 to 100, decided 2026-08-05.** A statement within 100
+  is written whole; past it, the break falls at 90. So the tolerance says *whether* a line breaks
+  and never *where*, and a continuation is never wider than the page. A 91-character
+  `Book(new BookingRequest(…))` was buying a second line, a fence around what had been one line of
+  prose, and a break through the middle of one expression, for one column. It is spent per line, not
+  measured per statement — the cheap implementation, and byte-identical on MyHotel to one that
+  measures each statement whole. They part only where a statement overruns *piecemeal*: pieces that
+  carry a line to 91–100 are kept, and a later piece then breaks it, leaving a wrapped statement
+  whose first line is over 90. Buffering every statement to close that costs ~40 lines in
+  `TextBuilder`; revisit if a real document shows one. The source spec keeps a hard 80: it is read
+  beside the code, against a guide.
 - **Where a line may break is structure, recorded while it still exists.** Describers write
   unprintable markers (`Wrap`) into the text — `Enter`/`Exit` rank by nesting; a `Point` after the
   opening paren and each argument comma, before a brace block, at each call-chain joint — and
@@ -219,11 +231,11 @@ notes quote a number.
 **Document-only refinements**, worth one line between them: the return type is said on the act;
 declared labels sit on the clauses and hoist independently; hoisting is decoupled from position;
 dotted subject names title cleanly; layout is applied last; an item breaks where it no longer fits;
-the document is 90 columns wide.
+the document is 90 columns wide, tolerating 100 rather than break a statement.
 
 ## 7. Before release
 
-1. **Finish the docs.** `README.md` §7 and `TSpec-agent-reference.md` each carry a work-in-progress
+1. **Finish the docs.** `README.md` §6.2 and `TSpec-agent-reference.md` each carry a work-in-progress
    note about the opt-out attributes (§5.1), which are not being built for 2.0.0 — so the notes want
    rewording, not the feature. The reference also says "covers TSpec 1.5" while documenting post-1.5
    behaviour.

@@ -354,7 +354,7 @@ internal static class DocumentRenderer
         => SpecificationRenderer.Compose(Steps(clauses, returns), because);
 
     private static string Render(ComposedText text, int maxLineLength)
-        => text.Render(maxLineLength, ContinuationIndentation).NormalizeLineEndings();
+        => text.Render(maxLineLength, ContinuationIndentation, Tolerance).NormalizeLineEndings();
 
     /// <summary>
     /// The steps of every clause, with the return type appended to the act as a trailing phrase —
@@ -394,6 +394,15 @@ internal static class DocumentRenderer
     /// read on its own and looks thin at that width.
     /// </summary>
     private const int DocumentWidth = 90;
+
+    /// <summary>
+    /// How far past the width a line may run rather than break — so the width is really an
+    /// interval, 90 to 100. A statement a column or two over is a line a reader takes in at a
+    /// glance; breaking it costs a second line, a fence around what was one line of prose, and a
+    /// seam through the middle of one expression. Past the tolerance the break falls at 90, which
+    /// is the whole of what the tolerance does: it decides whether to break, never where.
+    /// </summary>
+    private const int Tolerance = 10;
 
     /// How far anything written under a list item's label sits from the margin, and so how much of
     /// the page it loses. What indents the text and what measures it read the same number.

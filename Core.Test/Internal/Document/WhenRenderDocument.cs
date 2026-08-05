@@ -376,6 +376,40 @@ public class WhenRenderDocument : Spec
                 "## When book\n```\nSubject under test: BookingService\n"
                 + $"When {LongAct}\nReturn type: Booking\n```");
 
+    /// An act one column past the width — enough to break, nowhere near enough to be worth it.
+    private const string SlightlyLongAct =
+        "Book(new BookingRequest(a Room's RoomNumber, a string, new(2026, 8, 10), new(2026, 8, 12)))";
+
+    /// <summary>
+    /// A line a little past the width costs a reader nothing; breaking it costs a second line, an
+    /// element of its own to fence it, and a seam through the middle of one expression. So the
+    /// width has a tolerance, and a statement within it is written whole.
+    /// </summary>
+    [Fact]
+    public void GivenAStatementIsOnlyALittlePastTheWidth_ThenWriteItWhole()
+        => Render(
+            Requirement("WhenBook", "ThenA", Act(SlightlyLongAct), Claim("then a")),
+            Requirement("WhenAdd", "ThenB", Act("add"), Claim("then b")))
+            .Does().Contain($"## When book\n`{SlightlyLongAct}`\n");
+
+    /// <summary>
+    /// The tolerance says whether a statement breaks, never where. Past it the statement wraps at
+    /// the width — a wrapped statement is already costing its reader a seam, and paying that to
+    /// end up with lines wider than the page would be paying for nothing.
+    /// </summary>
+    [Fact]
+    public void GivenAStatementIsPastTheTolerance_ThenWrapItAtTheWidthAndNotTheTolerance()
+        => Render(
+            Requirement("WhenBook", "ThenA", Act(_tooLongAct), Claim("then a")),
+            Requirement("WhenAdd", "ThenB", Act("add"), Claim("then b")))
+            .Does().Contain($"## When book\n```\n{_head}\n    bbbbbbbb cccccccccc\n```");
+
+    /// Words placed so that breaking at the width and breaking at the tolerance fall apart: the
+    /// first word alone fills the width, the first two fit within the tolerance.
+    private static readonly string _head = new('a', 85);
+
+    private static readonly string _tooLongAct = $"{_head} {new string('b', 8)} {new string('c', 10)}";
+
     /// <summary>With no act at the heading it has nothing to join, so it stays a label.</summary>
     [Fact]
     public void GivenAHeadingStatesTheReturnTypeAlone_ThenKeepItALabel()
