@@ -194,6 +194,24 @@ test classes. **Trigger:** a clause above the heading that names it. Gap §5.3 w
     phrase — `because` after an assertion — still meets it. The fix is in composition, not layout:
     the binder wants to be its own unit, or to travel with the text it follows.
 
+11. **A nested branch joins as two sentences.** `GivenARoomExists.ThatIsBooked` reads "Given a room
+    exists. That is booked" — `AsHeading` gives each segment its own sentence, pinned in
+    `WhenSplitIdentifierIntoWords.cs:42`. **Pinned for revisit** (PO, 2026-08-05): a comma may read
+    better than a full stop — "Given a room exists, that is booked" — since the nested class
+    refines its parent rather than stating something new. Notation only; the structure is right.
+12. **Areas group one namespace level, so a folder holding two classes under test loses its
+    hoist.** Adding `BookingNumberGenerator` beside `BookingService` put `Subject under test:
+    BookingService` back into six blocks that had shared one line at `# Bookings`. **PO direction**
+    (2026-08-05): group by namespace *twice* — the first differing segment heads an area, and all
+    remaining segments merge into one subgroup heading below it (`A.B.C`, `A.B.D` → `# A` over
+    `## B C`, `## B D`). Subject stays a stated label, never a grouping key, so subjects that
+    collide across namespaces still land in the right place. Open with it: whether the second level
+    inherits the area's own rule of writing no heading where it tells nothing apart (else every
+    single-class folder gains `## Room Service` for nothing); whether `Subject under test:` should
+    then be dropped where the heading above already names it, which is the duplication §2's
+    "only the first differing segment" decision was originally made to avoid; and the depth cost —
+    `#### Given …` renders at body size, indistinguishable from `###`.
+
 **Shapes not yet exercised**, where the next gaps will come from: a nullable return type (§5.5) and
 branch trees three or more levels deep — where the heading structure and §4 are pushed
 hardest. Bookings exercised the rest: two subjects per document, a second store to mock, a

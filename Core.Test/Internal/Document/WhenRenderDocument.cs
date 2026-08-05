@@ -224,14 +224,30 @@ public class WhenRenderDocument : Spec
     [Fact]
     public void GivenASingleRequirement_ThenStillStateItsOpeningAbove()
         => Render(TwoSubjects()[..1]).Does()
-            .Contain("-->\n```\nUsing api\nWhen get\n```\n")
+            .Contain("-->\n`Using api`\n")
+            .and.Contain("## When get room\n`get`\n")
             .and.Contain("- **Thena** — `a`\n");
+
+    /// <summary>
+    /// The act stops at the heading named after it. Raised past that — to an area, or to the
+    /// document — it would stand over requirements whose own heading says they act otherwise, and
+    /// nothing at that level names it. Arrangement has no such tie and rises as far as it holds.
+    /// </summary>
+    [Fact]
+    public void GivenEveryRequirementSharesTheAct_ThenRaiseItNoHigherThanItsSubject()
+        => Render(
+            Requirement("WhenGetRoom", "ThenA", Using("api"), Act("get"), Claim("then a")),
+            Requirement("WhenGetRoom", "ThenB", Using("api"), Act("get"), Claim("then b")))
+            .Does()
+            .Contain("-->\n`Using api`\n")
+            .and.Contain("## When get room\n`get`\n");
 
     /// <summary>Two are already repetition — the second saying it again is what makes it so.</summary>
     [Fact]
     public void GivenTwoRequirementsOpenAlike_ThenStateTheOpeningOnce()
         => Render(TwoSubjects()[..2]).Does()
-            .Contain("-->\n```\nUsing api\nWhen get\n```\n")
+            .Contain("-->\n`Using api`\n")
+            .and.Contain("## When get room\n`get`\n")
             .and.Contain("- **Thena** — `a`\n");
 
     /// <summary>
@@ -244,7 +260,7 @@ public class WhenRenderDocument : Spec
         var requirements = TwoSubjects()[..3];
         requirements[2] = requirements[2] with { Steps = [Using("other"), Act("get"), Claim("then c")] };
         Render(requirements).Does()
-            .Contain("-->\n`When get`\n")
+            .Contain("## When get room\n`get`\n")
             .and.Contain("- **Thena**\n  ```\n  Using api\n  Then a\n  ```\n")
             .and.Contain("- **Thenc**\n  ```\n  Using other\n  Then c\n  ```\n");
     }
@@ -294,7 +310,8 @@ public class WhenRenderDocument : Spec
                 Condition("post"), Condition("post"), Act("get"), Claim("then a")),
             Requirement("WhenGetRoom", "ThenB", Condition("post"), Act("get"), Claim("then b")))
             .Does()
-            .Contain("-->\n```\nHaving post\nWhen get\n```\n")
+            .Contain("-->\n`Having post`\n")
+            .and.Contain("## When get room\n`get`\n")
             .and.Contain("- **a**\n  ```\n  Having post\n  Then a\n  ```\n")
             .and.Contain("- **b** — `b`\n");
 
@@ -325,6 +342,24 @@ public class WhenRenderDocument : Spec
     // ----------- What the spec declares about the code, stated where it holds
 
     /// <summary>
+    /// The return type is what the act yields, so it stops where the act does: at the heading named
+    /// after the method. Above that nothing names the method it belongs to, and a document stating
+    /// one return type is stating it of methods its reader cannot see. The subject has no such tie —
+    /// it names a class, not a call — and rises as far as it holds.
+    /// </summary>
+    [Fact]
+    public void GivenEverySpecDeclaresOneReturnType_ThenRaiseItNoHigherThanItsSubject()
+        => Render(
+            Requirement("WhenGetRoom", "ThenA", Act("get"), Claim("then a"))
+                with { SubjectUnderTest = "RoomService", ReturnType = "Room" },
+            Requirement("WhenAddRoom", "ThenB", Act("add"), Claim("then b"))
+                with { SubjectUnderTest = "RoomService", ReturnType = "Room" })
+            .Does()
+            .Contain("-->\n`Subject under test: RoomService`\n")
+            .and.Contain("## When get room\n`get, returns Room`\n")
+            .and.Contain("## When add room\n`add, returns Room`\n");
+
+    /// <summary>
     /// The types ground the requirements in the code they describe, so they are stated rather than
     /// phrased — a sentence would have to read well for every spec, and Spec&lt;int&gt; over a static
     /// calculation defeats any of them.
@@ -332,7 +367,7 @@ public class WhenRenderDocument : Spec
     [Fact]
     public void GivenEverySpecDeclaresTheSame_ThenStateItForTheDocument()
         => Render(_respondOk with { SubjectUnderTest = "HttpClient", ReturnType = "HttpResponseMessage" })
-            .Does().Contain("-->\n```\nSubject under test: HttpClient\nReturn type: HttpResponseMessage\n");
+            .Does().Contain("-->\n`Subject under test: HttpClient`\n");
 
     /// <summary>
     /// One space after each label, never a column: aligning them would make where a value starts
@@ -340,7 +375,11 @@ public class WhenRenderDocument : Spec
     /// </summary>
     [Fact]
     public void ThenLineUpTheDeclaredTypes()
-        => Render(_respondOk with { SubjectUnderTest = "int", ReturnType = "string" })
+        => Render(
+            Requirement("WhenGetRoom", "ThenA", Claim("then a"))
+                with { SubjectUnderTest = "int", ReturnType = "string" },
+            Requirement("WhenAdd", "ThenB", Claim("then b"))
+                with { SubjectUnderTest = "long", ReturnType = "string" })
             .Does().Contain("Subject under test: int\nReturn type: string\n");
 
     /// <summary>
@@ -414,7 +453,7 @@ public class WhenRenderDocument : Spec
     [Fact]
     public void GivenAHeadingStatesTheReturnTypeAlone_ThenKeepItALabel()
         => Render(_respondOk with { SubjectUnderTest = "HttpClient", ReturnType = "HttpResponseMessage" })
-            .Does().Contain("Return type: HttpResponseMessage\n");
+            .Does().Contain("## When get version\n`Return type: HttpResponseMessage`\n");
 
     [Fact]
     public void GivenSpecsDeclareDifferently_ThenStateItForEachSubject()
@@ -461,17 +500,21 @@ public class WhenRenderDocument : Spec
     public void GivenTheDocumentStatesTheSubject_ThenDoNotRepeatItPerSubject()
         => Render(OneSubjectManyReturnTypes()).Split("Subject under test").Length.Is(2);
 
-    /// <summary>The same the other way round, so neither label is the one that happens to work.</summary>
+    /// <summary>
+    /// Agreeing on a return type does not raise it: it belongs to the method each heading names, so
+    /// two subjects returning the same thing each say so. The subject they differ in stays below too,
+    /// which is the pair pulling in opposite directions and neither dragging the other.
+    /// </summary>
     [Fact]
-    public void GivenSeveralSubjectsDeclareOneReturnType_ThenStillStateItForTheDocument()
+    public void GivenSeveralSubjectsDeclareOneReturnType_ThenStillStateItAtEachSubject()
         => Render(
             Requirement("WhenGetRoom", "ThenA", Act("get"), Claim("then a"))
                 with { SubjectUnderTest = "RoomService", ReturnType = "Room" },
             Requirement("WhenAdd", "ThenB", Act("add"), Claim("then b"))
                 with { SubjectUnderTest = "RoomStore", ReturnType = "Room" })
             .Does()
-            .Contain("-->\n`Return type: Room`\n")
-            .and.Contain("## When add\n```\nSubject under test: RoomStore\nWhen add\n```");
+            .Contain("## When get room\n```\nSubject under test: RoomService\nWhen get, returns Room\n```")
+            .and.Contain("## When add\n```\nSubject under test: RoomStore\nWhen add, returns Room\n```");
 
     [Fact]
     public void GivenAHeadingStatesOneLabelAlone_ThenStillWriteItWithOneSpace()
@@ -609,8 +652,9 @@ public class WhenRenderDocument : Spec
                 "---\n\n## When get version\n\n- **a** — `a`\n\n# Rooms\n\n## When add room\n");
 
     /// <summary>
-    /// Only the segment they differ in is structure. What is below it names the class under test,
-    /// which the spec declares itself — a second heading level would state it twice.
+    /// One class under test per area leaves the area's own heading saying everything there is to
+    /// say, so what runs below it is not written: a heading per area and one below it naming the
+    /// only thing in it would be the same division twice.
     /// </summary>
     [Fact]
     public void GivenTheNamespacesRunDeeper_ThenHeadOnlyTheSegmentTheyDifferIn()
@@ -618,6 +662,37 @@ public class WhenRenderDocument : Spec
             InNamespace("MyHotel.Core.Spec.Rooms.RoomService", "WhenAddRoom", "ThenA"),
             InNamespace("MyHotel.Core.Spec.Bookings.BookingService", "WhenBook", "ThenB"))
             .Does().Contain("\n# Bookings\n").and.Contain("\n# Rooms\n").and.not.Contain("Service");
+
+    /// <summary>
+    /// Where an area holds more than one namespace below it, each heads a group of its own: the
+    /// area names what they share and the group what tells them apart. Everything left below the
+    /// area merges into one name, the dots separating parts of it rather than sentences.
+    /// </summary>
+    [Fact]
+    public void GivenAnAreaHoldsSeveralNamespaces_ThenGroupThemBelowIt()
+        => Render(
+            InNamespace("A.B.C", "WhenX", "ThenA"),
+            InNamespace("A.B.D", "WhenX", "ThenB"),
+            InNamespace("E.F.G", "WhenX", "ThenC"),
+            InNamespace("E.H.I", "WhenX", "ThenD"))
+            .Does()
+            .Contain("\n# A\n\n## B C\n").and.Contain("\n## B D\n")
+            .and.Contain("\n# E\n\n## F G\n").and.Contain("\n## H I\n");
+
+    /// <summary>
+    /// A group heading pushes what is under it a level down, so a subject sits below the group that
+    /// holds it — and stays where it was in an area that never grouped, rather than paying a level
+    /// for a division that was not made.
+    /// </summary>
+    [Fact]
+    public void GivenOnlyOneAreaGroups_ThenLeaveTheOtherAtItsOwnDepth()
+        => Render(
+            InNamespace("A.Rooms.RoomService", "WhenAddRoom", "ThenA"),
+            InNamespace("A.Bookings.BookingService", "WhenBook", "ThenB"),
+            InNamespace("A.Bookings.BookingNumberGenerator", "WhenNext", "ThenC"))
+            .Does()
+            .Contain("\n# Rooms\n\n## When add room\n")
+            .and.Contain("\n# Bookings\n\n## Booking Number Generator\n\n### When next\n");
 
     /// <summary>
     /// The level hoists like every other: what everything under a heading declares is stated at it.
