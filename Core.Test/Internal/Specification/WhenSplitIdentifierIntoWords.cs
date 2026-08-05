@@ -38,8 +38,11 @@ public class WhenSplitIdentifierIntoWords : Spec<string>
     [Theory]
     [InlineData("GivenNoSuchRoom", "Given no such room")]
     [InlineData("GivenASnake_WithWings", "Given a snake, with wings")]
-    // A branch path is dotted, and each segment is a sentence of its own
-    [InlineData("GivenCartExists.WithItems", "Given cart exists. With items")]
+    // A branch path is dotted, and reads as one sentence: a nested given refines the one above it
+    // rather than stating something new, which is what an underscore says within one name too
+    [InlineData("GivenCartExists.WithItems", "Given cart exists, with items")]
+    [InlineData("GivenTheRoomExists.ButIsAlreadyBooked", "Given the room exists, but is already booked")]
+    [InlineData("GivenA.WithB.ButC", "Given a, with b, but c")]
     public void ThenReadAsAHeading(string identifier, string expected)
         => When(_ => identifier.AsHeading()).Then().Result.Is(expected);
 }

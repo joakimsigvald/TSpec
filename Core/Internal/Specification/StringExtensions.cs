@@ -110,15 +110,18 @@ internal static class StringExtensions
 
     /// <summary>
     /// A class or method name as a document heading: <c>GivenNoSuchRoom</c> reads
-    /// "Given no such room". A branch path is dotted, and each segment becomes its own sentence.
+    /// "Given no such room". A branch path is dotted, and the dot binds exactly as an underscore
+    /// does within one name — <c>GivenTheRoomExists.ButIsAlreadyBooked</c> reads "Given the room
+    /// exists, but is already booked". A nested given qualifies the one it sits in rather than
+    /// stating something beside it, so the two are phrases of one sentence, not two sentences.
     /// </summary>
     internal static string AsHeading(this string name)
-        => string.Join(". ", name.Split('.').Select(part => part.AsWords().Capitalize()));
+        => name.Replace('.', '_').AsWords().Capitalize();
 
     /// <summary>
     /// A subject name as a document title: <c>MyHotel</c> reads "My Hotel", and the dotted
     /// <c>MyHotel.Core</c> reads "My Hotel Core". The dot separates parts of one name here, unlike
-    /// in <see cref="AsHeading"/>, where a branch path really is a sequence of sentences.
+    /// in <see cref="AsHeading"/>, where it separates the phrases of one sentence.
     /// </summary>
     internal static string AsTitle(this string name)
         => string.Join(' ', name.Split('.')
