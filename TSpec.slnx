@@ -3,6 +3,7 @@
     <File Path="CLAUDE.md" />
     <File Path="icon.png" />
     <File Path="README.md" />
+    <File Path="SPEC-GENERATION-PLAN.md" />
     <File Path="TODO.txt" />
     <File Path="TSpec-agent-reference.md" />
   </Folder>
@@ -11,12 +12,12 @@
     <File Path="SampleProjects/MyHotel/CLAUDE.md" />
     <File Path="SampleProjects/MyHotel/README.md" />
     <Project Path="SampleProjects/MyHotel/Contract/Contract.csproj" />
-    <Project Path="SampleProjects/MyHotel/Core/Core.csproj" />
     <Project Path="SampleProjects/MyHotel/Core.Spec/Core.Spec.csproj" />
+    <Project Path="SampleProjects/MyHotel/Core/Core.csproj" />
     <Project Path="SampleProjects/MyHotel/Entry/Entry.csproj" />
     <Project Path="SampleProjects/MyHotel/Infra/Infra.csproj" />
-    <Project Path="SampleProjects/MyHotel/MyHotel/MyHotel.csproj" />
     <Project Path="SampleProjects/MyHotel/MyHotel.Spec/MyHotel.Spec.csproj" />
+    <Project Path="SampleProjects/MyHotel/MyHotel/MyHotel.csproj" />
   </Folder>
   <Project Path="Core.Test/Core.Test.csproj" />
   <Project Path="Core/Core.csproj" />

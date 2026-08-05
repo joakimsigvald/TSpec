@@ -23,14 +23,13 @@
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			NEW
-			* TODO
+			* Opt-in: Specification generation per test-project from TSpec-tests, with [assembly: AssemblyFixture(typeof(SpecificationDocument))]
 
 			CHANGED
-			* TODO
+			* Improved rendering of test output
 
 			BREAKING
 			* Removed deprecated methods
-			* TODO
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
