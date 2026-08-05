@@ -1,10 +1,12 @@
 <Solution>
   <Folder Name="/Assets/">
+    <File Path="CLAUDE.md" />
     <File Path="icon.png" />
     <File Path="README.md" />
     <File Path="TODO.txt" />
     <File Path="TSpec-agent-reference.md" />
   </Folder>
+  <Folder Name="/SampleProjects/" />
   <Folder Name="/SampleProjects/MyHotel/">
     <File Path="SampleProjects/MyHotel/CLAUDE.md" />
     <File Path="SampleProjects/MyHotel/README.md" />

@@ -6,7 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-		<Version>0.1.0</Version>
+		<Version>0.2.0</Version>
 		<AssemblyName>MyHotel</AssemblyName>
 		<RootNamespace>MyHotel</RootNamespace>
 		<IsPackable>false</IsPackable>
@@ -15,9 +15,12 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
-		<!-- Pinned above the 2.0.0 that Microsoft.AspNetCore.OpenApi pulls in (GHSA-v5pm-xwqc-g5wc) -->
-		<PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
-		<PackageReference Include="Scalar.AspNetCore" Version="2.16.16" />
+		<!-- Pinned above the 2.0.0 that Microsoft.AspNetCore.OpenApi pulls in (GHSA-v5pm-xwqc-g5wc).
+		     Stay on 2.x: 10.0.10's XmlCommentGenerator source generator emits code against the 2.x
+		     IOpenApiMediaType shape (a settable Example) and fails to compile against 3.x, where it's
+		     read-only. Bump this only once Microsoft.AspNetCore.OpenApi's own dependency moves to 3.x. -->
+		<PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
+		<PackageReference Include="Scalar.AspNetCore" Version="2.16.17" />
 	</ItemGroup>
 
 	<ItemGroup>
