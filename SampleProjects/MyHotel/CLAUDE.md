@@ -104,6 +104,8 @@ change is caught where it matters: in the committed document's diff.
   SampleProjects/MyHotel/Core.Spec/bin/Debug/net10.0/MyHotel.Core.Spec.exe
   ```
 
+- **`Microsoft.OpenApi` stays on the 2.x line.** `Microsoft.AspNetCore.OpenApi`'s source generator
+  emits code that only compiles against 2.x's object model; 3.x breaks the build.
 - Update README.md's endpoint table whenever an endpoint is added, removed, or changes contract.
 - Each Spec project generates its own `SPECIFICATION.md` from a green run. Never hand-edit one;
   commit the regenerated file and read its diff as part of reviewing the change.
