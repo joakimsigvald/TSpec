@@ -9,9 +9,9 @@ public interface IBookingService
 {
     Task<IReadOnlyList<Booking>> List();
 
-    Task<Booking> Get(int id);
+    Task<Booking> Get(int bookingNumber);
 
     Task<Booking> Book(BookingRequest request);
 
-    Task Cancel(int id);
+    Task Cancel(int bookingNumber);
 }

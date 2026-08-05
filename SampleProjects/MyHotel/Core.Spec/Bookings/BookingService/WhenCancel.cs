@@ -4,7 +4,7 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 
 public abstract class WhenCancel : Spec<Core.Bookings.BookingService>
 {
-    protected WhenCancel() => When(_ => _.Cancel(A<Booking>().Id));
+    protected WhenCancel() => When(_ => _.Cancel(A<Booking>().BookingNumber));
 
     public class GivenTheBookingExists : WhenCancel
     {
@@ -23,7 +23,7 @@ public abstract class WhenCancel : Spec<Core.Bookings.BookingService>
         [Fact]
         public void ThenThrowBookingNotFound()
             => Then().Throws<BookingNotFound>()
-                .that.Message.Does().Contain($"{The<Booking>().Id}");
+                .that.Message.Does().Contain($"{The<Booking>().BookingNumber}");
 
         [Fact] public void ThenStoreNothing() => Then<IBookingStore>(nameof(IBookingStore.Save), Never);
     }

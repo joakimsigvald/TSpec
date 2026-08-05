@@ -1,7 +1,7 @@
 namespace MyHotel.Contract;
 
-public class BookingNotFound(int id)
-    : Exception($"There is no booking {id}.")
+public class BookingNotFound(int bookingNumber)
+    : Exception($"There is no booking {bookingNumber}.")
 {
-    public int Id { get; } = id;
+    public int BookingNumber { get; } = bookingNumber;
 }

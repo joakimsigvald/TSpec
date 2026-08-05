@@ -2,7 +2,7 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 
 public abstract class WhenGet : Spec<Core.Bookings.BookingService, Booking>
 {
-    protected WhenGet() => When(_ => _.Get(A<Booking>().Id));
+    protected WhenGet() => When(_ => _.Get(A<Booking>().BookingNumber));
 
     public class GivenTheBookingExists : WhenGet
     {
@@ -20,6 +20,6 @@ public abstract class WhenGet : Spec<Core.Bookings.BookingService, Booking>
         [Fact]
         public void ThenThrowBookingNotFound()
             => Then().Throws<BookingNotFound>()
-                .that.Message.Does().Contain($"{The<Booking>().Id}");
+                .that.Message.Does().Contain($"{The<Booking>().BookingNumber}");
     }
 }

@@ -5,7 +5,7 @@ namespace MyHotel.Spec.Bookings;
 
 public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
 {
-    protected WhenGetBooking() => When(_ => _.Api.GetAsync("/bookings/1"));
+    protected WhenGetBooking() => When(_ => _.Api.GetAsync("/bookings/10001"));
 
     /// <summary>
     /// Setups run last-declared-first, so the room exists before it is booked.
@@ -22,7 +22,7 @@ public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
         [Fact]
         public async Task ThenReturnTheBooking()
             => (await Result.Read<Booking>()).Is(new Booking(
-                1, The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12)));
+                10001, The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12)));
     }
 
     public class GivenNoSuchBooking : WhenGetBooking
@@ -31,7 +31,7 @@ public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
 
         [Fact]
         public async Task ThenSayWhichBooking()
-            => (await Result.Read<ErrorBody>()).Error.Does().Contain("1");
+            => (await Result.Read<ErrorBody>()).Error.Does().Contain("10001");
     }
 
     /// <summary>
@@ -51,6 +51,6 @@ public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
         [Fact]
         public async Task ThenReturnTheBooking()
             => (await Result.Read<Booking>()).Is(new Booking(
-                1, The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12)));
+                10001, The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12)));
     }
 }

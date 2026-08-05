@@ -31,8 +31,8 @@ public abstract class WhenListBookings : ApiSpec<HttpResponseMessage>
         public async Task ThenReturnBothBookingsInTheOrderTheyWereMade()
             => (await Result.Read<Booking[]>()).Is().EqualTo([
                 new Booking(
-                    1, The<Room>().RoomNumber, The<string>(), TheThird<DateOnly>(), TheFourth<DateOnly>()),
+                    10001, The<Room>().RoomNumber, The<string>(), TheThird<DateOnly>(), TheFourth<DateOnly>()),
                 new Booking(
-                    2, The<Room>().RoomNumber, TheSecond<string>(), The<DateOnly>(), TheSecond<DateOnly>())]);
+                    10002, The<Room>().RoomNumber, TheSecond<string>(), The<DateOnly>(), TheSecond<DateOnly>())]);
     }
 }

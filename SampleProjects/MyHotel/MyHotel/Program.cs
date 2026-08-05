@@ -1,5 +1,6 @@
 using System.Reflection;
 using MyHotel.Core;
+using MyHotel.Core.Bookings;
 using MyHotel.Entry;
 using MyHotel.Infra;
 using Scalar.AspNetCore;
@@ -11,7 +12,8 @@ var version = Assembly.GetExecutingAssembly()
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
-builder.Services.AddCore();
+builder.Services.AddCore(new BookingNumberSeed(
+    builder.Configuration.GetValue<int?>("BookingNumbers:Seed") ?? 0));
 builder.Services.AddEntry();
 builder.Services.AddInfra(
     builder.Configuration["RoomStore:Path"] ?? "rooms.json",

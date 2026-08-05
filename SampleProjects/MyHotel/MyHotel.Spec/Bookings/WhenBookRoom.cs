@@ -16,13 +16,31 @@ public abstract class WhenBookRoom : ApiSpec<HttpResponseMessage>
         [Fact] public void ThenRespondCreated() => Result.StatusCode.Is(Created);
 
         [Fact]
-        public async Task ThenReturnTheBookingWithItsAssignedId()
+        public async Task ThenReturnTheBookingWithTheSeededNumber()
             => (await Result.Read<Booking>()).Is(new Booking(
-                1, The<Room>().RoomNumber, The<string>(), new(2026, 8, 10), new(2026, 8, 12)));
+                10001, The<Room>().RoomNumber, The<string>(), new(2026, 8, 10), new(2026, 8, 12)));
 
         [Fact]
         public void ThenPointAtTheNewBooking()
-            => Result.Headers.Location!.ToString().Is("/bookings/1");
+            => Result.Headers.Location!.ToString().Is("/bookings/10001");
+    }
+
+    /// <summary>
+    /// The counter is kept with the bookings, not in memory, so it does not start over when the
+    /// application does. Setups run last-declared-first: the room exists, a guest books it, the
+    /// application restarts.
+    /// </summary>
+    public class GivenABookingWasMadeBeforeARestart : WhenBookRoom
+    {
+        public GivenABookingWasMadeBeforeARestart()
+            => Having(_ => _.Restart())
+                .Having(_ => _.Api.PostAsJsonAsync("/bookings", new BookingRequest(
+                    The<Room>().RoomNumber, ASecond<string>(), new(2026, 8, 8), new(2026, 8, 10))))
+                .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
+
+        [Fact]
+        public async Task ThenCarryOnFromTheNumberAlreadyIssued()
+            => (await Result.Read<Booking>()).BookingNumber.Is(10002);
     }
 
     public class GivenNoSuchRoom : WhenBookRoom
@@ -58,12 +76,17 @@ public abstract class WhenBookRoom : ApiSpec<HttpResponseMessage>
     public class GivenTheNightsWereBookedAndCancelled : WhenBookRoom
     {
         public GivenTheNightsWereBookedAndCancelled()
-            => Having(_ => _.Api.DeleteAsync("/bookings/1"))
+            => Having(_ => _.Api.DeleteAsync("/bookings/10001"))
                 .Having(_ => _.Api.PostAsJsonAsync("/bookings", new BookingRequest(
                     The<Room>().RoomNumber, ASecond<string>(), new(2026, 8, 10), new(2026, 8, 12))))
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact] public void ThenRespondCreated() => Result.StatusCode.Is(Created);
+
+        /// The cancelled booking gave its number back to nobody: numbers are issued, not reused.
+        [Fact]
+        public async Task ThenStillIssueAFreshNumber()
+            => (await Result.Read<Booking>()).BookingNumber.Is(10002);
     }
 
     /// <summary>

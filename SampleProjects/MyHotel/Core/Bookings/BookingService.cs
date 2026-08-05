@@ -8,11 +8,12 @@ namespace MyHotel.Core.Bookings;
 /// Nights are half-open, [From, To): two bookings conflict only when their intervals truly
 /// intersect, so one guest departing the day another arrives is no conflict.
 /// </summary>
-public class BookingService(IBookingStore store, IRoomStore rooms) : IBookingService
+public class BookingService(IBookingStore store, IRoomStore rooms, IBookingNumberGenerator numbers)
+    : IBookingService
 {
     public async Task<IReadOnlyList<Booking>> List() => await store.Load();
 
-    public async Task<Booking> Get(int id) => Existing(await store.Load(), id);
+    public async Task<Booking> Get(int bookingNumber) => Existing(await store.Load(), bookingNumber);
 
     public async Task<Booking> Book(BookingRequest request)
     {
@@ -24,16 +25,16 @@ public class BookingService(IBookingStore store, IRoomStore rooms) : IBookingSer
         if (bookings.Any(booking => Overlaps(booking, request)))
             throw new RoomAlreadyBooked(request.RoomNumber);
         var booked = new Booking(
-            NextId(bookings), request.RoomNumber, request.GuestName, request.From, request.To);
+            await numbers.Next(), request.RoomNumber, request.GuestName, request.From, request.To);
         bookings.Add(booked);
         await store.Save(bookings);
         return booked;
     }
 
-    public async Task Cancel(int id)
+    public async Task Cancel(int bookingNumber)
     {
         var bookings = await Bookings();
-        bookings.Remove(Existing(bookings, id));
+        bookings.Remove(Existing(bookings, bookingNumber));
         await store.Save(bookings);
     }
 
@@ -42,14 +43,12 @@ public class BookingService(IBookingStore store, IRoomStore rooms) : IBookingSer
 
     private async Task<List<Booking>> Bookings() => [.. await store.Load()];
 
-    private static Booking Existing(IEnumerable<Booking> bookings, int id)
-        => bookings.FirstOrDefault(booking => booking.Id == id) ?? throw new BookingNotFound(id);
+    private static Booking Existing(IEnumerable<Booking> bookings, int bookingNumber)
+        => bookings.FirstOrDefault(booking => booking.BookingNumber == bookingNumber)
+        ?? throw new BookingNotFound(bookingNumber);
 
     private static bool Overlaps(Booking booking, BookingRequest request)
         => booking.RoomNumber == request.RoomNumber
         && request.From < booking.To
         && booking.From < request.To;
-
-    private static int NextId(IReadOnlyList<Booking> bookings)
-        => bookings.Count == 0 ? 1 : bookings.Max(booking => booking.Id) + 1;
 }

@@ -53,19 +53,24 @@ generated file — review it in diffs, never edit it by hand. Its version comes 
 | `DELETE` | `/rooms/{roomNumber}` | `204` and the room is gone, or `404` |
 | `GET` | `/bookings` | `200` with every booking in the order it was made; `[]` when there are none |
 | `POST` | `/bookings` | `201` with the booking and a `Location` header; `400` if the period is not at least one night; `404` if there is no such room; `409` if the room is already booked for any of those nights |
-| `GET` | `/bookings/{id}` | `200` with the booking, or `404` |
-| `DELETE` | `/bookings/{id}` | `204` and the booking is cancelled, or `404` |
+| `GET` | `/bookings/{bookingNumber}` | `200` with the booking, or `404` |
+| `DELETE` | `/bookings/{bookingNumber}` | `204` and the booking is cancelled, or `404` |
 
 A room is `{ "roomNumber": "101", "bedCount": 2 }`. The room number is the identity: it appears in
 the URL and cannot be changed — to renumber a room, delete it and add a new one.
 
-A booking is
-`{ "id": 1, "roomNumber": "101", "guestName": "Smith", "from": "2026-08-10", "to": "2026-08-12" }`.
-It is booked with the same fields minus the `id`, which the hotel assigns. Nights are half-open,
-`[from, to)`: the guest departs on `to`, so that night is free for the next booking and two stays
-meeting at a date do not collide.
+A booking is `{ "bookingNumber": 10001, "roomNumber": "101", "guestName": "Smith",
+"from": "2026-08-10", "to": "2026-08-12" }`. It is booked with the same fields minus the
+`bookingNumber`, which the hotel assigns. Nights are half-open, `[from, to)`: the guest departs on
+`to`, so that night is free for the next booking and two stays meeting at a date do not collide.
+
+Booking numbers are issued in order from a seed — `BookingNumbers:Seed` in configuration, 10000 as
+shipped, 0 when unset. The seed is the number counted as already used, so the first booking gets the
+one after it. A number is spent when it is issued: cancelling a booking does not return its number,
+and a restart carries on from the last one used.
 
 Rooms and bookings are each kept in a JSON file, in creation order, so they outlive the process.
+The booking file holds the number to issue next alongside the bookings themselves.
 
 `400`, `404` and `409` carry `{ "error": "…" }`. They come from exceptions `Core` throws and
 `Contract` declares; anything else reaches the pipeline unhandled and answers `500`.

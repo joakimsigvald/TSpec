@@ -5,7 +5,7 @@ namespace MyHotel.Spec.Bookings;
 
 public abstract class WhenCancelBooking : ApiSpec<HttpResponseMessage>
 {
-    protected WhenCancelBooking() => When(_ => _.Api.DeleteAsync("/bookings/1"));
+    protected WhenCancelBooking() => When(_ => _.Api.DeleteAsync("/bookings/10001"));
 
     /// <summary>
     /// Setups run last-declared-first, so the room exists before it is booked.
@@ -26,6 +26,6 @@ public abstract class WhenCancelBooking : ApiSpec<HttpResponseMessage>
 
         [Fact]
         public async Task ThenSayWhichBooking()
-            => (await Result.Read<ErrorBody>()).Error.Does().Contain("1");
+            => (await Result.Read<ErrorBody>()).Error.Does().Contain("10001");
     }
 }

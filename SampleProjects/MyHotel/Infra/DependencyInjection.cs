@@ -8,7 +8,12 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfra(
         this IServiceCollection services, string roomsPath, string bookingsPath)
-        => services
+    {
+        // One store for both: the bookings and the number to issue next share a file.
+        var bookings = new BookingStore(bookingsPath);
+        return services
             .AddSingleton<IRoomStore>(new RoomStore(roomsPath))
-            .AddSingleton<IBookingStore>(new BookingStore(bookingsPath));
+            .AddSingleton<IBookingStore>(bookings)
+            .AddSingleton<IBookingNumberStore>(bookings);
+    }
 }

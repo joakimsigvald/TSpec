@@ -11,29 +11,34 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
     public class GivenNoBookings : WhenBook
     {
         public GivenNoBookings()
-            => Given<IRoomStore>().That(_ => _.Load()).Returns(() => [The<Room>()])
+            => Given<IBookingNumberGenerator>().That(_ => _.Next()).Returns(() => 10001)
+                .Given<IRoomStore>().That(_ => _.Load()).Returns(() => [The<Room>()])
                 .Given<IBookingStore>().That(_ => _.Load()).Returns(Zero<Booking>);
 
         [Fact]
-        public void ThenReturnTheBookingWithIdOne()
+        public void ThenReturnTheBookingWithTheNumberItWasGiven()
             => Result.Is(new Booking(
-                1, The<Room>().RoomNumber, The<string>(), new(2026, 8, 10), new(2026, 8, 12)));
+                10001, The<Room>().RoomNumber, The<string>(), new(2026, 8, 10), new(2026, 8, 12)));
 
         [Fact] public void ThenStoreIt() => Then<IBookingStore>(nameof(IBookingStore.Save), Once);
     }
 
     /// <summary>
-    /// The earlier booking is for another room, so it cannot conflict — it only shows where the
-    /// next id comes from.
+    /// Every booking asks the generator for its own number, so the second gets the second — the
+    /// bookings already made have no say in it. The earlier stay is adjacent, so nothing conflicts.
+    /// Setups run last-declared-first, so that booking is made before this one.
     /// </summary>
-    public class GivenAnEarlierBooking : WhenBook
+    public class GivenARoomWasAlreadyBooked : WhenBook
     {
-        public GivenAnEarlierBooking()
-            => Given<IRoomStore>().That(_ => _.Load()).Returns(() => [The<Room>()])
-                .Given<IBookingStore>().That(_ => _.Load())
-                .Returns(() => [A<Booking>() with { Id = 41, RoomNumber = ASecond<string>() }]);
+        public GivenARoomWasAlreadyBooked()
+            => Given<IBookingNumberGenerator>().That(_ => _.Next())
+                    .First().Returns(() => 10001).AndNext().Returns(() => 10002)
+                .Given<IRoomStore>().That(_ => _.Load()).Returns(() => [The<Room>()])
+                .Given<IBookingStore>().That(_ => _.Load()).Returns(Zero<Booking>)
+                .Having(_ => _.Book(new BookingRequest(
+                    The<Room>().RoomNumber, ASecond<string>(), new(2026, 8, 8), new(2026, 8, 10))));
 
-        [Fact] public void ThenAssignTheNextId() => Result.Id.Is(42);
+        [Fact] public void ThenTakeTheSecondNumber() => Result.BookingNumber.Is(10002);
     }
 
     public class GivenNoSuchRoom : WhenBook
