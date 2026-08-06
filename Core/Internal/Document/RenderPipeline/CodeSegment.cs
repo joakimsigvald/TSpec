@@ -1,5 +1,4 @@
 using TSpec.Internal.Specification;
-using static TSpec.Internal.Document.RenderPipeline.DocumentText;
 
 namespace TSpec.Internal.Document.RenderPipeline;
 
@@ -44,7 +43,7 @@ internal sealed record CodeSegment(
 
     /// A label above the clauses opens the block, so the clauses keep the heading's word.
     private string Clauses(Declared says, string? returns)
-        => Compose(Shared, because: null, returns).Without(says.Text is null ? Stated : null).Fit(DocumentWidth);
+        => SpecificationRenderer.Compose(Shared, because: null, returns).Without(says.Text is null ? Stated : null).Fit(Document.Width);
 
-    internal static int Lines(string text) => text.Count(character => character == '\n');
+    private static int Lines(string text) => text.Count(character => character == '\n');
 }

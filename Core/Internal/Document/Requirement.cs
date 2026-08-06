@@ -3,26 +3,31 @@ using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.Document;
 
-/// <summary>
-/// One requirement of the document: the entry it came from, its steps split into clauses, and a
-/// key for what it says. Clauses leave it as the headings above take them over.
-/// </summary>
 internal sealed record Requirement(
     SpecificationEntry Entry, IReadOnlyList<SpecificationClause> Clauses, string Signature)
 {
-    /// How much this requirement arranges before it claims anything.
-    internal int Arrangement => DocumentNode.Arrangement(Clauses);
+    internal int ArrangementCount => DocumentNode.CountArrangements(Clauses);
 
-    /// <summary>
-    /// How much this requirement says, counted in the steps' own words. A measure of the text
-    /// rather than of the page: what it comes to once laid out depends on the width it is written
-    /// at, and an order that moved with the width would reshuffle the document for a setting.
-    /// </summary>
+    internal string Name
+    {
+        get
+        {
+            var name = Entry.Requirement.AsHeading();
+            var stated = Layout.StatedWord(name);
+            return stated is not null
+                && name.StartsWith($"{stated} ", StringComparison.Ordinal)
+                    ? name[(stated.Length + 1)..]
+                    : name;
+        }
+    }
+
+    internal ComposedText Claim
+        => SpecificationRenderer.Compose(Clauses, Entry.Because).Without(StepFamily.Then.Keyword());
+
     internal int Size
         => Clauses.Sum(clause => clause.Steps.Sum(step => step.Body.Length))
             + (Entry.Because?.Length ?? 0);
 
-    /// The requirements of a run, one per distinct thing said.
     internal static IEnumerable<Requirement> From(IEnumerable<SpecificationEntry> entries)
         => entries
             .Select(entry => new Requirement(
@@ -34,38 +39,17 @@ internal sealed record Requirement(
                 requirement.Entry.Requirement,
                 requirement.Signature));
 
-    /// <summary>
-    /// What a requirement says, as a key: the steps' own words and the reason given, with nothing
-    /// of how they will be laid out. Two runs of one theory collapse to a single requirement, and
-    /// two that differ in what they state never do — neither answer depending on the page width.
-    /// </summary>
     private static string ToSignature(SpecificationEntry entry)
         => string.Join('\n', entry.Steps
             .Select(step => $"{step.Family}:{step.Body}")
             .Append(entry.Because ?? string.Empty));
 
-    /// <summary>
-    /// The clauses every one of these requirements states — written once under the heading they
-    /// share instead of repeated in each block. Whole clauses only, never a fragment of one, and no
-    /// minimum number of requirements: a lone one still belongs under the heading naming its context.
-    /// </summary>
-    /// <remarks>
-    /// Assertions are excluded on principle: they are the claim each requirement exists to make, so
-    /// two requirements agreeing on one is a coincidence to leave visible, not repetition to factor
-    /// out. Arrangement and action are context, and context is what a heading is for.
-    /// <para>
-    /// The act rises only as far as the subject, whose heading is named after it — <paramref
-    /// name="acts"/> is false above that, where nothing names it and it would stand over
-    /// requirements whose own heading says they act otherwise.
-    /// </para>
-    /// </remarks>
     internal static IReadOnlyList<SpecificationClause> Shared(
         IReadOnlyList<Requirement> requirements, bool acts = true)
     {
         if (requirements.Count == 0)
             return [];
 
-        // Hoisting must never empty a block, so the shortest requirement always keeps one clause.
         var limit = requirements.Min(requirement => requirement.Clauses.Count) - 1;
         List<SpecificationClause> shared = [];
         foreach (var clause in requirements[0].Clauses)

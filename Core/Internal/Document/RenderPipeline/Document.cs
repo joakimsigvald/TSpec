@@ -10,6 +10,8 @@ internal sealed record Document(
     IReadOnlyList<SpecificationClause> Whole,
     IReadOnlyList<DocumentNode> Areas)
 {
+    internal const int Width = 90;
+
     internal static Document Of(
         SpecificationSubject subject, string specAssemblyName, string buildId,
         IEnumerable<SpecificationEntry> entries)

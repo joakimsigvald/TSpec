@@ -14,8 +14,7 @@ internal class DocumentRenderer
         IEnumerable<SpecificationEntry> entries)
     {
         var doc = Document.Of(subject, specAssemblyName, buildId, entries);
-        Layout layout = new(doc);
-        return Render(layout.Segments);
+        return Render(Layout.Of(doc));
     }
 
     private static string Render(DocumentSegment[] segments)

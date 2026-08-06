@@ -15,21 +15,10 @@ internal record DocumentNode(
     internal bool HasKey => !string.IsNullOrEmpty(Key);
 
     /// How much a set of clauses arranges, which is every phase but the claim itself.
-    internal static int Arrangement(IReadOnlyList<SpecificationClause> clauses)
+    internal static int CountArrangements(IReadOnlyList<SpecificationClause> clauses)
         => clauses.Count(clause => clause.Phase != StepPhase.Assert);
 
-    /// <summary>
-    /// The arrangement stated at this heading plus that of everything under it.
-    /// </summary>
-    /// <remarks>
-    /// Assertions are not counted, and that is what makes summing upward safe: adding a requirement
-    /// to an existing branch changes no number anywhere in the tree, so no section moves. Only
-    /// arrangement appearing or disappearing can reorder the document, which is a structural change
-    /// worth seeing in the diff. Counting size instead would reshuffle whole subjects because one
-    /// line was added, spending the very thing the document is reviewed for.
-    /// </remarks>
-    internal virtual int ComplexityNumber
-        => Arrangement(Shared) + Children.Sum(child => child.ComplexityNumber);
+    internal virtual int ComplexityNumber => CountArrangements(Shared) + Children.Sum(child => child.ComplexityNumber);
 }
 
 /// The one node that holds requirements rather than nodes, and so ends the walk.
@@ -39,5 +28,5 @@ internal sealed record BranchNode(
     : DocumentNode(Key, Heading, Level, Shared, Declaration: default, Children: [])
 {
     internal override int ComplexityNumber
-        => Arrangement(Shared) + Requirements.Sum(requirement => requirement.Arrangement);
+        => CountArrangements(Shared) + Requirements.Sum(requirement => requirement.ArrangementCount);
 }

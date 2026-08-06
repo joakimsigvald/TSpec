@@ -14,6 +14,10 @@ namespace TSpec.Internal.Specification;
 /// </remarks>
 internal static class SpecificationRenderer
 {
+    internal static ComposedText Compose(
+        IReadOnlyList<SpecificationClause> clauses, string? because, string? returns = null)
+        => Compose(Steps(clauses, returns), because);
+
     internal static ComposedText Compose(IEnumerable<SpecificationStep> steps, string? because)
     {
         var position = new Position();
@@ -26,6 +30,16 @@ internal static class SpecificationRenderer
 
         return new(units);
     }
+
+    private static IEnumerable<SpecificationStep> Steps(
+        IReadOnlyList<SpecificationClause> clauses, string? returns)
+        => clauses.SelectMany(clause => returns is not null && clause.Family == StepFamily.When
+            ? [.. clause.Steps, new SpecificationStep(StepLayout.Word)
+                {
+                    Body = $"returns {returns}",
+                    Binder = ", ",
+                }]
+            : clause.Steps);
 
     private static void Append(List<TextUnit> units, SpecificationStep step, Position position)
     {
