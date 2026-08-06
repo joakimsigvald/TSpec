@@ -13,7 +13,7 @@ internal sealed record Requirement(
         get
         {
             var name = Entry.Requirement.AsHeading();
-            var stated = Layout.StatedWord(name);
+            var stated = DocumentRenderer.StatedWord(name);
             return stated is not null
                 && name.StartsWith($"{stated} ", StringComparison.Ordinal)
                     ? name[(stated.Length + 1)..]
