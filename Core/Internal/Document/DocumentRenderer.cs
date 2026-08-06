@@ -53,48 +53,34 @@ internal class DocumentRenderer
     private void AppendRequirements()
     {
         Append("\n---\n");
-        Areas(_requirements, _whole).ForEach(RenderArea);
+        Areas(_requirements, _whole).ForEach(area => AppendNode(area, _declared));
+    }
 
-        void RenderArea(AreaNode area)
-        {
-            if (area.Key.Length > 0)
-                Append(Heading(1, area.Key.AsHeading(), area.Declaration.Except(_declared), area.Shared));
+    /// <summary>
+    /// A node, then whatever runs below it. <paramref name="stated"/> is everything the headings
+    /// above have already declared, so each heading states only what is new at it.
+    /// </summary>
+    private void AppendNode(DocumentNode node, Declared stated)
+    {
+        if (node.Heading is not null)
+            Append(Heading(node.Level, node.Heading, node.Declaration.Except(stated), node.Shared));
 
-            var grouped = area.Groups.Length > 1;
-            area.Groups.ForEach(RenderGroup);
+        if (node is BranchNode branch)
+            AppendLeaves(branch);
+        else
+            node.Children.ForEach(section => AppendNode(section, stated.And(node.Declaration)));
+    }
 
-            void RenderGroup(GroupNode group)
-            {
-                if (grouped)
-                    Append(Heading(2, group.Key.AsTitle(),
-                        group.Declaration.Except(_declared).Except(area.Declaration), group.Shared));
-                int subjectLevel = grouped ? 3 : 2;
-                group.Subjects.ForEach(RenderSubject);
-
-                void RenderSubject(SubjectNode subjectNode)
-                {
-                    Append(Heading(subjectLevel, subjectNode.Key.AsHeading(),
-                                    subjectNode.Declaration.Except(_declared).Except(area.Declaration)
-                                        .Except(group.Declaration),
-                                    subjectNode.Shared));
-                    subjectNode.Branches.ForEach(RenderBranch);
-
-                    void RenderBranch(BranchNode branch)
-                    {
-                        if (branch.Key.Length > 0)
-                            Append(Heading(subjectLevel + 1, branch.Key.AsHeading(), default, branch.Shared));
-                        Append("\n");
-                        branch.Requirements.ForEach(r => Append(Leaf(r)));
-                    }
-                }
-            }
-        }
+    private void AppendLeaves(BranchNode branch)
+    {
+        Append("\n");
+        branch.Requirements.ForEach(requirement => Append(Leaf(requirement)));
     }
 
     private static string Heading(int level, string heading, Declared declared, IReadOnlyList<SpecificationClause> shared)
         => $"\n{new string('#', level)} {heading}\n{HeadingBlock(declared, shared, StatedWord(heading))}";
 
-    private static AreaNode[] Areas(
+    private static DocumentNode[] Areas(
         Requirement[] requirements, IReadOnlyList<SpecificationClause> hoisted)
     {
         var rootLength = GetCommonRootLength(requirements);
@@ -137,53 +123,61 @@ internal class DocumentRenderer
     private static string[] Segments(string? @namespace)
         => @namespace?.Split('.', StringSplitOptions.RemoveEmptyEntries) ?? [];
 
-    private static AreaNode ToArea(IGrouping<string, Requirement> area, int areaIndex)
+    /// An area heads at the title's own level, there being none above it.
+    private const int AreaLevel = 1;
+
+    private const int GroupLevel = AreaLevel + 1;
+
+    private static DocumentNode ToArea(IGrouping<string, Requirement> area, int areaIndex)
     {
         var ofArea = area.ToArray();
-        var shared = area.Key.Length > 0 ? SharedClauses(ofArea, acts: false) : [];
-        var declared = area.Key.Length > 0 ? Declaration(ofArea, returns: false) : default;
+        var heads = area.Key.Length > 0;
+        var shared = heads ? SharedClauses(ofArea, acts: false) : [];
+        var declared = heads ? Declaration(ofArea, returns: false) : default;
         var groups = ofArea
             .Select(requirement => requirement.Without(shared))
             .GroupBy(requirement => Group(requirement.Entry.Namespace, areaIndex + 1))
             .ToArray();
-        return new(area.Key, shared, declared, 
+        return new(area.Key, heads ? area.Key.AsHeading() : null, AreaLevel, shared, declared,
             Order(groups.Select(group => ToGroup(group, heads: groups.Length > 1))));
     }
 
-    private static GroupNode ToGroup(IGrouping<string, Requirement> group, bool heads)
+    private static DocumentNode ToGroup(IGrouping<string, Requirement> group, bool heads)
     {
         var ofGroup = group.ToArray();
         var shared = heads ? SharedClauses(ofGroup, acts: false) : [];
         var declared = heads ? Declaration(ofGroup, returns: false) : default;
-        return new(group.Key, shared, declared, 
+        // A lone group heads nothing, so what it would head runs at the level it did not take.
+        var subjectLevel = heads ? GroupLevel + 1 : GroupLevel;
+        return new(group.Key, heads ? group.Key.AsTitle() : null, GroupLevel, shared, declared,
             Order(ofGroup
             .Select(requirement => requirement.Without(shared))
             .GroupBy(requirement => requirement.Entry.Subject)
-            .Select(ToSubject)));
+            .Select(subject => ToSubject(subject, subjectLevel))));
     }
 
-    private static TNode[] Order<TNode>(IEnumerable<TNode> nodes)
-        where TNode : DocumentNode
-        => [..nodes.OrderBy(node => node.Key.Length > 0)
+    private static DocumentNode[] Order(IEnumerable<DocumentNode> nodes)
+        => [..nodes.OrderBy(node => node.HasKey)
             .ThenBy(node => node.ComplexityNumber)
             .ThenBy(node => node.Key, StringComparer.Ordinal)];
 
-    private static SubjectNode ToSubject(IGrouping<string, Requirement> group)
+    private static DocumentNode ToSubject(IGrouping<string, Requirement> group, int level)
     {
         var ofSubject = group.ToArray();
         var shared = SharedClauses(ofSubject);
-        return new(group.Key, shared, Declaration(ofSubject), 
+        return new(group.Key, group.Key.AsHeading(), level, shared, Declaration(ofSubject),
             Order(ofSubject
             .Select(requirement => requirement.Without(shared))
             .GroupBy(requirement => requirement.Entry.Branch)
-            .Select(ToBranch)));
+            .Select(branch => ToBranch(branch, level + 1))));
     }
 
-    private static BranchNode ToBranch(IGrouping<string, Requirement> group)
+    private static BranchNode ToBranch(IGrouping<string, Requirement> group, int level)
     {
         var ofBranch = group.ToArray();
-        var shared = group.Key.Length > 0 ? SharedClauses(ofBranch) : [];
-        return new(group.Key, shared, [.. ofBranch
+        var heads = group.Key.Length > 0;
+        var shared = heads ? SharedClauses(ofBranch) : [];
+        return new(group.Key, heads ? group.Key.AsHeading() : null, level, shared, [.. ofBranch
             .Select(requirement => requirement.Without(shared))
             .OrderBy(requirement => Arrangement(requirement.Clauses))
             .ThenBy(requirement => Render(
@@ -200,6 +194,10 @@ internal class DocumentRenderer
         internal Declared Except(Declared stated)
             => new(stated.Subject is null ? Subject : null,
                 stated.ReturnType is null ? ReturnType : null);
+
+        /// Everything declared so far, so that one <see cref="Except"/> covers every heading above.
+        internal Declared And(Declared below)
+            => new(Subject ?? below.Subject, ReturnType ?? below.ReturnType);
 
         internal string? Text => (Subject, ReturnType) switch
         {
@@ -371,35 +369,28 @@ internal class DocumentRenderer
         }
     }
 
-    private sealed record AreaNode(
-        string Key, IReadOnlyList<SpecificationClause> Shared, Declared Declaration, GroupNode[] Groups)
-        : DocumentGrouping<GroupNode>(Key, Shared, Groups);
+    /// <summary>
+    /// A node of the document as the renderer walks it: what heads it and at which level, what that
+    /// heading declares, and what runs below. A node that heads nothing has no <see cref="Heading"/>
+    /// — and declares nothing either, there being no heading for that to be declared at.
+    /// </summary>
+    private record DocumentNode(
+        string Key, string? Heading, int Level, IReadOnlyList<SpecificationClause> Shared,
+        Declared Declaration, IReadOnlyList<DocumentNode> Children)
+    {
+        internal bool HasKey => !string.IsNullOrEmpty(Key);
 
-    private sealed record GroupNode(
-        string Key, IReadOnlyList<SpecificationClause> Shared, Declared Declaration, SubjectNode[] Subjects)
-        : DocumentGrouping<SubjectNode>(Key, Shared, Subjects);
+        internal virtual int ComplexityNumber
+            => Arrangement(Shared) + Children.Sum(child => child.ComplexityNumber);
+    }
 
-    private sealed record SubjectNode(
-        string Key, IReadOnlyList<SpecificationClause> Shared, Declared Declaration, BranchNode[] Branches)
-        : DocumentGrouping<BranchNode>(Key, Shared, Branches);
-
+    /// The one node that holds requirements rather than nodes, and so ends the walk.
     private sealed record BranchNode(
-        string Key, IReadOnlyList<SpecificationClause> Shared, Requirement[] Requirements) : DocumentNode(Key, Shared)
+        string Key, string? Heading, int Level, IReadOnlyList<SpecificationClause> Shared,
+        Requirement[] Requirements)
+        : DocumentNode(Key, Heading, Level, Shared, Declaration: default, Children: [])
     {
         internal override int ComplexityNumber
             => Arrangement(Shared) + Requirements.Sum(requirement => Arrangement(requirement.Clauses));
-    }
-
-    private abstract record DocumentGrouping<TChild>(
-        string Key, IReadOnlyList<SpecificationClause> Shared, TChild[] Children) : DocumentNode(Key, Shared)
-        where TChild : DocumentNode
-    {
-        internal override int ComplexityNumber 
-            => Arrangement(Shared) + Children.Sum(branch => branch.ComplexityNumber);
-    }
-
-    private abstract record DocumentNode(string Key, IReadOnlyList<SpecificationClause> Shared)
-    {
-        internal abstract int ComplexityNumber { get; }
     }
 }
