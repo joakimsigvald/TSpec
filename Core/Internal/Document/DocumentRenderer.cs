@@ -1,6 +1,5 @@
 using System.Text;
 using TSpec.Internal.Specification;
-using Xunit.Internal;
 
 namespace TSpec.Internal.Document;
 
@@ -53,7 +52,8 @@ internal class DocumentRenderer
     private void AppendRequirements()
     {
         Append("\n---\n");
-        Areas(_requirements, _whole).ForEach(area => AppendNode(area, _declared));
+        foreach (var area in Areas(_requirements, _whole))
+            AppendNode(area, _declared);
     }
 
     /// <summary>
@@ -68,13 +68,15 @@ internal class DocumentRenderer
         if (node is BranchNode branch)
             AppendLeaves(branch);
         else
-            node.Children.ForEach(section => AppendNode(section, stated.And(node.Declaration)));
+            foreach (var section in node.Children)
+                AppendNode(section, stated.And(node.Declaration));
     }
 
     private void AppendLeaves(BranchNode branch)
     {
         Append("\n");
-        branch.Requirements.ForEach(requirement => Append(Leaf(requirement)));
+        foreach (var requirement in branch.Requirements)
+            Append(Leaf(requirement));
     }
 
     private static string Heading(int level, string heading, Declared declared, IReadOnlyList<SpecificationClause> shared)
