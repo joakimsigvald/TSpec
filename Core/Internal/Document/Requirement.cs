@@ -1,3 +1,4 @@
+using TSpec.Internal.Document.RenderPipeline;
 using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.Document;

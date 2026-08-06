@@ -1,4 +1,4 @@
-namespace TSpec.Internal.Document;
+namespace TSpec.Internal.Document.RenderPipeline;
 
 /// <summary>
 /// What a heading declares about the code it describes. Each label is carried separately, and null

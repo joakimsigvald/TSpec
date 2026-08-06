@@ -1,6 +1,6 @@
 using TSpec.Internal.Specification;
 
-namespace TSpec.Internal.Document;
+namespace TSpec.Internal.Document.RenderPipeline;
 
 /// <summary>
 /// Where composed text becomes characters on a page of a given width. Nothing here knows what a

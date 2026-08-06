@@ -1,6 +1,6 @@
 using TSpec.Internal.Specification;
 
-namespace TSpec.Internal.Document;
+namespace TSpec.Internal.Document.RenderPipeline;
 
 /// <summary>
 /// A node of the document: what heads it and at which level, what that heading declares, what it

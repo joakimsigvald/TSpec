@@ -1,3 +1,5 @@
+using TSpec.Internal.Document.RenderPipeline;
+
 namespace TSpec.Internal.Document;
 
 /// <summary>

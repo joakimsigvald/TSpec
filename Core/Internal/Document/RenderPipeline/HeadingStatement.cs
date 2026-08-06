@@ -1,7 +1,7 @@
 using TSpec.Internal.Specification;
-using static TSpec.Internal.Document.DocumentText;
+using static TSpec.Internal.Document.RenderPipeline.DocumentText;
 
-namespace TSpec.Internal.Document;
+namespace TSpec.Internal.Document.RenderPipeline;
 
 /// <summary>
 /// What a heading says about itself: what it declares, then the clauses hoisted to it. Nothing to

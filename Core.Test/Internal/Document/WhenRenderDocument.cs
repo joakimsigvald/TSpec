@@ -1,5 +1,6 @@
 ﻿using TSpec.Assert;
 using TSpec.Internal.Document;
+using TSpec.Internal.Document.RenderPipeline;
 using TSpec.Internal.Specification;
 
 namespace TSpec.Test.Internal.Document;

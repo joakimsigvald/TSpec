@@ -1,6 +1,6 @@
 using TSpec.Internal.Specification;
 
-namespace TSpec.Internal.Document;
+namespace TSpec.Internal.Document.RenderPipeline;
 
 /// <summary>
 /// What the document is made of, settled before a character of it is written. The renderer reads
