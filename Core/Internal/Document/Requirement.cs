@@ -13,6 +13,15 @@ internal sealed record Requirement(
     /// How much this requirement arranges before it claims anything.
     internal int Arrangement => DocumentNode.Arrangement(Clauses);
 
+    /// <summary>
+    /// How much this requirement says, counted in the steps' own words. A measure of the text
+    /// rather than of the page: what it comes to once laid out depends on the width it is written
+    /// at, and an order that moved with the width would reshuffle the document for a setting.
+    /// </summary>
+    internal int Size
+        => Clauses.Sum(clause => clause.Steps.Sum(step => step.Body.Length))
+            + (Entry.Because?.Length ?? 0);
+
     /// The requirements of a run, one per distinct thing said.
     internal static IEnumerable<Requirement> From(IEnumerable<SpecificationEntry> entries)
         => entries

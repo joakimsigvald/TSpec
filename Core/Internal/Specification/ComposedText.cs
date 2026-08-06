@@ -26,6 +26,9 @@ internal readonly record struct TextUnit(string Text, int? Indentation, string B
 /// </summary>
 internal sealed record ComposedText(IReadOnlyList<TextUnit> Units, bool OpensSentence = true)
 {
+    private const int Tolerance = 10;
+    private const int ContinuationIndentation = 2;
+
     /// <summary>
     /// The text without its opening word, where something above it has already said that word.
     /// What remains no longer opens the sentence — the heading did — so it keeps its own case.
@@ -61,6 +64,9 @@ internal sealed record ComposedText(IReadOnlyList<TextUnit> Units, bool OpensSen
                 OpensSentence: false)
             : this;
     }
+
+    internal string Fit(int maxLineLength)
+        => Render(maxLineLength, ContinuationIndentation, Tolerance).NormalizeLineEndings();
 
     /// The text laid out for the width it is written into. The last thing done to it.
     internal string Render(int maxLineLength, int wrapIndentation = 3, int tolerance = 0)

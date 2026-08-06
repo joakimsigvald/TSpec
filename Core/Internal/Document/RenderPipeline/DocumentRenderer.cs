@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace TSpec.Internal.Document.RenderPipeline;
 
 /// <summary>
@@ -11,9 +13,16 @@ internal class DocumentRenderer
         SpecificationSubject subject, string specAssemblyName, string buildId,
         IEnumerable<SpecificationEntry> entries)
     {
-        Represent represent = new(subject, specAssemblyName, buildId, entries);
-        Layout layout = new(represent.Document);
-        Render render = new(layout.Segments);
-        return render.ToString();
+        var doc = Document.Of(subject, specAssemblyName, buildId, entries);
+        Layout layout = new(doc);
+        return Render(layout.Segments);
+    }
+
+    private static string Render(DocumentSegment[] segments)
+    {
+        StringBuilder text = new();
+        foreach (var segment in segments)
+            text.Append(segment.Render());
+        return text.ToString();
     }
 }

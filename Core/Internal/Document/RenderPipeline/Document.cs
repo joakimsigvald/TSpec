@@ -2,24 +2,6 @@ using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.Document.RenderPipeline;
 
-/// <summary>
-/// What the document is made of, settled before a character of it is written. The renderer reads
-/// this and nothing else, and never writes back to it.
-/// </summary>
-/// <remarks>
-/// It carries every decision that can be made without measuring rendered text — what heads a
-/// section, what it declares, what runs under it. Choices that depend on how wide something turns
-/// out to be stay with the renderer, since width is the renderer's variable, and so does order:
-/// what a document contains is structure, the sequence it reads in is presentation.
-/// <para>
-/// That is also the rule for what may be stored here: composed text, never text that has been
-/// through <see cref="DocumentText.Fit"/>.
-/// </para>
-/// <para>
-/// <c>Whole</c> is what every requirement in the document states, which the document says once of
-/// itself. The act is left out of it: nothing above a subject is named after the act.
-/// </para>
-/// </remarks>
 internal sealed record Document(
     SpecificationSubject Subject,
     string SpecAssemblyName,
@@ -38,16 +20,10 @@ internal sealed record Document(
             Declared.Of(requirements, returns: false), whole, ToAreas(requirements, whole));
     }
 
-    /// An area heads at the title's own level, there being none above it.
     private const int AreaLevel = 1;
 
     private const int GroupLevel = AreaLevel + 1;
 
-    /// <summary>
-    /// The areas of the system — one per namespace segment the specs differ in, which is the folder
-    /// they were written in. Specs at the shared root belong to no area and keep the title as their
-    /// heading, so they head nothing of their own.
-    /// </summary>
     private static DocumentNode[] ToAreas(
         Requirement[] requirements, IReadOnlyList<SpecificationClause> hoisted)
     {
@@ -72,11 +48,6 @@ internal sealed record Document(
             [.. groups.Select(group => ToGroup(group, heads: groups.Length > 1))]);
     }
 
-    /// <summary>
-    /// One group of an area and the subjects under it. A lone group heads nothing — the area above
-    /// it already divides exactly what it would — so it states nothing of its own either, and what
-    /// it would have headed runs at the level it did not take.
-    /// </summary>
     private static DocumentNode ToGroup(IGrouping<string, Requirement> group, bool heads)
     {
         var ofGroup = group.ToArray();
@@ -110,12 +81,6 @@ internal sealed record Document(
             [.. ofBranch.Select(requirement => requirement.Without(shared))]);
     }
 
-    /// <summary>
-    /// How many leading namespace segments every spec shares. Below that is where they differ, and
-    /// the segment right below it names an area — so a document whose specs share one namespace has
-    /// no areas at all, which is right twice over: nothing to tell apart, and a heading spanning
-    /// everything states nothing.
-    /// </summary>
     private static int CommonRootDepth(Requirement[] requirements)
     {
         var paths = requirements.Select(requirement => Segments(requirement.Entry.Namespace)).ToArray();
@@ -137,18 +102,12 @@ internal sealed record Document(
         return common;
     }
 
-    /// The area a spec belongs to: the first namespace segment below the shared root.
     private static string AreaOf(string? @namespace, int rootDepth)
     {
         var segments = Segments(@namespace);
         return segments.Length > rootDepth ? segments[rootDepth] : string.Empty;
     }
 
-    /// <summary>
-    /// The group a spec belongs to within its area: whatever is left of its namespace below the
-    /// area, as one dotted key. Merged rather than nested a segment at a time — the levels a
-    /// document can tell apart are nearly spent by the area, and what is left names one thing.
-    /// </summary>
     private static string GroupOf(string? @namespace, int depth)
         => string.Join('.', Segments(@namespace).Skip(depth));
 
