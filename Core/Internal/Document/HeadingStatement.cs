@@ -9,16 +9,11 @@ namespace TSpec.Internal.Document;
 /// </summary>
 internal static class HeadingStatement
 {
-    /// Heading for a group, followed by hoisted clauses and declarations from the group.
-    internal static string Heading(
-        int level, string heading, Declared declared, IReadOnlyList<SpecificationClause> shared)
-        => $"\n{new string('#', level)} {heading}\n{Says(declared, shared, StatedWord(heading))}";
-
     /// <summary>
-    /// The statement on its own, for the document itself — which has the title for a heading and
-    /// so has no lead word for its clauses to keep.
+    /// What a heading states, unfenced: what it declares, then the clauses hoisted to it. Empty
+    /// where there is nothing to say, so a heading never opens an empty block.
     /// </summary>
-    internal static string Says(
+    internal static string Body(
         Declared declared, IReadOnlyList<SpecificationClause> shared, string? stated)
     {
         var above = declared with { ReturnType = null };
@@ -34,8 +29,7 @@ internal static class HeadingStatement
             ? null
             : Clauses(says, shared, joins ? declared.ReturnType : null, stated);
         string?[] parts = [says.Text, clauses, trails ? declared.ReturnLine : null];
-        var body = string.Join("\n", parts.Where(part => !string.IsNullOrEmpty(part)));
-        return body.Length == 0 ? string.Empty : Block(body);
+        return string.Join("\n", parts.Where(part => !string.IsNullOrEmpty(part)));
     }
 
     /// <summary>
