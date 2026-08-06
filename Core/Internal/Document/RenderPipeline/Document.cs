@@ -6,7 +6,7 @@ internal sealed record Document(
     SpecificationSubject Subject,
     string SpecAssemblyName,
     string BuildId,
-    Declared Declared,
+    string? SubjectUnderTest,
     IReadOnlyList<SpecificationClause> Whole,
     IReadOnlyList<DocumentNode> Areas)
 {
@@ -19,7 +19,7 @@ internal sealed record Document(
         Requirement[] requirements = [.. Requirement.From(entries)];
         var whole = Requirement.Shared(requirements, acts: false);
         return new(subject, specAssemblyName, buildId,
-            Declared.Of(requirements, returns: false), whole, ToAreas(requirements, whole));
+            Requirement.SubjectOf(requirements), whole, ToAreas(requirements, whole));
     }
 
     private const int AreaLevel = 1;
@@ -41,12 +41,13 @@ internal sealed record Document(
         var ofArea = area.ToArray();
         var heads = area.Key.Length > 0;
         var shared = heads ? Requirement.Shared(ofArea, acts: false) : [];
-        var declared = heads ? Declared.Of(ofArea, returns: false) : default;
+        var subject = heads ? Requirement.SubjectOf(ofArea) : null;
         var groups = ofArea
             .Select(requirement => requirement.Without(shared))
             .GroupBy(requirement => GroupOf(requirement.Entry.Namespace, rootDepth + 1))
             .ToArray();
-        return new(area.Key, heads ? area.Key.AsHeading() : null, AreaLevel, shared, declared,
+        return new(area.Key, heads ? area.Key.AsHeading() : null, AreaLevel, shared,
+            subject, ReturnType: null,
             [.. groups.Select(group => ToGroup(group, heads: groups.Length > 1))]);
     }
 
@@ -54,9 +55,10 @@ internal sealed record Document(
     {
         var ofGroup = group.ToArray();
         var shared = heads ? Requirement.Shared(ofGroup, acts: false) : [];
-        var declared = heads ? Declared.Of(ofGroup, returns: false) : default;
+        var subject = heads ? Requirement.SubjectOf(ofGroup) : null;
         var subjectLevel = heads ? GroupLevel + 1 : GroupLevel;
-        return new(group.Key, heads ? group.Key.AsTitle() : null, GroupLevel, shared, declared,
+        return new(group.Key, heads ? group.Key.AsTitle() : null, GroupLevel, shared,
+            subject, ReturnType: null,
             [.. ofGroup
             .Select(requirement => requirement.Without(shared))
             .GroupBy(requirement => requirement.Entry.Subject)
@@ -67,7 +69,8 @@ internal sealed record Document(
     {
         var ofSubject = group.ToArray();
         var shared = Requirement.Shared(ofSubject);
-        return new(group.Key, group.Key.AsHeading(), level, shared, Declared.Of(ofSubject),
+        return new(group.Key, group.Key.AsHeading(), level, shared,
+            Requirement.SubjectOf(ofSubject), Requirement.ReturnTypeOf(ofSubject),
             [.. ofSubject
             .Select(requirement => requirement.Without(shared))
             .GroupBy(requirement => requirement.Entry.Branch)

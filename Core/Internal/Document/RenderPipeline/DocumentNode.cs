@@ -10,7 +10,7 @@ namespace TSpec.Internal.Document.RenderPipeline;
 /// </summary>
 internal record DocumentNode(
     string Key, string? Heading, int Level, IReadOnlyList<SpecificationClause> Shared,
-    Declared Declaration, IReadOnlyList<DocumentNode> Children)
+    string? SubjectUnderTest, string? ReturnType, IReadOnlyList<DocumentNode> Children)
 {
     internal bool HasKey => !string.IsNullOrEmpty(Key);
 
@@ -25,7 +25,7 @@ internal record DocumentNode(
 internal sealed record BranchNode(
     string Key, string? Heading, int Level, IReadOnlyList<SpecificationClause> Shared,
     Requirement[] Requirements)
-    : DocumentNode(Key, Heading, Level, Shared, Declaration: default, Children: [])
+    : DocumentNode(Key, Heading, Level, Shared, SubjectUnderTest: null, ReturnType: null, Children: [])
 {
     internal override int ComplexityNumber
         => CountArrangements(Shared) + Requirements.Sum(requirement => requirement.ArrangementCount);

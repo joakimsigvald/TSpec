@@ -44,6 +44,24 @@ internal sealed record Requirement(
             .Select(step => $"{step.Family}:{step.Body}")
             .Append(entry.Because ?? string.Empty));
 
+    internal static string? SubjectOf(IReadOnlyList<Requirement> requirements)
+    {
+        var first = requirements.FirstOrDefault()?.Entry;
+        return first?.SubjectUnderTest is not null
+            && requirements.All(r => r.Entry.SubjectUnderTest == first.SubjectUnderTest)
+                ? first.SubjectUnderTest
+                : null;
+    }
+
+    internal static string? ReturnTypeOf(IReadOnlyList<Requirement> requirements)
+    {
+        var first = requirements.FirstOrDefault()?.Entry;
+        return first?.SubjectUnderTest is not null
+            && requirements.All(r => r.Entry.ReturnType == first.ReturnType)
+                ? first.ReturnType
+                : null;
+    }
+
     internal static IReadOnlyList<SpecificationClause> Shared(
         IReadOnlyList<Requirement> requirements, bool acts = true)
     {
