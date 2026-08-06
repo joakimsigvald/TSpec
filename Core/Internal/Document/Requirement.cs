@@ -9,6 +9,9 @@ namespace TSpec.Internal.Document;
 internal sealed record Requirement(
     SpecificationEntry Entry, IReadOnlyList<SpecificationClause> Clauses, string Signature)
 {
+    /// How much this requirement arranges before it claims anything.
+    internal int Arrangement => DocumentNode.Arrangement(Clauses);
+
     /// The requirements of a run, one per distinct thing said.
     internal static IEnumerable<Requirement> From(IEnumerable<SpecificationEntry> entries)
         => entries
