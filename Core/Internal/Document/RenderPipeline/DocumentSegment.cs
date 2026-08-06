@@ -10,7 +10,4 @@ internal sealed record DocumentSegment(
     DocumentStyle Style,
     string? Text = null,
     int Level = 0,
-    ComposedText? Content = null)
-{
-    internal static DocumentSegment Ruler => new(DocumentStyle.Ruler);
-}
+    ComposedText? Content = null);

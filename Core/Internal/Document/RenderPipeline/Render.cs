@@ -20,9 +20,12 @@ internal class Render(DocumentSegment[] segments)
     private static string Rendered(DocumentSegment segment) => segment.Style switch
     {
         DocumentStyle.Code => Block(segment.Text!),
+        DocumentStyle.Title => $"# {segment.Text}\n",
         DocumentStyle.Heading => $"\n{new string('#', segment.Level)} {segment.Text}\n",
         DocumentStyle.Ruler => "\n---\n",
-        DocumentStyle.Item => Item(segment.Text!, segment.Content!),
+        DocumentStyle.Line => $"{segment.Text}\n",
+        DocumentStyle.ListItem => Item(segment.Text!, segment.Content!),
+        DocumentStyle.Comment => $"\n<!-- {segment.Text} -->\n",
         _ => segment.Text!,
     };
 
