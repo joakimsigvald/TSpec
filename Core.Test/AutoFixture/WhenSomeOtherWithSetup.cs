@@ -18,7 +18,7 @@ public class WhenSomeOtherWithSetup : Spec<MyRetriever, MyModel[]>
             Using some other MyModel { Id = the int, an int { 1 + i % 10 } }
             When List()
             Then Result has count 'the int' = {{{The<int>()}}}
-            Result has all m.Id == the int
+              and Result has all m.Id == the int
             """);
     }
 }

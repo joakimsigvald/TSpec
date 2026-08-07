@@ -24,10 +24,13 @@ public class WhenRenderDocument : Spec
             "when api.GetAsync(\"/version\")",
             "then Result.StatusCode is HttpStatusCode.OK"));
 
-    /// The document takes described steps, so a test that is about layout rather than about
-    /// description supplies the simplest step there is: one sentence per line.
-    private static SpecificationStep[] Sentences(params string[] sentences)
-        => [.. sentences.Select(sentence => new SpecificationStep(StepLayout.Sentence) { Body = sentence })];
+    /// The document takes described clauses, so a test that is about layout rather than about
+    /// description supplies the simplest clause there is: one sentence, saying one thing.
+    private static SpecificationClause[] Sentences(params string[] sentences)
+        => [.. sentences.Select(sentence => Clause(StepLayout.Sentence, StepFamily.None, sentence))];
+
+    private static SpecificationClause Clause(StepLayout layout, StepFamily family, string body)
+        => new([new SpecificationStep(layout) { Family = family, Body = body }]);
 
     private static string Render(params SpecificationEntry[] entries)
         => DocumentRenderer.Render(_myHotel, "MyHotel.Spec", "4f2a9c1e", entries);
@@ -109,27 +112,27 @@ public class WhenRenderDocument : Spec
     /// <summary>The specification is built with Environment.NewLine, so it comes back CRLF on Windows.</summary>
     [Fact]
     public void ThenNormaliseLineEndingsToLf()
-        => Render(_respondOk with { Steps = Sentences("when a", "then b") })
+        => Render(_respondOk with { Clauses = Sentences("when a", "then b") })
             .Does().Contain("When a\n  Then b").and.not.Contain("\r");
 
     // ----------- A heading states the context, and the requirements under it are a list
 
-    private static SpecificationStep Using(string body)
-        => new(StepLayout.SentenceOrPhrase) { Family = StepFamily.Using, Body = body };
+    private static SpecificationClause Using(string body)
+        => Clause(StepLayout.SentenceOrPhrase, StepFamily.Using, body);
 
-    private static SpecificationStep Act(string body)
-        => new(StepLayout.SentenceOrPhrase) { Family = StepFamily.When, Body = body };
+    private static SpecificationClause Act(string body)
+        => Clause(StepLayout.SentenceOrPhrase, StepFamily.When, body);
 
     /// An assertion heading its own line, which is the one clause with no family.
-    private static SpecificationStep Claim(string body)
-        => new(StepLayout.Sentence) { Body = body };
+    private static SpecificationClause Claim(string body)
+        => Clause(StepLayout.Sentence, StepFamily.None, body);
 
-    private static SpecificationStep Condition(string body)
-        => new(StepLayout.SentenceOrPhrase) { Family = StepFamily.Having, Body = body };
+    private static SpecificationClause Condition(string body)
+        => Clause(StepLayout.SentenceOrPhrase, StepFamily.Having, body);
 
     private static SpecificationEntry Requirement(
-        string subject, string name, params SpecificationStep[] steps)
-        => new(subject, "", name, steps);
+        string subject, string name, params SpecificationClause[] clauses)
+        => new(subject, "", name, clauses);
 
     /// <summary>
     /// One statement under a heading is written inline, where a fence would be an element of its own
@@ -172,7 +175,7 @@ public class WhenRenderDocument : Spec
     [Fact]
     public void GivenABranchOpensAlike_ThenStateThatOnceForTheBranch()
     {
-        SpecificationEntry OfBranch(string branch, string name, params SpecificationStep[] own)
+        SpecificationEntry OfBranch(string branch, string name, params SpecificationClause[] own)
             => new("WhenGetRoom", branch, name, [Using("api"), Act("get"), .. own]);
         Render(
             OfBranch("GivenTheRoomExists", "ThenA", Condition("post"), Claim("then a")),
@@ -259,7 +262,7 @@ public class WhenRenderDocument : Spec
     public void GivenOneRequirementSaysSomethingElse_ThenLeaveThatClauseInPlace()
     {
         var requirements = TwoSubjects()[..3];
-        requirements[2] = requirements[2] with { Steps = [Using("other"), Act("get"), Claim("then c")] };
+        requirements[2] = requirements[2] with { Clauses = [Using("other"), Act("get"), Claim("then c")] };
         Render(requirements).Does()
             .Contain("## When get room\n`get`\n")
             .and.Contain("- **Thena**\n  ```\n  Using api\n  Then a\n  ```\n")
@@ -271,7 +274,7 @@ public class WhenRenderDocument : Spec
     public void GivenARequirementIsNothingButTheSharedOpening_ThenLeaveTheOpeningInPlace()
     {
         var requirements = TwoSubjects()[..3];
-        requirements[2] = requirements[2] with { Steps = [Using("api")] };
+        requirements[2] = requirements[2] with { Clauses = [Using("api")] };
         Render(requirements).Does().Contain("-->\n\n---\n\n## ");
     }
 
@@ -716,8 +719,8 @@ public class WhenRenderDocument : Spec
     [Fact]
     public void GivenEveryRequirementOfAnAreaOpensAlike_ThenStateThatOnceForTheArea()
         => Render(
-            InNamespace("A.Rooms", "WhenAddRoom", "ThenA") with { Steps = [Condition("post"), Claim("then a")] },
-            InNamespace("A.Rooms", "WhenGetRoom", "ThenB") with { Steps = [Condition("post"), Claim("then b")] },
+            InNamespace("A.Rooms", "WhenAddRoom", "ThenA") with { Clauses = [Condition("post"), Claim("then a")] },
+            InNamespace("A.Rooms", "WhenGetRoom", "ThenB") with { Clauses = [Condition("post"), Claim("then b")] },
             InNamespace("A.Bookings", "WhenBook", "ThenC"))
             .Does().Contain("# Rooms\n`Having post`\n").and.Contain("- **a** — `a`\n");
 
@@ -725,7 +728,7 @@ public class WhenRenderDocument : Spec
     [Fact]
     public void GivenOneAreaArrangesMore_ThenPlaceTheSimplerFirst()
         => AreaHeadings(Render(
-            InNamespace("A.Aaa", "WhenA", "ThenA") with { Steps = [Condition("post"), Claim("then a")] },
+            InNamespace("A.Aaa", "WhenA", "ThenA") with { Clauses = [Condition("post"), Claim("then a")] },
             InNamespace("A.Zzz", "WhenB", "ThenB")))
             .Is().EqualTo(["# Zzz", "# Aaa"]);
 

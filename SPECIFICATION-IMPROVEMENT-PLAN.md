@@ -11,8 +11,9 @@ gets rendered. The test is why an item is wanted, not which layer it lands in: i
 the specification is the reason, and in `TODO.txt` when it is not. Laws and the stages past
 generation stay in [TSpec-vision.md](TSpec-vision.md).
 
-**State:** open for intake. Six observations (§4) — §4.5 shipped in 2.1.0, §4.3 closed, §4.6 next.
-Nine backlog items carried in at §5 and §6.
+**State:** open for intake. Seven observations (§4) — §4.5 and §4.6 built for 2.1.0, §4.3 closed,
+§4.7 waiting on a verbatim line. Nine backlog items carried in at §5 and §6, one of them (§5.2)
+closed by §4.6's fix.
 
 ## 1. Where the feedback comes from
 
@@ -192,8 +193,8 @@ Jarred:    two claims, no boundary between them — no line break, no binder, no
            reader where the first ends. It reads as one malformed claim about NotFound rather than
            as "it throws" plus "it called the repository".
 Wanted:    what a chained assertion already produces — `Then throws NotFound` / `  and
-           IMyRepository.GetModel()`. PO's ruling wanted on the binder before the fix lands.
-Status:    open, next
+           IMyRepository.GetModel()`.
+Status:    fixed 2026-08-07, unreleased
 ```
 
 Reproduced from scratch here, not sighted in a document, after the PO asked whether it had been
@@ -205,14 +206,36 @@ Note what does *not* exhibit it: `Then<IOrderService>(wasInvoked: Once).And<IOrd
 renders the second claim on its own line under `and`. The break is there for a chained assertion and
 missing for a second statement — so the text is right in one path and not the other.
 
-## 5. Carried in from 2.0.0
+### 4.7 A default `Throws` and a method setup merged into one line — not reproduced, outside suite (`TokenIssuer`), reported 2026-08-07
+
+```
+Rendered:  "Given IMyService throws some exception that some method returns some value"
+           (PO's recollection, not copied from the document — the real line is still wanted)
+From:      Given<IMyService>().Throws(someException);
+           Given<IMyService>().That(_ => _.SomeMethod).Returns(someValue);
+Jarred:    two arrangement clauses with no boundary, joined by a stray `that`.
+Wanted:    the two clauses on their own lines, as the per-test text already renders them.
+Status:    open, cannot reproduce
+```
+
+**Tried and correct in every case** — all four render `Given IMyService throws NotFound` / `  and
+GetModel() returns a MyModel`: `Throws<TEx>()` before `That`, `Throws(A<TEx>)` before `That`, `That`
+before either `Throws` overload, and a property setup rather than a method. Chaining with `.And<T>()`
+in one statement is identical to two separate statements. So the shape that breaks it is something
+else.
+
+Two threads worth pulling before asking again: the PO says it showed up **in `SPECIFICATION.md`**,
+and everything above was checked in the per-test text — the document is a separate path with
+hoisting, layout and wrapping on top. And a stray `that` is what the exception-property continuation
+produces (`throws RoomAlreadyExists that Message contains …`), which belongs to an assertion, not to
+a `Given` — so the recalled source may not be the source of the recalled line.
 
 Open at ship, by pointer rather than copy — [SPEC-GENERATION-PLAN.md](SPEC-GENERATION-PLAN.md) §5 is
 still the description of each. Listed here so intake does not re-file them as new.
 
 | # | In one line | Class | Blocked on |
 |---|---|---|---|
-| 5.2 | second assertion in a requirement starts an orphaned sentence | untrue-adjacent | phase-2 buffering |
+| ~~5.2~~ | ~~second assertion in a requirement starts an orphaned sentence~~ | fixed with §4.6 | — |
 | 5.3 | subject-wide assertion repeats in every branch instead of hoisting | noise | "who declared this" input |
 | 5.4 | binder silent across a hoist boundary — two `Having`s, nothing relating them | lost claim | not reachable in MyHotel |
 | 5.5 | nullable return type renders as non-nullable (`Room?` → `Room`) | lost claim | `NullabilityInfoContext`, not exhibited |

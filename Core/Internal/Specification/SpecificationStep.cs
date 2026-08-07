@@ -32,12 +32,18 @@ internal sealed record SpecificationStep(StepLayout Layout)
     /// names its service again.
     internal bool EndsMockRun { get; init; }
 
-    /// Then/that/conjunction open a chain, so the assertion that follows appends
-    /// to the line instead of starting a new sentence.
-    internal bool OpensAssertionChain { get; init; }
+    /// <summary>
+    /// Whether the step opens a statement without saying it — <c>Then</c>, a conjunction, the
+    /// <c>that</c> or <c>where</c> that hands off to a condition. What it introduces belongs to the
+    /// same statement, and a second introduction with nothing said between them is the same one.
+    /// </summary>
+    internal bool Introduces { get; init; }
 }
 
-/// How a step joins the text around it.
+/// <summary>
+/// How a step joins the text around it — and, since anything but a <see cref="Word"/> opens a
+/// clause, where one statement ends and the next begins.
+/// </summary>
 internal enum StepLayout
 {
     /// Contributes no text; recorded only for its effect on rendering state.
@@ -49,10 +55,8 @@ internal enum StepLayout
     /// Sentence when the composed text starts upper-case, phrase otherwise —
     /// which is how a lead word of "Given" and one of "and" part ways.
     SentenceOrPhrase,
-    /// Appends to the line in progress.
+    /// Appends to the statement in progress — or, with none in progress, starts one as a sentence.
     Word,
-    /// Appends while an assertion chain is open, starts a sentence otherwise.
-    AssertionHead,
 }
 
 /// <summary>

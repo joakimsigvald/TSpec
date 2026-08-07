@@ -128,9 +128,9 @@ public class GivenSomeSpecificElements : WhenList
   and IMyRepository.List() returns a MyModel[]
 When List()
 Then Result has count 3
-Result[0].Id is 1
-Result[1].Id is 2
-Result[2].Id is 3");
+  and Result[0].Id is 1
+  and Result[1].Id is 2
+  and Result[2].Id is 3");
     }
 
     [Fact]

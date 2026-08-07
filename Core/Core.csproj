@@ -24,6 +24,9 @@
 		<PackageReleaseNotes>
 			NEW
 			* Given&lt;TService&gt;().Returns(value) now applies to any method that can return the value.
+
+			FIXED
+			* A second assertion no longer runs into the first: each claim starts its own line.
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

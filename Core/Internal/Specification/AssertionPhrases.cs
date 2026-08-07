@@ -1,11 +1,10 @@
-namespace TSpec.Internal.Specification;
+﻿namespace TSpec.Internal.Specification;
 
 /// <summary>
 /// Describes the assertion steps: Then/That, asserts and their conjunctions,
-/// expected exceptions, and mock verifications. Whether an assert starts a
-/// sentence or continues one depends on what precedes it, so that decision is
-/// carried as <see cref="SpecificationStep.OpensAssertionChain"/> and made
-/// while rendering.
+/// expected exceptions, and mock verifications. <c>Then</c> and the conjunctions
+/// head a statement; everything else appends to the one in hand, so which claim a
+/// step belongs to is settled when it is recorded rather than inferred later.
 /// </summary>
 internal class AssertionPhrases(SpecificationRecording recording)
 {
@@ -13,21 +12,21 @@ internal class AssertionPhrases(SpecificationRecording recording)
         => recording.Record(() => recording.Add(new(StepLayout.SentenceOrPhrase)
         {
             Family = StepFamily.Then,
-            OpensAssertionChain = true,
+            Introduces = true,
         }));
 
     internal void AddThat()
         => recording.Record(() => recording.Add(new(StepLayout.Word)
         {
             Body = "that",
-            OpensAssertionChain = true,
+            Introduces = true,
         }));
 
     internal void AddAssert(string actual, string verb, string? expected)
         => recording.Record(() =>
         {
             // actual is already described text, not source code — never re-parse it
-            recording.Add(new(StepLayout.AssertionHead) { Body = actual });
+            recording.Claim(new(StepLayout.Word) { Body = actual });
             AddWord(verb.AsWords());
             AddWord(expected.Describe());
         });
@@ -40,11 +39,16 @@ internal class AssertionPhrases(SpecificationRecording recording)
         {
             Body = conjunction,
             Indentation = 2,
-            OpensAssertionChain = true,
+            Introduces = true,
         }));
 
     internal void AddAssertThrows<TError>(string? binder)
-        => recording.Record(() => AddWord($"throws {typeof(TError).Alias()} {binder}".Trim()));
+        => recording.Record(() => recording.Add(new(StepLayout.Word)
+        {
+            // A binder hands off to the condition that follows, which is the same claim continued.
+            Body = $"throws {typeof(TError).Alias()} {binder}".Trim(),
+            Introduces = binder is not null,
+        }));
 
     internal void AddAssertThrows(string expectedExpr)
         => recording.Record(() => AddWord($"throws {expectedExpr.Describe()}"));

@@ -47,10 +47,10 @@ internal class SpecificationContext : IAssertSpecificationContext
     public override string ToString() => _recording.ToString();
 
     /// <summary>
-    /// The described steps and their reason, for a consumer that arranges them
+    /// The described clauses and their reason, for a consumer that arranges them
     /// itself rather than taking the rendered text — the specification document.
     /// </summary>
-    internal IReadOnlyList<SpecificationStep> Steps => _recording.Steps;
+    internal IReadOnlyList<SpecificationClause> Clauses => _recording.Clauses;
     internal string? Because => _recording.Because;
 
     internal void AddWhen(string actExpr) => _action.AddWhen(actExpr);

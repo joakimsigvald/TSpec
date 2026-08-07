@@ -54,8 +54,8 @@ public class WhenNullableDateTime : Spec<DateTime?>
             When a _
             Then Result is before the DateTime?'s Value.AddDays(1)
                 and after the DateTime?'s Value.AddDays(-1)
-            Result is not before the DateTime?'s Value
-            Result is not after the DateTime?'s Value
+              and Result is not before the DateTime?'s Value
+              and Result is not after the DateTime?'s Value
             """);
     }
 }

@@ -1,11 +1,11 @@
 namespace TSpec.Internal.Specification;
 
 /// <summary>
-/// Phase two: turns described steps into specification text. Everything
-/// positional lives here — which lead word a step gets, whether a mocked
-/// service is named again, whether an assertion starts a sentence or continues
-/// one — so that the same steps rendered in a different arrangement come out
-/// correct rather than merely re-ordered.
+/// Phase two: turns described clauses into specification text. Everything
+/// positional lives here — which lead word a clause gets, whether a mocked
+/// service is named again — so that the same clauses rendered in a different
+/// arrangement come out correct rather than merely re-ordered. Where one
+/// statement ends is not decided here: it arrives as the clause boundary.
 /// </summary>
 /// <remarks>
 /// It composes, it does not lay out. What comes back says everything it will say and breaks no
@@ -16,14 +16,20 @@ internal static class SpecificationRenderer
 {
     internal static ComposedText Compose(
         IReadOnlyList<SpecificationClause> clauses, string? because, string? returns = null)
-        => Compose(Steps(clauses, returns), because);
-
-    internal static ComposedText Compose(IEnumerable<SpecificationStep> steps, string? because)
     {
         var position = new Position();
         List<TextUnit> units = [];
-        foreach (var step in steps)
-            Append(units, step, position);
+        foreach (var clause in clauses)
+        {
+            // By identity, not by value: a step can repeat its wording within one clause, as an
+            // assertion comparing a thing to itself does.
+            var head = true;
+            foreach (var step in Steps(clause, returns))
+            {
+                Append(units, step, position, isHead: head && step.Layout != StepLayout.Silent);
+                head &= step.Layout == StepLayout.Silent;
+            }
+        }
 
         if (because is not null)
             units.Add(TextUnit.Word($"because {because}", ", "));
@@ -31,17 +37,17 @@ internal static class SpecificationRenderer
         return new(units);
     }
 
-    private static IEnumerable<SpecificationStep> Steps(
-        IReadOnlyList<SpecificationClause> clauses, string? returns)
-        => clauses.SelectMany(clause => returns is not null && clause.Family == StepFamily.When
+    private static IEnumerable<SpecificationStep> Steps(SpecificationClause clause, string? returns)
+        => returns is not null && clause.Family == StepFamily.When
             ? [.. clause.Steps, new SpecificationStep(StepLayout.Word)
                 {
                     Body = $"returns {returns}",
                     Binder = ", ",
                 }]
-            : clause.Steps);
+            : clause.Steps;
 
-    private static void Append(List<TextUnit> units, SpecificationStep step, Position position)
+    private static void Append(
+        List<TextUnit> units, SpecificationStep step, Position position, bool isHead)
     {
         if (step.EndsMockRun)
             position.EndMockRun();
@@ -49,29 +55,16 @@ internal static class SpecificationRenderer
             return;
 
         var content = Content(step, position);
-        switch (step.Layout)
+        units.Add(step.Layout switch
         {
-            case StepLayout.Sentence:
-                units.Add(Sentence(content));
-                break;
-            case StepLayout.Phrase:
-                units.Add(TextUnit.Line(content, step.Indentation));
-                break;
-            case StepLayout.SentenceOrPhrase:
-                units.Add(char.IsUpper(content[0]) ? Sentence(content) : TextUnit.Line(content, 1));
-                break;
-            case StepLayout.AssertionHead:
-                units.Add(position.IsAssertionChainOpen
-                    ? TextUnit.Word(content, " ")
-                    : Sentence(content));
-                position.CloseAssertionChain();
-                break;
-            default:
-                units.Add(TextUnit.Word(content, step.Binder));
-                break;
-        }
-        if (step.OpensAssertionChain)
-            position.OpenAssertionChain();
+            StepLayout.Sentence => Sentence(content),
+            StepLayout.Phrase => TextUnit.Line(content, step.Indentation),
+            StepLayout.SentenceOrPhrase =>
+                char.IsUpper(content[0]) ? Sentence(content) : TextUnit.Line(content, 1),
+            // A word heading its statement has nothing to append to, so it opens a sentence of its
+            // own — the assertion written without a Then, standalone or as the first thing said.
+            _ => isHead ? Sentence(content) : TextUnit.Word(content, step.Binder),
+        });
     }
 
     /// A sentence is capitalized while it is composed, not while it is laid out: case is a fact
@@ -93,10 +86,6 @@ internal static class SpecificationRenderer
     {
         private readonly HashSet<StepFamily> _started = [];
         private string? _currentMock;
-
-        internal bool IsAssertionChainOpen { get; private set; }
-        internal void OpenAssertionChain() => IsAssertionChainOpen = true;
-        internal void CloseAssertionChain() => IsAssertionChainOpen = false;
 
         internal void EndMockRun() => _currentMock = null;
 

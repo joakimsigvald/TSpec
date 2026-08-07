@@ -30,8 +30,7 @@ internal sealed record Requirement(
 
     internal static IEnumerable<Requirement> From(IEnumerable<SpecificationEntry> entries)
         => entries
-            .Select(entry => new Requirement(
-                entry, SpecificationClause.Split(entry.Steps), ToSignature(entry)))
+            .Select(entry => new Requirement(entry, entry.Clauses, ToSignature(entry)))
             .DistinctBy(requirement => (
                 requirement.Entry.Namespace,
                 requirement.Entry.Subject,
@@ -40,7 +39,8 @@ internal sealed record Requirement(
                 requirement.Signature));
 
     private static string ToSignature(SpecificationEntry entry)
-        => string.Join('\n', entry.Steps
+        => string.Join('\n', entry.Clauses
+            .SelectMany(clause => clause.Steps)
             .Select(step => $"{step.Family}:{step.Body}")
             .Append(entry.Because ?? string.Empty));
 

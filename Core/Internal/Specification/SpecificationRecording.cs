@@ -10,23 +10,26 @@ namespace TSpec.Internal.Specification;
 internal class SpecificationRecording
 {
     private readonly List<Action> _recordings = new(10);
-    private readonly List<SpecificationStep> _steps = new(10);
+    private readonly List<List<SpecificationStep>> _clauses = new(10);
+    private readonly List<SpecificationStep> _pending = [];
+    private IReadOnlyList<SpecificationClause>? _cachedClauses;
+    private bool _isIntroduced;
     private int _suppressionCount;
     private bool _isDescribed;
     private string? _because;
     private string? _cachedSpecification;
 
     /// <summary>
-    /// The described steps, in the order they were recorded — the hand-off to
+    /// The described clauses, in the order they were recorded — the hand-off to
     /// whatever renders them. Materialized on first use and safe to ask for
     /// repeatedly.
     /// </summary>
-    internal IReadOnlyList<SpecificationStep> Steps
+    internal IReadOnlyList<SpecificationClause> Clauses
     {
         get
         {
             Describe();
-            return _steps;
+            return _cachedClauses ??= [.. _clauses.Select(clause => new SpecificationClause(clause))];
         }
     }
 
@@ -35,10 +38,46 @@ internal class SpecificationRecording
 
     public override string ToString()
         => _cachedSpecification ??= SpecificationRenderer
-            .Compose(Steps, _because)
+            .Compose(Clauses, _because)
             .Render(TextBuilder.PageWidth);
 
-    internal void Add(SpecificationStep step) => _steps.Add(step);
+    /// <summary>
+    /// Files a step under the statement it belongs to. Anything but a word heads a statement of its
+    /// own; a word continues the one in hand, and starts one where there is none to continue. A
+    /// silent step contributes no text and waits for the statement it will affect.
+    /// </summary>
+    internal void Add(SpecificationStep step)
+    {
+        if (step.Layout == StepLayout.Silent)
+        {
+            _pending.Add(step);
+            return;
+        }
+        var startsStatement = step.Layout != StepLayout.Word;
+        // Two introductions with nothing said between them are one: however many ways a test finds
+        // to open a statement, what follows is a single claim.
+        if (startsStatement && step.Introduces && _isIntroduced)
+            return;
+
+        Place(step, startsStatement);
+    }
+
+    /// <summary>
+    /// Records what an assertion claims. It fills the introduction in hand, and starts a statement
+    /// of its own where there is none — which is the assertion written with no <c>Then</c> in front
+    /// of it, and the one after a statement that has already said its piece.
+    /// </summary>
+    internal void Claim(SpecificationStep step) => Place(step, startsStatement: !_isIntroduced);
+
+    private void Place(SpecificationStep step, bool startsStatement)
+    {
+        if (startsStatement || _clauses.Count == 0)
+            _clauses.Add([]);
+        _clauses[^1].AddRange(_pending);
+        _clauses[^1].Add(step);
+        _pending.Clear();
+        _isIntroduced = step.Introduces;
+    }
 
     internal void Record(Action describe)
     {
@@ -76,5 +115,23 @@ internal class SpecificationRecording
         foreach (var describe in _recordings)
             describe();
         _recordings.Clear();
+
+        // A silent step recorded last has no statement to wait for, so it joins the one before it.
+        if (_pending.Count > 0 && _clauses.Count > 0)
+            _clauses[^1].AddRange(_pending);
+        _pending.Clear();
+
+        // An introduction with nothing said under it is dropped, but only where a claim was already
+        // made: reading Result inside a verification expression opens a statement after the
+        // verification has been recorded. A bare Then is kept — there it is the whole assertion.
+        if (_isIntroduced && _clauses.Count > 1 && SaysNothing(_clauses[^1]) && IsClaim(_clauses[^2]))
+            _clauses.RemoveAt(_clauses.Count - 1);
     }
+
+    private static bool SaysNothing(List<SpecificationStep> clause)
+        => clause.All(step => step.Body.Length == 0);
+
+    private static bool IsClaim(List<SpecificationStep> clause)
+        => clause.Any(step => step.Layout != StepLayout.Silent
+            && step.Family is StepFamily.None or StepFamily.Then);
 }

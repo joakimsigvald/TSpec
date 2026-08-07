@@ -69,7 +69,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         SpecificationCollector.Record(
             ExpectedRequirements.Identity(testClass, requirement),
             new(subject, branch, requirement,
-                Pipeline.Specification.Steps, Pipeline.Specification.Because,
+                Pipeline.Specification.Clauses, Pipeline.Specification.Because,
                 declared?.SubjectUnderTest, declared?.ReturnType, testClass.Namespace));
     }
 }

@@ -1,4 +1,4 @@
-using Moq;
+﻿using Moq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using TSpec.Continuations;
@@ -207,7 +207,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// Contains the returned value after calling method-under-test.
     /// Accessing this property runs the test pipeline if it has not been run yet.
     /// </summary>
-    protected TResult Result => Pipeline.TestResult.Result;
+    protected TResult Result => Pipeline.Claim.Result;
 
     private static Times RequireWasInvoked(Times? wasInvoked)
         => wasInvoked ?? throw MissingWasInvoked;

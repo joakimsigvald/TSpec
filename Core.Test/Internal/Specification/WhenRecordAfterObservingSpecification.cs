@@ -29,20 +29,20 @@ public class WhenRecordAfterObservingSpecification : Spec
     }
 
     [Fact]
-    public void ThenTheStepsAreUnchanged()
+    public void ThenTheClausesAreUnchanged()
     {
         var (recording, steps) = Recorded();
         recording.ToString();
         steps.AddHaving("_.TooLate()");
-        recording.Steps.Count.Is(1);
+        recording.Clauses.Count.Is(1);
     }
 
-    /// <summary>Reading the steps freezes it just as reading the text does.</summary>
+    /// <summary>Reading the clauses freezes it just as reading the text does.</summary>
     [Fact]
-    public void GivenTheStepsWereReadFirst_ThenTheTextIsUnchanged()
+    public void GivenTheClausesWereReadFirst_ThenTheTextIsUnchanged()
     {
         var (recording, steps) = Recorded();
-        recording.Steps.Count.Is(1);
+        recording.Clauses.Count.Is(1);
         steps.AddHaving("_.TooLate()");
         recording.ToString().Does().not.Contain("TooLate");
     }
