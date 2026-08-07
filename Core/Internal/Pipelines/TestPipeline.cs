@@ -1,4 +1,4 @@
-﻿using Moq;
+using Moq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using TSpec.Continuations;
@@ -29,21 +29,25 @@ internal abstract class TestPipeline<TSUT, TResult, TParent>(TParent parent) whe
         [CallerArgumentExpression(nameof(act))] string? actExpr = null)
         => _parent.When(act, actExpr!);
 
+    [OverloadResolutionPriority(1)]
     public ITestPipeline<TSUT, TResult> When(
         Func<TSUT, Task> act,
         [CallerArgumentExpression(nameof(act))] string? actExpr = null)
         => _parent.When(act, actExpr!);
 
+    [OverloadResolutionPriority(1)]
     public ITestPipeline<TSUT, TResult> When(
         Func<Task> act,
         [CallerArgumentExpression(nameof(act))] string? actExpr = null)
         => _parent.When(act, actExpr!);
 
+    [OverloadResolutionPriority(1)]
     public ITestPipeline<TSUT, TResult> When(
         Func<TSUT, Task<TResult>> act,
         [CallerArgumentExpression(nameof(act))] string? actExpr = null)
         => _parent.When(act, actExpr!);
 
+    [OverloadResolutionPriority(1)]
     public ITestPipeline<TSUT, TResult> When(
         Func<Task<TResult>> act,
         [CallerArgumentExpression(nameof(act))] string? actExpr = null)
@@ -76,6 +80,7 @@ internal abstract class TestPipeline<TSUT, TResult, TParent>(TParent parent) whe
         [CallerArgumentExpression(nameof(delayBeforeNextMs))] string? delayExpr = null)
         => _parent.Having(setUp, delayBeforeNextMs, setUpExpr!, delayExpr!);
 
+    [OverloadResolutionPriority(1)]
     public ITestPipeline<TSUT, TResult> Having(
         Func<TSUT, Task> setUp,
         Func<int>? delayBeforeNextMs = null,
@@ -95,6 +100,7 @@ internal abstract class TestPipeline<TSUT, TResult, TParent>(TParent parent) whe
         Action<TSUT> tearDown, [CallerArgumentExpression(nameof(tearDown))] string? tearDownExpr = null)
         => _parent.Until(tearDown, tearDownExpr!);
 
+    [OverloadResolutionPriority(1)]
     public ITestPipeline<TSUT, TResult> Until(
         Func<TSUT, Task> tearDown, [CallerArgumentExpression(nameof(tearDown))] string? tearDownExpr = null)
         => _parent.Until(tearDown, tearDownExpr!);

@@ -266,7 +266,8 @@ The only difference is the lambda signature provided to `When`, `Having`, `Until
 Test methods themselves do not need to be `async`, but they may be — the test pipeline and
 specification follow the test's async flow, so it is safe to await other work before asserting.
 
-A lambda that needs its own `async` body — or consists of a `throw` — must state its return type to be unambigous
+A lambda that needs its own `async` body — or consists of a `throw` — may have to state its return type to be unambigous.
+`Task` is resolved before `ValueTask`.
 
 ## 3. Using Test Data
 

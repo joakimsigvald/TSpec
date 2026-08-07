@@ -17,19 +17,15 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>2.0.0</PackageVersion>
+		<PackageVersion>2.0.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			NEW
-			* Opt-in: Specification generation per test-project from TSpec-tests, with [assembly: AssemblyFixture(typeof(SpecificationDocument))]
-
-			CHANGED
-			* Improved rendering of test output
-
-			BREAKING
-			* Removed deprecated methods
+			FIXED
+			* An async lambda without an explicit return type is no longer ambiguous in When, Having and
+			  Until — the Task overloads now outrank the ValueTask ones. Write When(async _ =&gt; ...)
+			  directly; state ValueTask explicitly to select that overload instead.
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

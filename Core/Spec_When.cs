@@ -55,6 +55,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <param name="act">A lambda expression invoking the async method-under-test on the subject under test, without return value</param>
     /// <param name="expr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
+    [OverloadResolutionPriority(1)]
     public ITestPipeline<TSUT, TResult> When(
         Func<TSUT, Task> act, [CallerArgumentExpression(nameof(act))] string? expr = null)
         => SetAction(act, expr!, true, false);
@@ -65,6 +66,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <param name="act">A lambda expression invoking the async method-under-test, without subject under test or return value</param>
     /// <param name="expr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
+    [OverloadResolutionPriority(1)]
     public ITestPipeline<TSUT, TResult> When(
         Func<Task> act, [CallerArgumentExpression(nameof(act))] string? expr = null)
         => SetAction(act, expr!, false, false);
@@ -75,6 +77,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <param name="act">A lambda expression invoking the async method-under-test on the subject under test and returning the result</param>
     /// <param name="expr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
+    [OverloadResolutionPriority(1)]
     public ITestPipeline<TSUT, TResult> When(
         Func<TSUT, Task<TResult>> act, [CallerArgumentExpression(nameof(act))] string? expr = null)
         => SetAction(act, expr!, true, true);
@@ -85,6 +88,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <param name="act">A lambda expression invoking the async method-under-test, without subject under test, returning the result</param>
     /// <param name="expr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
+    [OverloadResolutionPriority(1)]
     public ITestPipeline<TSUT, TResult> When(
         Func<Task<TResult>> act, [CallerArgumentExpression(nameof(act))] string? expr = null)
         => SetAction(act, expr!, false, true);
@@ -149,6 +153,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <param name="tearDown">A lambda expression performing the async teardown, given the subject under test</param>
     /// <param name="expr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
+    [OverloadResolutionPriority(1)]
     public ITestPipeline<TSUT, TResult> Until(
         Func<TSUT, Task> tearDown, [CallerArgumentExpression(nameof(tearDown))] string? expr = null)
         => SetTearDown(tearDown, expr!);
@@ -191,6 +196,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <param name="expr">Captured automatically by the compiler — do not provide</param>
     /// <param name="delayExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
+    [OverloadResolutionPriority(1)]
     public ITestPipeline<TSUT, TResult> Having(
         Func<TSUT, Task> setUp, Func<int>? delayMs = null,
         [CallerArgumentExpression(nameof(setUp))] string? expr = null,

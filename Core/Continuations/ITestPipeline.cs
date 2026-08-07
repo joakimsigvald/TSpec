@@ -213,6 +213,7 @@ public interface ITestPipeline<TSUT, TResult>
     /// <param name="act">A lambda expression invoking the async method-under-test on the subject under test, without return value</param>
     /// <param name="actExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
+    [OverloadResolutionPriority(1)]
     ITestPipeline<TSUT, TResult> When(Func<TSUT, Task> act,
         [CallerArgumentExpression(nameof(act))] string? actExpr = null);
 
@@ -222,6 +223,7 @@ public interface ITestPipeline<TSUT, TResult>
     /// <param name="act">A lambda expression invoking the async method-under-test, without subject under test or return value</param>
     /// <param name="actExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
+    [OverloadResolutionPriority(1)]
     ITestPipeline<TSUT, TResult> When(Func<Task> act,
         [CallerArgumentExpression(nameof(act))] string? actExpr = null);
 
@@ -231,6 +233,7 @@ public interface ITestPipeline<TSUT, TResult>
     /// <param name="act">A lambda expression invoking the async method-under-test on the subject under test and returning the result</param>
     /// <param name="actExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
+    [OverloadResolutionPriority(1)]
     ITestPipeline<TSUT, TResult> When(Func<TSUT, Task<TResult>> act,
         [CallerArgumentExpression(nameof(act))] string? actExpr = null);
 
@@ -240,6 +243,7 @@ public interface ITestPipeline<TSUT, TResult>
     /// <param name="act">A lambda expression invoking the async method-under-test, without subject under test, returning the result</param>
     /// <param name="actExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for providing further arrangement, or executing the test</returns>
+    [OverloadResolutionPriority(1)]
     ITestPipeline<TSUT, TResult> When(
         Func<Task<TResult>> act,
         [CallerArgumentExpression(nameof(act))] string? actExpr = null);
@@ -309,6 +313,7 @@ public interface ITestPipeline<TSUT, TResult>
     /// <param name="setUpExpr">Captured automatically by the compiler — do not provide</param>
     /// <param name="delayExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to provide further arrangement to the test-pipeline</returns>
+    [OverloadResolutionPriority(1)]
     ITestPipeline<TSUT, TResult> Having(
         Func<TSUT, Task> setUp,
         Func<int>? delayBeforeNextMs = null,
@@ -349,6 +354,7 @@ public interface ITestPipeline<TSUT, TResult>
     /// <param name="tearDown">the async method to call as teardown after executing the method-under-test</param>
     /// <param name="tearDownExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to provide further arrangement to the test-pipeline</returns>
+    [OverloadResolutionPriority(1)]
     ITestPipeline<TSUT, TResult> Until(Func<TSUT, Task> tearDown,
         [CallerArgumentExpression(nameof(tearDown))] string? tearDownExpr = null);
 
