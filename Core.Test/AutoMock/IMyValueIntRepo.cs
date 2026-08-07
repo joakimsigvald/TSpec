@@ -11,4 +11,6 @@ public interface IMyValueIntRepo
     Task<IMyValueIntRepo> GetMeAsync();
     object GetObject();
     Task<object> GetObjectAsync();
+    ICollection<int> GetNumbers();
+    IEnumerable<int> GetAnyNumbers();
 }

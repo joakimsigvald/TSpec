@@ -104,6 +104,9 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
     internal void SetupThrows<TService>(Func<Exception> ex)
         => _repository.SetDefaultException(typeof(TService), ex);
 
+    internal void SetupReturnsDefault<TService, TReturns>(TReturns value)
+        => _repository.SetProvidedDefault(typeof(TService), typeof(TReturns), value);
+
     internal void Register<TTarget, TSource>(Func<TSource, TTarget>? convert, For scope, SequenceHolder sequence)
         => _repository.Register(convert, scope, sequence);
 

@@ -73,10 +73,11 @@ Given<IMyService>().That(_ => _.GetValueAsync())
     .AndNext().Returns();
 // Observe arguments without changing behavior
 Given<IMyInterface>().That(_ => _.Get(An<int>())).Tap<int>(i => _captured = i).Returns(() => 42)
+// Service-wide default for any return type Cart fits (most specific wins)
+Given<ICartRepository>().Returns(A<Cart>)
 ```
 
-Setups are identical whether the member returns `T`, `Task<T>` or `ValueTask<T>` — `Returns(() => 7)` supplies the unwrapped value.
-Unmocked interface methods return auto-generated defaults (no strict-mock failures). For Moq features TSpec lacks, build a `Mock<T>` manually and supply `Using(myMock.Object)`.
+Setups are identical whether the member returns `T`, `Task<T>` or `ValueTask<T>` — `Returns(() => 7)` supplies the unwrapped value.Unmocked interface methods return auto-generated defaults (no strict-mock failures). For Moq features TSpec lacks, build a `Mock<T>` manually and supply `Using(myMock.Object)`.
 
 Verification (in test methods): `Then<IOrderService>(_ => _.CreateOrder(The<Cart>()));` verifies the call was made ≥1 time. Note: mentions in verify expressions match by value — a fresh `Any<T>()` matches nothing; use `The<T>()`/`The(tag)` to match arguments used in the test.
 Invocation counts — `wasInvoked:` (a `Moq.Times`) closes all three scopes identically; only the selector in the parens changes. With `using static Moq.Times;`:

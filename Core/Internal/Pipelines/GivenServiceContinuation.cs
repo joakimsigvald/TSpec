@@ -22,6 +22,7 @@ internal class GivenServiceContinuation<TSUT, TResult, TService> : IGivenService
         void DoSetupReturnsDefault()
         {
             var theValue = returns();
+            _spec.SetupReturnsDefault<TService, TReturns>(theValue);
             _spec.GetMock<TService>().SetReturnsDefault(theValue);
             _spec.GetMock<TService>().SetReturnsDefault(Task.FromResult(theValue));
             _spec.GetMock<TService>().SetReturnsDefault(new ValueTask<TReturns>(theValue));

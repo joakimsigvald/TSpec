@@ -130,6 +130,9 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     internal void SetupThrows<TService>(Func<Exception> expected)
         => Pipeline.SetupThrows<TService>(expected);
 
+    internal void SetupReturnsDefault<TService, TReturns>(TReturns value)
+        => Pipeline.SetupReturnsDefault<TService, TReturns>(value);
+
     internal IGivenTestPipeline<TSUT, TResult> AppendGiven(Action given)
     {
         Pipeline.AppendGiven(given);

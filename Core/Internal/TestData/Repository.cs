@@ -93,6 +93,9 @@ internal class Repository : IRepository
     internal void SetDefaultException(Type type, Func<Exception> ex)
         => _fluentDefaultProvider.SetDefaultException(type, ex);
 
+    internal void SetProvidedDefault(Type service, Type providedType, object? value)
+        => _fluentDefaultProvider.SetProvidedDefault(service, providedType, value);
+
     private Dictionary<int, object?> GetMentions(Type type)
         => _numberedMentions.TryGetValue(type, out var val) ? val : _numberedMentions[type] = [];
 }

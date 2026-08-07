@@ -121,6 +121,9 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
     internal Mock<TObject> GetMock<TObject>() where TObject : class
         => _context.GetMock<TObject>();
 
+    internal void SetupReturnsDefault<TService, TReturns>(TReturns value)
+        => _context.SetupReturnsDefault<TService, TReturns>(value);
+
     internal void AppendUsing(Action given)
     {
         AssertIsNotSetUp();

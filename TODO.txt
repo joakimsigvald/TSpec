@@ -1,42 +1,16 @@
-* Fail a test that asserted nothing. Deferred execution means `[Fact] void T() => When(_ => Act());`
-  passes without running Act at all - green, counted as coverage, verifying nothing. No test framework
-  catches this; TSpec can, because it knows what an assertion is.
-  - Runtime: fail in SpecFixture teardown when no assertion was recorded. ~20 lines. Check the suite
-    doesn't trip it (Specification.Is and Then<TService>(...) must count as assertions).
-  - Compile time: Roslyn analyzer warning on a [Fact] in a Spec subclass that reaches no assertion.
-    Ships alongside, generates no code, suppressible. Do this only if the runtime check earns its keep.
-* Let a spec declare Nothing as a type argument, alongside today's implicit rule. Implicit is in
-  place: a type argument reaches SPECIFICATION.md only where the act uses it in that capacity - an
-  act taking no subject states none, an act yielding no result states no return type. That covers
-  the common cases without ceremony, but it cannot be checked, and Spec<T> still has to mean
-  "T in whichever capacity is used".
-  - Explicit form: Spec<RoomService, Nothing>, Spec<Nothing, string>, or Spec<Nothing> for neither.
-    Declaring Nothing and then using that capacity throws SetupFailed, so the declaration is
-    enforced rather than merely honoured.
-  - Breaking: the non-generic Spec becomes Spec<Nothing, Nothing> instead of Spec<object, object>,
-    which is what it has always meant. Fits 2.0.0; do not slip it into a minor.
+Four items moved to SPECIFICATION-IMPROVEMENT-PLAN.md section 6, where they are wanted for the
+specification rather than for the API: assert-nothing detection, raw string literals, nested new(...)
+in an argument list, and Nothing as an explicit type argument.
+
 * auto-convert look for first public static method with one argument of type TSource that returns TTarget
 * Sequence uniqueness check: fixed spacings now use an O(1) check; the collect-all-values check
   remains only for step-function sequences (Spaced with lambda). If users generate large numbers
   of values through step functions, provide an opt-out hook
-* Raw string literals are not tokenized, so any """...""" expression falls out as Unknown and
-  renders verbatim - delimiters included. Not wrong, just undescribed:
-      $$"""{{a + b}}"""       ->  $$"""{{a + b}}"""
-      $"""{The(y)}"""         ->  $"""{The(y)}"""
-  Ordinary interpolation holes ARE described since 2026-07-28 ($"/rooms/{The(x)}" -> "/rooms/{the x}"),
-  so this is the last place a specification still shows source code inside quotes.
-  - Needs tokenizer support for quote-run delimiters, then the hole rule keyed on the $-run:
-    $$ means two braces open a hole and a single { is literal - the inverse of the {{-escape rule
-    that applies to a single $.
-  - Low priority: a raw string inside a captured spec expression is rare, and a multi-line one is
-    collapsed by ToSingleLine before parsing anyway, which breaks its delimiters regardless.
 --- before Xspec
 * CollectionFixture om man vill dela mellan fler klasser
 * Separate ClassFixture class from Spec and only allow Arrange on fixture, not when/Then
 * Productivity: Auto-generate test classes from Visual Studio
   - rightclick method and generate test class "When..." in the correct folder structure (configurable)
 * Documentation: Produce "Javadoc" from code comments
-* Documentation: handle nested new(...) in argument list: 
-  "=> When(_ => _.AddNewItem(A<CartId>(), new(A<Sku>(), A<ProductType>(), A<Price>(), A<Vat>()), A<string>()));"
 * Cast (Result.As<MyType>().MyProperty.Is(123))
   - seems impossible in current C# version

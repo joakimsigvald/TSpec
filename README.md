@@ -421,6 +421,8 @@ To mock the behavior of a dependency, call `Given<[TheService]>().That(_ => _.[T
 You do not need to create and manage mocks manually, but can supply mocked behavior directly to the pipeline.
 This allows most mocking scenarios to be expressed inline, close to the behavior under test.
 
+Naming no method, `Given<[TheService]>().Returns(...)` sets a default that applies to every method of the interface returning a type assignable from that type.
+
 ### 4.3 Mocking with arguments
 
 To vary mocked behavior based on arguments, supply a lambda with arguments to `Returns`. The lambda signature must match the mocked call.
