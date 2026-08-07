@@ -9,7 +9,7 @@ rendered. An item belongs here when the specification is the reason for wanting 
 `TODO.txt` when it is not. Laws and the stages past generation stay in
 [TSpec-vision.md](TSpec-vision.md).
 
-**State:** three observations open (§4), five done (§5), eleven carried in (§6, §7).
+**State:** one observation open (§4), eight done (§5), ten carried in (§6, §7), two of those pinned.
 
 ## 1. Where the feedback comes from
 
@@ -77,46 +77,6 @@ Status:    open, held for a second sighting per §3
 The `The`-form half is a surface gap, not taste, so the hold rule does not apply to it. Split the
 entry if the PO wants that half moved.
 
-### 4.4 Nested givens flatten, so a shared clause has nowhere to hoist — noise, outside suite (`TokenIssuer`), seen 2026-08-07
-
-```
-Rendered:  ### Given resource and condition, given a matching per type scope
-
-           Token is Example.AccessToken(scope: "system/Condition.rs")
-             and Permission is "r"
-             and ResourceType is "Condition"
-From:      a shared branch subclass ("given resource and condition") holding Permission and
-           ResourceType, with a subclass per scope shape below it.
-Jarred:    the author factored the shared clauses into an intermediate class so they would be
-           stated once. The document flattens the branch path into one comma-joined heading,
-           leaving no level for them to hoist to, so every sibling repeats them.
-Wanted:    PO's proposal, recorded not adopted: nested headings — `### Given resource and
-           condition` / `#### Given a matching per type scope` — as long as no heading reaches
-           level 5.
-Status:    open
-```
-
-Not a defect but a request to revisit a recorded decision (SPEC-GENERATION-PLAN §6, commit 6b7fe25).
-Heading structure is format-level per §8: every committed document reflows at once.
-
-### 4.7 A default `Throws` and a method setup merged into one line — not reproduced, outside suite (`TokenIssuer`), reported 2026-08-07
-
-```
-Rendered:  "Given IMyService throws some exception that some method returns some value"
-           (PO's recollection — the real line is still wanted)
-From:      Given<IMyService>().Throws(someException);
-           Given<IMyService>().That(_ => _.SomeMethod).Returns(someValue);
-Jarred:    two arrangement clauses with no boundary, joined by a stray `that`.
-Wanted:    the two clauses on their own lines, as the per-test text already renders them.
-Status:    open, cannot reproduce
-```
-
-Tried and correct: `Throws<TEx>()` or `Throws(A<TEx>)` before `That`, `That` before either, a
-property setup rather than a method, and chained `.And<T>()` versus two statements. Two threads left:
-it was seen **in `SPECIFICATION.md`**, and all of the above was checked in the per-test text; and a
-stray `that` is what an exception-property continuation produces, which a `Given` never does — so the
-recalled source may not be the source of the recalled line.
-
 ## 5. Done
 
 Kept as one line each so nothing here is filed again.
@@ -129,22 +89,39 @@ Kept as one line each so nothing here is filed again.
 - **4.6** A second assertion ran into the first — the recording files each step under the statement
   it belongs to, so every claim takes its own line. Fixed 2026-08-07.
 - **5.2** (from 2.0.0) A second assertion started an orphaned sentence — closed by 4.6's fix.
+- **4.7** A default `Throws` and a method setup merged into one line — dropped 2026-08-07: not
+  reproducible in any shape, and the PO's recollection was of 4.6, which is fixed.
+- **4.4** Nested givens flattened into one heading — a nested `Given` now heads its own section
+  where there is depth for it, so a clause its branches share can rise to it. Four heading levels is
+  the limit: where a group heading has already spent the third, the path stays one heading, which is
+  why both MyHotel documents are unchanged. Built 2026-08-07.
+- **7.3** A nested `new(…)` in an argument list — already described:
+  `_.AddNewItem(A<CartId>(), new(A<Sku>(), A<Price>()), A<string>())` renders
+  `_.AddNewItem(a CartId, new(a Sku, a Price), a string)`. The `TODO.txt` entry was stale.
 
 ## 6. Carried in from 2.0.0
 
 By pointer rather than copy — [SPEC-GENERATION-PLAN.md](SPEC-GENERATION-PLAN.md) §5 describes each.
 
-| # | In one line | Class | Blocked on |
+| # | In one line | Example | Class |
 |---|---|---|---|
-| 5.3 | subject-wide assertion repeats in every branch instead of hoisting | noise | "who declared this" input |
-| 5.4 | binder silent across a hoist boundary — two `Having`s, nothing relating them | lost claim | not reachable in MyHotel |
-| 5.5 | nullable return type renders as non-nullable (`Room?` → `Room`) | lost claim | `NullabilityInfoContext`, not exhibited |
-| 5.6 | one outlier costs its sibling group their hoist, no partial credit | reads badly | a real sighting |
-| 5.7 | a block opening with `Given` loses that word under a `Given` heading | lost claim | not reachable |
-| 5.8 | `One(expr)` double-articles; `new[] { … }` keeps raw C# | reads badly | — |
-| 5.10 | a wrapped trailing phrase can start its line with its binder's comma | reads badly | fix belongs in composition |
+| 5.3 | subject-wide assertion repeats in every branch instead of hoisting | — | noise, **pinned** |
+| 5.4 | binder silent across a hoist boundary — two `Having`s, nothing relating them | — | lost claim, unreachable |
+| 5.5 | nullable return type renders as non-nullable | `Spec<RoomService, Room?>` states `returns Room` | lost claim |
+| 5.6 | one outlier costs its sibling group their hoist, no partial credit | — | reads badly, **pinned** |
+| 5.7 | a block opening with `Given` loses that word under a `Given` heading | — | lost claim, unreachable |
+| 5.8a | a count over an articled expression double-articles | `One(The(model))` → `one the Model` | reads badly |
+| 5.8b | an array argument keeps its C# wrapper | `new[] { The(x) }` → `new[] { the X }` | reads badly |
+| 5.10 | a wrapped trailing phrase starts its line with its binder's comma | `…PadRight(40, 'x').Trim()` / `, because …` | reads badly |
 
-Half are waiting on a shape MyHotel does not have, which is the argument for intake from a second
+5.5 is harder than it looks: a reference type carries no annotation at runtime, and
+`NullabilityInfoContext` has no overload for a base type's generic argument, so it means decoding the
+compiler's `NullableAttribute` on the spec class. `int?` already works, being `Nullable<int>`.
+
+5.3 and 5.6 both want the same input — which class declared a clause, rather than the sharing TSpec
+infers it from — and are **pinned at the PO's request** until that is explained properly.
+
+5.4 and 5.7 are not reachable in any suite we have, which is the argument for intake from a second
 application.
 
 Also carried in, unresolved and **the PO's to answer** — SPEC-GENERATION-PLAN §8:
@@ -158,14 +135,16 @@ Also carried in, unresolved and **the PO's to answer** — SPEC-GENERATION-PLAN 
 
 ## 7. Carried in from `TODO.txt`
 
-Moved rather than copied — these four are wanted *for the specification*. The rest of `TODO.txt`
-stays there: performance, fixture ergonomics and tooling, none with a path to the page.
+Moved rather than copied — wanted *for the specification*. The rest of `TODO.txt` stays there:
+performance, fixture ergonomics and tooling, none with a path to the page.
 
 ### 7.1 A test that asserted nothing renders as a requirement that claims nothing
 
-Deferred execution means `[Fact] void T() => When(_ => Act());` passes without running the act, and
-is then collected like any passing test. **A false entry is worse than a missing one**, and TSpec is
-the only framework that can catch it, because it knows what an assertion is.
+Deferred execution means `[Fact] public void ThenModelIsReturned() => When(_ => _.GetModel());`
+passes without running the act, and is collected like any passing test. Its specification text is
+**empty** — verified — so the document lists the requirement by its name, "return model", with
+nothing under it saying what was checked. A reader takes the name for a claim. TSpec is the only
+framework that can catch this, because it knows what an assertion is.
 
 - Runtime: fail in `SpecFixture` teardown when no assertion was recorded. ~20 lines. Check the suite
   does not trip it — `Specification.Is` and `Then<TService>(…)` must count as assertions.
@@ -174,14 +153,9 @@ the only framework that can catch it, because it knows what an assertion is.
 ### 7.2 Raw string literals render as source, delimiters included
 
 The tokenizer does not handle quote runs, so `$"""{The(y)}"""` falls out as Unknown and prints
-verbatim — **the last place a specification shows source code inside quotes**. Needs quote-run
-delimiters, then the hole rule keyed on the `$`-run: `$$` means two braces open a hole and a single
-`{` is literal. Low priority: rare, and a multi-line one is collapsed before parsing anyway.
-
-### 7.3 A nested `new(…)` in an argument list is not described
-
-`_.AddNewItem(A<CartId>(), new(A<Sku>(), A<Price>()), A<string>())` — the inner target-typed `new` is
-not described. Same family as §6's 5.8, and the two should be judged together.
+verbatim — **the last place a specification shows source code inside quotes**. Medium: quote-run
+delimiters in the tokenizer, then the hole rule keyed on the `$`-run, where `$$` means two braces
+open a hole and a single `{` is literal — the inverse of the single-`$` escape.
 
 ### 7.4 `Nothing` as an explicit type argument
 
@@ -198,10 +172,8 @@ common cases without ceremony but **nothing checks it**. Explicit form: `Spec<Ro
   per SPEC-GENERATION-PLAN §2.
 - **A pure addition** still moves pins, but a reader upgrading gains rather than re-pins.
 
-Open, and wanted before the first text change ships: **does a text change alone justify a minor, or
-does it need a major?** `CLAUDE.md` prices docs-only as patch and new functionality as minor, and
-says nothing about rendered text — the one thing this file will keep changing. The lean is minor with
-the moved pins tabled in the release notes, major reserved for format-level reflows.
+**A change to the rendered text ships as a minor** — PO's ruling, 2026-08-07. Most of this list goes
+into 2.1.0. Major is reserved for format-level reflows and for breaking the surface.
 
 ## 9. Working rules
 

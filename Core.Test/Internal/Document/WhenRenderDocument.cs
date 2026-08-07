@@ -667,6 +667,58 @@ public class WhenRenderDocument : Spec
             InNamespace("MyHotel.Core.Spec.Bookings.BookingService", "WhenBook", "ThenB"))
             .Does().Contain("\n# Bookings\n").and.Contain("\n# Rooms\n").and.not.Contain("Service");
 
+    // ----------- A nested branch heads twice, where there is depth left to spend
+
+    private static SpecificationEntry OfBranchPath(string branch, string name, params SpecificationClause[] own)
+        => new("WhenGetRoom", branch, name, [Act("get"), .. own]);
+
+    /// <summary>
+    /// Four heading levels is the limit of what reads, so a nested branch heads twice only where the
+    /// first one lands at three. What it buys is the hoist: the outer heading can state what every
+    /// branch below it says, which one flattened heading has no level to hold.
+    /// </summary>
+    [Fact]
+    public void GivenANestedBranch_ThenHeadEachLevelSeparately()
+        => Render(
+            OfBranchPath("GivenTheRoomExists.WithItems", "ThenA", Claim("then a")),
+            OfBranchPath("GivenTheRoomExists.WithNoItems", "ThenB", Claim("then b")))
+            .Does()
+            .Contain("\n### Given the room exists\n")
+            .and.Contain("\n#### With items\n")
+            .and.Contain("\n#### With no items\n")
+            .and.not.Contain("Given the room exists, with");
+
+    [Fact]
+    public void GivenANestedBranchSharesAClause_ThenStateItAtTheOuterHeading()
+        => Render(
+            OfBranchPath("GivenTheRoomExists.WithItems", "ThenA", Condition("post"), Claim("then a")),
+            OfBranchPath("GivenTheRoomExists.WithNoItems", "ThenB", Condition("post"), Claim("then b")),
+            OfBranchPath("GivenNoSuchRoom", "ThenC", Claim("then c")))
+            .Does()
+            .Contain("\n### Given the room exists\n`Having post`\n")
+            .and.Contain("\n#### With items\n\n- **a** — `a`\n");
+
+    /// <summary>A branch that never nested keeps the one heading it had.</summary>
+    [Fact]
+    public void GivenAFlatBranch_ThenHeadItOnce()
+        => Render(OfBranchPath("GivenTheRoomExists", "ThenA", Claim("then a")))
+            .Does().Contain("\n### Given the room exists\n").and.not.Contain("####");
+
+    /// <summary>
+    /// A group heading has already spent the level a nested branch would take, so there the path
+    /// stays one heading — four levels being the limit, and the group having claimed the third.
+    /// </summary>
+    [Fact]
+    public void GivenAGroupHeadingSpentTheLevel_ThenFlattenTheBranchPath()
+        => Render(
+            new("WhenX", "GivenOne.AndTwo", "ThenA", [Act("get"), Claim("then a")], Namespace: "A.B.C"),
+            new("WhenX", "GivenOne.AndThree", "ThenB", [Act("get"), Claim("then b")], Namespace: "A.B.D"),
+            InNamespace("E.F", "WhenY", "ThenC"))
+            .Does()
+            .Contain("\n#### Given one, and two\n")
+            .and.Contain("\n#### Given one, and three\n")
+            .and.not.Contain("#####");
+
     /// <summary>
     /// Where an area holds more than one namespace below it, each heads a group of its own: the
     /// area names what they share and the group what tells them apart. Everything left below the

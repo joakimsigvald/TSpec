@@ -25,6 +25,9 @@
 			NEW
 			* Given&lt;TService&gt;().Returns(value) now applies to any method that can return the value.
 
+			CHANGED
+			* A nested Given heads its own section, unless that leads to level-5 heading, then they are merged to one level-4 heading
+
 			FIXED
 			* A second assertion no longer runs into the first: each claim starts its own line.
 			* A cast of a collection expression is described correctly verbatim

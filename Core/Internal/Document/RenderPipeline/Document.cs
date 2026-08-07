@@ -26,6 +26,9 @@ internal sealed record Document(
 
     private const int GroupLevel = AreaLevel + 1;
 
+    /// Past four, a heading stops telling a reader where they are.
+    private const int MaxLevel = 4;
+
     private static DocumentNode[] ToAreas(
         Requirement[] requirements, IReadOnlyList<SpecificationClause> hoisted)
     {
@@ -71,11 +74,39 @@ internal sealed record Document(
         var shared = Requirement.Shared(ofSubject);
         return new(group.Key, group.Key.AsHeading(), level, shared,
             Requirement.SubjectOf(ofSubject), Requirement.ReturnTypeOf(ofSubject),
-            [.. ofSubject
+            [.. ToBranches(ofSubject.Select(requirement => requirement.Without(shared)), level + 1)]);
+    }
+
+    /// <summary>
+    /// A branch path heads twice where there is depth left for it, and reads as one sentence where
+    /// there is not. The second heading is what lets a clause every branch below states rise to the
+    /// one above them, which a flattened path has no level to hold.
+    /// </summary>
+    private static IEnumerable<DocumentNode> ToBranches(IEnumerable<Requirement> ofSubject, int level)
+        => level < MaxLevel
+            ? ofSubject.GroupBy(requirement => Opening(requirement.Entry.Branch))
+                .Select(opening => ToBranchGroup(opening, level))
+            : ofSubject.GroupBy(requirement => requirement.Entry.Branch)
+                .Select(branch => ToBranch(branch, level));
+
+    private static DocumentNode ToBranchGroup(IGrouping<string, Requirement> group, int level)
+    {
+        var ofGroup = group.ToArray();
+        var heads = group.Key.Length > 0;
+        var shared = heads ? Requirement.Shared(ofGroup) : [];
+        return new(group.Key, heads ? group.Key.AsHeading() : null, level, shared,
+            SubjectUnderTest: null, ReturnType: null,
+            [.. ofGroup
             .Select(requirement => requirement.Without(shared))
-            .GroupBy(requirement => requirement.Entry.Branch)
+            .GroupBy(requirement => Rest(requirement.Entry.Branch))
             .Select(branch => ToBranch(branch, level + 1))]);
     }
+
+    private static string Opening(string branch)
+        => branch.IndexOf('.') is var at && at < 0 ? branch : branch[..at];
+
+    private static string Rest(string branch)
+        => branch.IndexOf('.') is var at && at < 0 ? string.Empty : branch[(at + 1)..];
 
     private static BranchNode ToBranch(IGrouping<string, Requirement> group, int level)
     {
