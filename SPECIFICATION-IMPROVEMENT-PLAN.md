@@ -1,19 +1,15 @@
 # Specification improvement
 
-Standing log for the **shipped** generator (2.0.0+). Every observation about a real
-`SPECIFICATION.md` lands here, gets classified, and either becomes work or is closed with a reason.
-Unlike [SPEC-GENERATION-PLAN.md](SPEC-GENERATION-PLAN.md), this file does not die — it is how the
-document's shape keeps improving after the feature stopped being a feature.
+Standing log for the shipped generator (2.0.0+). Every observation about a real `SPECIFICATION.md`
+lands here, gets classified, and either becomes work or is closed with a reason.
 
-**Scope:** anything that improves the specification's value — what it says, how it reads, and what
-it is *able* to say. API and pipeline changes count, because how a test can be written decides what
-gets rendered. The test is why an item is wanted, not which layer it lands in: it belongs here when
-the specification is the reason, and in `TODO.txt` when it is not. Laws and the stages past
-generation stay in [TSpec-vision.md](TSpec-vision.md).
+**Scope:** anything that improves the specification's value — what it says, how it reads, and what it
+is *able* to say. API and pipeline changes count, since how a test can be written decides what gets
+rendered. An item belongs here when the specification is the reason for wanting it, and in
+`TODO.txt` when it is not. Laws and the stages past generation stay in
+[TSpec-vision.md](TSpec-vision.md).
 
-**State:** open for intake. Seven observations (§4) — §4.1, §4.5 and §4.6 built for 2.1.0, §4.3
-closed, §4.7 waiting on a verbatim line. Nine backlog items carried in at §5 and §6, one of them
-(§5.2) closed by §4.6's fix.
+**State:** three observations open (§4), five done (§5), eleven carried in (§6, §7).
 
 ## 1. Where the feedback comes from
 
@@ -23,17 +19,15 @@ closed, §4.7 waiting on a verbatim line. Nine backlog items carried in at §5 a
 | `SampleProjects/MyHotel/MyHotel.Spec/SPECIFICATION.md` | black-box HTTP, one return type throughout |
 | Outside suites | the only source that can show a shape MyHotel cannot reach |
 
-Record the source on every entry. **A wart seen in two suites outranks one seen in one** — a single
-sighting inside MyHotel may be saying more about MyHotel than about TSpec, and the standing risk in
-a dogfooded tool is tuning the renderer to one application's prose.
+Record the source on every entry. **A wart seen in two suites outranks one seen in one** — the
+standing risk in a dogfooded tool is tuning the renderer to one application's prose.
 
-Intake is reading, not running. The document is read whole, as a reader who did not write the tests
-would read it — the diff is the release gate, but the diff never shows a sentence that has been
-wrong since it was first generated.
+Intake is reading, not running: the diff is the release gate, but it never shows a sentence that has
+been wrong since it was first generated.
 
 ## 2. Filing an entry
 
-Six lines, in §4. Anything longer is a design note and belongs in its own section.
+Six lines, in §4. Anything longer belongs in its own section.
 
 ```
 ### <short name>  — <class>, <source>, seen <date>
@@ -44,62 +38,29 @@ Wanted:    <the line it should have been — or "unknown", which is a legitimate
 Status:    open | proposed | decided <date> | closed <reason>
 ```
 
-Verbatim matters. A paraphrase loses the wrapping, the article, and the backtick context, and those
+Verbatim matters. A paraphrase loses the wrapping, the article and the backtick context, and those
 are usually the whole finding.
 
 ## 3. Classes, in the order they get acted on
 
-1. **Untrue** — the document states something the test does not. Fix immediately, at any version
-   cost; this is the one class that damages the thesis rather than the prose.
-2. **Lost claim** — erasure dropped something that changes *what is claimed*, not merely how it is
-   said. Judge semantically, per the `specification-erasure-principle`: `int?` stays because it
-   admits values `int` does not.
-3. **Noise** — text carrying no claim (mechanism, ceremony, framework vocabulary). Erasure
-   candidate. Cheap to fix, and the class most likely to be a real improvement rather than a taste
-   swap.
-4. **Churn** — anything reaching the page that varies between runs, machines, or checkouts. Rare
-   now, but it voids diffability outright, so it outranks everything below it.
-5. **Reads badly** — the claim is right and the sentence is poor. The PO decides; a proposal needs
-   the rendered before and after, and the count of lines the change moves across both documents.
-6. **By design** — the shape follows from a rule (one `When` per class forcing sibling sections;
-   assertions never hoisting). **Still record it**, closed, with the rule named. An unrecorded
-   by-design finding gets rediscovered every few months and re-argued from scratch.
+1. **Untrue** — the document states something the test does not. The one class that damages the
+   thesis rather than the prose; fix at any version cost.
+2. **Lost claim** — erasure dropped something that changes what is claimed. Judge semantically, per
+   the `specification-erasure-principle`: `int?` stays because it admits values `int` does not.
+3. **Noise** — text carrying no claim. Erasure candidate, and the class most likely to be a real
+   improvement rather than a taste swap.
+4. **Churn** — anything on the page that varies between runs, machines or checkouts. It voids
+   diffability outright.
+5. **Reads badly** — the claim is right and the sentence is poor. The PO decides, on a before and
+   after plus the count of lines it moves.
+6. **By design** — the shape follows from a rule. Still recorded, closed, with the rule named, so it
+   is not rediscovered and re-argued.
+7. **Surface** — the text is shaped by what the author could write, and the fix is in the API.
 
-7. **Surface** — the text is shaped by what the author was able to write, and the fix is in TSpec's
-   API rather than in the renderer. In scope per §1, priced differently: it moves the surface as
-   well as the output.
+Classes 1–4 are fixed on one sighting; 5 and 6 wait for a second. Class 7 is not a severity — an item
+can be both, and §4.2 is.
 
-Class 5 and 6 findings are not fixed on one sighting. Classes 1–4 are. Class 7 is not a severity —
-an item can be both, and §4.2 is.
-
-## 4. Observations
-
-### 4.1 Interface name chopped into words — lost claim, outside suite (`TokenIssuer`), seen 2026-08-07
-
-```
-Rendered:  `and ISigningKeyStore returns i read only list SigningKeyRecord`
-From:      .And<ISigningKeyStore>().Returns(() => (IReadOnlyList<SigningKeyRecord>)[Example.ServerKey])
-Jarred:    `IReadOnlyList` is normalized as an identifier — leading `I` split off as its own word,
-           PascalCase lowercased into "i read only list". It reads as prose but names no type, and
-           the stray "i" reads as a word the type does not contain. Sibling rows in the same block
-           keep their names (`ISigningKeyStore`, `IClientRegistry`, `ClientRecord?`), and the
-           generic argument `SigningKeyRecord` survives intact — only the outer name is split.
-Wanted:    unknown; at minimum the type recoverable from the text.
-Status:    fixed 2026-08-07, unreleased
-```
-
-Only a cast of a *collection expression* broke: `LooksLikeCast` did not accept `[` after the closing
-paren, so `(T)[…]` was never read as a cast, the type name fell through to the identifier path, and
-the operand was dropped. `(T)A<X>()` was always right. Fixed by accepting `[`, which also reads
-`(x)[0]` as a cast — printing the same either way, and pinned as such.
-
-Filed as lost claim rather than reads-badly: a reader cannot map the sentence back to a type, so
-what the store returns is no longer stated. Provisional — reclassify if the PO reads it as taste.
-Whole rendered block and source: this session's transcript. Sharpened by §4.3's ruling: a cast
-expression rendering verbatim is correct, so this cast being split into words is the odd one out
-rather than one of two competing treatments. **Do not fix the renderer before re-reading the
-suite:** §4.5 is built, and `Returns(One(Example.ServerKey))` now removes the cast this entry is
-about, most likely taking the mangled sentence with it.
+## 4. Open observations
 
 ### 4.2 `a X has Y = …` reads as Braavosi — reads badly, outside suite (`TokenIssuer`), seen 2026-08-07
 
@@ -107,23 +68,14 @@ about, most likely taking the mangled sentence with it.
 Rendered:  `a ClientRecord has Status = "disabled"`
 From:      Given().A<ClientRecord>(_ => _ with { Status = "disabled" })
 Jarred:    indefinite article + type + `has` is the Braavosi construction ("a man has no name") —
-           grammatical, right register for nobody. The PO reports it as an annoyance, not a defect:
-           the claim itself is correct and complete.
+           grammatical, right register for nobody. Reported as an annoyance, not a defect.
 Wanted:    unknown. Reported alongside: there is no corresponding `The`-form to choose at this
            position, so an author who dislikes the sentence has no other way to say it.
 Status:    open, held for a second sighting per §3
 ```
 
-The second half straddles the scope line: the reading is a rendering matter, but "no `The`-form to
-choose" is a surface gap, and §3's hold-for-a-second-sighting rule was written for taste, not for a
-form that does not exist. Both halves kept in one entry until the PO splits them — recorded as
-reported, unverified against the current API.
-
-### 4.3 A cast expression renders as source — closed 2026-08-07, correct as rendered
-
-`Using (ClientRecord?)null`, from `Using((ClientRecord?)null)`. Filed as reads-badly, withdrawn the
-same day: the PO's ruling is that the rendering is right and no change is wanted. One line kept
-rather than deleted, per §3's last class — so it is not re-filed from a fresh reading in six months.
+The `The`-form half is a surface gap, not taste, so the hold rule does not apply to it. Split the
+entry if the PO wants that half moved.
 
 ### 4.4 Nested givens flatten, so a shared clause has nowhere to hoist — noise, outside suite (`TokenIssuer`), seen 2026-08-07
 
@@ -136,86 +88,22 @@ Rendered:  ### Given resource and condition, given a matching per type scope
 From:      a shared branch subclass ("given resource and condition") holding Permission and
            ResourceType, with a subclass per scope shape below it.
 Jarred:    the author factored the shared clauses into an intermediate class so they would be
-           stated once. The document flattens the whole branch path into one comma-joined
-           heading, which leaves no level for them to hoist to — so every sibling repeats them,
-           and the structure the author built is invisible in the output.
-Wanted:    PO's proposal, recorded not adopted: render the nesting as nested headings —
-           `### Given resource and condition` / `#### Given a matching per type scope` — and
-           allow it as long as it does not push headings to level 5.
+           stated once. The document flattens the branch path into one comma-joined heading,
+           leaving no level for them to hoist to, so every sibling repeats them.
+Wanted:    PO's proposal, recorded not adopted: nested headings — `### Given resource and
+           condition` / `#### Given a matching per type scope` — as long as no heading reaches
+           level 5.
 Status:    open
 ```
 
-Not a defect: this is the recorded behaviour. A branch path reads as one comma-joined sentence
-(SPEC-GENERATION-PLAN §6, commit 6b7fe25 "merge nested givens into one sentence"), and §4 there
-lists exactly one branch level. So the entry is a request to revisit that decision, and the case for
-revisiting is that the flattening also costs the hoist — which is what §4.1 of that plan says
-hoisting is for. Related but distinct from its §5.3, where the assertion has a level to rise to and
-does not.
-
-Priced per §7: heading structure is format-level. Every committed document reflows at once.
-
-### 4.5 Mock return values match by exact type, forcing casts into the text — surface, outside suite (`TokenIssuer`), seen 2026-08-07
-
-```
-Rendered:  `and ISigningKeyStore returns i read only list SigningKeyRecord`  (§4.1's line)
-From:      .And<ISigningKeyStore>().Returns(() => (IReadOnlyList<SigningKeyRecord>)[Example.ServerKey])
-Jarred:    the cast is ceremony the author would not write if the setup took an assignable value,
-           and ceremony in the source becomes text in the document.
-Wanted:    PO's rule — where an interface method returns `ICollection<int>` and the setup supplies
-           an `int[]`, the array is what the mock returns when the method is invoked. A value
-           supplied for the more specific type still wins where one was also provided.
-Status:    built 2026-08-07, unreleased
-```
-
-**What shipped.** A service-level `Given<TService>().Returns(value)` now also answers methods whose
-return type the value is assignable to. Resolution lives in `FluentDefaultProvider`, which Moq
-consults only after its own exact-type lookup misses — so "a more specific value wins" needs no code
-of its own, since an exactly-typed value never reaches the assignable path. Among two assignable
-candidates the more specific is used; a genuine tie throws `SetupFailed` naming both, rather than
-picking one. Matching is on the *declared* type, so `null` is a value like any other: `Returns(() =>
-(Cart?)null)` makes null the default wherever a `Cart?` fits.
-
-Costs nothing in rendered text — both MyHotel documents regenerate byte-identical apart from the
-build id — so this one does **not** wait on §7's version question. New functionality, minor version.
-
-**It dissolves §4.1's expression.** The cast was there to satisfy exact-type matching, and
-`Returns(One(Example.ServerKey))` now serves a member returning `IReadOnlyList<SigningKeyRecord>` on
-its own — no cast, no `new[] { … }`, and it renders as "one SigningKeyRecord" rather than as source.
-§4.1 stays open only until the auth suite is re-read that way; if the mangled sentence is gone with
-the cast, it closes as overtaken rather than fixed.
-
-### 4.6 A second assertion runs into the first, on one line — untrue-adjacent, reproduced 2026-08-07
-
-```
-Rendered:  Given IMyRepository throws NotFound
-           When GetModel()
-           Then throws NotFound IMyRepository.GetModel()
-From:      When(_ => _.GetModel())
-               .Given<IMyRepository>().Throws<NotFound>()
-               .Then().Throws<NotFound>();
-           Then<IMyRepository>(_ => _.GetModel());
-Jarred:    two claims, no boundary between them — no line break, no binder, nothing telling a
-           reader where the first ends. It reads as one malformed claim about NotFound rather than
-           as "it throws" plus "it called the repository".
-Wanted:    what a chained assertion already produces — `Then throws NotFound` / `  and
-           IMyRepository.GetModel()`.
-Status:    fixed 2026-08-07, unreleased
-```
-
-Reproduced from scratch here, not sighted in a document, after the PO asked whether it had been
-recorded — it had not. SPEC-GENERATION-PLAN §5.2 covers the family (a second assertion in one
-requirement) but describes a milder symptom, an orphaned sentence that at least starts a line. This
-is the same cause with the line break missing too, so §5.2's phrasing understates it.
-
-Note what does *not* exhibit it: `Then<IOrderService>(wasInvoked: Once).And<IOrderService>(…)`
-renders the second claim on its own line under `and`. The break is there for a chained assertion and
-missing for a second statement — so the text is right in one path and not the other.
+Not a defect but a request to revisit a recorded decision (SPEC-GENERATION-PLAN §6, commit 6b7fe25).
+Heading structure is format-level per §8: every committed document reflows at once.
 
 ### 4.7 A default `Throws` and a method setup merged into one line — not reproduced, outside suite (`TokenIssuer`), reported 2026-08-07
 
 ```
 Rendered:  "Given IMyService throws some exception that some method returns some value"
-           (PO's recollection, not copied from the document — the real line is still wanted)
+           (PO's recollection — the real line is still wanted)
 From:      Given<IMyService>().Throws(someException);
            Given<IMyService>().That(_ => _.SomeMethod).Returns(someValue);
 Jarred:    two arrangement clauses with no boundary, joined by a stray `that`.
@@ -223,24 +111,31 @@ Wanted:    the two clauses on their own lines, as the per-test text already rend
 Status:    open, cannot reproduce
 ```
 
-**Tried and correct in every case** — all four render `Given IMyService throws NotFound` / `  and
-GetModel() returns a MyModel`: `Throws<TEx>()` before `That`, `Throws(A<TEx>)` before `That`, `That`
-before either `Throws` overload, and a property setup rather than a method. Chaining with `.And<T>()`
-in one statement is identical to two separate statements. So the shape that breaks it is something
-else.
+Tried and correct: `Throws<TEx>()` or `Throws(A<TEx>)` before `That`, `That` before either, a
+property setup rather than a method, and chained `.And<T>()` versus two statements. Two threads left:
+it was seen **in `SPECIFICATION.md`**, and all of the above was checked in the per-test text; and a
+stray `that` is what an exception-property continuation produces, which a `Given` never does — so the
+recalled source may not be the source of the recalled line.
 
-Two threads worth pulling before asking again: the PO says it showed up **in `SPECIFICATION.md`**,
-and everything above was checked in the per-test text — the document is a separate path with
-hoisting, layout and wrapping on top. And a stray `that` is what the exception-property continuation
-produces (`throws RoomAlreadyExists that Message contains …`), which belongs to an assertion, not to
-a `Given` — so the recalled source may not be the source of the recalled line.
+## 5. Done
 
-Open at ship, by pointer rather than copy — [SPEC-GENERATION-PLAN.md](SPEC-GENERATION-PLAN.md) §5 is
-still the description of each. Listed here so intake does not re-file them as new.
+Kept as one line each so nothing here is filed again.
+
+- **4.1** Interface name chopped into words — a cast of a collection expression was not read as a
+  cast, so the type became words and the operand was dropped. Fixed 2026-08-07.
+- **4.3** A cast expression renders as source — PO's ruling: correct as rendered, no change wanted.
+- **4.5** Mock return values matched by exact type — a service-wide `Returns` now answers any method
+  whose return type the value is assignable to. Built 2026-08-07.
+- **4.6** A second assertion ran into the first — the recording files each step under the statement
+  it belongs to, so every claim takes its own line. Fixed 2026-08-07.
+- **5.2** (from 2.0.0) A second assertion started an orphaned sentence — closed by 4.6's fix.
+
+## 6. Carried in from 2.0.0
+
+By pointer rather than copy — [SPEC-GENERATION-PLAN.md](SPEC-GENERATION-PLAN.md) §5 describes each.
 
 | # | In one line | Class | Blocked on |
 |---|---|---|---|
-| ~~5.2~~ | ~~second assertion in a requirement starts an orphaned sentence~~ | fixed with §4.6 | — |
 | 5.3 | subject-wide assertion repeats in every branch instead of hoisting | noise | "who declared this" input |
 | 5.4 | binder silent across a hoist boundary — two `Having`s, nothing relating them | lost claim | not reachable in MyHotel |
 | 5.5 | nullable return type renders as non-nullable (`Room?` → `Room`) | lost claim | `NullabilityInfoContext`, not exhibited |
@@ -249,8 +144,8 @@ still the description of each. Listed here so intake does not re-file them as ne
 | 5.8 | `One(expr)` double-articles; `new[] { … }` keeps raw C# | reads badly | — |
 | 5.10 | a wrapped trailing phrase can start its line with its binder's comma | reads badly | fix belongs in composition |
 
-Half of these are waiting on a shape MyHotel does not have. That is the argument for intake from a
-second application, and the reason §1 asks for the source.
+Half are waiting on a shape MyHotel does not have, which is the argument for intake from a second
+application.
 
 Also carried in, unresolved and **the PO's to answer** — SPEC-GENERATION-PLAN §8:
 
@@ -261,83 +156,59 @@ Also carried in, unresolved and **the PO's to answer** — SPEC-GENERATION-PLAN 
 - Is `, returns HttpResponseMessage` on all ten `MyHotel.Spec` headings acceptable? Correct by the
   hoist ceiling, and the least informative case for it.
 
-## 6. Carried in from `TODO.txt`
+## 7. Carried in from `TODO.txt`
 
-Moved here rather than copied — these four are wanted *for the specification*, which is what §1 uses
-to decide where an item lives. The rest of `TODO.txt` stays where it is: performance, fixture
-ergonomics and tooling, none with a path to the page.
+Moved rather than copied — these four are wanted *for the specification*. The rest of `TODO.txt`
+stays there: performance, fixture ergonomics and tooling, none with a path to the page.
 
-### 6.1 A test that asserted nothing renders as a requirement that claims nothing
+### 7.1 A test that asserted nothing renders as a requirement that claims nothing
 
-Deferred execution means `[Fact] void T() => When(_ => Act());` passes without running the act at
-all — green, counted as coverage, verifying nothing. It is then collected like any passing test, so
-the document gains an entry that states no claim. **A false entry is worse than a missing one**, and
-no other test framework can catch this, because TSpec is the one that knows what an assertion is.
+Deferred execution means `[Fact] void T() => When(_ => Act());` passes without running the act, and
+is then collected like any passing test. **A false entry is worse than a missing one**, and TSpec is
+the only framework that can catch it, because it knows what an assertion is.
 
 - Runtime: fail in `SpecFixture` teardown when no assertion was recorded. ~20 lines. Check the suite
   does not trip it — `Specification.Is` and `Then<TService>(…)` must count as assertions.
-- Compile time: a Roslyn analyzer warning on a `[Fact]` in a `Spec` subclass reaching no assertion.
-  Ships alongside, generates no code, suppressible. Only if the runtime check earns its keep first.
+- Compile time: a Roslyn analyzer warning, only if the runtime check earns its keep first.
 
-### 6.2 Raw string literals render as source, delimiters included
+### 7.2 Raw string literals render as source, delimiters included
 
-The tokenizer does not handle quote runs, so any `"""…"""` expression falls out as Unknown and
-renders verbatim: `$"""{The(y)}"""` stays exactly that. **The last place a specification still shows
-source code inside quotes** — ordinary interpolation holes have been described since 2026-07-28.
+The tokenizer does not handle quote runs, so `$"""{The(y)}"""` falls out as Unknown and prints
+verbatim — **the last place a specification shows source code inside quotes**. Needs quote-run
+delimiters, then the hole rule keyed on the `$`-run: `$$` means two braces open a hole and a single
+`{` is literal. Low priority: rare, and a multi-line one is collapsed before parsing anyway.
 
-Needs quote-run delimiters in the tokenizer, then the hole rule keyed on the `$`-run: `$$` means two
-braces open a hole and a single `{` is literal, the inverse of the `{{`-escape rule for a single
-`$`. Low priority on its own — a raw string inside a captured expression is rare, and a multi-line
-one is collapsed by `ToSingleLine` before parsing anyway, which breaks its delimiters regardless.
+### 7.3 A nested `new(…)` in an argument list is not described
 
-### 6.3 A nested `new(…)` in an argument list is not described
+`_.AddNewItem(A<CartId>(), new(A<Sku>(), A<Price>()), A<string>())` — the inner target-typed `new` is
+not described. Same family as §6's 5.8, and the two should be judged together.
 
-`When(_ => _.AddNewItem(A<CartId>(), new(A<Sku>(), A<ProductType>(), A<Price>(), A<Vat>()),
-A<string>()))` — the inner target-typed `new` does not get described. Filed under "Documentation" in
-`TODO.txt` from the start; same family as SPEC-GENERATION-PLAN §5.8's `new[] { … }`, and the two
-should be judged together.
+### 7.4 `Nothing` as an explicit type argument
 
-### 6.4 `Nothing` as an explicit type argument
+A type argument reaches the document only where the act uses it in that capacity, which covers the
+common cases without ceremony but **nothing checks it**. Explicit form: `Spec<RoomService, Nothing>`,
+`Spec<Nothing, string>`, `Spec<Nothing>`; declaring `Nothing` and then using that capacity throws
+`SetupFailed`. Breaking — the non-generic `Spec` becomes `Spec<Nothing, Nothing>` — so 3.0.0.
 
-Today a type argument reaches the document only where the act uses it in that capacity — an act
-taking no subject states none, an act yielding no result states no return type. That covers the
-common cases without ceremony, but **nothing checks it**, and `Spec<T>` still has to mean "T in
-whichever capacity is used". The document's `Subject under test:` and `returns X` lines rest on an
-inferred rule.
-
-Explicit form: `Spec<RoomService, Nothing>`, `Spec<Nothing, string>`, or `Spec<Nothing>` for
-neither. Declaring `Nothing` and then using that capacity throws `SetupFailed`, so the declaration
-is enforced rather than merely honoured.
-
-Breaking: the non-generic `Spec` becomes `Spec<Nothing, Nothing>` instead of `Spec<object, object>`,
-which is what it has always meant. `TODO.txt` said "fits 2.0.0, do not slip it into a minor" — 2.0.0
-shipped without it, so read that as 3.0.0 now.
-
-## 7. What a fix costs
-
-Priced before it is proposed, not after:
+## 8. What a fix costs
 
 - **Any change to rendered text** moves consumers' pinned `Specification.Is(…)` expectations and
-  reflows every committed `SPECIFICATION.md` in the world. 2.0.0's table of moved pins (§6 there) is
-  what that looks like at scale.
-- **Section order and the ordering tiebreak** are a file format. Changing either reflows every
-  document at once — major version, per SPEC-GENERATION-PLAN §2.
-- **A pure addition** (a claim now stated that was silently dropped) still moves pins, but a reader
-  upgrading gains rather than re-pins.
+  reflows every committed `SPECIFICATION.md`.
+- **Section order and the ordering tiebreak** are a file format: changing either is a major version,
+  per SPEC-GENERATION-PLAN §2.
+- **A pure addition** still moves pins, but a reader upgrading gains rather than re-pins.
 
-Open, and wanted before the first fix ships: **does a text change alone justify a minor, or does it
-need a major?** `CLAUDE.md` prices docs-only as patch and new functionality as minor, and says
-nothing about the rendered text, which is the one thing this file will keep changing. The lean is
-minor with the moved pins tabled in the release notes, reserving major for format-level reflows —
-but this is the PO's call and every entry in §4 waits on it.
+Open, and wanted before the first text change ships: **does a text change alone justify a minor, or
+does it need a major?** `CLAUDE.md` prices docs-only as patch and new functionality as minor, and
+says nothing about rendered text — the one thing this file will keep changing. The lean is minor with
+the moved pins tabled in the release notes, major reserved for format-level reflows.
 
-## 8. Working rules
+## 9. Working rules
 
-- **Fix the smallest thing.** Adjust the existing condition before adding state or a new pass; diff
-  the real output of both before claiming the richer design is needed.
-- **Erase mechanism, keep claims.** The suite cannot judge readability, so a change justified only
-  by "reads better" needs the PO, and a change justified semantically does not.
-- **One entry, one change.** A fix touching three §4 entries at once cannot be reverted when one of
-  them turns out to have been the PO's preference.
-- **Regenerate both documents and read the whole diff** — a change aimed at one line habitually
-  moves twenty, and the twenty are the actual proposal.
+- **Fix the smallest thing.** Adjust the existing condition before adding state or a pass; diff the
+  real output of both before claiming the richer design is needed.
+- **Erase mechanism, keep claims.** A change justified only by "reads better" needs the PO; one
+  justified semantically does not.
+- **One entry, one change**, so a fix the PO dislikes can be reverted alone.
+- **Regenerate both documents and read the whole diff** — a change aimed at one line habitually moves
+  twenty, and the twenty are the actual proposal.
