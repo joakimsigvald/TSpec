@@ -11,9 +11,9 @@ gets rendered. The test is why an item is wanted, not which layer it lands in: i
 the specification is the reason, and in `TODO.txt` when it is not. Laws and the stages past
 generation stay in [TSpec-vision.md](TSpec-vision.md).
 
-**State:** open for intake. Seven observations (§4) — §4.5 and §4.6 built for 2.1.0, §4.3 closed,
-§4.7 waiting on a verbatim line. Nine backlog items carried in at §5 and §6, one of them (§5.2)
-closed by §4.6's fix.
+**State:** open for intake. Seven observations (§4) — §4.1, §4.5 and §4.6 built for 2.1.0, §4.3
+closed, §4.7 waiting on a verbatim line. Nine backlog items carried in at §5 and §6, one of them
+(§5.2) closed by §4.6's fix.
 
 ## 1. Where the feedback comes from
 
@@ -85,8 +85,13 @@ Jarred:    `IReadOnlyList` is normalized as an identifier — leading `I` split 
            keep their names (`ISigningKeyStore`, `IClientRegistry`, `ClientRecord?`), and the
            generic argument `SigningKeyRecord` survives intact — only the outer name is split.
 Wanted:    unknown; at minimum the type recoverable from the text.
-Status:    open
+Status:    fixed 2026-08-07, unreleased
 ```
+
+Only a cast of a *collection expression* broke: `LooksLikeCast` did not accept `[` after the closing
+paren, so `(T)[…]` was never read as a cast, the type name fell through to the identifier path, and
+the operand was dropped. `(T)A<X>()` was always right. Fixed by accepting `[`, which also reads
+`(x)[0]` as a cast — printing the same either way, and pinned as such.
 
 Filed as lost claim rather than reads-badly: a reader cannot map the sentence back to a type, so
 what the store returns is no longer stated. Provisional — reclassify if the PO reads it as taste.

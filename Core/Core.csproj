@@ -27,6 +27,7 @@
 
 			FIXED
 			* A second assertion no longer runs into the first: each claim starts its own line.
+			* A cast of a collection expression is described correctly verbatim
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

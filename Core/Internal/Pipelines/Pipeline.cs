@@ -11,11 +11,8 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
 {
     private TestResult<TSUT, TResult>? _result;
 
-    /// <summary>
-    /// Every assertion statement opens a claim of its own, so what it says starts a line rather than
-    /// running into the claim before it. Reading the result first runs the pipeline, which is what
-    /// records the act — so the claim can only ever follow what it is a claim about.
-    /// </summary>
+    /// Opens a statement for the assertion to fill. Reading the result first runs the pipeline,
+    /// so the claim always follows the act it is about.
     internal TestResult<TSUT, TResult> Claim
     {
         get

@@ -1,4 +1,4 @@
-namespace TSpec.Internal.Specification;
+﻿namespace TSpec.Internal.Specification;
 
 /// <summary>
 /// Records the specification of each pipeline step as a deferred description,
@@ -41,11 +41,7 @@ internal class SpecificationRecording
             .Compose(Clauses, _because)
             .Render(TextBuilder.PageWidth);
 
-    /// <summary>
-    /// Files a step under the statement it belongs to. Anything but a word heads a statement of its
-    /// own; a word continues the one in hand, and starts one where there is none to continue. A
-    /// silent step contributes no text and waits for the statement it will affect.
-    /// </summary>
+    /// Files a step under the statement it belongs to: anything but a word heads one of its own.
     internal void Add(SpecificationStep step)
     {
         if (step.Layout == StepLayout.Silent)
@@ -54,19 +50,14 @@ internal class SpecificationRecording
             return;
         }
         var startsStatement = step.Layout != StepLayout.Word;
-        // Two introductions with nothing said between them are one: however many ways a test finds
-        // to open a statement, what follows is a single claim.
+        // Two introductions with nothing said between them are one statement
         if (startsStatement && step.Introduces && _isIntroduced)
             return;
 
         Place(step, startsStatement);
     }
 
-    /// <summary>
-    /// Records what an assertion claims. It fills the introduction in hand, and starts a statement
-    /// of its own where there is none — which is the assertion written with no <c>Then</c> in front
-    /// of it, and the one after a statement that has already said its piece.
-    /// </summary>
+    /// Records what an assertion claims: it fills the introduction in hand, or opens a statement.
     internal void Claim(SpecificationStep step) => Place(step, startsStatement: !_isIntroduced);
 
     private void Place(SpecificationStep step, bool startsStatement)
@@ -121,9 +112,8 @@ internal class SpecificationRecording
             _clauses[^1].AddRange(_pending);
         _pending.Clear();
 
-        // An introduction with nothing said under it is dropped, but only where a claim was already
-        // made: reading Result inside a verification expression opens a statement after the
-        // verification has been recorded. A bare Then is kept — there it is the whole assertion.
+        // Reading Result inside a verification expression introduces a statement too late to say
+        // anything. A bare Then is kept: there it is the whole assertion.
         if (_isIntroduced && _clauses.Count > 1 && SaysNothing(_clauses[^1]) && IsClaim(_clauses[^2]))
             _clauses.RemoveAt(_clauses.Count - 1);
     }

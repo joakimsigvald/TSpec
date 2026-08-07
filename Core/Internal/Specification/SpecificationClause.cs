@@ -1,4 +1,4 @@
-namespace TSpec.Internal.Specification;
+﻿namespace TSpec.Internal.Specification;
 
 /// <summary>
 /// One expression of a specification — a <c>Using</c>, a <c>Given</c>, a mock setup with all its
@@ -8,8 +8,7 @@ namespace TSpec.Internal.Specification;
 /// about a position, not properties of the expression.
 /// </summary>
 /// <remarks>
-/// Clauses are cut where the steps are recorded, by <see cref="SpecificationRecording"/>, so where
-/// one claim ends is a fact the model carries rather than one anybody downstream re-derives.
+/// Cut where the steps are recorded, so where a claim ends is carried rather than re-derived.
 /// </remarks>
 internal sealed class SpecificationClause(IReadOnlyList<SpecificationStep> steps)
 {
@@ -27,8 +26,7 @@ internal sealed class SpecificationClause(IReadOnlyList<SpecificationStep> steps
         _ => StepPhase.Assert,
     };
 
-    /// The step the clause is built around — the one that decides how it opens. Silent steps travel
-    /// with a clause but never speak for it.
+    /// The step the clause is built around. Silent steps travel with it but never speak for it.
     internal SpecificationStep Head { get; } =
         steps.First(step => step.Layout != StepLayout.Silent);
 

@@ -1,4 +1,4 @@
-namespace TSpec.Internal.Specification;
+﻿namespace TSpec.Internal.Specification;
 
 /// <summary>
 /// Phase two: turns described clauses into specification text. Everything
@@ -21,8 +21,7 @@ internal static class SpecificationRenderer
         List<TextUnit> units = [];
         foreach (var clause in clauses)
         {
-            // By identity, not by value: a step can repeat its wording within one clause, as an
-            // assertion comparing a thing to itself does.
+            // By position, not by value: a clause can repeat its own wording
             var head = true;
             foreach (var step in Steps(clause, returns))
             {
@@ -61,8 +60,7 @@ internal static class SpecificationRenderer
             StepLayout.Phrase => TextUnit.Line(content, step.Indentation),
             StepLayout.SentenceOrPhrase =>
                 char.IsUpper(content[0]) ? Sentence(content) : TextUnit.Line(content, 1),
-            // A word heading its statement has nothing to append to, so it opens a sentence of its
-            // own — the assertion written without a Then, standalone or as the first thing said.
+            // A word heading its statement has nothing to append to
             _ => isHead ? Sentence(content) : TextUnit.Word(content, step.Binder),
         });
     }

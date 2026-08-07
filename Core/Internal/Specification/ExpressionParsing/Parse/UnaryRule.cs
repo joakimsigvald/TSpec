@@ -69,6 +69,6 @@ internal static class UnaryRule
         stream.Advance();                                   // consume ')'
         var nxt = stream.Peek();
         return nxt.Kind is TokenKind.Word or TokenKind.Number
-            || (nxt.Kind == TokenKind.Symbol && nxt.Text is "(" or "-" or "!" or "~");
+            || (nxt.Kind == TokenKind.Symbol && nxt.Text is "(" or "[" or "-" or "!" or "~");
     });
 }

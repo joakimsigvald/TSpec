@@ -1,4 +1,4 @@
-namespace TSpec.Internal.Specification;
+﻿namespace TSpec.Internal.Specification;
 
 /// <summary>
 /// One recorded pipeline step, described but not yet laid out. This is the
@@ -32,11 +32,8 @@ internal sealed record SpecificationStep(StepLayout Layout)
     /// names its service again.
     internal bool EndsMockRun { get; init; }
 
-    /// <summary>
-    /// Whether the step opens a statement without saying it — <c>Then</c>, a conjunction, the
-    /// <c>that</c> or <c>where</c> that hands off to a condition. What it introduces belongs to the
-    /// same statement, and a second introduction with nothing said between them is the same one.
-    /// </summary>
+    /// Whether the step opens a statement without saying it: <c>Then</c>, a conjunction,
+    /// the <c>that</c> or <c>where</c> handing off to a condition.
     internal bool Introduces { get; init; }
 }
 

@@ -73,6 +73,11 @@ public class WhenDescribe : Spec<string>
     [InlineData("async ValueTask<int> (a, b) => await Add(a, b)", "(a, b) => Add(a, b)")]
     [InlineData("(a,b) => a.Combine( b )", "(a, b) => a.Combine(b)")]
     [InlineData("(a, b, c) => a ? b[0] : (int)c", "(a, b, c) => a ? b[0] : (int)c")]
+    [InlineData("() => (ICollection<int>)[1, 2]", "(ICollection<int>)[1, 2]")]
+    [InlineData("() => (IReadOnlyList<int>)[The(x)]", "(IReadOnlyList<int>)[the X]")]
+    [InlineData("() => (ICollection<int>)Two<int>()", "(ICollection<int>)two ints")]
+    // Read as that cast, and prints back either way
+    [InlineData("(x)[0]", "(x)[0]")]
     [InlineData("await.Length", "await.Length")]
     [InlineData("await - 1", "await - 1")]
     // Interpolation holes are expressions, and describe like any other
