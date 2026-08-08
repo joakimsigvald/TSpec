@@ -1,4 +1,4 @@
-namespace TSpec.Internal.Specification.ExpressionParsing.Tokenize;
+﻿namespace TSpec.Internal.Specification.ExpressionParsing.Tokenize;
 
 /// <summary>
 /// Shared C#-literal boundary detection. Tokenizer uses it to slice
@@ -10,41 +10,18 @@ internal static class LiteralScanner
     public static bool TryFindStringEnd(string input, int start, out int end)
     {
         end = 0;
-        var (contentStart, verbatim, interpolated) = ReadStringOpen(input, start);
-        if (contentStart < 0)
+        var quoteStart = start;
+        while (quoteStart < input.Length && input[quoteStart] is '$' or '@')
+            quoteStart++;
+
+        var quotes = CountLeadingOccurances(input, quoteStart, '"');
+        if (quotes == 0)
             return false;
 
-        var quotes = QuoteRun(input, contentStart - 1);
         end = quotes >= 3
-            ? SkipRawContent(input, contentStart - 1 + quotes, quotes)
-            : SkipStringContent(input, contentStart, verbatim, interpolated);
+            ? EndOfRawBody(input, quoteStart + quotes, quotes)
+            : EndOfBody(input, quoteStart + 1, '"', input[start..quoteStart]);
         return true;
-    }
-
-    internal static int QuoteRun(string input, int from)
-    {
-        var run = 0;
-        while (from + run < input.Length && input[from + run] == '"')
-            run++;
-        return run;
-    }
-
-    /// A raw string ends at the first run of at least as many quotes as opened it, and holds no
-    /// escapes — the run is the whole rule.
-    private static int SkipRawContent(string input, int from, int quotes)
-    {
-        for (var p = from; p < input.Length; p++)
-        {
-            if (input[p] != '"')
-                continue;
-
-            var run = QuoteRun(input, p);
-            if (run >= quotes)
-                return p + run;
-
-            p += run - 1;
-        }
-        return input.Length;
     }
 
     public static bool TryFindCharEnd(string input, int start, out int end)
@@ -53,67 +30,71 @@ internal static class LiteralScanner
         if (start >= input.Length || input[start] != '\'')
             return false;
 
-        int p = start + 1;
-        while (p < input.Length && input[p] != '\'')
-        {
-            if (input[p] == '\\' && p + 1 < input.Length)
-                p++;
-            p++;
-        }
-        end = p < input.Length ? p + 1 : p;
+        end = EndOfBody(input, start + 1, '\'', prefix: "");
         return true;
     }
 
-    private static (int ContentStart, bool Verbatim, bool Interpolated) ReadStringOpen(string input, int start)
-    {
-        int p = start;
-        bool verbatim = false, interpolated = false;
-        while (p < input.Length && input[p] is '$' or '@')
-        {
-            if (input[p] == '$') interpolated = true; else verbatim = true;
-            p++;
-        }
-        return p < input.Length && input[p] == '"' ? (p + 1, verbatim, interpolated) : (-1, false, false);
-    }
+    internal static int QuoteRun(string input, int from) => CountLeadingOccurances(input, from, '"');
 
-    /// Scans the string body to the closing <c>"</c>, respecting <c>\</c>
-    /// escapes (non-verbatim), <c>""</c> escapes (verbatim), and balanced
-    /// <c>{ }</c> interpolation holes.
-    private static int SkipStringContent(string input, int from, bool verbatim, bool interpolated)
+    private static int EndOfBody(string input, int from, char delimiter, string prefix)
     {
-        int p = from;
-        while (p < input.Length)
+        for (var p = from; p < input.Length;)
         {
-            char ch = input[p];
-            if (interpolated && ch == '{')
-            {
-                if (IsDoubled(input, p, '{')) { p += 2; continue; }
-                p = SkipInterpolationHole(input, p + 1);
-                continue;
-            }
-            if (interpolated && ch == '}' && IsDoubled(input, p, '}')) { p += 2; continue; }
-            if (!verbatim && ch == '\\' && p + 1 < input.Length) { p += 2; continue; }
-            if (verbatim && ch == '"' && IsDoubled(input, p, '"')) { p += 2; continue; }
-            if (ch == '"')
+            if (Escape(input, p, prefix) is var escaped and > 0)
+                p += escaped;
+            else if (input[p] == delimiter)
                 return p + 1;
-
-            p++;
+            else
+                p++;
         }
-        return p;
+        return input.Length;
     }
 
-    private static int SkipInterpolationHole(string input, int from)
+    private static int EndOfRawBody(string input, int from, int quotes)
     {
-        int p = from, depth = 1;
-        while (p < input.Length && depth > 0)
+        for (var p = from; p < input.Length;)
         {
-            if (input[p] == '{') depth++;
-            else if (input[p] == '}') depth--;
-            p++;
+            var run = CountLeadingOccurances(input, p, '"');
+            if (run >= quotes)
+                return p + run;
+
+            p += Math.Max(run, 1);
         }
-        return p;
+        return input.Length;
     }
 
-    private static bool IsDoubled(string input, int p, char ch)
-        => p + 1 < input.Length && input[p + 1] == ch;
+    /// <summary>
+    /// How many characters at <paramref name="at"/> belong to the body rather than end it: a
+    /// backslash escape where the prefix allows one, a delimiter doubled to escape itself, or a
+    /// whole interpolation hole.
+    /// </summary>
+    private static int Escape(string input, int at, string prefix)
+    {
+        var verbatim = prefix.Contains('@');
+        var interpolated = prefix.Contains('$');
+        var selfEscaping = (verbatim ? "\"" : "") + (interpolated ? "{}" : "");
+        return input[at] switch
+        {
+            '\\' when !verbatim && at + 1 < input.Length => 2,
+            var ch when selfEscaping.Contains(ch) && CountLeadingOccurances(input, at, ch) >= 2 => 2,
+            '{' when interpolated => SizeOfHole(input, at),
+            _ => 0,
+        };
+    }
+
+    private static int SizeOfHole(string input, int at)
+    {
+        var depth = 0;
+        for (var p = at; p < input.Length; p++)
+        {
+            if (input[p] == '{')
+                depth++;
+            else if (input[p] == '}' && --depth == 0)
+                return p + 1 - at;
+        }
+        return input.Length - at;
+    }
+
+    private static int CountLeadingOccurances(string input, int from, char ch)
+        => input.Length - from - input.AsSpan(from).TrimStart(ch).Length;
 }
