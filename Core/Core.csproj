@@ -27,6 +27,7 @@
 
 			CHANGED
 			* A nested Given heads its own section, unless that leads to level-5 heading, then they are merged to one level-4 heading
+			* An array creation reads as the list it is: new[] { x } as [x], new int[] { x } as int[x]
 
 			FIXED
 			* A second assertion no longer runs into the first: each claim starts its own line.

@@ -62,10 +62,19 @@ internal class TextBuilder(
         return opensSentence ? text.Capitalize() : text;
     }
 
+    /// <summary>
+    /// Punctuation in the binder joins the word to what stands before it, so it is written there and
+    /// not carried along: a line opening with a comma reads as though something were missing above it.
+    /// </summary>
     private void AddWord(string word, string binder)
     {
-        if (!string.IsNullOrEmpty(word))
-            AddText($"{binder}{word}");
+        if (string.IsNullOrEmpty(word))
+            return;
+
+        var joint = binder.TrimEnd();
+        if (joint.Length > 0)
+            AddText(joint);
+        AddText($" {word}");
     }
 
     internal StringBuilder AddText(string? text)

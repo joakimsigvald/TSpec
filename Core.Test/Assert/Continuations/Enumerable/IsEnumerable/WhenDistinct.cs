@@ -23,7 +23,7 @@ public class WhenDistinct : Spec
     public void GivenTwoDifferentItems_ThenDoesNotThrow()
     {
         new int[] { 1, 2 }.Is().Distinct();
-        Specification.Is("New int[] { 1, 2 } is distinct");
+        Specification.Is("Int[1, 2] is distinct");
     }
 
     [Fact]

@@ -42,7 +42,13 @@ public class WhenDescribe : Spec<string>
     // A trailing comma is legal C# and closes nothing — the list ends at its terminator
     [InlineData("The<MyModel>() with { Name = A<string>(), }", "the MyModel with { Name = a string }")]
     [InlineData("new MyModel { Name = A<string>(), Id = 1, }", "new MyModel { Name = a string, Id = 1 }")]
-    [InlineData("new[] { An<int>(), A<string>(), }", "new[] { an int, a string }")]
+    // An untyped array creation renderes as a collection expression
+    [InlineData("new[] { An<int>(), A<string>(), }", "[an int, a string]")]
+    [InlineData("new[] { The(x) }", "[the X]")]
+    [InlineData("_.Store(new[] { The(x) })", "_.Store([the X])")]
+    // A typed one states its element type
+    [InlineData("new int[] { 1, 2 }", "int[1, 2]")]
+    [InlineData("new MyModel[] { theFirst, theSecond }", "MyModel[theFirst, theSecond]")]
     [InlineData("A<MyModel?>", "a MyModel?")]
     [InlineData("The<TimeSpan>() / 2", "the TimeSpan / 2")]
     [InlineData("The<int>() + TheSecond<int>()", "the int + the second int")]

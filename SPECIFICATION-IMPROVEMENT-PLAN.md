@@ -105,21 +105,25 @@ By pointer rather than copy — [SPEC-GENERATION-PLAN.md](SPEC-GENERATION-PLAN.m
 
 | # | In one line | Example | Class |
 |---|---|---|---|
-| 5.3 | subject-wide assertion repeats in every branch instead of hoisting | — | noise, **pinned** |
+| 5.3 | a `[Fact]` declared above the branches repeats in every branch block | — | noise, **planned** |
 | 5.4 | binder silent across a hoist boundary — two `Having`s, nothing relating them | — | lost claim, unreachable |
 | 5.5 | nullable return type renders as non-nullable | `Spec<RoomService, Room?>` states `returns Room` | lost claim |
 | 5.6 | one outlier costs its sibling group their hoist, no partial credit | — | reads badly, **pinned** |
 | 5.7 | a block opening with `Given` loses that word under a `Given` heading | — | lost claim, unreachable |
-| 5.8a | a count over an articled expression double-articles | `One(The(model))` → `one the Model` | reads badly |
-| 5.8b | an array argument keeps its C# wrapper | `new[] { The(x) }` → `new[] { the X }` | reads badly |
+| 5.8a | a count over an articled expression double-articles | `One(The(model))` → `one the Model` | reads badly, **deprioritized** |
+| 5.8b | an array argument keeps its C# wrapper | `new[] { The(x) }` → `new[] { the X }`; PO's lean is `[the X]` | reads badly |
 | 5.10 | a wrapped trailing phrase starts its line with its binder's comma | `…PadRight(40, 'x').Trim()` / `, because …` | reads badly |
 
 5.5 is harder than it looks: a reference type carries no annotation at runtime, and
 `NullabilityInfoContext` has no overload for a base type's generic argument, so it means decoding the
 compiler's `NullableAttribute` on the spec class. `int?` already works, being `Nullable<int>`.
 
-5.3 and 5.6 both want the same input — which class declared a clause, rather than the sharing TSpec
-infers it from — and are **pinned at the PO's request** until that is explained properly.
+5.3 needs the declaring class of the `[Fact]`, not the sharing hoisting infers placement from —
+"every branch claims this" is not the same fact as "this was claimed once above them". Planned at
+the PO's request. 5.6 stays **pinned**.
+
+No rendering has been agreed for 5.8a: neither `one MyModel` nor `[the Model]` convinced the PO, so
+it drops below 5.8b and 5.10, where the same `[the X]` form is the lean.
 
 5.4 and 5.7 are not reachable in any suite we have, which is the argument for intake from a second
 application.

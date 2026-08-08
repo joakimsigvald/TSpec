@@ -17,7 +17,7 @@ public class WhenIsNotArray : Spec<int[]>
         ex.HasMessage(
             "Expected Result to not be [1, 2] but found [1, 2]",
             """
-            Using new int[] { 1, 2, 3 } for Input
+            Using int[1, 2, 3] for Input
             When arr
             Then Result is not arr
             """);

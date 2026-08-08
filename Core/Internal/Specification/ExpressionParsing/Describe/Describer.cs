@@ -77,10 +77,21 @@ internal abstract class Describer
 
     protected static string DescribeNew(New n)
     {
+        if (n.Init is not null && IsArrayCreation(n))
+            return $"{n.TypeName}[{Wrap.Enter}{DescribeAll(n.Init)}{Wrap.Exit}]";
+
         string head = NewHead(n);
         string init = n.Init is null ? "" : Braced(n.Init);
         return head + init;
     }
+
+    /// An array creation reads as the list it is, keeping the element type where one was written.
+    private static bool IsArrayCreation(New n)
+        => n.Args.Count == 0
+        && n.Raw.IndexOf('{') is > 0 and var brace
+        && Compact(n.Raw[..brace]) == Compact($"new {n.TypeName}[]");
+
+    private static string Compact(string text) => text.Replace(" ", "");
 
     /// When an init block is present, the user's literal text up to the
     /// <c>{</c> is preserved verbatim so <c>new T()</c>, <c>new int[]</c>,

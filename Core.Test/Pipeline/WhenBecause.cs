@@ -1,4 +1,4 @@
-using TSpec.Assert;
+﻿using TSpec.Assert;
 using Xunit.Sdk;
 
 namespace TSpec.Test.Pipeline;
@@ -44,6 +44,24 @@ public class WhenBecause : Spec<MyStateService, int>
             """
             When ThrowIt()
             Then throws InvalidOperationException, because the method always throws
+            """);
+    }
+
+    /// <summary>
+    /// The comma joins the reason to the claim before it, so it stays on that claim's line — a
+    /// wrapped line opening with punctuation reads as though something were missing above it.
+    /// </summary>
+    [Fact]
+    public void GivenTheReasonWraps_ThenLeaveItsCommaOnTheLineItJoins()
+    {
+        When(_ => ++_.Counter)
+            .Then(because: "the counter starts at zero and one increment must yield one")
+            .Result.Is().GreaterThan(0);
+        Specification.Is(
+            """
+            When ++Counter
+            Then Result is greater than 0,
+                  because the counter starts at zero and one increment must yield one
             """);
     }
 
