@@ -23,10 +23,10 @@
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			NEW
-			* Using&lt;T&gt;(setup) and Using&lt;T&gt;(transform) arrange every generated value of a type.
-			  A setup on the type says where its values come from, which is what Using arranges —
-			  it applies to the subject-under-test graph as well as to input, and the specification
-			  now says so: "Using Room with BedCount = 2", listed with the other Using steps.
+			* Using&lt;T&gt;(setup) and Using&lt;T&gt;(transform) arrange every generated value of a type,
+			  taking the same optional scope as any Using arrangement — For.Input, For.Subject or
+			  For.All (default). Reads "Using Room with BedCount = 2 for Subject". Out of scope, a
+			  setup neither applies nor supplies a default.
 
 			CHANGED
 			* A value arranged through an article — Given().A&lt;T&gt;(setup), .ASecond, .Two, etc. — reads

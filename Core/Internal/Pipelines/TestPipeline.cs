@@ -141,13 +141,15 @@ internal abstract class TestPipeline<TSUT, TResult, TParent>(TParent parent) whe
 
     public IUsingTestPipeline<TSUT, TResult> Using<TValue>(
         Action<TValue> setup,
+        For scope = For.All,
         [CallerArgumentExpression(nameof(setup))] string? setupExpr = null) where TValue : class
-        => _parent.Using(setup, setupExpr!);
+        => _parent.Using(setup, scope, setupExpr!);
 
     public IUsingTestPipeline<TSUT, TResult> Using<TValue>(
         Func<TValue, TValue> transform,
+        For scope = For.All,
         [CallerArgumentExpression(nameof(transform))] string? transformExpr = null)
-        => _parent.Using(transform, transformExpr!);
+        => _parent.Using(transform, scope, transformExpr!);
 
     public IUsingTestPipeline<TSUT, TResult> Using<TValue>(
         Func<TValue> defaultValue,

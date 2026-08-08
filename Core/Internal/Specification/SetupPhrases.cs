@@ -22,9 +22,9 @@ internal class SetupPhrases(SpecificationRecording recording)
 
     /// A setup on the type is a type arrangement, not a value: it says where every value of that
     /// type comes from, so it joins the <c>Using</c> run rather than opening a <c>Given</c>.
-    internal void AddUsingSetup<TValue>(string setupExpr)
+    internal void AddUsingSetup<TValue>(string setupExpr, For scope)
         => RecordSetup(() => Add(StepLayout.SentenceOrPhrase, StepFamily.Using,
-            DescribeSetupExpression<TValue>(setupExpr, article: null)));
+            $"{DescribeSetupExpression<TValue>(setupExpr, article: null)}{ScopeSuffix(scope)}"));
 
     internal void AddGivenCount<TModel>(string count)
         => RecordSetup(() => Given($"{ArticlePrefix(count)}{typeof(TModel).Alias().CountedBy(count)}"));

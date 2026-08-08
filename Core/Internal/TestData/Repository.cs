@@ -41,14 +41,14 @@ internal class Repository : IRepository
     {
         var type = typeof(TValue);
         var instance = _generator.Create(type, For.Subject);
-        return _mutator.Mutate(type, instance);
+        return _mutator.Mutate(type, instance, For.Subject);
     }
 
     internal object? InstantiateNew<TValue>()
     {
         var type = typeof(TValue);
         var instance = _generator.CreateNew(type, For.Subject);
-        return _mutator.Mutate(type, instance);
+        return _mutator.Mutate(type, instance, For.Subject);
     }
 
     public bool TryResolveDefault(Type type, For scope, out object? val)
@@ -57,10 +57,10 @@ internal class Repository : IRepository
         if (found)
             return true;
 
-        if (!_mutator.HasMutation(type))
+        if (!_mutator.HasMutation(type, scope))
             return false;
 
-        val = _mutator.Mutate(type, _generator.CreateNew(type, scope));
+        val = _mutator.Mutate(type, _generator.CreateNew(type, scope), scope);
         return true;
     }
 
@@ -72,15 +72,16 @@ internal class Repository : IRepository
         _dataProvider.UseFactory(factory, scope);
     }
 
-    internal void AddDefaultSetup(Type type, Func<object, object> mutation) => _mutator.AddMutation(type, mutation);
+    internal void AddDefaultSetup(Type type, For scope, Func<object, object> mutation)
+        => _mutator.AddMutation(type, scope, mutation);
 
     public (object? val, bool found) Use(Type type, For scope)
         => TryResolveDefault(type, scope, out var value) ? (value, true) : (null, false);
 
-    public object Create(Type type, For scope) => _mutator.Mutate(type, _generator.Create(type, scope))!;
+    public object Create(Type type, For scope) => _mutator.Mutate(type, _generator.Create(type, scope), scope)!;
 
     internal TValue Create<TValue>(For scope)
-        => (TValue)_mutator.Mutate(typeof(TValue), _generator.Create<TValue>(scope))!;
+        => (TValue)_mutator.Mutate(typeof(TValue), _generator.Create<TValue>(scope), scope)!;
 
 
     internal void Register<TTarget, TSource>(Func<TSource, TTarget>? convert, For scope, SequenceHolder sequence)

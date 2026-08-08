@@ -25,7 +25,7 @@ Full human documentation: [README.md](https://github.com/joakimsigvald/TSpec#rea
 | `When(_ => _.Method(args))` | The single action under test | Lambda gets the SUT; overloads for `Action`/`Func`/async |
 | `Given().A(value)` / `Given(tag).Is(v)` | Provide input test data | Applies to Input only; also `Given().ASecond(value)`…, `Given().One(v)`/`Some(values)`/`Two<T>()` for collections |
 | `Given<TService>().That(_ => _.Call(...)).Returns(...)` | Mock dependency behavior | See Mocking |
-| `Using<TModel>(m => m.X = 1)` / `Using((int i) => i + 1)` | Setup/transform every generated value of a type | Applied most-recent-first |
+| `Using<TModel>(m => m.X = 1)` / `Using((int i) => i + 1)` | Setup/transform every generated value of a type | Applied most-recent-first. Optional scope: `For.Input`, `For.Subject`, `For.All` (default) |
 | `Using(value)` / `Using(() => value)` / `Using(tag)` | Register default value/factory for a type | Optional scope: `For.Input`, `For.Subject`, `For.All` (default); `owned: true` = pipeline disposes it on teardown |
 | `Using<TTarget>().From<TSource>()` | Type conversion for generation | See Conversions |
 | `Having(_ => _.Setup())` | Setup on the SUT before `When` | Reverse declaration order; consecutive setups render joined by `after`, so the text states the order they ran in |

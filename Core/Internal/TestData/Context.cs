@@ -58,9 +58,10 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
     internal Dictionary<object, int> GetTagIndices(Type type)
         => _tagIndices.TryGetValue(type, out var val) ? val : _tagIndices[type] = [];
 
-    internal void SetDefault<TModel>(Action<TModel> setup) where TModel : class
+    internal void SetDefault<TModel>(Action<TModel> setup, For scope) where TModel : class
         => _repository.AddDefaultSetup(
             typeof(TModel),
+            scope,
             obj =>
             {
                 if (obj is TModel model)
@@ -68,8 +69,8 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
                 return obj;
             });
 
-    internal void SetDefault<TValue>(Func<TValue, TValue> setup)
-        => _repository.AddDefaultSetup(typeof(TValue), _ => setup((TValue)_)!);
+    internal void SetDefault<TValue>(Func<TValue, TValue> setup, For scope)
+        => _repository.AddDefaultSetup(typeof(TValue), scope, _ => setup((TValue)_)!);
 
     internal TValue[] AssignMany<TValue>(TValue[] values)
         => Assign(values);

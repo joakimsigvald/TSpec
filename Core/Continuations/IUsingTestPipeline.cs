@@ -53,10 +53,12 @@ public interface IUsingTestPipeline<TSUT, TResult> : ITestPipeline<TSUT, TResult
     /// </summary>
     /// <typeparam name="TValue">The type whose generated values the setup applies to.</typeparam>
     /// <param name="setup">An action applied to each generated value of the type.</param>
+    /// <param name="scope">Determines whether the setup applies to Subject Under Test construction (Subject), ambient test data (Input), or both (All). Defaults to All.</param>
     /// <param name="setupExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to provide further infrastructure and test data arrangement.</returns>
     IUsingTestPipeline<TSUT, TResult> And<TValue>(
         Action<TValue> setup,
+        For scope = For.All,
         [CallerArgumentExpression(nameof(setup))] string? setupExpr = null)
         where TValue : class;
 
@@ -65,10 +67,12 @@ public interface IUsingTestPipeline<TSUT, TResult> : ITestPipeline<TSUT, TResult
     /// </summary>
     /// <typeparam name="TValue">The type whose generated values the transform applies to.</typeparam>
     /// <param name="transform">A function transforming each generated value of the type.</param>
+    /// <param name="scope">Determines whether the transform applies to Subject Under Test construction (Subject), ambient test data (Input), or both (All). Defaults to All.</param>
     /// <param name="transformExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to provide further infrastructure and test data arrangement.</returns>
     IUsingTestPipeline<TSUT, TResult> And<TValue>(
         Func<TValue, TValue> transform,
+        For scope = For.All,
         [CallerArgumentExpression(nameof(transform))] string? transformExpr = null);
 
     /// <summary>

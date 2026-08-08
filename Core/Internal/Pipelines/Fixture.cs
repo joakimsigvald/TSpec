@@ -48,19 +48,19 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
     }
 
     internal void SetDefault<TModel>(
-        Action<TModel> setup, string setupExpr) where TModel : class
+        Action<TModel> setup, string setupExpr, For scope) where TModel : class
     {
-        Specification.AddUsingSetup<TModel>(setupExpr);
+        Specification.AddUsingSetup<TModel>(setupExpr, scope);
         AssertIsNotSetUp();
-        _context.SetDefault(setup);
+        _context.SetDefault(setup, scope);
     }
 
     internal void SetDefault<TValue>(
-        Func<TValue, TValue> transform, string transformExpr)
+        Func<TValue, TValue> transform, string transformExpr, For scope)
     {
-        Specification.AddUsingSetup<TValue>(transformExpr);
+        Specification.AddUsingSetup<TValue>(transformExpr, scope);
         AssertIsNotSetUp();
-        _context.SetDefault(transform);
+        _context.SetDefault(transform, scope);
     }
 
     internal void SetDefault<TValue>(TValue defaultValue, For scope, string defaultValuesExpr)

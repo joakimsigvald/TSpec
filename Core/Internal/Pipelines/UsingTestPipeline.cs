@@ -46,13 +46,15 @@ internal class UsingTestPipeline<TSUT, TResult> :
     /// <inheritdoc />
     public IUsingTestPipeline<TSUT, TResult> And<TValue>(
         Action<TValue> setup,
+        For scope = For.All,
         [CallerArgumentExpression(nameof(setup))] string? setupExpr = null)
         where TValue : class
-        => _parent.Using(setup, setupExpr!);
+        => _parent.Using(setup, scope, setupExpr!);
 
     /// <inheritdoc />
     public IUsingTestPipeline<TSUT, TResult> And<TValue>(
         Func<TValue, TValue> transform,
+        For scope = For.All,
         [CallerArgumentExpression(nameof(transform))] string? transformExpr = null)
-        => _parent.Using(transform, transformExpr!);
+        => _parent.Using(transform, scope, transformExpr!);
 }

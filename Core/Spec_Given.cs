@@ -22,7 +22,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         [CallerArgumentExpression(nameof(setup))] string? setupExpr = null)
         where TValue : class
     {
-        Pipeline.SetDefault(setup, setupExpr!);
+        Pipeline.SetDefault(setup, setupExpr!, For.All);
         return new GivenTestPipeline<TSUT, TResult>(this);
     }
 
@@ -45,7 +45,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         Func<TValue, TValue> transform,
         [CallerArgumentExpression(nameof(transform))] string? transformExpr = null)
     {
-        Pipeline.SetDefault(transform, transformExpr!);
+        Pipeline.SetDefault(transform, transformExpr!, For.All);
         return new GivenTestPipeline<TSUT, TResult>(this);
     }
 
