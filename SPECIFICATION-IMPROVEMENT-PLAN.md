@@ -9,7 +9,8 @@ rendered. An item belongs here when the specification is the reason for wanting 
 `TODO.txt` when it is not. Laws and the stages past generation stay in
 [TSpec-vision.md](TSpec-vision.md).
 
-**State:** one observation open (§4), eight done (§5), ten carried in (§6, §7), two of those pinned.
+**State:** one observation open (§4), twelve done (§5), six carried in (§6, §7), two of those
+pinned or deprioritized.
 
 ## 1. Where the feedback comes from
 
@@ -81,23 +82,19 @@ entry if the PO wants that half moved.
 
 Kept as one line each so nothing here is filed again.
 
-- **4.1** Interface name chopped into words — a cast of a collection expression was not read as a
-  cast, so the type became words and the operand was dropped. Fixed 2026-08-07.
-- **4.3** A cast expression renders as source — PO's ruling: correct as rendered, no change wanted.
-- **4.5** Mock return values matched by exact type — a service-wide `Returns` now answers any method
-  whose return type the value is assignable to. Built 2026-08-07.
-- **4.6** A second assertion ran into the first — the recording files each step under the statement
-  it belongs to, so every claim takes its own line. Fixed 2026-08-07.
-- **5.2** (from 2.0.0) A second assertion started an orphaned sentence — closed by 4.6's fix.
-- **4.7** A default `Throws` and a method setup merged into one line — dropped 2026-08-07: not
-  reproducible in any shape, and the PO's recollection was of 4.6, which is fixed.
-- **4.4** Nested givens flattened into one heading — a nested `Given` now heads its own section
-  where there is depth for it, so a clause its branches share can rise to it. Four heading levels is
-  the limit: where a group heading has already spent the third, the path stays one heading, which is
-  why both MyHotel documents are unchanged. Built 2026-08-07.
-- **7.3** A nested `new(…)` in an argument list — already described:
-  `_.AddNewItem(A<CartId>(), new(A<Sku>(), A<Price>()), A<string>())` renders
-  `_.AddNewItem(a CartId, new(a Sku, a Price), a string)`. The `TODO.txt` entry was stale.
+- **4.1** A cast of a collection expression was not read as a cast, losing the type and the value.
+- **4.3** A cast renders as source — PO's ruling: correct as written, no change wanted.
+- **4.4** A nested `Given` heads its own section where the document has depth for it.
+- **4.5** A service-wide `Returns` answers any method whose return type the value can be assigned to.
+- **4.6** Each assertion statement takes its own line instead of running into the one before it.
+- **4.7** Dropped: not reproducible in any shape, and the recollection was of 4.6.
+- **5.2** A second assertion no longer starts an orphaned sentence — closed by 4.6.
+- **5.8b** An array creation reads as the list it is, keeping the element type where one was written.
+- **5.10** A wrapped line never opens with the comma that joined it to the line above.
+- **7.1** A test that asserts nothing reads `TODO: Assert behaviour` where its claim would be,
+  rather than failing the build — outlining ahead of the requirements stays a legal move.
+- **7.2** A raw string literal is described like any other string, holes and all.
+- **7.3** A nested `new(…)` was already described; the `TODO.txt` entry was stale.
 
 ## 6. Carried in from 2.0.0
 
@@ -111,8 +108,6 @@ By pointer rather than copy — [SPEC-GENERATION-PLAN.md](SPEC-GENERATION-PLAN.m
 | 5.6 | one outlier costs its sibling group their hoist, no partial credit | — | reads badly, **pinned** |
 | 5.7 | a block opening with `Given` loses that word under a `Given` heading | — | lost claim, unreachable |
 | 5.8a | a count over an articled expression double-articles | `One(The(model))` → `one the Model` | reads badly, **deprioritized** |
-| 5.8b | an array argument keeps its C# wrapper | `new[] { The(x) }` → `new[] { the X }`; PO's lean is `[the X]` | reads badly |
-| 5.10 | a wrapped trailing phrase starts its line with its binder's comma | `…PadRight(40, 'x').Trim()` / `, because …` | reads badly |
 
 5.5 is harder than it looks: a reference type carries no annotation at runtime, and
 `NullabilityInfoContext` has no overload for a base type's generic argument, so it means decoding the
@@ -123,7 +118,7 @@ compiler's `NullableAttribute` on the spec class. `int?` already works, being `N
 the PO's request. 5.6 stays **pinned**.
 
 No rendering has been agreed for 5.8a: neither `one MyModel` nor `[the Model]` convinced the PO, so
-it drops below 5.8b and 5.10, where the same `[the X]` form is the lean.
+it sits last of the open items.
 
 5.4 and 5.7 are not reachable in any suite we have, which is the argument for intake from a second
 application.
@@ -141,25 +136,6 @@ Also carried in, unresolved and **the PO's to answer** — SPEC-GENERATION-PLAN 
 
 Moved rather than copied — wanted *for the specification*. The rest of `TODO.txt` stays there:
 performance, fixture ergonomics and tooling, none with a path to the page.
-
-### 7.1 A test that asserted nothing renders as a requirement that claims nothing
-
-Deferred execution means `[Fact] public void ThenModelIsReturned() => When(_ => _.GetModel());`
-passes without running the act, and is collected like any passing test. Its specification text is
-**empty** — verified — so the document lists the requirement by its name, "return model", with
-nothing under it saying what was checked. A reader takes the name for a claim. TSpec is the only
-framework that can catch this, because it knows what an assertion is.
-
-- Runtime: fail in `SpecFixture` teardown when no assertion was recorded. ~20 lines. Check the suite
-  does not trip it — `Specification.Is` and `Then<TService>(…)` must count as assertions.
-- Compile time: a Roslyn analyzer warning, only if the runtime check earns its keep first.
-
-### 7.2 Raw string literals render as source, delimiters included
-
-The tokenizer does not handle quote runs, so `$"""{The(y)}"""` falls out as Unknown and prints
-verbatim — **the last place a specification shows source code inside quotes**. Medium: quote-run
-delimiters in the tokenizer, then the hole rule keyed on the `$`-run, where `$$` means two braces
-open a hole and a single `{` is literal — the inverse of the single-`$` escape.
 
 ### 7.4 `Nothing` as an explicit type argument
 

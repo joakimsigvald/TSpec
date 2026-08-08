@@ -667,6 +667,16 @@ public class WhenRenderDocument : Spec
             InNamespace("MyHotel.Core.Spec.Bookings.BookingService", "WhenBook", "ThenB"))
             .Does().Contain("\n# Bookings\n").and.Contain("\n# Rooms\n").and.not.Contain("Service");
 
+    /// <summary>
+    /// A test that asserts nothing never runs its pipeline, so it states nothing at all. Listed by
+    /// name alone it reads as a requirement somebody verified, which is the one thing the document
+    /// must not say — so the claim slot says what is missing instead.
+    /// </summary>
+    [Fact]
+    public void GivenARequirementClaimsNothing_ThenSayItIsStillToDo()
+        => Render(Requirement("WhenGetRoom", "ThenAuthorizeRequest"))
+            .Does().Contain("- **authorize request** — *TODO: Assert behaviour*\n");
+
     // ----------- A nested branch heads twice, where there is depth left to spend
 
     private static SpecificationEntry OfBranchPath(string branch, string name, params SpecificationClause[] own)

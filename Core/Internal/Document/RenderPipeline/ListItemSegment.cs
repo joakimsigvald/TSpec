@@ -8,16 +8,22 @@ internal sealed record ListItemSegment(string Name, ComposedText Claim) : Docume
     private const int FenceWidth = Document.Width - ItemIndentation;
     private const int ClaimWidth = FenceWidth - 2;
 
+    private const string ToDoHint = "*TODO: Assert behaviour*";
+
     internal override string Render()
     {
         var claim = Claim.Fit(ClaimWidth);
-        if (claim.Contains('\n'))
-            return $"- **{Name}**\n{Indent($"```\n{Claim.Fit(FenceWidth)}\n```")}\n";
+        return string.IsNullOrEmpty(claim) ? Beside(ToDoHint)
+            : claim.Contains('\n') ? $"- **{Name}**\n{Indent($"```\n{Claim.Fit(FenceWidth)}\n```")}\n"
+            : Beside($"`{claim}`");
+    }
 
-        var beside = $"- **{Name}** — `{claim}`";
-        return beside.Length <= Document.Width
-            ? $"{beside}\n"
-            : $"- **{Name}**\\\n{Indent($"`{claim}`")}\n";
+    private string Beside(string claim)
+    {
+        var beside = $"- **{Name}** — {claim}";
+        return beside.Length <= Document.Width 
+            ? $"{beside}\n" 
+            : $"- **{Name}**\\\n{Indent(claim)}\n";
     }
 
     private static string Indent(string block)
