@@ -7,24 +7,20 @@ internal sealed record ListItemSegment(string Name, ComposedText Claim) : Docume
     private const int ItemIndentation = 2;
     private const int FenceWidth = Document.Width - ItemIndentation;
     private const int ClaimWidth = FenceWidth - 2;
-
     private const string ToDoHint = "*TODO: Assert behaviour*";
+    private readonly string _bulletStart = $"- **{Name}**";
 
-    internal override string Render()
-    {
-        var claim = Claim.Fit(ClaimWidth);
-        return string.IsNullOrEmpty(claim) ? Beside(ToDoHint)
-            : claim.Contains('\n') ? $"- **{Name}**\n{Indent($"```\n{Claim.Fit(FenceWidth)}\n```")}\n"
+    internal override string Render() => _bulletStart + RenderClaim(Claim.Fit(ClaimWidth));
+
+    private string RenderClaim(string claim)
+        => string.IsNullOrEmpty(claim) ? Beside(ToDoHint)
+            : claim.Contains('\n') ? $"\n{Indent(Blocked(Claim.Fit(FenceWidth)))}\n"
             : Beside($"`{claim}`");
-    }
+
+    private static string Blocked(string content) => $"```\n{content}\n```";
 
     private string Beside(string claim)
-    {
-        var beside = $"- **{Name}** — {claim}";
-        return beside.Length <= Document.Width 
-            ? $"{beside}\n" 
-            : $"- **{Name}**\\\n{Indent(claim)}\n";
-    }
+        => claim.Length <= Document.Width - _bulletStart.Length - 2 ? $" — {claim}\n" : $"\\\n{Indent(claim)}\n";
 
     private static string Indent(string block)
         => string.Join("\n",
