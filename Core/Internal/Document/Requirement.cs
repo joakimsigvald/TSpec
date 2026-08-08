@@ -62,8 +62,13 @@ internal sealed record Requirement(
                 : null;
     }
 
+    /// <summary>
+    /// The clauses every requirement states, to be said once above them. The act and what is
+    /// claimed about it share a ceiling — the heading that names the method — since nothing above
+    /// that heading says what the claim is a claim about. Only arrangement rises higher.
+    /// </summary>
     internal static IReadOnlyList<SpecificationClause> Shared(
-        IReadOnlyList<Requirement> requirements, bool acts = true)
+        IReadOnlyList<Requirement> requirements, bool actAndClaims = true)
     {
         if (requirements.Count == 0)
             return [];
@@ -74,11 +79,13 @@ internal sealed record Requirement(
         {
             if (shared.Count == limit)
                 break;
-            if (!acts && clause.Family == StepFamily.When)
+            if (!actAndClaims && (clause.Family == StepFamily.When || clause.Phase == StepPhase.Assert))
+                continue;
+            // A lone requirement claims for nobody but itself.
+            if (clause.Phase == StepPhase.Assert && requirements.Count < 2)
                 continue;
             var taken = shared.Count(hoisted => hoisted.Matches(clause));
-            if (clause.Phase != StepPhase.Assert
-                && requirements.All(requirement => requirement.Clauses.Count(clause.Matches) > taken))
+            if (requirements.All(requirement => requirement.Clauses.Count(clause.Matches) > taken))
                 shared.Add(clause);
         }
         return shared;

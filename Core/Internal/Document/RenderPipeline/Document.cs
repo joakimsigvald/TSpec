@@ -17,7 +17,7 @@ internal sealed record Document(
         IEnumerable<SpecificationEntry> entries)
     {
         Requirement[] requirements = [.. Requirement.From(entries)];
-        var whole = Requirement.Shared(requirements, acts: false);
+        var whole = Requirement.Shared(requirements, actAndClaims: false);
         return new(subject, specAssemblyName, buildId,
             Requirement.SubjectOf(requirements), whole, ToAreas(requirements, whole));
     }
@@ -43,7 +43,7 @@ internal sealed record Document(
     {
         var ofArea = area.ToArray();
         var heads = area.Key.Length > 0;
-        var shared = heads ? Requirement.Shared(ofArea, acts: false) : [];
+        var shared = heads ? Requirement.Shared(ofArea, actAndClaims: false) : [];
         var subject = heads ? Requirement.SubjectOf(ofArea) : null;
         var groups = ofArea
             .Select(requirement => requirement.Without(shared))
@@ -57,7 +57,7 @@ internal sealed record Document(
     private static DocumentNode ToGroup(IGrouping<string, Requirement> group, bool heads)
     {
         var ofGroup = group.ToArray();
-        var shared = heads ? Requirement.Shared(ofGroup, acts: false) : [];
+        var shared = heads ? Requirement.Shared(ofGroup, actAndClaims: false) : [];
         var subject = heads ? Requirement.SubjectOf(ofGroup) : null;
         var subjectLevel = heads ? GroupLevel + 1 : GroupLevel;
         return new(group.Key, heads ? group.Key.AsTitle() : null, GroupLevel, shared,

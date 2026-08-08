@@ -9,7 +9,7 @@ rendered. An item belongs here when the specification is the reason for wanting 
 `TODO.txt` when it is not. Laws and the stages past generation stay in
 [TSpec-vision.md](TSpec-vision.md).
 
-**State:** one observation open (§4), twelve done (§5), six carried in (§6, §7), two of those
+**State:** one observation open (§4), thirteen done (§5), six carried in (§6, §7), two of those
 pinned or deprioritized.
 
 ## 1. Where the feedback comes from
@@ -88,6 +88,8 @@ Kept as one line each so nothing here is filed again.
 - **4.5** A service-wide `Returns` answers any method whose return type the value can be assigned to.
 - **4.6** Each assertion statement takes its own line instead of running into the one before it.
 - **4.7** Dropped: not reproducible in any shape, and the recollection was of 4.6.
+- **4.8** A claim every requirement under a heading makes is stated once at that heading, like
+  anything else they share — and no higher than the act it is about. Neither MyHotel document moves.
 - **5.2** A second assertion no longer starts an orphaned sentence — closed by 4.6.
 - **5.8b** An array creation reads as the list it is, keeping the element type where one was written.
 - **5.10** A wrapped line never opens with the comma that joined it to the line above.
@@ -114,8 +116,10 @@ By pointer rather than copy — [SPEC-GENERATION-PLAN.md](SPEC-GENERATION-PLAN.m
 compiler's `NullableAttribute` on the spec class. `int?` already works, being `Nullable<int>`.
 
 5.3 needs the declaring class of the `[Fact]`, not the sharing hoisting infers placement from —
-"every branch claims this" is not the same fact as "this was claimed once above them". Planned at
-the PO's request. 5.6 stays **pinned**.
+"every branch claims this" is not the same fact as "this was claimed once above them". 4.8 settled
+the first of those and leaves 5.3 exactly where it was: an inherited `[Fact]` is a requirement of
+its own in each branch, never a clause its siblings repeat, so no amount of sharing reaches it.
+Planned at the PO's request. 5.6 stays **pinned**.
 
 No rendering has been agreed for 5.8a: neither `one MyModel` nor `[the Model]` convinced the PO, so
 it sits last of the open items.

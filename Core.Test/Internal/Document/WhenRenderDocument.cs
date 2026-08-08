@@ -102,7 +102,7 @@ public class WhenRenderDocument : Spec
     [Fact]
     public void GivenEntriesOutOfOrder_ThenSortThem()
         => Render(_respondOk with { Requirement = "ThenB" }, _respondOk with { Requirement = "ThenA" })
-            .Does().Contain("- **a**\n").and.Contain("- **b**\n");
+            .Does().Contain("- **a** — ").and.Contain("- **b** — ");
 
     /// <summary>A theory reports once per case; identical text must not repeat in the document.</summary>
     [Fact]
@@ -212,14 +212,50 @@ public class WhenRenderDocument : Spec
             .and.Contain("- **Thena** — `a`\n");
 
     /// <summary>
-    /// An assertion is the claim a requirement exists to make. Two requirements agreeing on one
-    /// is worth seeing, so it stays in both blocks however often it repeats.
+    /// A claim every requirement makes is said once, above them, like anything else they share —
+    /// and no higher than the act, which is the last heading that names what it is a claim about.
     /// </summary>
     [Fact]
-    public void GivenEveryRequirementClaimsTheSame_ThenStillStateItInEachBlock()
+    public void GivenEveryRequirementClaimsTheSame_ThenStateItOnceAbove()
         => Render([.. new[] { "a", "b", "c" }.Select(name =>
                 Requirement("WhenGetRoom", $"Then{name}", Claim("then same"), Claim($"then {name}")))])
-            .Split("same").Length.Is(4);
+            .Split("same").Length.Is(2);
+
+    /// <summary>
+    /// The branches divide what is claimed, not what the claim is about, so a claim they all make
+    /// rises past their headings to the one naming the act — the same ceiling the act itself has.
+    /// </summary>
+    [Fact]
+    public void GivenEveryBranchClaimsTheSame_ThenStateItAtTheAct()
+        => Render(
+            new("WhenSendEmail", "GivenTheAddressIsKnown", "ThenA",
+                [Act("send"), Claim("then log send email"), Claim("then a")]),
+            new("WhenSendEmail", "GivenTheAddressIsNew", "ThenB",
+                [Act("send"), Claim("then log send email"), Claim("then b")]))
+            .Does().Contain("## When send email\n```\nsend\nThen log send email\n```\n");
+
+    /// <summary>
+    /// A claim rises no further than the act it is about, even where every subject in the document
+    /// happens to make it — above that heading nothing names what the claim is a claim about, so a
+    /// reader would be told that two different acts log, without being told which one does what.
+    /// </summary>
+    [Fact]
+    public void GivenTwoActsClaimTheSame_ThenStateItUnderEach()
+        => Render(
+            new("WhenSendEmail", "", "ThenA", [Act("send"), Claim("then log it")]),
+            new("WhenDeleteEmail", "", "ThenB", [Act("delete"), Claim("then log it")]))
+            .Does()
+            .Contain("## When send email\n`send`\n\n- **a** — `log it`\n")
+            .and.Contain("## When delete email\n`delete`\n\n- **b** — `log it`\n");
+
+    /// <summary>
+    /// A lone requirement claims for nobody but itself: with no sibling saying the same thing there
+    /// is nothing above it the claim could be said for, however much else the requirement states.
+    /// </summary>
+    [Fact]
+    public void GivenASingleRequirementClaimsTwice_ThenLeaveBothClaimsInItsBlock()
+        => Render(Requirement("WhenGetRoom", "ThenA", Act("get"), Claim("then a"), Claim("then b")))
+            .Does().Contain("## When get room\n`get`\n\n- **a**\n  ```\n  a\n  Then b\n  ```\n");
 
     /// <summary>
     /// A lone requirement shares nothing with anyone, but its context still belongs under the

@@ -57,11 +57,13 @@ Each cost a session to find; none is guarded by a test.
 
 ## 4. Hoisting
 
-What every requirement under a heading opens with is stated once, whole clauses only, judged
-clause-by-clause, rising as often as the least-frequent entry states it. Assertions never hoist.
-The act and the return type never rise above the subject whose heading names the method; only
-arrangement rises higher. Levels: document → area → (group, where an area holds more than one
-namespace below it) → subject → branch.
+What every requirement under a heading states is written once at that heading, whole clauses only,
+judged clause-by-clause, rising as often as the least-frequent entry states it. The act, the return
+type and a claim about that act never rise above the subject whose heading names the method —
+nothing higher says what the claim is a claim about; only arrangement rises further. A lone
+requirement's claim stays in its own item: with no sibling saying it, there is nobody above it to
+say it for. Levels: document → area → (group, where an area holds more than one namespace below it)
+→ subject → branch.
 
 **Deliberately not built:** a family-to-level ceiling for arrangement itself (e.g. `Having` no
 higher than its branch) — placement is inferred from sharing today, a proxy, since TSpec does not
@@ -74,7 +76,9 @@ record which class declared a clause. **Trigger:** gap §5.3 wants the same inpu
 2. A second assertion in one requirement starts an orphaned sentence (no `Then`). Needs phase 2 to
    buffer a whole assertion before it can be told from other text.
 3. A subject-wide assertion, declared above its branches, still repeats in every branch block
-   instead of hoisting — needs the same "who declared this" input as §4.
+   instead of hoisting — needs the same "who declared this" input as §4. Untouched by assertions
+   now hoisting: that lifts a clause every requirement states, and a `[Fact]` in the base class is a
+   requirement of its own in each branch, not a clause its siblings repeat.
 4. The binder is silent across a hoist boundary: `Having X` at the heading, `Having Y` in the item,
    nothing relating them in time. Not reachable in MyHotel today.
 5. A nullable return type (`Room?`) renders as `Room` — needs `NullabilityInfoContext` over the
