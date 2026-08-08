@@ -50,19 +50,18 @@ internal static class DocumentRenderer
                     StatedWord(node.Heading)));
             }
 
-            if (node is BranchNode branch)
-                AddLeaves(branch);
-            else
-                foreach (var section in Order(node.Children))
-                    AddNode(section,
-                        statedSubject ?? node.SubjectUnderTest,
-                        statedReturnType ?? node.ReturnType);
+            if (node.Requirements.Count > 0)
+                AddLeaves(node.Requirements);
+            foreach (var section in Order(node.Children))
+                AddNode(section,
+                    statedSubject ?? node.SubjectUnderTest,
+                    statedReturnType ?? node.ReturnType);
         }
 
-        void AddLeaves(BranchNode branch)
+        void AddLeaves(IReadOnlyList<Requirement> requirements)
         {
             Add(new NewLineSegment());
-            foreach (var requirement in InReadingOrder(branch.Requirements))
+            foreach (var requirement in InReadingOrder(requirements))
                 Add(new ListItemSegment(requirement.Name, requirement.Claim));
         }
     }

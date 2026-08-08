@@ -102,7 +102,7 @@ public class WhenRenderDocument : Spec
     [Fact]
     public void GivenEntriesOutOfOrder_ThenSortThem()
         => Render(_respondOk with { Requirement = "ThenB" }, _respondOk with { Requirement = "ThenA" })
-            .Does().Contain("- **a** — ").and.Contain("- **b** — ");
+            .Does().Contain("- **a**\n").and.Contain("- **b**\n");
 
     /// <summary>A theory reports once per case; identical text must not repeat in the document.</summary>
     [Fact]
@@ -212,50 +212,68 @@ public class WhenRenderDocument : Spec
             .and.Contain("- **Thena** — `a`\n");
 
     /// <summary>
-    /// A claim every requirement makes is said once, above them, like anything else they share —
-    /// and no higher than the act, which is the last heading that names what it is a claim about.
+    /// An assertion is the claim a requirement exists to make. Two requirements agreeing on one is
+    /// worth seeing, so it stays in both blocks however often it repeats — a requirement is the
+    /// smallest thing that may rise, and what it states never rises without it.
     /// </summary>
     [Fact]
-    public void GivenEveryRequirementClaimsTheSame_ThenStateItOnceAbove()
+    public void GivenEveryRequirementClaimsTheSame_ThenStillStateItInEachBlock()
         => Render([.. new[] { "a", "b", "c" }.Select(name =>
                 Requirement("WhenGetRoom", $"Then{name}", Claim("then same"), Claim($"then {name}")))])
-            .Split("same").Length.Is(2);
+            .Split("same").Length.Is(4);
 
     /// <summary>
-    /// The branches divide what is claimed, not what the claim is about, so a claim they all make
-    /// rises past their headings to the one naming the act — the same ceiling the act itself has.
+    /// A requirement is the smallest thing that may rise, and one written above the branches runs in
+    /// every one of them — so a requirement each branch repeats is stated once at the heading they
+    /// share, where it was written, instead of in every block below it.
     /// </summary>
     [Fact]
-    public void GivenEveryBranchClaimsTheSame_ThenStateItAtTheAct()
+    public void GivenEveryBranchRepeatsARequirement_ThenStateItOnceAbove()
         => Render(
-            new("WhenSendEmail", "GivenTheAddressIsKnown", "ThenA",
-                [Act("send"), Claim("then log send email"), Claim("then a")]),
-            new("WhenSendEmail", "GivenTheAddressIsNew", "ThenB",
-                [Act("send"), Claim("then log send email"), Claim("then b")]))
-            .Does().Contain("## When send email\n```\nsend\nThen log send email\n```\n");
-
-    /// <summary>
-    /// A claim rises no further than the act it is about, even where every subject in the document
-    /// happens to make it — above that heading nothing names what the claim is a claim about, so a
-    /// reader would be told that two different acts log, without being told which one does what.
-    /// </summary>
-    [Fact]
-    public void GivenTwoActsClaimTheSame_ThenStateItUnderEach()
-        => Render(
-            new("WhenSendEmail", "", "ThenA", [Act("send"), Claim("then log it")]),
-            new("WhenDeleteEmail", "", "ThenB", [Act("delete"), Claim("then log it")]))
+            new("WhenAddRoom", "GivenNoSuchRoom", "ThenRespondWithJson", [Act("post"), Claim("then json")]),
+            new("WhenAddRoom", "GivenNoSuchRoom", "ThenRespondCreated", [Act("post"), Claim("then created")]),
+            new("WhenAddRoom", "GivenTheRoomExists", "ThenRespondWithJson", [Act("post"), Claim("then json")]),
+            new("WhenAddRoom", "GivenTheRoomExists", "ThenRespondConflict", [Act("post"), Claim("then conflict")]))
             .Does()
-            .Contain("## When send email\n`send`\n\n- **a** — `log it`\n")
-            .and.Contain("## When delete email\n`delete`\n\n- **b** — `log it`\n");
+            .Contain("## When add room\n`post`\n\n- **respond with json** — `json`\n\n### Given ")
+            .and.Contain("### Given no such room\n\n- **respond created** — `created`\n")
+            .and.Contain("### Given the room exists\n\n- **respond conflict** — `conflict`\n");
 
     /// <summary>
-    /// A lone requirement claims for nobody but itself: with no sibling saying the same thing there
-    /// is nothing above it the claim could be said for, however much else the requirement states.
+    /// One branch is nobody to share with: a requirement rises because the branches below repeat it,
+    /// and a heading with a single branch under it has no repetition to remove.
     /// </summary>
     [Fact]
-    public void GivenASingleRequirementClaimsTwice_ThenLeaveBothClaimsInItsBlock()
-        => Render(Requirement("WhenGetRoom", "ThenA", Act("get"), Claim("then a"), Claim("then b")))
-            .Does().Contain("## When get room\n`get`\n\n- **a**\n  ```\n  a\n  Then b\n  ```\n");
+    public void GivenOneBranchOnly_ThenLeaveItsRequirementsWhereTheyAre()
+        => Render(
+            new("WhenAddRoom", "GivenNoSuchRoom", "ThenRespondWithJson", [Act("post"), Claim("then json")]),
+            new("WhenAddRoom", "GivenNoSuchRoom", "ThenRespondCreated", [Act("post"), Claim("then created")]))
+            .Does().Contain("### Given no such room\n\n- **respond with json** — `json`\n");
+
+    /// <summary>
+    /// Hoisting must never empty a block, so a branch whose every requirement is repeated elsewhere
+    /// keeps one — a heading with nothing under it states less than the repetition cost.
+    /// </summary>
+    [Fact]
+    public void GivenABranchIsNothingButRepeatedRequirements_ThenLeaveThemInPlace()
+        => Render(
+            new("WhenAddRoom", "GivenNoSuchRoom", "ThenRespondWithJson", [Act("post"), Claim("then json")]),
+            new("WhenAddRoom", "GivenNoSuchRoom", "ThenRespondCreated", [Act("post"), Claim("then created")]),
+            new("WhenAddRoom", "GivenTheRoomExists", "ThenRespondWithJson", [Act("post"), Claim("then json")]))
+            .Does().Contain("## When add room\n`post`\n\n### Given ");
+
+    /// <summary>
+    /// A requirement rises no higher than the heading naming the act it is about: two subjects that
+    /// happen to state the same requirement each keep it, since above them nothing names the act.
+    /// </summary>
+    [Fact]
+    public void GivenTwoSubjectsRepeatARequirement_ThenStateItUnderEach()
+        => Render(
+            new("WhenAddRoom", "", "ThenRespondWithJson", [Act("post"), Claim("then json")]),
+            new("WhenGetRoom", "", "ThenRespondWithJson", [Act("get"), Claim("then json")]))
+            .Does()
+            .Contain("## When add room\n`post`\n\n- **respond with json** — `json`\n")
+            .and.Contain("## When get room\n`get`\n\n- **respond with json** — `json`\n");
 
     /// <summary>
     /// A lone requirement shares nothing with anyone, but its context still belongs under the

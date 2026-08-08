@@ -9,8 +9,8 @@ rendered. An item belongs here when the specification is the reason for wanting 
 `TODO.txt` when it is not. Laws and the stages past generation stay in
 [TSpec-vision.md](TSpec-vision.md).
 
-**State:** one observation open (§4), fourteen done (§5), six carried in (§6, §7), two of those
-pinned or deprioritized. Three PO questions still open at the end of §6.
+**State:** one observation open (§4), nineteen done or closed (§5), four queued (§6), one of them
+pinned.
 
 ## 1. Where the feedback comes from
 
@@ -88,78 +88,69 @@ Kept as one line each so nothing here is filed again.
 - **4.5** A service-wide `Returns` answers any method whose return type the value can be assigned to.
 - **4.6** Each assertion statement takes its own line instead of running into the one before it.
 - **4.7** Dropped: not reproducible in any shape, and the recollection was of 4.6.
-- **4.8** A claim every requirement under a heading makes is stated once at that heading, like
-  anything else they share — and no higher than the act it is about. Neither MyHotel document moves.
+- **4.8** Tried and reverted: hoisting an assertion *clause* every requirement states. PO's ruling
+  2026-08-08 — a requirement is the smallest thing that may rise, so one technical assertion made by
+  two separate facts stays visible in both. Superseded by 5.3, which was what was wanted.
 - **4.9** The return type has no ceiling: it rises as far as it holds, independently of the subject.
   PO's ruling — the argument that it belongs to the method each heading names lost to ten headings
   repeating `, returns HttpResponseMessage`. It stays a `Return type:` label beside the subject
   except where it joins an act, which only a heading naming that act has.
 - **5.2** A second assertion no longer starts an orphaned sentence — closed by 4.6.
+- **5.3** A requirement every branch repeats is listed once at the heading they share, which is
+  where a `[Fact]` on the outer class was written. Decided by repetition, not by the declaring
+  class, and no higher than the heading naming the act. `MyHotel.Spec` moves twice.
 - **5.8b** An array creation reads as the list it is, keeping the element type where one was written.
 - **5.10** A wrapped line never opens with the comma that joined it to the line above.
 - **7.1** A test that asserts nothing reads `TODO: Assert behaviour` where its claim would be,
   rather than failing the build — outlining ahead of the requirements stays a legal move.
 - **7.2** A raw string literal is described like any other string, holes and all.
 - **7.3** A nested `new(…)` was already described; the `TODO.txt` entry was stale.
+- **7.4** Closed, PO's ruling 2026-08-08: `Nothing` as an explicit type argument is low value and
+  extra friction for the author. Nothing checks that a declared type argument is used, and nothing
+  will.
+- **5.8a** Closed, PO's ruling 2026-08-08: `one the Model` stays. No proposed form was truer to the
+  test code than the one the source already reads as.
+- **A target-typed `new(…)` keeps its source form.** Closed: TSpec describes source text and has no
+  semantic model, so recovering `DateOnly` from `new(2026, 8, 10)` means reflecting on the enclosing
+  call and matching by position — wrong under overloads, and inventing what the test does not say.
+- **A `When…` class name is the heading.** Closed: whether `When book` should read `When book a
+  room` is a naming choice in the suite, not a rendering rule.
 
 ## 6. Carried in from 2.0.0
 
 Numbered as they were in the 2.0.0 working notes, which this section absorbed when that file was
 retired.
 
-| # | In one line | Example | Class |
-|---|---|---|---|
-| 5.3 | a `[Fact]` declared above the branches repeats in every branch block | — | noise, **planned** |
-| 5.4 | binder silent across a hoist boundary — two `Having`s, nothing relating them | — | lost claim, unreachable |
-| 5.5 | nullable return type renders as non-nullable | `Spec<RoomService, Room?>` states `returns Room` | lost claim |
-| 5.6 | one outlier costs its sibling group their hoist, no partial credit | — | reads badly, **pinned** |
-| 5.7 | a block opening with `Given` loses that word under a `Given` heading | — | lost claim, unreachable |
-| 5.8a | a count over an articled expression double-articles | `One(The(model))` → `one the Model` | reads badly, **deprioritized** |
+| # | In one line | Class |
+|---|---|---|
+| 5.5 | nullable return type renders as non-nullable | lost claim, **candidate for the next release** |
+| 4.2b | no `The` form when providing a value | surface, **queued, no work yet** |
+| 5.4 | setup order is lost across a hoist boundary | lost claim, unreachable |
+| 5.7 | a block opening with `Given` loses that word under a `Given` heading | lost claim, unreachable |
+| 5.6 | one outlier costs its sibling group their hoist, no partial credit | reads badly, **pinned** |
 
-5.5 is harder than it looks: a reference type carries no annotation at runtime, and
-`NullabilityInfoContext` has no overload for a base type's generic argument, so it means decoding the
-compiler's `NullableAttribute` on the spec class. `int?` already works, being `Nullable<int>`.
+**5.5** — a reference type carries no annotation at runtime, and `NullabilityInfoContext` has no
+overload for a base type's generic argument, so it means decoding the compiler's `NullableAttribute`
+on the spec class: a flag array indexed by position in a flattened type tree, which silently gets
+the wrong answer for nested generics. `int?` already works, being `Nullable<int>`. Nothing in either
+MyHotel suite returns a nullable type, so no document moves when it lands.
 
-5.3 needs the declaring class of the `[Fact]`, not the sharing hoisting infers placement from —
-"every branch claims this" is not the same fact as "this was claimed once above them". 4.8 settled
-the first of those and leaves 5.3 exactly where it was: an inherited `[Fact]` is a requirement of
-its own in each branch, never a clause its siblings repeat, so no amount of sharing reaches it.
-Planned at the PO's request.
+**4.2b** — split from §4.2, whose phrasing half stays held for a second sighting. The arrange surface
+offers `A`, `An`, `ASecond`… and no `The`, so an author who dislikes `a ClientRecord has Status =
+"disabled"` has no other way to write it. A pure addition; nothing re-pins.
 
-5.6 stays **pinned**. It is exact match, no partial credit: one requirement saying something else
+**5.4 and 5.7** are not reachable in any suite we have, which is the argument for intake from a
+second application. 5.4: `Having` steps run last-declared-first and consecutive setups render joined
+by "after" to say so — hoist one to the heading and leave the other in the item, and nothing relates
+them in time. 5.7: the word-drop rule that turns `## When get room` + `When get` into `get` cannot
+tell a family keyword from a class-name segment, so it eats the `Given` that marks a block as
+arrangement.
+
+**5.6** stays **pinned**. Exact match, no partial credit: one requirement saying something else
 costs its whole sibling group the hoist. The open question, were it unpinned, is whether a dissenter
 should restate the clause in its own block instead of blocking the hoist for everyone.
 
-No rendering has been agreed for 5.8a: `One(expr)` over an already-articled expression
-double-articles, and neither `one MyModel` nor `[the Model]` convinced the PO, so it sits last of
-the open items.
-
-5.4 and 5.7 are not reachable in any suite we have, which is the argument for intake from a second
-application. 5.4 is a hoisted `Having X` at the heading and a `Having Y` in the item with nothing
-relating them in time — the reader cannot tell which ran first. 5.7 is the word-drop rule failing to
-tell a family keyword from a class-name segment, so a block opening with `Given` loses that word
-under a `Given` heading.
-
-Also carried in, unresolved and **the PO's to answer**:
-
-- Should `Core.Spec`'s booking headings (`When book`) match the rooms' fuller style (`When add
-  room`)?
-- Should `new(2026, 8, 10)` say `new DateOnly(…)` so a reader sees the type?
-- Should a refused input stay its own section, or become a branch by making the varying value a tag?
-
-## 7. Carried in from `TODO.txt`
-
-Moved rather than copied — wanted *for the specification*. The rest of `TODO.txt` stays there:
-performance, fixture ergonomics and tooling, none with a path to the page.
-
-### 7.4 `Nothing` as an explicit type argument
-
-A type argument reaches the document only where the act uses it in that capacity, which covers the
-common cases without ceremony but **nothing checks it**. Explicit form: `Spec<RoomService, Nothing>`,
-`Spec<Nothing, string>`, `Spec<Nothing>`; declaring `Nothing` and then using that capacity throws
-`SetupFailed`. Breaking — the non-generic `Spec` becomes `Spec<Nothing, Nothing>` — so 3.0.0.
-
-## 8. What a fix costs
+## 7. What a fix costs
 
 - **Any change to rendered text** moves consumers' pinned `Specification.Is(…)` expectations and
   reflows every committed `SPECIFICATION.md`.
@@ -171,7 +162,7 @@ common cases without ceremony but **nothing checks it**. Explicit form: `Spec<Ro
 **A change to the rendered text ships as a minor** — PO's ruling, 2026-08-07. Most of this list goes
 into 2.1.0. Major is reserved for format-level reflows and for breaking the surface.
 
-## 9. Working rules
+## 8. Working rules
 
 - **Fix the smallest thing.** Adjust the existing condition before adding state or a pass; diff the
   real output of both before claiming the richer design is needed.
@@ -181,19 +172,27 @@ into 2.1.0. Major is reserved for format-level reflows and for breaking the surf
 - **Regenerate both documents and read the whole diff** — a change aimed at one line habitually moves
   twenty, and the twenty are the actual proposal.
 
-## 10. What no test guards
+## 9. What no test guards
 
 Absorbed from the 2.0.0 working notes. Each of these cost a session to find, and none of them fails
 a test when broken.
 
-**Hoisting.** What every requirement under a heading states is written once at that heading, whole
-clauses only, judged clause-by-clause, rising as often as the least-frequent entry states it. The
-act, and a claim about that act, stop at the subject heading naming the method — nothing higher says
-what the claim is a claim about. Arrangement and both declared labels rise as far as they hold, the
-subject and the return type independently of each other (4.9). A lone requirement's claim stays in
-its own item. Levels: document → area → (group, where an area holds more than one namespace below
-it) → subject → branch. Placement is inferred from sharing, a proxy, since TSpec does not record
-which class declared a clause — which is the input 5.3 wants.
+**Hoisting.** Two things rise, and an assertion is neither of them on its own.
+
+*Arrangement*, clause by clause: what every requirement under a heading states is written once at
+that heading, whole clauses only, rising as often as the least-frequent entry states it. The act
+stops at the subject heading naming the method. Both declared labels rise as far as they hold, the
+subject and the return type independently of each other (4.9).
+
+*Requirements*, whole: one that every branch under a heading repeats is listed once at that heading
+— the shape a `[Fact]` on the outer class makes, since it runs in every branch below. Capped so no
+branch is emptied, and no higher than the subject heading, above which nothing names the act it is
+about. A single branch that heads nothing is not a level, so what it holds is held by the node
+above it.
+
+Levels: document → area → (group, where an area holds more than one namespace below it) → subject →
+branch. Both are decided by repetition, a proxy for placement, since TSpec does not record which
+class declared what.
 
 **Decisions.**
 
@@ -206,7 +205,8 @@ which class declared a clause — which is the input 5.3 wants.
   (including failure messages) — a new sink of described text must strip them too.
 - Areas come from `Type.Namespace`, not the folder — the run has no file paths.
 - `Spec<T>`'s one type argument is inferred as subject/return-type/both from the `When` overload
-  used. A checkable `Nothing` marker is §7.4, and is breaking.
+  used. Nothing checks that a declared type argument is used in that capacity, and per §5 nothing
+  will.
 - Collection: recorded at `Dispose` keyed on `TestState.Result` (`TestStatus` alone can't tell pass
   from running); the assembly fixture disposes last; only a `Passed` result is recorded; the write
   gate compares "every participating method minus skips" against "what reported in".

@@ -18,7 +18,7 @@ internal sealed record Document(
         IEnumerable<SpecificationEntry> entries)
     {
         Requirement[] requirements = [.. Requirement.From(entries)];
-        var whole = Requirement.Shared(requirements, actAndClaims: false);
+        var whole = Requirement.Shared(requirements, acts: false);
         return new(subject, specAssemblyName, buildId,
             Requirement.SubjectOf(requirements), Requirement.ReturnTypeOf(requirements),
             whole, ToAreas(requirements, whole));
@@ -45,7 +45,7 @@ internal sealed record Document(
     {
         var ofArea = area.ToArray();
         var heads = area.Key.Length > 0;
-        var shared = heads ? Requirement.Shared(ofArea, actAndClaims: false) : [];
+        var shared = heads ? Requirement.Shared(ofArea, acts: false) : [];
         var subject = heads ? Requirement.SubjectOf(ofArea) : null;
         var groups = ofArea
             .Select(requirement => requirement.Without(shared))
@@ -53,13 +53,14 @@ internal sealed record Document(
             .ToArray();
         return new(area.Key, heads ? area.Key.AsHeading() : null, AreaLevel, shared,
             subject, heads ? Requirement.ReturnTypeOf(ofArea) : null,
-            [.. groups.Select(group => ToGroup(group, heads: groups.Length > 1))]);
+            [.. groups.Select(group => ToGroup(group, heads: groups.Length > 1))],
+            Requirements: []);
     }
 
     private static DocumentNode ToGroup(IGrouping<string, Requirement> group, bool heads)
     {
         var ofGroup = group.ToArray();
-        var shared = heads ? Requirement.Shared(ofGroup, actAndClaims: false) : [];
+        var shared = heads ? Requirement.Shared(ofGroup, acts: false) : [];
         var subject = heads ? Requirement.SubjectOf(ofGroup) : null;
         var subjectLevel = heads ? GroupLevel + 1 : GroupLevel;
         return new(group.Key, heads ? group.Key.AsTitle() : null, GroupLevel, shared,
@@ -67,16 +68,40 @@ internal sealed record Document(
             [.. ofGroup
             .Select(requirement => requirement.Without(shared))
             .GroupBy(requirement => requirement.Entry.Subject)
-            .Select(subject => ToSubject(subject, subjectLevel))]);
+            .Select(subject => ToSubject(subject, subjectLevel))],
+            Requirements: []);
     }
 
+    /// <summary>
+    /// The heading that names the act, and the last one a requirement may rise to: above it nothing
+    /// says what the requirement is a requirement about.
+    /// </summary>
     private static DocumentNode ToSubject(IGrouping<string, Requirement> group, int level)
     {
         var ofSubject = group.ToArray();
         var shared = Requirement.Shared(ofSubject);
-        return new(group.Key, group.Key.AsHeading(), level, shared,
+        return Over(new(group.Key, group.Key.AsHeading(), level, shared,
             Requirement.SubjectOf(ofSubject), Requirement.ReturnTypeOf(ofSubject),
-            [.. ToBranches(ofSubject.Select(requirement => requirement.Without(shared)), level + 1)]);
+            [.. ToBranches(ofSubject.Select(requirement => requirement.Without(shared)), level + 1)],
+            Requirements: []));
+    }
+
+    /// <summary>
+    /// A node over the branches below it. One branch that heads nothing is not a level of its own,
+    /// so what it holds is held here instead; where there are several, a requirement every one of
+    /// them repeats was written here and is listed here.
+    /// </summary>
+    private static DocumentNode Over(DocumentNode node)
+    {
+        if (node.Children is [{ Heading: null } lone])
+            return node with { Children = lone.Children, Requirements = lone.Requirements };
+
+        var repeated = Requirement.Repeated(node.Children);
+        return node with
+        {
+            Children = [.. node.Children.Select(branch => branch.Without(repeated))],
+            Requirements = repeated,
+        };
     }
 
     /// <summary>
@@ -96,12 +121,13 @@ internal sealed record Document(
         var ofGroup = group.ToArray();
         var heads = group.Key.Length > 0;
         var shared = heads ? Requirement.Shared(ofGroup) : [];
-        return new(group.Key, heads ? group.Key.AsHeading() : null, level, shared,
+        return Over(new(group.Key, heads ? group.Key.AsHeading() : null, level, shared,
             SubjectUnderTest: null, ReturnType: null,
             [.. ofGroup
             .Select(requirement => requirement.Without(shared))
             .GroupBy(requirement => Rest(requirement.Entry.Branch))
-            .Select(branch => ToBranch(branch, level + 1))]);
+            .Select(branch => ToBranch(branch, level + 1))],
+            Requirements: []));
     }
 
     private static string Opening(string branch)
@@ -110,7 +136,7 @@ internal sealed record Document(
     private static string Rest(string branch)
         => branch.IndexOf('.') is var at && at < 0 ? string.Empty : branch[(at + 1)..];
 
-    private static BranchNode ToBranch(IGrouping<string, Requirement> group, int level)
+    private static DocumentNode ToBranch(IGrouping<string, Requirement> group, int level)
     {
         var ofBranch = group.ToArray();
         var heads = group.Key.Length > 0;

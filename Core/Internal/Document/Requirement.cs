@@ -63,12 +63,13 @@ internal sealed record Requirement(
     }
 
     /// <summary>
-    /// The clauses every requirement states, to be said once above them. The act and what is
-    /// claimed about it share a ceiling — the heading that names the method — since nothing above
-    /// that heading says what the claim is a claim about. Only arrangement rises higher.
+    /// The arrangement every requirement states, to be said once above them. Assertions never rise
+    /// on their own: a requirement is the smallest thing that may be hoisted, so one technical
+    /// assertion made by two requirements stays visible in both. The act rises no higher than the
+    /// heading that names the method.
     /// </summary>
     internal static IReadOnlyList<SpecificationClause> Shared(
-        IReadOnlyList<Requirement> requirements, bool actAndClaims = true)
+        IReadOnlyList<Requirement> requirements, bool acts = true)
     {
         if (requirements.Count == 0)
             return [];
@@ -79,17 +80,37 @@ internal sealed record Requirement(
         {
             if (shared.Count == limit)
                 break;
-            if (!actAndClaims && (clause.Family == StepFamily.When || clause.Phase == StepPhase.Assert))
-                continue;
-            // A lone requirement claims for nobody but itself.
-            if (clause.Phase == StepPhase.Assert && requirements.Count < 2)
+            if (!acts && clause.Family == StepFamily.When)
                 continue;
             var taken = shared.Count(hoisted => hoisted.Matches(clause));
-            if (requirements.All(requirement => requirement.Clauses.Count(clause.Matches) > taken))
+            if (clause.Phase != StepPhase.Assert
+                && requirements.All(requirement => requirement.Clauses.Count(clause.Matches) > taken))
                 shared.Add(clause);
         }
         return shared;
     }
+
+    /// <summary>
+    /// Two requirements a reader cannot tell apart: the same name over the same statements, which is
+    /// what one requirement written above its branches looks like once it has run in each of them.
+    /// </summary>
+    internal bool Restates(Requirement other)
+        => Entry.Requirement == other.Entry.Requirement
+            && Entry.Because == other.Entry.Because
+            && Clauses.Count == other.Clauses.Count
+            && Clauses.Zip(other.Clauses).All(pair => pair.First.Matches(pair.Second));
+
+    /// <summary>
+    /// The requirements every branch repeats, to be listed once above them. One branch has nobody to
+    /// repeat anything with, and the take leaves every branch an item of its own.
+    /// </summary>
+    internal static IReadOnlyList<Requirement> Repeated(IReadOnlyList<DocumentNode> branches)
+        => branches.Count < 2
+            ? []
+            : [.. branches[0].Requirements
+                .Where(candidate => branches.All(
+                    branch => branch.Requirements.Any(candidate.Restates)))
+                .Take(branches.Min(branch => branch.Requirements.Count) - 1)];
 
     internal Requirement Without(IReadOnlyList<SpecificationClause> hoisted)
     {

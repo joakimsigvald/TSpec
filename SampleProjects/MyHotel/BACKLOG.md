@@ -40,14 +40,22 @@ notes when that file was retired; rules for changing anything under `SampleProje
    document. A room out of service takes no new bookings; what becomes of the bookings it already
    has is **undecided and needs a ruling before this is built**.
 
-## Open questions for the PO
+## Open question for the PO
 
-Also listed in [SPECIFICATION-IMPROVEMENT-PLAN.md](../../SPECIFICATION-IMPROVEMENT-PLAN.md) §6,
-since each is answered by looking at the generated document.
+**Should a refused input stay its own section, or become a branch?** A class holds one `When`, so an
+act that varies has to be its own class — which is why `Core.Spec` states booking as three sibling
+sections that differ only in the dates:
 
-- Whether `Core.Spec`'s booking headings (`When book`, `When get`) should match the rooms' fuller
-  style (`When add room`).
-- Whether `new(2026, 8, 10)` should say `new DateOnly(…)` so a reader can see the type.
-- Whether a refused input should stay its own section or become a branch, by making the varying
-  value a tag. One `When` per class is what forces sibling sections today; every refused-input case
-  meets it.
+```
+### When book
+Book(new BookingRequest(a Room's RoomNumber, a string, new(2026, 8, 10), new(2026, 8, 12)))
+### When book zero nights
+Book(new BookingRequest(a string, a second string, a DateOnly, the DateOnly))
+### When book departure before arrival
+Book(new BookingRequest(a string, a second string, new(2026, 8, 12), new(2026, 8, 10)))
+```
+
+Making the dates tags would give one `### When book` with `#### Given zero nights` and `#### Given
+departure before arrival` under it, so the refusals read as conditions on booking rather than as
+three acts. Nothing in TSpec changes either way — it is how the specs are written. Every
+refused-input case meets this, so the answer sets a pattern for the suite.

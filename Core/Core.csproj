@@ -29,7 +29,7 @@
 			* A nested Given heads its own section, unless that leads to level-5 heading, then they are merged to one level-4 heading
 			* An array creation reads as the list it is: new[] { x } as [x], new int[] { x } as int[x]
 			* A requirement that asserts nothing reads "TODO: Assert behaviour" instead of an empty claim
-			* A claim every requirement under a heading makes is stated once at that heading, and no higher than the When-heading naming the act it is about
+			* A requirement every branch repeats is listed once at the heading they share
 
 			FIXED
 			* A second assertion no longer runs into the first: each claim starts its own line.
