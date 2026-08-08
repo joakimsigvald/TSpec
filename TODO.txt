@@ -2,6 +2,9 @@ Four items moved to SPECIFICATION-IMPROVEMENT-PLAN.md section 6, where they are 
 specification rather than for the API: assert-nothing detection, raw string literals, nested new(...)
 in an argument list, and Nothing as an explicit type argument.
 
+* Scratch project for the generator's xunit facts: fixture wiring, TestState at Dispose, and
+  end-of-assembly ordering cannot be self-tested from inside the same assembly. Today only
+  MyHotel.Spec passing verifies them, which will not catch a regression precisely.
 * auto-convert look for first public static method with one argument of type TSource that returns TTarget
 * Sequence uniqueness check: fixed spacings now use an O(1) check; the collect-all-values check
   remains only for step-function sequences (Spaced with lambda). If users generate large numbers

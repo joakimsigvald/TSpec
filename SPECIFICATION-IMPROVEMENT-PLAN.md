@@ -9,8 +9,8 @@ rendered. An item belongs here when the specification is the reason for wanting 
 `TODO.txt` when it is not. Laws and the stages past generation stay in
 [TSpec-vision.md](TSpec-vision.md).
 
-**State:** one observation open (§4), thirteen done (§5), six carried in (§6, §7), two of those
-pinned or deprioritized.
+**State:** one observation open (§4), fourteen done (§5), six carried in (§6, §7), two of those
+pinned or deprioritized. Three PO questions still open at the end of §6.
 
 ## 1. Where the feedback comes from
 
@@ -90,6 +90,10 @@ Kept as one line each so nothing here is filed again.
 - **4.7** Dropped: not reproducible in any shape, and the recollection was of 4.6.
 - **4.8** A claim every requirement under a heading makes is stated once at that heading, like
   anything else they share — and no higher than the act it is about. Neither MyHotel document moves.
+- **4.9** The return type has no ceiling: it rises as far as it holds, independently of the subject.
+  PO's ruling — the argument that it belongs to the method each heading names lost to ten headings
+  repeating `, returns HttpResponseMessage`. It stays a `Return type:` label beside the subject
+  except where it joins an act, which only a heading naming that act has.
 - **5.2** A second assertion no longer starts an orphaned sentence — closed by 4.6.
 - **5.8b** An array creation reads as the list it is, keeping the element type where one was written.
 - **5.10** A wrapped line never opens with the comma that joined it to the line above.
@@ -100,7 +104,8 @@ Kept as one line each so nothing here is filed again.
 
 ## 6. Carried in from 2.0.0
 
-By pointer rather than copy — [SPEC-GENERATION-PLAN.md](SPEC-GENERATION-PLAN.md) §5 describes each.
+Numbered as they were in the 2.0.0 working notes, which this section absorbed when that file was
+retired.
 
 | # | In one line | Example | Class |
 |---|---|---|---|
@@ -119,22 +124,28 @@ compiler's `NullableAttribute` on the spec class. `int?` already works, being `N
 "every branch claims this" is not the same fact as "this was claimed once above them". 4.8 settled
 the first of those and leaves 5.3 exactly where it was: an inherited `[Fact]` is a requirement of
 its own in each branch, never a clause its siblings repeat, so no amount of sharing reaches it.
-Planned at the PO's request. 5.6 stays **pinned**.
+Planned at the PO's request.
 
-No rendering has been agreed for 5.8a: neither `one MyModel` nor `[the Model]` convinced the PO, so
-it sits last of the open items.
+5.6 stays **pinned**. It is exact match, no partial credit: one requirement saying something else
+costs its whole sibling group the hoist. The open question, were it unpinned, is whether a dissenter
+should restate the clause in its own block instead of blocking the hoist for everyone.
+
+No rendering has been agreed for 5.8a: `One(expr)` over an already-articled expression
+double-articles, and neither `one MyModel` nor `[the Model]` convinced the PO, so it sits last of
+the open items.
 
 5.4 and 5.7 are not reachable in any suite we have, which is the argument for intake from a second
-application.
+application. 5.4 is a hoisted `Having X` at the heading and a `Having Y` in the item with nothing
+relating them in time — the reader cannot tell which ran first. 5.7 is the word-drop rule failing to
+tell a family keyword from a class-name segment, so a block opening with `Given` loses that word
+under a `Given` heading.
 
-Also carried in, unresolved and **the PO's to answer** — SPEC-GENERATION-PLAN §8:
+Also carried in, unresolved and **the PO's to answer**:
 
 - Should `Core.Spec`'s booking headings (`When book`) match the rooms' fuller style (`When add
   room`)?
 - Should `new(2026, 8, 10)` say `new DateOnly(…)` so a reader sees the type?
 - Should a refused input stay its own section, or become a branch by making the varying value a tag?
-- Is `, returns HttpResponseMessage` on all ten `MyHotel.Spec` headings acceptable? Correct by the
-  hoist ceiling, and the least informative case for it.
 
 ## 7. Carried in from `TODO.txt`
 
@@ -152,8 +163,9 @@ common cases without ceremony but **nothing checks it**. Explicit form: `Spec<Ro
 
 - **Any change to rendered text** moves consumers' pinned `Specification.Is(…)` expectations and
   reflows every committed `SPECIFICATION.md`.
-- **Section order and the ordering tiebreak** are a file format: changing either is a major version,
-  per SPEC-GENERATION-PLAN §2.
+- **Section order and the ordering tiebreak** are a file format — `ComplexityNumber`,
+  arrangement-based, ties on rendered length then name. Changing either reflows every committed
+  `SPECIFICATION.md` at once: major version.
 - **A pure addition** still moves pins, but a reader upgrading gains rather than re-pins.
 
 **A change to the rendered text ships as a minor** — PO's ruling, 2026-08-07. Most of this list goes
@@ -168,3 +180,46 @@ into 2.1.0. Major is reserved for format-level reflows and for breaking the surf
 - **One entry, one change**, so a fix the PO dislikes can be reverted alone.
 - **Regenerate both documents and read the whole diff** — a change aimed at one line habitually moves
   twenty, and the twenty are the actual proposal.
+
+## 10. What no test guards
+
+Absorbed from the 2.0.0 working notes. Each of these cost a session to find, and none of them fails
+a test when broken.
+
+**Hoisting.** What every requirement under a heading states is written once at that heading, whole
+clauses only, judged clause-by-clause, rising as often as the least-frequent entry states it. The
+act, and a claim about that act, stop at the subject heading naming the method — nothing higher says
+what the claim is a claim about. Arrangement and both declared labels rise as far as they hold, the
+subject and the return type independently of each other (4.9). A lone requirement's claim stays in
+its own item. Levels: document → area → (group, where an area holds more than one namespace below
+it) → subject → branch. Placement is inferred from sharing, a proxy, since TSpec does not record
+which class declared a clause — which is the input 5.3 wants.
+
+**Decisions.**
+
+- Document and per-test specification render from one text — no second renderer, no unpinned
+  requirement.
+- Layout runs last, after every text edit (heading-word stripping, fence indent).
+- Wrap width: source 80 / document 90, both with a 10-column tolerance before breaking a line.
+  Continuation indent: source 3 steps / document 2, relative to the line it continues.
+- Break points are recorded as unprintable markers in the text, stripped before any output
+  (including failure messages) — a new sink of described text must strip them too.
+- Areas come from `Type.Namespace`, not the folder — the run has no file paths.
+- `Spec<T>`'s one type argument is inferred as subject/return-type/both from the `When` overload
+  used. A checkable `Nothing` marker is §7.4, and is breaking.
+- Collection: recorded at `Dispose` keyed on `TestState.Result` (`TestStatus` alone can't tell pass
+  from running); the assembly fixture disposes last; only a `Passed` result is recorded; the write
+  gate compares "every participating method minus skips" against "what reported in".
+
+**Traps.**
+
+- The specification freezes at first observation — `Specification.Is(…)` reads and asserts in one
+  recordable step, or a test would describe checking its own description.
+- Compose phrases after describing, never before — prepending to raw source before parsing feeds
+  non-C# to the grammar.
+- Specifications contain `<`/`>` and two-space indents; markdown outside a code context eats or
+  collapses them.
+- Two hierarchy walks run opposite directions — the heading path walks nesting, declared types walk
+  inheritance — and using the wrong one fails silently rather than erroring.
+- Setups run last-declared-first, so generated numbering reads backwards unless setups are declared
+  in reverse.

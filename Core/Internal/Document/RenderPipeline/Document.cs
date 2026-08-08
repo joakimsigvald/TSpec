@@ -7,6 +7,7 @@ internal sealed record Document(
     string SpecAssemblyName,
     string BuildId,
     string? SubjectUnderTest,
+    string? ReturnType,
     IReadOnlyList<SpecificationClause> Whole,
     IReadOnlyList<DocumentNode> Areas)
 {
@@ -19,7 +20,8 @@ internal sealed record Document(
         Requirement[] requirements = [.. Requirement.From(entries)];
         var whole = Requirement.Shared(requirements, actAndClaims: false);
         return new(subject, specAssemblyName, buildId,
-            Requirement.SubjectOf(requirements), whole, ToAreas(requirements, whole));
+            Requirement.SubjectOf(requirements), Requirement.ReturnTypeOf(requirements),
+            whole, ToAreas(requirements, whole));
     }
 
     private const int AreaLevel = 1;
@@ -50,7 +52,7 @@ internal sealed record Document(
             .GroupBy(requirement => GroupOf(requirement.Entry.Namespace, rootDepth + 1))
             .ToArray();
         return new(area.Key, heads ? area.Key.AsHeading() : null, AreaLevel, shared,
-            subject, ReturnType: null,
+            subject, heads ? Requirement.ReturnTypeOf(ofArea) : null,
             [.. groups.Select(group => ToGroup(group, heads: groups.Length > 1))]);
     }
 
@@ -61,7 +63,7 @@ internal sealed record Document(
         var subject = heads ? Requirement.SubjectOf(ofGroup) : null;
         var subjectLevel = heads ? GroupLevel + 1 : GroupLevel;
         return new(group.Key, heads ? group.Key.AsTitle() : null, GroupLevel, shared,
-            subject, ReturnType: null,
+            subject, heads ? Requirement.ReturnTypeOf(ofGroup) : null,
             [.. ofGroup
             .Select(requirement => requirement.Without(shared))
             .GroupBy(requirement => requirement.Entry.Subject)

@@ -382,22 +382,21 @@ public class WhenRenderDocument : Spec
     // ----------- What the spec declares about the code, stated where it holds
 
     /// <summary>
-    /// The return type is what the act yields, so it stops where the act does: at the heading named
-    /// after the method. Above that nothing names the method it belongs to, and a document stating
-    /// one return type is stating it of methods its reader cannot see. The subject has no such tie —
-    /// it names a class, not a call — and rises as far as it holds.
+    /// Both labels name the code the document describes rather than any one heading, so both rise
+    /// as far as they hold. Where every spec returns the same thing, that one line at the top is
+    /// the whole of what every heading below was otherwise repeating.
     /// </summary>
     [Fact]
-    public void GivenEverySpecDeclaresOneReturnType_ThenRaiseItNoHigherThanItsSubject()
+    public void GivenEverySpecDeclaresOneReturnType_ThenRaiseItToTheDocument()
         => Render(
             Requirement("WhenGetRoom", "ThenA", Act("get"), Claim("then a"))
                 with { SubjectUnderTest = "RoomService", ReturnType = "Room" },
             Requirement("WhenAddRoom", "ThenB", Act("add"), Claim("then b"))
                 with { SubjectUnderTest = "RoomService", ReturnType = "Room" })
             .Does()
-            .Contain("-->\n`Subject under test: RoomService`\n")
-            .and.Contain("## When get room\n`get, returns Room`\n")
-            .and.Contain("## When add room\n`add, returns Room`\n");
+            .Contain("-->\n```\nSubject under test: RoomService\nReturn type: Room\n```\n")
+            .and.Contain("## When get room\n`get`\n")
+            .and.Contain("## When add room\n`add`\n");
 
     /// <summary>
     /// The types ground the requirements in the code they describe, so they are stated rather than
@@ -407,7 +406,8 @@ public class WhenRenderDocument : Spec
     [Fact]
     public void GivenEverySpecDeclaresTheSame_ThenStateItForTheDocument()
         => Render(_respondOk with { SubjectUnderTest = "HttpClient", ReturnType = "HttpResponseMessage" })
-            .Does().Contain("-->\n`Subject under test: HttpClient`\n");
+            .Does().Contain(
+                "-->\n```\nSubject under test: HttpClient\nReturn type: HttpResponseMessage\n```\n");
 
     /// <summary>
     /// One space after each label, never a column: aligning them would make where a value starts
@@ -419,7 +419,7 @@ public class WhenRenderDocument : Spec
             Requirement("WhenGetRoom", "ThenA", Claim("then a"))
                 with { SubjectUnderTest = "int", ReturnType = "string" },
             Requirement("WhenAdd", "ThenB", Claim("then b"))
-                with { SubjectUnderTest = "long", ReturnType = "string" })
+                with { SubjectUnderTest = "int", ReturnType = "string" })
             .Does().Contain("Subject under test: int\nReturn type: string\n");
 
     /// <summary>
@@ -492,8 +492,12 @@ public class WhenRenderDocument : Spec
     /// <summary>With no act at the heading it has nothing to join, so it stays a label.</summary>
     [Fact]
     public void GivenAHeadingStatesTheReturnTypeAlone_ThenKeepItALabel()
-        => Render(_respondOk with { SubjectUnderTest = "HttpClient", ReturnType = "HttpResponseMessage" })
-            .Does().Contain("## When get version\n`Return type: HttpResponseMessage`\n");
+        => Render(
+            Requirement("WhenGetRoom", "ThenA", Claim("then a"))
+                with { SubjectUnderTest = "RoomService", ReturnType = "Room" },
+            Requirement("WhenAdd", "ThenB", Claim("then b"))
+                with { SubjectUnderTest = "RoomService", ReturnType = "int" })
+            .Does().Contain("## When get room\n`Return type: Room`\n");
 
     [Fact]
     public void GivenSpecsDeclareDifferently_ThenStateItForEachSubject()
@@ -541,20 +545,35 @@ public class WhenRenderDocument : Spec
         => Render(OneSubjectManyReturnTypes()).Split("Subject under test").Length.Is(2);
 
     /// <summary>
-    /// Agreeing on a return type does not raise it: it belongs to the method each heading names, so
-    /// two subjects returning the same thing each say so. The subject they differ in stays below too,
-    /// which is the pair pulling in opposite directions and neither dragging the other.
+    /// The two labels are hoisted one at a time in both directions: a return type they agree on
+    /// rises past the subjects they differ in, which stay at the headings that name them.
     /// </summary>
     [Fact]
-    public void GivenSeveralSubjectsDeclareOneReturnType_ThenStillStateItAtEachSubject()
+    public void GivenSeveralSubjectsDeclareOneReturnType_ThenRaiseItPastTheSubjectsAnyway()
         => Render(
             Requirement("WhenGetRoom", "ThenA", Act("get"), Claim("then a"))
                 with { SubjectUnderTest = "RoomService", ReturnType = "Room" },
             Requirement("WhenAdd", "ThenB", Act("add"), Claim("then b"))
                 with { SubjectUnderTest = "RoomStore", ReturnType = "Room" })
             .Does()
-            .Contain("## When get room\n```\nSubject under test: RoomService\nWhen get, returns Room\n```")
-            .and.Contain("## When add\n```\nSubject under test: RoomStore\nWhen add, returns Room\n```");
+            .Contain("-->\n`Return type: Room`\n")
+            .and.Contain("## When get room\n```\nSubject under test: RoomService\nWhen get\n```")
+            .and.Contain("## When add\n```\nSubject under test: RoomStore\nWhen add\n```");
+
+    /// <summary>
+    /// A return type follows the act because it qualifies it. With no act at the heading there is
+    /// nothing for it to follow, so it stands beside the subject rather than under whatever
+    /// arrangement happens to be stated in the same block.
+    /// </summary>
+    [Fact]
+    public void GivenAHeadingStatesTheTypesAndArrangement_ThenKeepTheLabelsTogether()
+        => Render(
+            Requirement("WhenNext", "ThenA", Using("the seed"), Claim("then a"))
+                with { SubjectUnderTest = "BookingNumberGenerator", ReturnType = "int" },
+            Requirement("WhenNext", "ThenB", Using("the seed"), Claim("then b"))
+                with { SubjectUnderTest = "BookingNumberGenerator", ReturnType = "int" })
+            .Does().Contain(
+                "Subject under test: BookingNumberGenerator\nReturn type: int\nUsing the seed\n");
 
     [Fact]
     public void GivenAHeadingStatesOneLabelAlone_ThenStillWriteItWithOneSpace()

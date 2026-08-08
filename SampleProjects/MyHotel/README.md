@@ -7,7 +7,8 @@ TSpec's own `Core.Test` is a framework testing itself: its specifications descri
 rather than a domain, so they say little about how TSpec reads when applied to real software.
 MyHotel is the counterpart — an ordinary ASP.NET Core minimal API, driven out entirely by
 specifications — and the proving ground for `SPECIFICATION.md` generation
-([SPEC-GENERATION-PLAN.md](../../SPEC-GENERATION-PLAN.md)).
+([SPECIFICATION-IMPROVEMENT-PLAN.md](../../SPECIFICATION-IMPROVEMENT-PLAN.md)). What is built and
+what is next: [BACKLOG.md](BACKLOG.md).
 
 Being layered per **Neat**: `Contract` is the public shape and references nothing, `Entry` holds the
 endpoints, `Core` holds the logic, and `MyHotel` is the host that wires them together. Entry and Core

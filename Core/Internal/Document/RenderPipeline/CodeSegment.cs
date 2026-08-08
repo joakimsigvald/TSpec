@@ -19,13 +19,12 @@ internal sealed record CodeSegment(
 
     private string Body()
     {
-        var joins = ReturnType is not null
-            && Shared.Any(clause => clause.Family == StepFamily.When)
-            && Joins();
-        // Said under the clauses where it did not fit on the act: it qualifies what they say, so it
-        // follows them rather than heading a block it is not part of. With no clauses to follow it
-        // has only the subject to stand beside, and stays where that is.
-        var trails = !joins && ReturnType is not null && Shared.Count > 0;
+        var acts = Shared.Any(clause => clause.Family == StepFamily.When);
+        var joins = ReturnType is not null && acts && Joins();
+        // Said under the act where it did not fit on it: it qualifies the act, so it follows it
+        // rather than heading a block it is not part of. With no act to follow it has only the
+        // subject to stand beside, and stays where that is.
+        var trails = !joins && ReturnType is not null && acts;
         var labelled = joins || trails ? null : ReturnType;
         string?[] parts = [
             Labels(labelled),
