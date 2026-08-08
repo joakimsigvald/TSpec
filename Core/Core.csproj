@@ -17,26 +17,15 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>2.1.0</PackageVersion>
+		<PackageVersion>2.1.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			NEW
-			* Given&lt;TService&gt;().Returns(value) now applies to any method that can return the value.
-
 			CHANGED
-			* A nested Given heads its own section, unless that leads to level-5 heading, then they are merged to one level-4 heading
-			* An array creation reads as the list it is: new[] { x } as [x], new int[] { x } as int[x]
-			* A requirement that asserts nothing reads "TODO: Assert behaviour" instead of an empty claim
-			* A requirement every branch repeats is listed once at the heading they share
-			* A returns statement may be hoisted to a top-level heading, beside Subject under test
-
-			FIXED
-			* A second assertion no longer runs into the first: each claim starts its own line.
-			* A cast of a collection expression is described correctly verbatim
-			* A wrapped line no longer opens with the comma that joined it to the line above
-			* Any string literal is described with single quotes, and holes with single brackets
+			* A value arranged through an article — Given().A&lt;T&gt;(setup), .ASecond, .Two, etc. — reads
+			  as the noun phrase it is: "a Room with BedCount = 2", "two Rooms with BedCount = 2".
+			  A setup on the whole type still states a rule and keeps its verb: "Room has BedCount = 2"
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

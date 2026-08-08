@@ -103,7 +103,7 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
         Specification.Is(
             """
             Given MyModel has Name = DefaultName
-              and a second MyModel has Name = "Altered"
+              and a second MyModel with Name = "Altered"
               and IMyRepository.GetModel() returns a second MyModel
             When GetModel()
             Then Result.Name is "Altered"

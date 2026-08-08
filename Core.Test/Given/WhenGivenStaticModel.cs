@@ -150,7 +150,7 @@ public class WhenGivenStaticModel : Spec<MyModel>
         Specification.Is(
             """
             Given MyModel has Name = name
-              and a MyModel has Id = id
+              and a MyModel with Id = id
             When the MyModel
             Then Result.Name is name
               and Result.Id is id
@@ -167,7 +167,7 @@ public class WhenGivenStaticModel : Spec<MyModel>
         Specification.Is(
             """
             Given MyModel has Name = defaultName
-              and a MyModel has Name = name
+              and a MyModel with Name = name
             When the MyModel
             Then Result.Name is name
             """);
@@ -182,7 +182,7 @@ public class WhenGivenStaticModel : Spec<MyModel>
             .Then().Result.Name.Is(name);
         Specification.Is(
             """
-            Given a second MyModel has Name = name
+            Given a second MyModel with Name = name
             When the second MyModel
             Then Result.Name is name
             """);
@@ -197,7 +197,7 @@ public class WhenGivenStaticModel : Spec<MyModel>
             .Then().Result.Name.Is(name);
         Specification.Is(
             """
-            Given a third MyModel has Name = name
+            Given a third MyModel with Name = name
             When the third MyModel
             Then Result.Name is name
             """);
@@ -212,7 +212,7 @@ public class WhenGivenStaticModel : Spec<MyModel>
             .Then().Result.Name.Is(name);
         Specification.Is(
             """
-            Given a fourth MyModel has Name = name
+            Given a fourth MyModel with Name = name
             When the fourth MyModel
             Then Result.Name is name
             """);
@@ -227,7 +227,7 @@ public class WhenGivenStaticModel : Spec<MyModel>
             .Then().Result.Name.Is(name);
         Specification.Is(
             """
-            Given a fifth MyModel has Name = name
+            Given a fifth MyModel with Name = name
             When the fifth MyModel
             Then Result.Name is name
             """);

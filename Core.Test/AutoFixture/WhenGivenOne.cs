@@ -67,7 +67,7 @@ public class GivenOneElementWithSetup : WhenList
     {
         Then().Result.Single().Name.Is(The<string>());
         Specification.Is(
-@"Given one MyModel has Name = a string
+@"Given one MyModel with Name = a string
   and IMyRepository.List() returns a MyModel[]
 When List()
 Then Result.Single().Name is the string");
@@ -84,7 +84,7 @@ public class GivenOneElementWithTransform : WhenList
     {
         Then().Result.Single().Name.Is(The<string>());
         Specification.Is(
-@"Given one MyModel has Name = a string
+@"Given one MyModel with Name = a string
   and IMyRepository.List() returns a MyModel[]
 When List()
 Then Result.Single().Name is the string");

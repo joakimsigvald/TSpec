@@ -1,14 +1,16 @@
 # TSpec — instructions for coding agents
 
-## Documentation must stay in sync with code
+## Documentation must stay in sync with implemented features
 
-On every change to public API or observable behavior, update **both**:
+Two documents describe TSpec to its users:
 
 - `README.md` — the full human documentation (also rendered on nuget.org)
 - `TSpec-agent-reference.md` — the condensed agent reference shipped in the NuGet package
 
-A code change is not complete until both documents reflect it. Also update
-`PackageVersion` and `PackageReleaseNotes` in `Core/Core.csproj` when preparing a release
+Update one when a change alters what its reader must know to write a test correctly: new or changed
+surface, a semantic they would otherwise get wrong, a behaviour that would surprise them. 
+
+Update `PackageVersion` and `PackageReleaseNotes` in `Core/Core.csproj` when preparing a release
 (docs/packaging-only = patch, new functionality = minor).
 
 ## Build and test

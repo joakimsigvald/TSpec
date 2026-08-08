@@ -9,8 +9,8 @@ rendered. An item belongs here when the specification is the reason for wanting 
 `TODO.txt` when it is not. Laws and the stages past generation stay in
 [TSpec-vision.md](TSpec-vision.md).
 
-**State:** one observation open (§4), nineteen done or closed (§5), four queued (§6), one of them
-pinned.
+**State:** 2.1.0 published 2026-08-08. No observation open (§4); twenty done or closed (§5); five
+queued (§6), one of them pinned.
 
 ## 1. Where the feedback comes from
 
@@ -59,30 +59,25 @@ are usually the whole finding.
 7. **Surface** — the text is shaped by what the author could write, and the fix is in the API.
 
 Classes 1–4 are fixed on one sighting; 5 and 6 wait for a second. Class 7 is not a severity — an item
-can be both, and §4.2 is.
+can be both, and 4.2 was: the phrasing half is closed in §5, the surface half is 4.2b in §6.
 
 ## 4. Open observations
 
-### 4.2 `a X has Y = …` reads as Braavosi — reads badly, outside suite (`TokenIssuer`), seen 2026-08-07
-
-```
-Rendered:  `a ClientRecord has Status = "disabled"`
-From:      Given().A<ClientRecord>(_ => _ with { Status = "disabled" })
-Jarred:    indefinite article + type + `has` is the Braavosi construction ("a man has no name") —
-           grammatical, right register for nobody. Reported as an annoyance, not a defect.
-Wanted:    unknown. Reported alongside: there is no corresponding `The`-form to choose at this
-           position, so an author who dislikes the sentence has no other way to say it.
-Status:    open, held for a second sighting per §3
-```
-
-The `The`-form half is a surface gap, not taste, so the hold rule does not apply to it. Split the
-entry if the PO wants that half moved.
+None.
 
 ## 5. Done
 
 Kept as one line each so nothing here is filed again.
 
 - **4.1** A cast of a collection expression was not read as a cast, losing the type and the value.
+- **4.2** An arranged value reads as the noun phrase it is — `a MyRecord with Name = a string` — and
+  a counted one agrees. PO's ruling 2026-08-08, without the second sighting the hold was waiting for,
+  which the dogfood suites could not have supplied. The rule is the article, and the article is
+  exactly "arranged through `IGivenContinuation`": every factory there passes its own name as
+  `[CallerMemberName]`, and nothing else passes one. Everything else keeps `has`, because it is not
+  the same sentence — the type-wide `Given<T>(setup)` states a rule about every value and needs its
+  verb, and a tag's `Has` is the author's own word, not an invented one. 19 lines re-pinned in
+  `Core.Test`; no MyHotel document moved, since neither suite arranges through an article.
 - **4.3** A cast renders as source — PO's ruling: correct as written, no change wanted.
 - **4.4** A nested `Given` heads its own section where the document has depth for it.
 - **4.5** A service-wide `Returns` answers any method whose return type the value can be assigned to.
@@ -123,8 +118,9 @@ retired.
 
 | # | In one line | Class |
 |---|---|---|
-| 5.5 | nullable return type renders as non-nullable | lost claim, **candidate for the next release** |
-| 4.2b | no `The` form when providing a value | surface, **queued, no work yet** |
+| 4.2c | a counted plural takes a singular verb — `is` branch only | untrue, **2.2.0** |
+| 5.5 | nullable return type renders as non-nullable | lost claim, **2.2.0 candidate** |
+| 4.2b | no `The` form when providing a value | surface, **2.2.0, no work yet** |
 | 5.4 | setup order is lost across a hoist boundary | lost claim, unreachable |
 | 5.7 | a block opening with `Given` loses that word under a `Given` heading | lost claim, unreachable |
 | 5.6 | one outlier costs its sibling group their hoist, no partial credit | reads badly, **pinned** |
@@ -135,9 +131,13 @@ on the spec class: a flag array indexed by position in a flattened type tree, wh
 the wrong answer for nested generics. `int?` already works, being `Nullable<int>`. Nothing in either
 MyHotel suite returns a nullable type, so no document moves when it lands.
 
-**4.2b** — split from §4.2, whose phrasing half stays held for a second sighting. The arrange surface
-offers `A`, `An`, `ASecond`… and no `The`, so an author who dislikes `a ClientRecord has Status =
-"disabled"` has no other way to write it. A pure addition; nothing re-pins.
+**4.2c** — the `has` half went with 4.2, `with` being invariant. What remains is the other branch of
+the same ternary, `Given some MyModels is [_one, _two, _three]`. `are` cannot be read off the
+described text either; it needs the count word the plural came from, which that line already has.
+
+**4.2b** — split from 4.2, whose phrasing half is closed in §5. The arrange surface offers `A`, `An`,
+`ASecond`… and no `The`, so an author who wants to name the value rather than introduce it has no
+way to write it. A pure addition; nothing re-pins.
 
 **5.4 and 5.7** are not reachable in any suite we have, which is the argument for intake from a
 second application. 5.4: `Having` steps run last-declared-first and consecutive setups render joined
@@ -159,8 +159,9 @@ should restate the clause in its own block instead of blocking the hoist for eve
   `SPECIFICATION.md` at once: major version.
 - **A pure addition** still moves pins, but a reader upgrading gains rather than re-pins.
 
-**A change to the rendered text ships as a minor** — PO's ruling, 2026-08-07. Most of this list goes
-into 2.1.0. Major is reserved for format-level reflows and for breaking the surface.
+**A change to the rendered text ships as a minor** — PO's ruling, 2026-08-07. Major is reserved for
+format-level reflows and for breaking the surface. **2.1.0 published 2026-08-08**, carrying §5 down
+to and including 5.3; what is queued now is 2.2.0.
 
 ## 8. Working rules
 

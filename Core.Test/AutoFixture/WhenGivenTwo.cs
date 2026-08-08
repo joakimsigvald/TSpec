@@ -58,7 +58,7 @@ public class GivenTwoElementsWithSetup : WhenList
     {
         Then().Result.Has().Count(2);
         Specification.Is(
-@"Given two MyModels has Name = a string
+@"Given two MyModels with Name = a string
   and IMyRepository.List() returns a MyModel[]
 When List()
 Then Result has count 2");
@@ -69,7 +69,7 @@ Then Result has count 2");
     {
         Then().Result.First().Name.Is(The<string>());
         Specification.Is(
-@"Given two MyModels has Name = a string
+@"Given two MyModels with Name = a string
   and IMyRepository.List() returns a MyModel[]
 When List()
 Then Result.First().Name is the string");
@@ -80,7 +80,7 @@ Then Result.First().Name is the string");
     {
         Then().Result.Last().Name.Is(The<string>());
         Specification.Is(
-@"Given two MyModels has Name = a string
+@"Given two MyModels with Name = a string
   and IMyRepository.List() returns a MyModel[]
 When List()
 Then Result.Last().Name is the string");
@@ -97,7 +97,7 @@ public class GivenTwoElementsWithTransform : WhenList
     {
         Then().Result.Last().Name.Is(The<string>());
         Specification.Is(
-@"Given two MyModels has Name = a string
+@"Given two MyModels with Name = a string
   and IMyRepository.List() returns a MyModel[]
 When List()
 Then Result.Last().Name is the string");
@@ -115,7 +115,7 @@ public class GivenTwoElementsWithIndexedSetup : WhenList
         Then().Result.Has().Count(2);
         Specification.Is(
             """
-                Given two MyModels has Name = "X{i + 1}"
+                Given two MyModels with Name = "X{i + 1}"
                   and IMyRepository.List() returns a MyModel[]
                 When List()
                 Then Result has count 2
@@ -128,7 +128,7 @@ public class GivenTwoElementsWithIndexedSetup : WhenList
         Then().Result.First().Name.Is("X1");
         Specification.Is(
             """
-                Given two MyModels has Name = "X{i + 1}"
+                Given two MyModels with Name = "X{i + 1}"
                   and IMyRepository.List() returns a MyModel[]
                 When List()
                 Then Result.First().Name is "X1"
@@ -141,7 +141,7 @@ public class GivenTwoElementsWithIndexedSetup : WhenList
         Then().Result.Last().Name.Is("X2");
         Specification.Is(
             """
-                Given two MyModels has Name = "X{i + 1}"
+                Given two MyModels with Name = "X{i + 1}"
                   and IMyRepository.List() returns a MyModel[]
                 When List()
                 Then Result.Last().Name is "X2"

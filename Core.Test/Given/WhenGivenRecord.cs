@@ -46,7 +46,7 @@ public class WhenGivenRecord : Spec<MyService, MyRecord>
             .Then().Result.Name.Is(The<string>());
         Specification.Is(
             """
-            Given a MyRecord has Name = a string
+            Given a MyRecord with Name = a string
             When MyService.Echo(the MyRecord)
             Then Result.Name is the string
             """);
@@ -61,8 +61,8 @@ public class WhenGivenRecord : Spec<MyService, MyRecord>
             .Then().Result.Name.Does().StartWith(The<string>()).and.EndWith(TheSecond<string>());
         Specification.Is(
             """
-            Given a MyRecord has Name = a string
-              and a MyRecord has Name = _.Name + a second string
+            Given a MyRecord with Name = a string
+              and a MyRecord with Name = _.Name + a second string
             When MyService.Echo(the MyRecord)
             Then Result.Name starts with the string
                 and ends with the second string
