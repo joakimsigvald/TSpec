@@ -17,7 +17,7 @@ public class WhenGivenContainingRecord : Spec<MyService, ContainingRecord>
     [Fact]
     public void GivenDefaultRecordInstanceContainedInAnotherRecord_ThenUseDefault()
     {
-        Given<MyRecord>(_ => _ with { Name = A<string>() })
+        Using<MyRecord>(_ => _ with { Name = A<string>() })
             .When(_ => MyService.Echo(A<ContainingRecord>()))
             .Then().Result.MyRecord.Name.Is(The<string>());
     }

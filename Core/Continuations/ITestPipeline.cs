@@ -1,6 +1,7 @@
 using Moq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using TSpec.Internal;
 
 namespace TSpec.Continuations;
 
@@ -376,6 +377,7 @@ public interface ITestPipeline<TSUT, TResult>
     /// <param name="transform">A function transforming the default value of the given type</param>
     /// <param name="transformExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for providing further arrangement of the test pipeline</returns>
+    [Obsolete(Obsoletions.TypeSetup)]
     IGivenTestPipeline<TSUT, TResult> Given<TValue>(
         Func<TValue, TValue> transform,
         [CallerArgumentExpression(nameof(transform))] string? transformExpr = null);
@@ -387,6 +389,7 @@ public interface ITestPipeline<TSUT, TResult>
     /// <param name="setup">An action applied to each generated value of the given type</param>
     /// <param name="setupExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for providing further arrangement of the test pipeline</returns>
+    [Obsolete(Obsoletions.TypeSetup)]
     IGivenTestPipeline<TSUT, TResult> Given<TValue>(
         Action<TValue> setup,
         [CallerArgumentExpression(nameof(setup))] string? setupExpr = null)
@@ -431,6 +434,29 @@ public interface ITestPipeline<TSUT, TResult>
         For scope = For.All,
         bool owned = false,
         [CallerArgumentExpression(nameof(defaultValue))] string? defaultValueExpr = null);
+
+    /// <summary>
+    /// Apply a setup to every generated value of the type, wherever the pipeline produces one.
+    /// </summary>
+    /// <typeparam name="TValue">The type whose generated values the setup applies to.</typeparam>
+    /// <param name="setup">An action applied to each generated value of the type.</param>
+    /// <param name="setupExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation to provide further infrastructure and test data arrangement.</returns>
+    IUsingTestPipeline<TSUT, TResult> Using<TValue>(
+        Action<TValue> setup,
+        [CallerArgumentExpression(nameof(setup))] string? setupExpr = null)
+        where TValue : class;
+
+    /// <summary>
+    /// Transform every generated value of the type, wherever the pipeline produces one.
+    /// </summary>
+    /// <typeparam name="TValue">The type whose generated values the transform applies to.</typeparam>
+    /// <param name="transform">A function transforming each generated value of the type.</param>
+    /// <param name="transformExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation to provide further infrastructure and test data arrangement.</returns>
+    IUsingTestPipeline<TSUT, TResult> Using<TValue>(
+        Func<TValue, TValue> transform,
+        [CallerArgumentExpression(nameof(transform))] string? transformExpr = null);
 
     /// <summary>
     /// Provide a default value, that will be applied in all mocks and auto-generated test-data, where no specific value or setup is given.

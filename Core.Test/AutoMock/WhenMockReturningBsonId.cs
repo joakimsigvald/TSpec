@@ -6,14 +6,14 @@ namespace TSpec.Test.AutoMock;
 
 public class WhenGetRecordWithBsonIdFromMock : Spec<BsonIdService, RecordMongoDb>
 {
-    public WhenGetRecordWithBsonIdFromMock() => Given<RecordMongoDb>(_ => _.Value = "123").When(_ => _.GetRecord());
+    public WhenGetRecordWithBsonIdFromMock() => Using<RecordMongoDb>(_ => _.Value = "123").When(_ => _.GetRecord());
     [Fact]
     public void ThenGetRecord()
     {
         Then().Result.Is().not.Null();
         Specification.Is(
             """
-            Given RecordMongoDb has Value = "123"
+            Using RecordMongoDb with Value = "123"
             When GetRecord()
             Then Result is not null
             """);

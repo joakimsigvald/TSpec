@@ -9,12 +9,12 @@ public class WhenGivenStaticModel : Spec<MyModel>
     [InlineData("abc")]
     public void GivenDefaultSetup_ThenUseDefaultSetupOnSUT(string value)
     {
-        Given<MyModel>(_ => _.Name = value)
+        Using<MyModel>(_ => _.Name = value)
             .When(_ => _)
             .Then().Result.Name.Is(value);
         Specification.Is(
             """
-            Given MyModel has Name = value
+            Using MyModel with Name = value
             When _
             Then Result.Name is value
             """);
@@ -24,12 +24,12 @@ public class WhenGivenStaticModel : Spec<MyModel>
     [InlineData("abc")]
     public void GivenDefaultSetup_ThenUseDefaultSetupOnAValue(string value)
     {
-        Given<MyModel>(_ => _.Name = value)
+        Using<MyModel>(_ => _.Name = value)
             .When(_ => A<MyModel>())
             .Then().Result.Name.Is(value);
         Specification.Is(
             """
-            Given MyModel has Name = value
+            Using MyModel with Name = value
             When a MyModel
             Then Result.Name is value
             """);
@@ -93,13 +93,13 @@ public class WhenGivenStaticModel : Spec<MyModel>
     [InlineData("abc", 123)]
     public void GivenDefaultSetupAndModel_ThenUseDefaultSetupOnModel(string name, int id)
     {
-        Given<MyModel>(_ => _.Name = name).Using(new MyModel { Id = id })
+        Using<MyModel>(_ => _.Name = name).Using(new MyModel { Id = id })
             .When(_ => _)
             .Then().Result.Name.Is(name).And(Result).Id.Is(id);
         Specification.Is(
             """
-            Given MyModel has Name = name
-            Using new MyModel { Id = id }
+            Using MyModel with Name = name
+              and new MyModel { Id = id }
             When _
             Then Result.Name is name
               and Result.Id is id
@@ -110,13 +110,13 @@ public class WhenGivenStaticModel : Spec<MyModel>
     [InlineData("abc", 123)]
     public void GivenTwoDefaultSetup_ThenApplyBoth(string name, int id)
     {
-        Given<MyModel>(_ => _.Name = name).And<MyModel>(_ => _.Id = id)
+        Using<MyModel>(_ => _.Name = name).And<MyModel>(_ => _.Id = id)
             .When(_ => _)
             .Then().Result.Name.Is(name).And(Result).Id.Is(id);
         Specification.Is(
             """
-            Given MyModel has Name = name
-              and MyModel has Id = id
+            Using MyModel with Name = name
+              and MyModel with Id = id
             When _
             Then Result.Name is name
               and Result.Id is id
@@ -127,13 +127,13 @@ public class WhenGivenStaticModel : Spec<MyModel>
     [InlineData("abc", 123)]
     public void GivenDefaultSetupAndAModel_ThenNotUseDefaultSetupOnTheModel(string name, int id)
     {
-        Given<MyModel>(_ => _.Name = name).and.A(new MyModel { Id = id })
+        Using<MyModel>(_ => _.Name = name).Given().A(new MyModel { Id = id })
             .When(_ => The<MyModel>())
             .Then().Result.Name.Is().Null().And(Result).Id.Is(id);
         Specification.Is(
             """
-            Given MyModel has Name = name
-              and a MyModel is new MyModel { Id = id }
+            Using MyModel with Name = name
+            Given a MyModel is new MyModel { Id = id }
             When the MyModel
             Then Result.Name is null
               and Result.Id is id
@@ -144,13 +144,13 @@ public class WhenGivenStaticModel : Spec<MyModel>
     [InlineData("abc", 123)]
     public void GivenDefaultSetupAndSpecificSetup_ThenUseBothSetupsOnTheModel(string name, int id)
     {
-        Given<MyModel>(_ => _.Name = name).and.A<MyModel>(_ => _.Id = id)
+        Using<MyModel>(_ => _.Name = name).Given().A<MyModel>(_ => _.Id = id)
             .When(_ => The<MyModel>())
             .Then().Result.Name.Is(name).And(Result).Id.Is(id);
         Specification.Is(
             """
-            Given MyModel has Name = name
-              and a MyModel with Id = id
+            Using MyModel with Name = name
+            Given a MyModel with Id = id
             When the MyModel
             Then Result.Name is name
               and Result.Id is id
@@ -161,13 +161,13 @@ public class WhenGivenStaticModel : Spec<MyModel>
     [InlineData("abc", "def")]
     public void GivenDefaultSetupOverriddenBySpecificSetup_ThenUseSpecificSetupOnTheModel(string defaultName, string name)
     {
-        Given<MyModel>(_ => _.Name = defaultName).and.A<MyModel>(_ => _.Name = name)
+        Using<MyModel>(_ => _.Name = defaultName).Given().A<MyModel>(_ => _.Name = name)
             .When(_ => The<MyModel>())
             .Then().Result.Name.Is(name);
         Specification.Is(
             """
-            Given MyModel has Name = defaultName
-              and a MyModel with Name = name
+            Using MyModel with Name = defaultName
+            Given a MyModel with Name = name
             When the MyModel
             Then Result.Name is name
             """);

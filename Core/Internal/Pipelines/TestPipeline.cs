@@ -110,11 +110,13 @@ internal abstract class TestPipeline<TSUT, TResult, TParent>(TParent parent) whe
         Ignore _ = default)
         => _parent.Until(tearDown, tearDownExpr!);
 
+    [Obsolete(Obsoletions.TypeSetup)]
     public IGivenTestPipeline<TSUT, TResult> Given<TValue>(
         Action<TValue> setup,
         [CallerArgumentExpression(nameof(setup))] string? setupExpr = null) where TValue : class
         => _parent.Given(setup, setupExpr!);
 
+    [Obsolete(Obsoletions.TypeSetup)]
     public IGivenTestPipeline<TSUT, TResult> Given<TValue>(
         Func<TValue, TValue> transform,
         [CallerArgumentExpression(nameof(transform))] string? transformExpr = null)
@@ -136,6 +138,16 @@ internal abstract class TestPipeline<TSUT, TResult, TParent>(TParent parent) whe
         bool owned = false,
         [CallerArgumentExpression(nameof(defaultValue))] string? defaultValueExpr = null)
         => _parent.Using(defaultValue, scope, owned, defaultValueExpr!);
+
+    public IUsingTestPipeline<TSUT, TResult> Using<TValue>(
+        Action<TValue> setup,
+        [CallerArgumentExpression(nameof(setup))] string? setupExpr = null) where TValue : class
+        => _parent.Using(setup, setupExpr!);
+
+    public IUsingTestPipeline<TSUT, TResult> Using<TValue>(
+        Func<TValue, TValue> transform,
+        [CallerArgumentExpression(nameof(transform))] string? transformExpr = null)
+        => _parent.Using(transform, transformExpr!);
 
     public IUsingTestPipeline<TSUT, TResult> Using<TValue>(
         Func<TValue> defaultValue,

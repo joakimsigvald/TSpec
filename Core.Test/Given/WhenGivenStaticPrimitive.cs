@@ -34,10 +34,10 @@ public class WhenGivenStaticPrimitive : Spec<string>
     [InlineData("abc")]
     public void GivenDefaultSetup_ThenUseDefaultSetup(string value)
     {
-        Given<string>(_ => value).When(_ => _).Then().Result.Is(value);
+        Using<string>(_ => value).When(_ => _).Then().Result.Is(value);
         Specification.Is(
             """
-            Given string is value
+            Using string is value
             When _
             Then Result is value
             """);

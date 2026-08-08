@@ -78,6 +78,8 @@ internal class SpecificationContext : IAssertSpecificationContext
     internal void AddGiven<TValue>(string setupExpr, bool isCustomExpression, string? article = null)
         => _setup.AddGiven<TValue>(setupExpr, isCustomExpression, article);
 
+    internal void AddUsingSetup<TValue>(string setupExpr) => _setup.AddUsingSetup<TValue>(setupExpr);
+
     internal void AddGivenCount<TModel>(string count) => _setup.AddGivenCount<TModel>(count);
 
     internal void AddGivenThat(string customArrangementExpr)

@@ -17,15 +17,26 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>2.1.1</PackageVersion>
+		<PackageVersion>2.2.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
+			NEW
+			* Using&lt;T&gt;(setup) and Using&lt;T&gt;(transform) arrange every generated value of a type.
+			  A setup on the type says where its values come from, which is what Using arranges —
+			  it applies to the subject-under-test graph as well as to input, and the specification
+			  now says so: "Using Room with BedCount = 2", listed with the other Using steps.
+
 			CHANGED
 			* A value arranged through an article — Given().A&lt;T&gt;(setup), .ASecond, .Two, etc. — reads
 			  as the noun phrase it is: "a Room with BedCount = 2", "two Rooms with BedCount = 2".
-			  A setup on the whole type still states a rule and keeps its verb: "Room has BedCount = 2"
+
+			OBSOLETE
+			* Given&lt;T&gt;(setup), Given&lt;T&gt;(transform) and the matching And overloads — use
+			  Using&lt;T&gt;(...) instead. Behaviour is unchanged, and both spellings render alike.
+			  Note that continuing a chain after Using reaches the Using vocabulary, so a following
+			  mock setup is spelled .Given&lt;TService&gt;() rather than .And&lt;TService&gt;().
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

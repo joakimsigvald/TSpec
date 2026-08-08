@@ -10,12 +10,12 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
     [Fact]
     public void GivenDefaultWithAutoMock()
     {
-        Given<MyModel>(_ => _.Name = DefaultName)
+        Using<MyModel>(_ => _.Name = DefaultName)
             .When(_ => _.GetModel())
             .Then().Result.Name.Is(DefaultName);
         Specification.Is(
             """
-            Given MyModel has Name = DefaultName
+            Using MyModel with Name = DefaultName
             When GetModel()
             Then Result.Name is DefaultName
             """);
@@ -24,14 +24,14 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
     [Fact]
     public void GivenDefaultNotOverridden()
     {
-        Given<MyModel>(_ => _.Name = DefaultName)
-            .And<IMyRepository>().That(_ => _.GetModel()).Returns(() => ASecond<MyModel>())
+        Using<MyModel>(_ => _.Name = DefaultName)
+            .Given<IMyRepository>().That(_ => _.GetModel()).Returns(() => ASecond<MyModel>())
             .When(_ => _.GetModel())
             .Then().Result.Name.Is(DefaultName);
         Specification.Is(
             """
-            Given MyModel has Name = DefaultName
-              and IMyRepository.GetModel() returns a second MyModel
+            Using MyModel with Name = DefaultName
+            Given IMyRepository.GetModel() returns a second MyModel
             When GetModel()
             Then Result.Name is DefaultName
             """);
@@ -40,16 +40,16 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
     [Fact]
     public void GivenTwoDefaultSetups_ThenApplySecond()
     {
-        Given<MyModel>(_ => _.Name = "123")
+        Using<MyModel>(_ => _.Name = "123")
             .And<MyModel>(_ => _.Name = DefaultName)
-            .And<IMyRepository>().That(_ => _.GetModel()).Returns(ASecond<MyModel>)
+            .Given<IMyRepository>().That(_ => _.GetModel()).Returns(ASecond<MyModel>)
             .When(_ => _.GetModel())
             .Then().Result.Name.Is(DefaultName);
         Specification.Is(
             """
-            Given MyModel has Name = "123"
-              and MyModel has Name = DefaultName
-              and IMyRepository.GetModel() returns a second MyModel
+            Using MyModel with Name = "123"
+              and MyModel with Name = DefaultName
+            Given IMyRepository.GetModel() returns a second MyModel
             When GetModel()
             Then Result.Name is DefaultName
             """);
@@ -58,16 +58,16 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
     [Fact]
     public void GivenTwoDifferentDefaultSetups_ThenApplyBoth()
     {
-        Given<MyModel>(_ => _.Id = 123)
-            .Given<MyModel>(_ => _.Name = DefaultName)
-            .And<IMyRepository>().That(_ => _.GetModel()).Returns(() => ASecond<MyModel>())
+        Using<MyModel>(_ => _.Id = 123)
+            .And<MyModel>(_ => _.Name = DefaultName)
+            .Given<IMyRepository>().That(_ => _.GetModel()).Returns(() => ASecond<MyModel>())
             .When(_ => _.GetModel())
             .Then().Result.Name.Is(DefaultName).And(Result).Id.Is(123);
         Specification.Is(
             """
-            Given MyModel has Id = 123
-              and MyModel has Name = DefaultName
-              and IMyRepository.GetModel() returns a second MyModel
+            Using MyModel with Id = 123
+              and MyModel with Name = DefaultName
+            Given IMyRepository.GetModel() returns a second MyModel
             When GetModel()
             Then Result.Name is DefaultName
               and Result.Id is 123
@@ -78,15 +78,15 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
     public void GivenDefaultValueAndDefaultSetup()
     {
         Using(DefaultName)
-            .Given<MyModel>(_ => _.Name = A<string>())
-            .And<IMyRepository>().That(_ => _.GetModel()).Returns(() => ASecond<MyModel>())
+            .Using<MyModel>(_ => _.Name = A<string>())
+            .Given<IMyRepository>().That(_ => _.GetModel()).Returns(() => ASecond<MyModel>())
             .When(_ => _.GetModel())
             .Then().Result.Name.Is(DefaultName);
         Specification.Is(
             """
             Using DefaultName
-            Given MyModel has Name = a string
-              and IMyRepository.GetModel() returns a second MyModel
+              and MyModel with Name = a string
+            Given IMyRepository.GetModel() returns a second MyModel
             When GetModel()
             Then Result.Name is DefaultName
             """);
@@ -97,13 +97,13 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
     {
         Given<IMyRepository>().That(_ => _.GetModel()).Returns(() => ASecond<MyModel>())
             .When(_ => _.GetModel())
-            .Given<MyModel>(_ => _.Name = DefaultName)
-            .and.ASecond<MyModel>(_ => _.Name = "Altered")
+            .Using<MyModel>(_ => _.Name = DefaultName)
+            .Given().ASecond<MyModel>(_ => _.Name = "Altered")
             .Then().Result.Name.Is("Altered");
         Specification.Is(
             """
-            Given MyModel has Name = DefaultName
-              and a second MyModel with Name = "Altered"
+            Using MyModel with Name = DefaultName
+            Given a second MyModel with Name = "Altered"
               and IMyRepository.GetModel() returns a second MyModel
             When GetModel()
             Then Result.Name is "Altered"
@@ -115,12 +115,12 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
     {
         When(_ => MyService.Echo(A<MyModel>()))
             .Given<IMyRepository>().That(_ => _.GetModel()).Returns(() => The<MyModel>())
-            .Given<MyModel>(_ => _.Name = DefaultName)
+            .Using<MyModel>(_ => _.Name = DefaultName)
             .Then().Result.Name.Is(DefaultName);
         Specification.Is(
             """
-            Given MyModel has Name = DefaultName
-              and IMyRepository.GetModel() returns the MyModel
+            Using MyModel with Name = DefaultName
+            Given IMyRepository.GetModel() returns the MyModel
             When MyService.Echo(a MyModel)
             Then Result.Name is DefaultName
             """);
@@ -129,15 +129,15 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
     [Fact]
     public void GivenDefaultIsReplaced()
     {
-        Given<MyModel>(_ => _.Name = DefaultName)
-            .And<IMyRepository>().That(_ => _.GetModel()).Returns(ASecond<MyModel>)
+        Using<MyModel>(_ => _.Name = DefaultName)
+            .Given<IMyRepository>().That(_ => _.GetModel()).Returns(ASecond<MyModel>)
             .When(_ => _.GetModel())
             .Given().ASecond(new MyModel() { Name = "My model" })
             .Then().Result.Name.Is("My model");
         Specification.Is(
             """
-            Given MyModel has Name = DefaultName
-              and a second MyModel is new MyModel() { Name = "My model" }
+            Using MyModel with Name = DefaultName
+            Given a second MyModel is new MyModel() { Name = "My model" }
               and IMyRepository.GetModel() returns a second MyModel
             When GetModel()
             Then Result.Name is "My model"
@@ -165,12 +165,12 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
     {
         When(_ => MyService.Echo(A<MyModel>()))
             .Given<IMyRepository>().That(_ => _.SetModel(The<MyModel>())).Returns(() => Another<MyModel>())
-            .Given<MyModel>(_ => _.Id = 123)
+            .Using<MyModel>(_ => _.Id = 123)
             .Then().Result.Id.Is(123);
         Specification.Is(
             """
-            Given MyModel has Id = 123
-              and IMyRepository.SetModel(the MyModel) returns another MyModel
+            Using MyModel with Id = 123
+            Given IMyRepository.SetModel(the MyModel) returns another MyModel
             When MyService.Echo(a MyModel)
             Then Result.Id is 123
             """);
@@ -182,17 +182,17 @@ public class OverrideDefaultSetupAfterWhenReturn : Spec<MyService, MyModel>
     private const string TheName = "TheName";
 
     public OverrideDefaultSetupAfterWhenReturn() 
-        => Given<MyModel>(_ => _.Name = "Something").When(_ => _.GetModel());
+        => Using<MyModel>(_ => _.Name = "Something").When(_ => _.GetModel());
 
     [Fact]
     public void GivenDefaultSetup_ThenUseOverride()
     {
-        Given<MyModel>(_ => _.Name = TheName)
+        Using<MyModel>(_ => _.Name = TheName)
             .Then().Result.Name.Is(TheName);
         Specification.Is(
             """
-            Given MyModel has Name = "Something"
-              and MyModel has Name = TheName
+            Using MyModel with Name = "Something"
+              and MyModel with Name = TheName
             When GetModel()
             Then Result.Name is TheName
             """);
@@ -209,11 +209,11 @@ public class OverrideDefaultValueAfterWhenReturn : Spec<MyService, MyModel>
     [Fact]
     public void GivenDefaultValue_ThenUseDefaultValue()
     {
-        Given<MyModel>(_ => _.Name = TheName).Then().Result.Name.Is(TheName);
+        Using<MyModel>(_ => _.Name = TheName).Then().Result.Name.Is(TheName);
         Specification.Is(
             """
             Using "Something"
-            Given MyModel has Name = TheName
+              and MyModel with Name = TheName
             When GetModel()
             Then Result.Name is TheName
             """);
@@ -225,18 +225,18 @@ public class OverrideDefaultSetupAfterWhenArgument : Spec<MyService, MyModel>
     private const string TheName = "TheName";
 
     public OverrideDefaultSetupAfterWhenArgument()
-        => Given<MyModel>(_ => _.Name = "Something")
+        => Using<MyModel>(_ => _.Name = "Something")
         .When(_ => MyService.Echo(A<MyModel>()));
 
     [Fact]
     public void GivenDefaultSetup_ThenUseOverride()
     {
-        Given<MyModel>(_ => _.Name = TheName)
+        Using<MyModel>(_ => _.Name = TheName)
             .Then().Result.Name.Is(TheName);
         Specification.Is(
             """
-            Given MyModel has Name = "Something"
-              and MyModel has Name = TheName
+            Using MyModel with Name = "Something"
+              and MyModel with Name = TheName
             When MyService.Echo(a MyModel)
             Then Result.Name is TheName
             """);
@@ -253,11 +253,11 @@ public class OverrideDefaultValueAfterWhenArgument : Spec<MyService, MyModel>
     [Fact]
     public void GivenDefaultValue_ThenUseDefaultValue()
     {
-        Given<MyModel>(_ => _.Name = TheName).Then().Result.Name.Is(TheName);
+        Using<MyModel>(_ => _.Name = TheName).Then().Result.Name.Is(TheName);
         Specification.Is(
             """
             Using "Something"
-            Given MyModel has Name = TheName
+              and MyModel with Name = TheName
             When MyService.Echo(a MyModel)
             Then Result.Name is TheName
             """);

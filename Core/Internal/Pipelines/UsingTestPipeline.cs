@@ -42,4 +42,17 @@ internal class UsingTestPipeline<TSUT, TResult> :
         bool owned = false,
         [CallerArgumentExpression(nameof(tag))] string? tagExpr = null)
         => _parent.Using(tag, scope, owned, tagExpr!);
+
+    /// <inheritdoc />
+    public IUsingTestPipeline<TSUT, TResult> And<TValue>(
+        Action<TValue> setup,
+        [CallerArgumentExpression(nameof(setup))] string? setupExpr = null)
+        where TValue : class
+        => _parent.Using(setup, setupExpr!);
+
+    /// <inheritdoc />
+    public IUsingTestPipeline<TSUT, TResult> And<TValue>(
+        Func<TValue, TValue> transform,
+        [CallerArgumentExpression(nameof(transform))] string? transformExpr = null)
+        => _parent.Using(transform, transformExpr!);
 }

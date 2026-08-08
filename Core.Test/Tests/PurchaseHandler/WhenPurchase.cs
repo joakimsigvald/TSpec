@@ -14,7 +14,7 @@ public class WhenPurchase : Spec<Subjects.Purchase.PurchaseHandler, PurchaseResp
 
     public class GivenEditableBasket : WhenPurchase
     {
-        public GivenEditableBasket() => Given<Checkout>(_ => _.IsOpen = true);
+        public GivenEditableBasket() => Using<Checkout>(_ => _.IsOpen = true);
 
         [Fact]
         public void ThenPublishBasketPurchasedEventAndCheckoutIsClosed()
@@ -23,8 +23,8 @@ public class WhenPurchase : Spec<Subjects.Purchase.PurchaseHandler, PurchaseResp
             .And(The<Checkout>()).IsOpen.Is().False();
             Specification.Is(
                 """
-                Given Checkout has IsOpen = true
-                  and ICheckoutProvider.GetExistingCheckout(the int) returns a Checkout
+                Using Checkout with IsOpen = true
+                Given ICheckoutProvider.GetExistingCheckout(the int) returns a Checkout
                   and IBasketRepository.GetEditable(the int) returns the Checkout's Basket
                 When Purchase(an int)
                 Then ITopicExchangeV2<BasketPurchasedV1>.Publish(It.IsAny<BasketPurchasedV1>())

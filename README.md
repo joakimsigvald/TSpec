@@ -75,7 +75,7 @@ public class CalculatorSpec : Spec<int>
 The *arrange* stage defines the setup of the test pipeline, by calling methods on `Spec`, either directly or fluently chained:
 
 * `Given`  — provides test data and mocked behavior.
-* `Using`  — registers type conversions, defaults, and factories.
+* `Using`  — registers type conversions, defaults, factories, and setup applied to every value of a type.
 * `Having` — setup that runs *before* the action.
 * `Until`  — teardown that runs *after* the action.
 
@@ -175,7 +175,7 @@ When preparing the pipeline, values are provided either for the **Subject** or f
 
 Arrangements are categorized into three types, using specific verbs to dictate their scope:
 * **Values**: Configured using the verb **`Given`** and apply *only* to the **Input**.
-* **Types**: Configured using the verb **`Using`**. An optional scope indicates whether they apply to the **Input**, the **Subject**, or both (the default).
+* **Types**: Configured using the verb **`Using`**. An optional scope indicates whether they apply to the **Input**, the **Subject**, or both (the default). This includes a setup applied to every generated value of a type — `Using<Room>(_ => _.BedCount = 2)` — which reads `Using Room with BedCount = 2` in the specification.
 * **Mocks**: Configured using the verb **`Given`** and apply to *both* **Input** and **Subject**.
 
 #### 2.1.3 Preparing the Pipeline

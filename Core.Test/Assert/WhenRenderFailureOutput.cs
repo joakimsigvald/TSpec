@@ -15,7 +15,7 @@ public class WhenRenderFailureOutput : Spec<int>
     private const string Warning =
         "Fussy: the constructor rejected the generated arguments (ArgumentException), "
         + "so the parameterless constructor was used instead. "
-        + "Arrange it with Using<Fussy>(...) or Given<Fussy>(...) if that is not what you want.";
+        + "Arrange it with Using<Fussy>(...) or Given().A<Fussy>(...) if that is not what you want.";
 
     // ---------- no error: only the specification is produced ----------
 

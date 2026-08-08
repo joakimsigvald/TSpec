@@ -49,6 +49,29 @@ public interface IUsingTestPipeline<TSUT, TResult> : ITestPipeline<TSUT, TResult
         [CallerArgumentExpression(nameof(factory))] string? factoryExpr = null);
 
     /// <summary>
+    /// Apply a setup to every generated value of the type, wherever the pipeline produces one.
+    /// </summary>
+    /// <typeparam name="TValue">The type whose generated values the setup applies to.</typeparam>
+    /// <param name="setup">An action applied to each generated value of the type.</param>
+    /// <param name="setupExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation to provide further infrastructure and test data arrangement.</returns>
+    IUsingTestPipeline<TSUT, TResult> And<TValue>(
+        Action<TValue> setup,
+        [CallerArgumentExpression(nameof(setup))] string? setupExpr = null)
+        where TValue : class;
+
+    /// <summary>
+    /// Transform every generated value of the type, wherever the pipeline produces one.
+    /// </summary>
+    /// <typeparam name="TValue">The type whose generated values the transform applies to.</typeparam>
+    /// <param name="transform">A function transforming each generated value of the type.</param>
+    /// <param name="transformExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation to provide further infrastructure and test data arrangement.</returns>
+    IUsingTestPipeline<TSUT, TResult> And<TValue>(
+        Func<TValue, TValue> transform,
+        [CallerArgumentExpression(nameof(transform))] string? transformExpr = null);
+
+    /// <summary>
     /// Instructs the test pipeline to use the value associated with the specified tag when resolving dependencies or generating test data.
     /// </summary>
     /// <typeparam name="TValue">The type of the value associated with the tag.</typeparam>

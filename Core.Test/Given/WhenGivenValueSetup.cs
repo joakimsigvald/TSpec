@@ -8,12 +8,12 @@ public class WhenGivenValueSetup : Spec<MyService, MyModel>
     [Fact]
     public void AsFirstSentence_ThenUseSetupInPipeline()
     {
-        Given<MyModel>(_ => _.Name = A<string>())
+        Using<MyModel>(_ => _.Name = A<string>())
             .When(_ => MyService.Echo(A<MyModel>()))
             .Then().Result.Name.Is(The<string>());
         Specification.Is(
             """
-            Given MyModel has Name = a string
+            Using MyModel with Name = a string
             When MyService.Echo(a MyModel)
             Then Result.Name is the string
             """);
@@ -23,13 +23,13 @@ public class WhenGivenValueSetup : Spec<MyService, MyModel>
     public void AsSecondSentence_ThenUseSetupInPipeline()
     {
         Given<IMyRepository>().That(_ => _.GetModel()).Returns(A<MyModel>)
-            .And<MyModel>(_ => _.Name = A<string>())
+            .Using<MyModel>(_ => _.Name = A<string>())
             .When(_ => _.GetModel())
             .Then().Result.Name.Is(The<string>());
         Specification.Is(
             """
-            Given MyModel has Name = a string
-              and IMyRepository.GetModel() returns a MyModel
+            Using MyModel with Name = a string
+            Given IMyRepository.GetModel() returns a MyModel
             When GetModel()
             Then Result.Name is the string
             """);
@@ -38,12 +38,12 @@ public class WhenGivenValueSetup : Spec<MyService, MyModel>
     [Fact]
     public void WithArithmeticExpression_ThenParseValues()
     {
-        Given<MyModel>(_ => _.Name = A<string>() + ASecond<string>())
+        Using<MyModel>(_ => _.Name = A<string>() + ASecond<string>())
             .When(_ => MyService.Echo(A<MyModel>()))
             .Then().Result.Name.Does().StartWith(The<string>());
         Specification.Is(
             """
-            Given MyModel has Name = a string + a second string
+            Using MyModel with Name = a string + a second string
             When MyService.Echo(a MyModel)
             Then Result.Name starts with the string
             """);

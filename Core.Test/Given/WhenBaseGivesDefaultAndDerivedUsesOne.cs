@@ -9,7 +9,7 @@ public abstract class WhenBaseGivesDefaultAndDerivedUsesOne : Spec<MyService, My
 
     protected WhenBaseGivesDefaultAndDerivedUsesOne()
         => When(_ => _.GetModels())
-        .Given<MyModel>(_ => _ with { Name = BaseDefaultName });
+        .Using<MyModel>(_ => _ with { Name = BaseDefaultName });
 
     public class AndDerivedConstructorEvaluatesOneWithTransform : WhenBaseGivesDefaultAndDerivedUsesOne
     {

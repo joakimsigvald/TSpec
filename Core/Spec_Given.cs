@@ -1,6 +1,7 @@
 ﻿using Moq;
 using System.Runtime.CompilerServices;
 using TSpec.Continuations;
+using TSpec.Internal;
 using TSpec.Internal.Pipelines;
 using TSpec.Internal.Specification;
 
@@ -15,6 +16,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <param name="setup">An action applied to each generated value of the given type</param>
     /// <param name="setupExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for providing further arrangement of the test pipeline</returns>
+    [Obsolete(Obsoletions.TypeSetup)]
     public IGivenTestPipeline<TSUT, TResult> Given<TValue>(
         Action<TValue> setup,
         [CallerArgumentExpression(nameof(setup))] string? setupExpr = null)
@@ -38,6 +40,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <param name="transform">A function transforming the default value of the given type</param>
     /// <param name="transformExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for providing further arrangement of the test pipeline</returns>
+    [Obsolete(Obsoletions.TypeSetup)]
     public IGivenTestPipeline<TSUT, TResult> Given<TValue>(
         Func<TValue, TValue> transform,
         [CallerArgumentExpression(nameof(transform))] string? transformExpr = null)

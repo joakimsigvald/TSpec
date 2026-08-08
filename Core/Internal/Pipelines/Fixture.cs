@@ -50,7 +50,7 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
     internal void SetDefault<TModel>(
         Action<TModel> setup, string setupExpr) where TModel : class
     {
-        Specification.AddGiven<TModel>(setupExpr, false);
+        Specification.AddUsingSetup<TModel>(setupExpr);
         AssertIsNotSetUp();
         _context.SetDefault(setup);
     }
@@ -58,7 +58,7 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
     internal void SetDefault<TValue>(
         Func<TValue, TValue> transform, string transformExpr)
     {
-        Specification.AddGiven<TValue>(transformExpr, false);
+        Specification.AddUsingSetup<TValue>(transformExpr);
         AssertIsNotSetUp();
         _context.SetDefault(transform);
     }

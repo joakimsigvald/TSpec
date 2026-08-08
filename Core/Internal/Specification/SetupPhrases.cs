@@ -20,6 +20,12 @@ internal class SetupPhrases(SpecificationRecording recording)
             ? setupExpr
             : $"{ArticlePrefix(article)}{DescribeSetupExpression<TValue>(setupExpr, article)}"));
 
+    /// A setup on the type is a type arrangement, not a value: it says where every value of that
+    /// type comes from, so it joins the <c>Using</c> run rather than opening a <c>Given</c>.
+    internal void AddUsingSetup<TValue>(string setupExpr)
+        => RecordSetup(() => Add(StepLayout.SentenceOrPhrase, StepFamily.Using,
+            DescribeSetupExpression<TValue>(setupExpr, article: null)));
+
     internal void AddGivenCount<TModel>(string count)
         => RecordSetup(() => Given($"{ArticlePrefix(count)}{typeof(TModel).Alias().CountedBy(count)}"));
 
@@ -101,17 +107,14 @@ internal class SetupPhrases(SpecificationRecording recording)
         => recording.Add(new(layout) { Family = family, Body = body });
 
     /// <summary>
-    /// An articled value is a thing the author asked for, so it reads as the noun phrase it is —
-    /// "a MyModel with Name = …". Without an article the same setup states a rule about every value
-    /// of the type, which needs a verb to stay a sentence: "MyModel has Name = …". The article also
-    /// carries the count, so "with" is what keeps a plural agreeing.
+    /// An arranged value reads as the noun phrase it is — "a MyModel with Name = …" — and "with" is
+    /// invariant, so a counted plural agrees. The article carries the count and is empty for a type
+    /// arrangement, which names the type alone: "MyModel with Name = …".
     /// </summary>
     private static string DescribeSetupExpression<TValue>(string setupExpr, string? article)
     {
         var value = setupExpr.Describe();
-        var verb = !value.Contains('=') || value.StartsWith("new") ? "is"
-            : string.IsNullOrEmpty(article) ? "has"
-            : "with";
+        var verb = !value.Contains('=') || value.StartsWith("new") ? "is" : "with";
         return $"{typeof(TValue).Alias().CountedBy(article ?? string.Empty)} {verb} {value}";
     }
 

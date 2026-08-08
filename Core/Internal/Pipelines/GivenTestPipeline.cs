@@ -8,6 +8,7 @@ internal class GivenTestPipeline<TSUT, TResult>
 {
     internal GivenTestPipeline(Spec<TSUT, TResult> parent) : base(parent) { }
 
+    [Obsolete(Obsoletions.TypeSetup)]
     public IGivenTestPipeline<TSUT, TResult> And<TValue>(
         Action<TValue> setup,
         [CallerArgumentExpression(nameof(setup))] string? setupExpr = null) where TValue : class
@@ -18,6 +19,7 @@ internal class GivenTestPipeline<TSUT, TResult>
         [CallerArgumentExpression(nameof(tag))] string? tagExpr = null)
         => new GivenTag<TSUT, TResult, TValue>(_parent, tag, tagExpr!);
 
+    [Obsolete(Obsoletions.TypeSetup)]
     public IGivenTestPipeline<TSUT, TResult> And<TValue>(
         Func<TValue, TValue> setup,
         [CallerArgumentExpression(nameof(setup))] string? setupExpr = null)

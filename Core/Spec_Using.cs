@@ -91,6 +91,41 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     }
 
     /// <summary>
+    /// Apply a setup to every generated value of the type, wherever the pipeline produces one —
+    /// ambient test data and the subject-under-test graph alike. A type arrangement, so it is
+    /// spelled with Using; to set up one particular value instead, use Given().A&lt;TValue&gt;(setup).
+    /// </summary>
+    /// <typeparam name="TValue">The type whose generated values the setup applies to.</typeparam>
+    /// <param name="setup">An action applied to each generated value of the type.</param>
+    /// <param name="setupExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation to provide further infrastructure and test data arrangement.</returns>
+    public IUsingTestPipeline<TSUT, TResult> Using<TValue>(
+        Action<TValue> setup,
+        [CallerArgumentExpression(nameof(setup))] string? setupExpr = null)
+        where TValue : class
+    {
+        Pipeline.SetDefault(setup, setupExpr!);
+        return new UsingTestPipeline<TSUT, TResult>(this);
+    }
+
+    /// <summary>
+    /// Transform every generated value of the type, wherever the pipeline produces one — ambient
+    /// test data and the subject-under-test graph alike. A type arrangement, so it is spelled with
+    /// Using; to transform one particular value instead, use Given().A&lt;TValue&gt;(transform).
+    /// </summary>
+    /// <typeparam name="TValue">The type whose generated values the transform applies to.</typeparam>
+    /// <param name="transform">A function transforming each generated value of the type.</param>
+    /// <param name="transformExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation to provide further infrastructure and test data arrangement.</returns>
+    public IUsingTestPipeline<TSUT, TResult> Using<TValue>(
+        Func<TValue, TValue> transform,
+        [CallerArgumentExpression(nameof(transform))] string? transformExpr = null)
+    {
+        Pipeline.SetDefault(transform, transformExpr!);
+        return new UsingTestPipeline<TSUT, TResult>(this);
+    }
+
+    /// <summary>
     /// For.None is the empty scope — the zero value of the flags enum, and the result of intersecting
     /// two disjoint scopes. It is never meaningful as an argument, so reject it where the user supplies
     /// it rather than let it reach a strategy that has no branch for it.
