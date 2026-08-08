@@ -1,19 +1,19 @@
-namespace TSpec.Internal.Specification;
+﻿namespace TSpec.Internal.Specification;
 
 /// <summary>
 /// One piece of composed text and how it joins what stands before it: a line of its own at some
-/// indentation, or a continuation of the line in progress, introduced by its binder.
+/// indentation, or a word continuing the line in progress.
 /// </summary>
 /// <remarks>
 /// The pieces are kept apart rather than concatenated because their boundaries carry meaning —
 /// what arrives as one piece is one expression, and layout moves such a piece whole rather than
 /// breaking inside it. Flattening to a string first would throw that away.
 /// </remarks>
-internal readonly record struct TextUnit(string Text, int? Indentation, string Binder = " ")
+internal readonly record struct TextUnit(string Text, int? Indentation)
 {
     internal static TextUnit Line(string text, int indentation) => new(text, indentation);
 
-    internal static TextUnit Word(string text, string binder) => new(text, null, binder);
+    internal static TextUnit Word(string text) => new(text, null);
 
     internal bool StartsLine => Indentation is not null;
 }

@@ -31,7 +31,7 @@ internal static class SpecificationRenderer
         }
 
         if (because is not null)
-            units.Add(TextUnit.Word($"because {because}", ", "));
+            AppendWord(units, $"because {because}", ", ");
 
         return new(units);
     }
@@ -54,15 +54,28 @@ internal static class SpecificationRenderer
             return;
 
         var content = Content(step, position);
-        units.Add(step.Layout switch
-        {
-            StepLayout.Sentence => Sentence(content),
-            StepLayout.Phrase => TextUnit.Line(content, step.Indentation),
-            StepLayout.SentenceOrPhrase =>
-                char.IsUpper(content[0]) ? Sentence(content) : TextUnit.Line(content, 1),
-            // A word heading its statement has nothing to append to
-            _ => isHead ? Sentence(content) : TextUnit.Word(content, step.Binder),
-        });
+        if (step.Layout == StepLayout.Word && !isHead)
+            AppendWord(units, content, step.Binder);
+        else
+            units.Add(step.Layout switch
+            {
+                StepLayout.Phrase => TextUnit.Line(content, step.Indentation),
+                StepLayout.SentenceOrPhrase =>
+                    char.IsUpper(content[0]) ? Sentence(content) : TextUnit.Line(content, 1),
+                // A word heading its statement has nothing to append to
+                _ => Sentence(content),
+            });
+    }
+
+    /// <summary>
+    /// Punctuation joining a word to what stands before it belongs to that phrase, so it is written
+    /// there. It then ends a line rather than starting one, whichever way the text is laid out.
+    /// </summary>
+    private static void AppendWord(List<TextUnit> units, string content, string binder)
+    {
+        if (binder.TrimEnd() is { Length: > 0 } punctuation && units.Count > 0)
+            units[^1] = units[^1] with { Text = units[^1].Text + punctuation };
+        units.Add(TextUnit.Word(content));
     }
 
     /// A sentence is capitalized while it is composed, not while it is laid out: case is a fact

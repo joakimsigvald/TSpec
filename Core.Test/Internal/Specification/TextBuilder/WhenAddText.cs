@@ -1,4 +1,4 @@
-using TSpec.Internal.Specification;
+﻿using TSpec.Internal.Specification;
 
 namespace TSpec.Test.Internal.Specification.TextBuilder;
 
@@ -176,7 +176,7 @@ public class WhenAddText
     [Fact]
     public void GivenTolerance_ThenLetTheWholeStatementRunIntoIt()
         => Xunit.Assert.Equal(
-            "12345 678901", Tolerated(TextUnit.Line("12345", 0), TextUnit.Word("678901", " ")));
+            "12345 678901", Tolerated(TextUnit.Line("12345", 0), TextUnit.Word("678901")));
 
     /// The tolerance decides whether a line breaks, never where: past it, the break falls at the
     /// width, so what continues is no wider than an untolerated line.

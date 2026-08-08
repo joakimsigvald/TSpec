@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 
 namespace TSpec.Internal.Specification;
 
@@ -49,7 +49,7 @@ internal class TextBuilder(
             AddLine(unit.Text, indentation);
         }
         else
-            AddWord(unit.Text, unit.Binder);
+            AddWord(unit.Text);
     }
 
     /// <summary>
@@ -62,19 +62,10 @@ internal class TextBuilder(
         return opensSentence ? text.Capitalize() : text;
     }
 
-    /// <summary>
-    /// Punctuation in the binder joins the word to what stands before it, so it is written there and
-    /// not carried along: a line opening with a comma reads as though something were missing above it.
-    /// </summary>
-    private void AddWord(string word, string binder)
+    private void AddWord(string word)
     {
-        if (string.IsNullOrEmpty(word))
-            return;
-
-        var joint = binder.TrimEnd();
-        if (joint.Length > 0)
-            AddText(joint);
-        AddText($" {word}");
+        if (!string.IsNullOrEmpty(word))
+            AddText($" {word}");
     }
 
     internal StringBuilder AddText(string? text)
