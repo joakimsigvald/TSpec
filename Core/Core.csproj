@@ -30,6 +30,7 @@
 			* An array creation reads as the list it is: new[] { x } as [x], new int[] { x } as int[x]
 			* A requirement that asserts nothing reads "TODO: Assert behaviour" instead of an empty claim
 			* A requirement every branch repeats is listed once at the heading they share
+			* A returns statement may be hoisted to a top-level heading, beside Subject under test
 
 			FIXED
 			* A second assertion no longer runs into the first: each claim starts its own line.
