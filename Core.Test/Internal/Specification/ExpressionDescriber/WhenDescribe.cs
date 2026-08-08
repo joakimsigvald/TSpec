@@ -95,6 +95,20 @@ public class WhenDescribe : Spec<string>
     // A comma inside the expression is not the alignment separator
     [InlineData("$\"{_.Foo(a, b)}\"", "\"{_.Foo(a, b)}\"")]
     [InlineData("$@\"{The(x)}\"", "\"{the X}\"")]
+    // A raw string is a string: the quote run delimits it, and the dollar run says how many braces
+    // open a hole — one fewer than that stays literal
+    [InlineData("\"\"\"plain\"\"\"", "\"plain\"")]
+    [InlineData("$\"\"\"{The(x)}\"\"\"", "\"{the X}\"")]
+    [InlineData("$$\"\"\"{{The(x)}}\"\"\"", "\"{the X}\"")]
+    [InlineData("$$\"\"\"a {b} {{The(x)}}\"\"\"", "\"a {b} {the X}\"")]
+    // With no dollar there are no holes: a raw string is literal throughout, braces and all
+    [InlineData("\"\"\"{ \"a\": 1 }\"\"\"", "\"{ \"a\": 1 }\"")]
+    // How the author delimited it is mechanism; the same text is the same claim
+    [InlineData("\"\"\"He said \"hi\" to me\"\"\"", "\"He said \"hi\" to me\"")]
+    [InlineData("$\"\"\"say \"{The(x)}\" now\"\"\"", "\"say \"{the X}\" now\"")]
+    [InlineData("$$\"\"\"{ \"a\": {{The(x)}} }\"\"\"", "\"{ \"a\": {the X} }\"")]
+    [InlineData("\"\"\"\"x\"\"\"\"", "\"x\"")]
+    [InlineData("_.Foo($\"\"\"{The(x)}\"\"\", \"\"\"b\"\"\")", "_.Foo(\"{the X}\", \"b\")")]
     // Break-point markers are pinned separately in WhenPlaceBreakPoints; here the wording is.
     public void ThenReturnDescription(string? valueExpr, string expected)
     {

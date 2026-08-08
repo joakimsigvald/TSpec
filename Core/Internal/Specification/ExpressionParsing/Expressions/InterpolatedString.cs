@@ -13,10 +13,17 @@ internal sealed record InterpolatedString(string Raw, string Open, IReadOnlyList
 {
     public override IEnumerable<Expr> Children => Parts;
 
-    public override string ToSource() => $"{Open}{Body(hole => hole.ToSource())}\"";
+    public override string ToSource() => $"{Open}{Body(hole => hole.ToSource())}{Close}";
 
+    /// The delimiter that closes what <c>Open</c> opened — its quote run, which a raw string makes
+    /// longer than one.
+    private string Close => new('"', Open.Length - Open.IndexOf('"'));
+
+    /// <summary>
     /// The string as a specification reads it: an ordinary quoted string whose holes have been
-    /// described by <paramref name="describeHole"/>.
+    /// described by <paramref name="describeHole"/>. How the author delimited it is mechanism —
+    /// a raw string and a plain one holding the same text make the same claim.
+    /// </summary>
     internal string Quoted(Func<Expr, string> describeHole) => $"\"{Body(describeHole)}\"";
 
     private string Body(Func<Expr, string> renderHole)

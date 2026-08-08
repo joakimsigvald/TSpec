@@ -14,8 +14,37 @@ internal static class LiteralScanner
         if (contentStart < 0)
             return false;
 
-        end = SkipStringContent(input, contentStart, verbatim, interpolated);
+        var quotes = QuoteRun(input, contentStart - 1);
+        end = quotes >= 3
+            ? SkipRawContent(input, contentStart - 1 + quotes, quotes)
+            : SkipStringContent(input, contentStart, verbatim, interpolated);
         return true;
+    }
+
+    internal static int QuoteRun(string input, int from)
+    {
+        var run = 0;
+        while (from + run < input.Length && input[from + run] == '"')
+            run++;
+        return run;
+    }
+
+    /// A raw string ends at the first run of at least as many quotes as opened it, and holds no
+    /// escapes — the run is the whole rule.
+    private static int SkipRawContent(string input, int from, int quotes)
+    {
+        for (var p = from; p < input.Length; p++)
+        {
+            if (input[p] != '"')
+                continue;
+
+            var run = QuoteRun(input, p);
+            if (run >= quotes)
+                return p + run;
+
+            p += run - 1;
+        }
+        return input.Length;
     }
 
     public static bool TryFindCharEnd(string input, int start, out int end)

@@ -38,7 +38,10 @@ internal static class PrimaryRule
     {
         bool interpolated = text.StartsWith('$')
             || (text.Length > 1 && text[0] is '@' or '$' && text[1] == '$');
-        return interpolated ? InterpolatedStringRule.Parse(text) : new Literal(text);
+        // A raw string goes the same way even without holes, so its quote run reads as one quote.
+        bool raw = text.IndexOf('"') is >= 0 and var open
+            && LiteralScanner.QuoteRun(text, open) >= 3;
+        return interpolated || raw ? InterpolatedStringRule.Parse(text) : new Literal(text);
     }
 
     private static Expr ParseArrayLit(TokenStream ts, int save)

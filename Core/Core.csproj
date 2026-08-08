@@ -33,6 +33,7 @@
 			* A second assertion no longer runs into the first: each claim starts its own line.
 			* A cast of a collection expression is described correctly verbatim
 			* A wrapped line no longer opens with the comma that joined it to the line above
+			* Any string literal is described with single quotes, and holes with single brackets
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
