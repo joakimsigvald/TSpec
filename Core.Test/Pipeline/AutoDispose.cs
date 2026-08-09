@@ -1,4 +1,5 @@
 using Moq;
+using TSpec.Assert;
 
 namespace TSpec.Test.Pipeline;
 
@@ -20,9 +21,9 @@ public class AutoDispose
     {
         var spec = new DisposableSutSpec();
         var sut = spec.When(_ => _.GetValue()).Then().SubjectUnderTest;
-        Xunit.Assert.False(sut.IsDisposed);
+        sut.IsDisposed.Is().False();
         spec.Dispose();
-        Xunit.Assert.Equal(1, sut.DisposeCount);
+        sut.DisposeCount.Is(1);
     }
 
     [Fact]
@@ -33,7 +34,7 @@ public class AutoDispose
         var sut = spec.Using(mySut).When(_ => _.GetValue()).Then().SubjectUnderTest;
         Xunit.Assert.Same(mySut, sut);
         spec.Dispose();
-        Xunit.Assert.False(mySut.IsDisposed);
+        mySut.IsDisposed.Is().False();
     }
 
     [Fact]
@@ -44,7 +45,7 @@ public class AutoDispose
         var sut = spec.Using(() => mySut).When(_ => _.GetValue()).Then().SubjectUnderTest;
         Xunit.Assert.Same(mySut, sut);
         spec.Dispose();
-        Xunit.Assert.False(mySut.IsDisposed);
+        mySut.IsDisposed.Is().False();
     }
 
     [Fact]
@@ -61,7 +62,7 @@ public class AutoDispose
             Then
             """);
         spec.Dispose();
-        Xunit.Assert.Equal(1, mySut.DisposeCount);
+        mySut.DisposeCount.Is(1);
     }
 
     [Fact]
@@ -78,7 +79,7 @@ public class AutoDispose
             Then
             """);
         spec.Dispose();
-        Xunit.Assert.Equal(1, mySut.DisposeCount);
+        mySut.DisposeCount.Is(1);
     }
 
     [Fact]
@@ -100,7 +101,7 @@ public class AutoDispose
             Then
             """);
         spec.Dispose();
-        Xunit.Assert.Equal(["until", "subject", "dependency"], log.Entries);
+        log.Entries.Is().EqualTo(["until", "subject", "dependency"]);
     }
 
     [Fact]
@@ -108,9 +109,9 @@ public class AutoDispose
     {
         var spec = new AsyncDisposableSutSpec();
         var sut = spec.When(_ => _.GetValue()).Then().SubjectUnderTest;
-        Xunit.Assert.False(sut.IsDisposed);
+        sut.IsDisposed.Is().False();
         spec.Dispose();
-        Xunit.Assert.True(sut.IsDisposed);
+        sut.IsDisposed.Is().True();
     }
 
     [Fact]
@@ -123,7 +124,7 @@ public class AutoDispose
             .Until(_ => log.Entries.Add("until"))
             .Then();
         spec.Dispose();
-        Xunit.Assert.Equal(["until", "subject", "dependency"], log.Entries);
+        log.Entries.Is().EqualTo(["until", "subject", "dependency"]);
     }
 
     [Fact]
@@ -134,7 +135,7 @@ public class AutoDispose
             .Until(void (_) => throw new InvalidOperationException())
             .Then().SubjectUnderTest;
         Xunit.Assert.Throws<InvalidOperationException>(spec.Dispose);
-        Xunit.Assert.Equal(1, sut.DisposeCount);
+        sut.DisposeCount.Is(1);
     }
 
     [Fact]
@@ -145,7 +146,7 @@ public class AutoDispose
             .Until(_ => _.Dispose())
             .Then().SubjectUnderTest;
         spec.Dispose();
-        Xunit.Assert.Equal(2, sut.DisposeCount);
+        sut.DisposeCount.Is(2);
     }
 
     [Fact]
@@ -163,7 +164,7 @@ public class AutoDispose
         var spec = new InputDataSpec();
         var model = spec.Then().Result;
         spec.Dispose();
-        Xunit.Assert.False(model!.IsDisposed);
+        model!.IsDisposed.Is().False();
     }
 
     [Fact]
@@ -173,7 +174,7 @@ public class AutoDispose
         var spec = new NeverRunSpec();
         spec.When(_ => _.GetValue());
         spec.Dispose();
-        Xunit.Assert.Equal(createdBefore, CountingDisposable.Created);
+        CountingDisposable.Created.Is(createdBefore);
     }
 }
 
