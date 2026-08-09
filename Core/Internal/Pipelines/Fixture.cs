@@ -42,7 +42,7 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
             }
             finally
             {
-                SpecificationContext.Release();
+                Specification.Release();
             }
         }
     }

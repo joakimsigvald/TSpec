@@ -27,6 +27,9 @@ internal class SpecificationContext : IAssertSpecificationContext
     private readonly List<string> _setupWarnings = [];
     private string? _subjectDescription;
 
+    /// The context this one displaced, restored when this one is released — see <see cref="Create"/>.
+    private SpecificationContext? _enclosing;
+
     private SpecificationContext()
     {
         _recording = new();
@@ -183,9 +186,34 @@ internal class SpecificationContext : IAssertSpecificationContext
 
     // ----------- Lifecycle
 
-    internal static SpecificationContext Create() => _currentAssertionContext.Value = new();
+    /// <summary>
+    /// Takes the ambient slot, remembering what was in it. A spec constructed inside another one
+    /// shares that slot, so the slot is a stack rather than a single value: the inner context is
+    /// current while it lives, and the enclosing one comes back when it is released. Without that,
+    /// the enclosing spec spends the rest of the test with no context of its own and records its
+    /// assertions where nobody reads them.
+    /// </summary>
+    internal static SpecificationContext Create()
+        => _currentAssertionContext.Value = new() { _enclosing = _currentAssertionContext.Value };
 
-    internal static void Release() => _currentAssertionContext.Value = null;
+    /// <summary>
+    /// Takes the ambient slot for this context. Construction order decides who holds the slot, but
+    /// an assertion belongs to the spec whose claim it follows — so reading a claim takes the slot
+    /// back, and <c>outer.Then().Result.Is(1)</c> records into the outer spec even while an inner
+    /// one is alive.
+    /// </summary>
+    internal void MakeCurrent() => _currentAssertionContext.Value = this;
+
+    /// <summary>
+    /// Gives the slot back to the context this one displaced. Only the context actually holding the
+    /// slot may release it, so releasing out of order — or twice — leaves a live context alone
+    /// instead of blanking it.
+    /// </summary>
+    internal void Release()
+    {
+        if (ReferenceEquals(_currentAssertionContext.Value, this))
+            _currentAssertionContext.Value = _enclosing;
+    }
 
     private static XunitException? GetExpectedException(XunitException? ex)
         => ex is null || ex.Message.StartsWith("Expected")

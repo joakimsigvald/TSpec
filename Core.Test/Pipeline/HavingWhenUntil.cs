@@ -1,106 +1,113 @@
-﻿using TSpec.Assert;
+using TSpec.Assert;
 using TSpec.Test.TestData;
 
 namespace TSpec.Test.Pipeline;
 
-public class HavingWhenUntil : Spec<MyStateService, int>
+public sealed class CounterSpec : Spec<MyStateService, int> { }
+
+public class HavingWhenUntil : Spec<CounterSpec, int>
 {
     [Fact]
     public void HavingIsExecutedBeforeWhen()
     {
-        When(_ => ++_.Counter).Having(_ => _.Counter++).Then().Result.Is(2);
-        Specification.Is(
+        When(_ => _.When(s => ++s.Counter).Having(s => s.Counter++).Then().Result).Then().Result.Is(2);
+        Then().SubjectUnderTest.Specification.Is(
             """
             When ++Counter
             Having Counter++
-            Then Result is 2
+            Then
             """);
     }
 
     [Fact]
     public void FirstHavingIsExecutedAfterSecondHavingBeforeWhen()
     {
-        When(_ => _.Counter *= 2)
-            .Having(_ => _.Counter = 3)
-            .Having(_ => _.Counter = 5)
-            .Then().Result.Is(6);
-        Specification.Is(
+        When(_ => _.When(s => s.Counter *= 2)
+            .Having(s => s.Counter = 3)
+            .Having(s => s.Counter = 5)
+            .Then().Result).Then().Result.Is(6);
+        Then().SubjectUnderTest.Specification.Is(
             """
             When Counter *= 2
             Having Counter = 3
               after Counter = 5
-            Then Result is 6
+            Then
             """);
     }
 
+    /// <summary>
+    /// Declaring the act twice throws from the fluent call itself, before the inner pipeline runs, so
+    /// nothing marks the failure as a nested one and the enclosing pipeline cannot tell it from its
+    /// own. The limitation is deliberate — see <c>WhenTheActRunsASpec</c>.
+    /// </summary>
     [Fact]
     public void GivenWhenExecutedTwice_ThenThrowSetupFailed()
         => Xunit.Assert.Throws<SetupFailed>(
-            () => When(_ => ++_.Counter).When(_ => _.Counter *= 2));
+            () => When(_ => _.When(s => ++s.Counter).When(s => s.Counter *= 2).Then().Result).Then());
 
     [Fact]
     public void GivenUntilExecutedTwice_BothAreExecuted()
     {
-        When(_ => _.Counter = 1).Until(_ => _.Counter = 3).Until(_ => _.Counter = 2)
-            .Then().Result.Is(1);
-        Specification.Is(
+        When(_ => _.When(s => s.Counter = 1)
+            .Until(s => s.Counter = 3)
+            .Until(s => s.Counter = 2)
+            .Then().Result).Then().Result.Is(1);
+        Then().SubjectUnderTest.Specification.Is(
             """
             When Counter = 1
             Until Counter = 3
               before Counter = 2
-            Then Result is 1
+            Then
             """);
     }
 
     [Fact]
     public void GivenSetupFail_ThenDontTearDown()
-    {
-        var ex = Xunit.Assert.Throws<SetupFailed>(() 
-            => Given().A<MyModel>(m => throw new ApplicationException())
-            .When(_ => A<MyModel>())
-            .Until(void (_) => throw new InvalidOperationException("Unexpected exception"))
-            .Then());
-        ex.InnerException.Is().A<ApplicationException>();
-        Specification.Is(
-            """
-            Given a MyModel is throw new ApplicationException()
-            Ex.InnerException is a ApplicationException
-            """);
-    }
+        => When(_ => _.Given().A<MyModel>(m => throw new ApplicationException())
+                .When(s => s.Counter)
+                .Until(void (s) => throw new InvalidOperationException("Unexpected exception"))
+                .Then().Result)
+            .Then().Throws<SetupFailed>().that.InnerException.Is().A<ApplicationException>();
 
     [Fact]
     public void GivenCallThenBeforeWhen_ThenThrowSetupFailed()
-        => Xunit.Assert.Throws<SetupFailed>(() => Then().Throws<Exception>());
+        => When(_ => _.Then().Result).Then().Throws<SetupFailed>();
 
     [Fact]
     public void GivenStepsDeclaredOutOfOrder_ThenSpecifyThemInPipelineOrder()
     {
-        When(_ => ++_.Counter).Until(_ => ++_.Counter).Using(1).Having(_ => _.Counter++).Then().Result.Is(2);
-        Specification.Is(
+        When(_ => _.When(s => ++s.Counter)
+            .Until(s => ++s.Counter)
+            .Using(1)
+            .Having(s => s.Counter++)
+            .Then().Result).Then().Result.Is(2);
+        Then().SubjectUnderTest.Specification.Is(
             """
             Using 1
             When ++Counter
             Having Counter++
             Until ++Counter
-            Then Result is 2
+            Then
             """);
     }
 }
 
-public class GivenTearDown : Spec<MyStateService, int>
+public class GivenTearDown : Spec<CounterSpec, int>
 {
     private int _theCounterAfterTest = -1;
 
     [Fact]
     public void UntilIsExecutedAfterWhen()
     {
-        When(_ => ++_.Counter).Until(_ => _theCounterAfterTest = --_.Counter).Then().Result.Is(1);
-        Specification.Is(
+        When(_ => _.When(s => ++s.Counter)
+            .Until(s => _theCounterAfterTest = --s.Counter)
+            .Then().Result).Then().Result.Is(1);
+        Then().SubjectUnderTest.Specification.Is(
             """
             When ++Counter
             Until _theCounterAfterTest = --Counter
-            Then Result is 1
+            Then
             """);
-        Xunit.Assert.Equal(-1, _theCounterAfterTest); //Teardown is performed after executing the test method
+        _theCounterAfterTest.Is(-1); //Teardown is performed after executing the test method
     }
 }

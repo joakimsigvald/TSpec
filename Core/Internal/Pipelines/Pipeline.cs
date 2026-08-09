@@ -18,6 +18,7 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         get
         {
             var result = TestResult;
+            Specification.MakeCurrent();
             Specification.AddThen();
             return result;
         }
@@ -146,10 +147,23 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
 
     internal TestResult<TSUT, TResult> TestResult => _result ??= Run();
 
+    /// <summary>
+    /// Marks a setup failure on its way out, so that a pipeline enclosing this one can tell it from
+    /// one of its own: a failure that has left a pipeline came from a nested specification and is an
+    /// outcome of the enclosing act, while the enclosing pipeline's own has not left anything yet.
+    /// </summary>
     private TestResult<TSUT, TResult> Run()
     {
-        PrepareToExecute();
-        return Execute();
+        try
+        {
+            PrepareToExecute();
+            return Execute();
+        }
+        catch (SetupFailed ex)
+        {
+            ex.MarkLeftItsPipeline();
+            throw;
+        }
     }
 
     private void PrepareToExecute()
@@ -160,16 +174,28 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         _fixture.AddToSpecification();
     }
 
+    /// <summary>
+    /// The act runs under a context of its own, which is discarded. An act may use TSpec.Assert
+    /// itself, and what it records internally is not the claim — the claim is what the act did,
+    /// stated by the Then that follows. Without the scope such an assertion lands in this
+    /// specification under no Then, and a failing one freezes it while building its own failure
+    /// message, so the real assertion is never recorded at all.
+    /// </summary>
     private TestResult<TSUT, TResult> Execute()
     {
+        var act = SpecificationContext.Create();
         try
         {
             var (result, hasResult) = _fixture.Invoke<TResult>(MethodUnderTest);
             return new(_fixture.SubjectUnderTest, result, null, _context, hasResult);
         }
-        catch (Exception ex) when (ex is not SetupFailed)
+        catch (Exception ex) when (ex is not SetupFailed setup || setup.LeftItsPipeline)
         {
             return new(_fixture.SubjectUnderTest, default!, ex, _context, false);
+        }
+        finally
+        {
+            act.Release();
         }
     }
 
