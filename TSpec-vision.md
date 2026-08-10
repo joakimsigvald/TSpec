@@ -135,7 +135,51 @@ bottleneck is judgment about what reads well, and readability is the entire prod
 
 ---
 
-## 5. Laws — the taxonomy
+## 5. Stage 2 — Architecture testing
+
+Decided 2026-08-10: architecture testing is next after Stage 1, ahead of the Laws arc (Stage 3
+onward) and ahead of the deferred system-wide specification (Stage 7). It shares no machinery
+with either, and it has a real target today — both are reasons to sequence it first, not reasons
+to skip it.
+
+**What it is.** Rules about the shape of the dependency graph between assemblies, namespaces and
+types in the *production* code — not about runtime behaviour. "Entry must never reference Core."
+"`IRoomStore` is declared in Core and implemented only in Infra." Checked by static analysis of
+compiled assemblies; nothing runs. A different derivation mechanism than Stage 1's test-harvesting,
+but the same moat property survives it: the rule is checked against the actual compiled graph, so
+it cannot drift the way a paragraph in a CLAUDE.md file can.
+
+**Why it jumps the queue:**
+
+- **A concrete target exists today, and it is currently unenforced.**
+  `SampleProjects/MyHotel/CLAUDE.md` states several dependency rules by hand — Entry and Core
+  never reference each other, Core takes no dependency beyond Contract that would hurt its
+  testability, `IRoomStore` lives in Core and is implemented in Infra. Project references catch
+  the coarsest of these; everything finer is convention, policed only by whoever reads the file.
+  That passes the own-week test on day one. The Laws arc cannot yet make the same claim — Stage 3
+  has no named law and no suite to ride along on until the taxonomy below is more than a table.
+- **It is small and self-contained.** No new execution engine, no shrinking, no generation — one
+  static pass over compiled assemblies per rule.
+
+**Rendering.** A checked rule renders under `Always`, alongside laws but not merged with them.
+Structurally it resembles a Protocol law in the taxonomy below — a claim about the relationship
+between components rather than about one outcome — but it does not fit that table's execution
+column, since nothing runs. Treat it as its own kind, not a stretch of Protocol, if the taxonomy
+is revisited.
+
+**Relationship to Stage 5 (contracts on collaborators).** Different axis. A contract on a
+collaborator is behavioural — does this implementation of `IMailSender` actually satisfy
+idempotency at runtime. An architecture rule is structural — is this type even allowed to
+reference that one. Do not merge the two; a type can violate one and not the other.
+
+**Feeds the deferred system-wide view.** Checking a dependency-direction rule requires walking
+the reference graph once. That walk is most of what Stage 7 would need to build a diagram from.
+Building it here, against real enforcement, beats building it twice — once to enforce, once only
+to describe.
+
+---
+
+## 6. Laws — the taxonomy
 
 Laws are universal claims. They are what makes the document grow sublinearly. Classify them
 by the execution shape they demand, because that classification determines the whole
@@ -163,7 +207,7 @@ never lower it.
 
 ---
 
-## 6. Stage 2 — Ride-along laws
+## 7. Stage 3 — Ride-along laws
 
 Pointwise and protocol laws, checked during tests that already run.
 
@@ -180,7 +224,7 @@ second-class citizens next to the examples and lose most of their value.
 
 ---
 
-## 7. Stage 3 — Generative laws *(large, deferred)*
+## 8. Stage 4 — Generative laws *(large, deferred)*
 
 Sequential and comparative laws, each running the recorded pipeline many times.
 
@@ -202,11 +246,11 @@ Two hard problems sit here, and together they are larger than everything above:
 - **Constrained generation.** Making `Satisfies` *steer* generation rather than filter it.
   Rejection sampling is easy and bad.
 
-Do not begin this stage until Stages 1 and 2 are in real daily use.
+Do not begin this stage until Stages 1 and 3 are in real daily use.
 
 ---
 
-## 8. Stage 4 — Contracts on collaborators *(deferred)*
+## 9. Stage 5 — Contracts on collaborators *(deferred)*
 
 Laws attach to a **type**, not to a test. This resolves the subject-versus-collaborator
 ambiguity: asserting that an auto-generated mock is idempotent is vacuous.
@@ -235,7 +279,7 @@ setup and unmet assertion already exist.
 
 ---
 
-## 9. Stage 5 — Requirements matching *(opt-in, far horizon)*
+## 10. Stage 6 — Requirements matching *(opt-in, far horizon)*
 
 The specification describes what is *tested*, not what is *required*. Requirements live
 outside the code and no analysis of a test suite can recover them.
@@ -253,7 +297,22 @@ this plan. It is explicitly not MVP material.
 
 ---
 
-## 10. Explicitly out of scope
+## 11. Stage 7 — System-wide specification *(deferred)*
+
+Not designed yet. The shape as currently imagined: an aggregate view above the per-subject
+documents Stage 1 produces — architecture-level, spanning the whole system, potentially including
+a diagram of the dependency graph — rather than a replacement for them. Sublinear growth applies
+here too: a system-wide document that just concatenates every per-subject file is not an
+improvement.
+
+**Deliberately sequenced behind Stage 2.** Architecture testing already has to extract the
+production dependency graph to check its rules; a diagram is close to a side-output of that
+extraction rather than a separate effort. Attempting this first would mean building the
+extraction twice — once with nothing yet to check it against.
+
+---
+
+## 12. Explicitly out of scope
 
 - **Gap detection from code alone.** Not feasible, and a patchy version is worse than none.
   Three of five enum values specified may be entirely correct; forcing the user to state
@@ -264,7 +323,7 @@ this plan. It is explicitly not MVP material.
 
 ---
 
-## 11. Open questions
+## 13. Open questions
 
 Requiring judgment, not to be guessed by an implementer:
 
@@ -281,7 +340,7 @@ Requiring judgment, not to be guessed by an implementer:
 
 ---
 
-## 12. Notes for the implementation session
+## 14. Notes for the implementation session
 
 Establish this first, before planning Stage 1 in detail: **how separable is the current
 renderer?** If the specification text is produced as a string along the failure path,
@@ -289,5 +348,7 @@ generalising it into a structured record that can be sorted, grouped and re-rend
 straightforward. If it is woven into assertion failure handling, that refactor is most of
 Stage 1 on its own. This single fact swings the estimate more than anything else.
 
-Then: build Stage 1 end-to-end against a real suite before adding anything from Stage 2.
-The document has to exist and be looked at before its shape can be argued about usefully.
+Then: build Stage 1 end-to-end against a real suite before adding anything from the Laws arc —
+Stage 3 onward. Stage 2 (architecture testing) is next in sequence, ahead of Laws; see its
+rationale above. The document has to exist and be looked at before its shape can be argued about
+usefully.
