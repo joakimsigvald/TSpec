@@ -27,8 +27,7 @@ public sealed class SpecificationDocument : IDisposable
     public SpecificationDocument()
     {
         _specAssembly = FindSpecAssembly();
-        _document = PendingDocument.Prepare(
-            ReadName(_specAssembly), BuildId(_specAssembly), AppContext.BaseDirectory);
+        _document = PendingDocument.Prepare(ReadName(_specAssembly), AppContext.BaseDirectory);
         SpecificationCollector.IsActive = true;
     }
 
@@ -53,14 +52,6 @@ public sealed class SpecificationDocument : IDisposable
         + "so the document would be incomplete. Run the whole suite green to regenerate it."
         + string.Concat(missing.Take(10).Select(requirement => $"\n  - {requirement}"))
         + (missing.Count > 10 ? $"\n  ... and {missing.Count - 10} more" : string.Empty);
-
-    /// <summary>
-    /// Identifies the build the document was generated from. The module version id is a hash of the
-    /// compilation inputs under the SDK's default deterministic build, so it is stable across
-    /// rebuilds of unchanged source and moves as soon as the spec project changes.
-    /// </summary>
-    private static string BuildId(Assembly assembly)
-        => assembly.ManifestModule.ModuleVersionId.ToString("N")[..8];
 
     private static string ReadName(Assembly assembly)
         => assembly.GetName().Name
