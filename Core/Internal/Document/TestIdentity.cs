@@ -1,5 +1,4 @@
 using TSpec.Internal.Specification;
-using Xunit.Sdk;
 
 namespace TSpec.Internal.Document;
 

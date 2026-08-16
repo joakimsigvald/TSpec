@@ -37,25 +37,26 @@ internal static class DocumentRenderer
                 AddNode(area, _document.SubjectUnderTest, _document.ReturnType);
         }
 
-        // Each label is silent below the heading that already said it, and the two travel apart.
         void AddNode(DocumentNode node, string? statedSubject, string? statedReturnType)
         {
             if (node.Heading is not null)
-            {
-                Add(new HeadingSegment(node.Heading, node.Level));
-                Add(new CodeSegment(
-                    statedSubject is null ? node.SubjectUnderTest : null,
-                    statedReturnType is null ? node.ReturnType : null,
-                    node.Shared,
-                    StatedWord(node.Heading)));
-            }
-
+                AddHeading(node, node.Heading, statedSubject, statedReturnType);
             if (node.Requirements.Count > 0)
                 AddLeaves(node.Requirements);
             foreach (var section in Order(node.Children))
                 AddNode(section,
                     statedSubject ?? node.SubjectUnderTest,
                     statedReturnType ?? node.ReturnType);
+        }
+
+        void AddHeading(DocumentNode node, string heading, string? statedSubject, string? statedReturnType)
+        {
+            Add(new HeadingSegment(heading, node.Level));
+            Add(new CodeSegment(
+                statedSubject is null ? node.SubjectUnderTest : null,
+                statedReturnType is null ? node.ReturnType : null,
+                node.Shared,
+                StatedWord(heading)));
         }
 
         void AddLeaves(IReadOnlyList<Requirement> requirements)

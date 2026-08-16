@@ -25,10 +25,7 @@ internal sealed record Document(
     }
 
     private const int AreaLevel = 1;
-
-    private const int GroupLevel = AreaLevel + 1;
-
-    /// Past four, a heading stops telling a reader where they are.
+    private const int GroupLevel = 2;
     private const int MaxLevel = 4;
 
     private static DocumentNode[] ToAreas(
