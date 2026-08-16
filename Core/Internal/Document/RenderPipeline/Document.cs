@@ -5,7 +5,7 @@ namespace TSpec.Internal.Document.RenderPipeline;
 internal sealed record Document(
     SpecificationSubject Subject,
     string SpecAssemblyName,
-    string BuildId,
+    string? SourceId,
     string? SubjectUnderTest,
     string? ReturnType,
     IReadOnlyList<SpecificationClause> Whole,
@@ -14,21 +14,18 @@ internal sealed record Document(
     internal const int Width = 90;
 
     internal static Document Of(
-        SpecificationSubject subject, string specAssemblyName, string buildId,
+        SpecificationSubject subject, string specAssemblyName, string? sourceId,
         IEnumerable<SpecificationEntry> entries)
     {
         Requirement[] requirements = [.. Requirement.From(entries)];
         var whole = Requirement.Shared(requirements, acts: false);
-        return new(subject, specAssemblyName, buildId,
+        return new(subject, specAssemblyName, sourceId,
             Requirement.SubjectOf(requirements), Requirement.ReturnTypeOf(requirements),
             whole, ToAreas(requirements, whole));
     }
 
     private const int AreaLevel = 1;
-
-    private const int GroupLevel = AreaLevel + 1;
-
-    /// Past four, a heading stops telling a reader where they are.
+    private const int GroupLevel = 2;
     private const int MaxLevel = 4;
 
     private static DocumentNode[] ToAreas(

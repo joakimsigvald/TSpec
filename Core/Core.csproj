@@ -17,26 +17,14 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>2.2.0</PackageVersion>
+		<PackageVersion>2.2.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			NEW
-			* Using&lt;T&gt;(setup) and Using&lt;T&gt;(transform) arrange every generated value of a type,
-			  taking the same optional scope as any Using arrangement — For.Input, For.Subject or
-			  For.All (default). Reads "Using Room with BedCount = 2 for Subject". Out of scope, a
-			  setup neither applies nor supplies a default.
-
-			CHANGED
-			* A value arranged through an article — Given().A&lt;T&gt;(setup), .ASecond, .Two, etc. — reads
-			  as the noun phrase it is: "a Room with BedCount = 2", "two Rooms with BedCount = 2".
-
-			OBSOLETE
-			* Given&lt;T&gt;(setup), Given&lt;T&gt;(transform) and the matching And overloads — use
-			  Using&lt;T&gt;(...) instead. Behaviour is unchanged, and both spellings render alike.
-			  Note that continuing a chain after Using reaches the Using vocabulary, so a following
-			  mock setup is spelled .Given&lt;TService&gt;() rather than .And&lt;TService&gt;().
+			FIXED
+			* The id in a SPECIFICATION.md header identifies the source of the code under test,
+			  so it no longer moves on every commit, nor sits still when the implementation changes.
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

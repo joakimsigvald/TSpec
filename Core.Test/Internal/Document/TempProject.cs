@@ -20,5 +20,17 @@ internal sealed class TempProject : IDisposable
             File.WriteAllText(Path.Combine(BaseDirectory, $"{assemblyName}.deps.json"), depsJson);
     }
 
+    /// <summary>
+    /// Puts a real assembly and its debug information in the output directory under the name a
+    /// subject would have, which is what lets the document identify the source it was built from.
+    /// </summary>
+    internal string CopyAssemblyAs(string name, System.Reflection.Assembly source)
+    {
+        var target = Path.Combine(BaseDirectory, $"{name}.dll");
+        File.Copy(source.Location, target);
+        File.Copy(Path.ChangeExtension(source.Location, ".pdb"), Path.ChangeExtension(target, ".pdb"));
+        return target;
+    }
+
     public void Dispose() => Directory.Delete(Root, recursive: true);
 }

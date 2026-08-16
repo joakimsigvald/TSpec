@@ -136,7 +136,7 @@ Opt in with one line in the spec project; the document is written to the spec pr
 - **The spec assembly must be named after the project it describes**, minus one suffix (`MyHotel.Spec` → `MyHotel`; any suffix works, `.Spec` preferred and `.Test` fine), and must reference that project **directly** — a transitive reference is not enough. Either half failing throws `SetupFailed` before the first test. The version in the header is that project's `<Version>`.
 - **The document's structure is the test structure**, so names are the whole of what you control: folder → `# Area`, `When…` class → `## Subject`, `Given…` class → `### Given…`, `Then…` method → a list item, each read as prose (`WhenListRooms` → `## When list rooms`). Name a test method after the claim it makes.
 - **Written only when every non-skipped test in the assembly passed.** A filtered run, a failure, or a constructor that threw all leave the file untouched, with the missing requirements named — so run the whole suite before expecting a diff.
-- Deterministic: sorted, deduplicated, LF-normalized, and the header names the build (spec assembly MVID). Verify freshness in CI with `dotnet test && git diff --exit-code -- "**/SPECIFICATION.md"`.
+- Deterministic: sorted, deduplicated, LF-normalized. The header's id names the source the subject was built from — a digest of the per-file checksums in its debug information, excluding what the build generated. A subject compiled without debug information has version alone. Verify freshness in CI with `dotnet test && git diff --exit-code -- "**/SPECIFICATION.md"`.
 - **Work in progress:** no `[Specification]` / `[ExcludeFromSpecification]` opt-out attributes yet.
 
 ## Complete examples
