@@ -164,7 +164,7 @@ escapes.** `new InnerSpec().When(…).When(…)` throws from the fluent call its
 runs, so nothing marks it and the outer cannot tell it from its own. Documented by
 `GivenTheInnerFailsWhileBeingConfigured_ThenItStillEscapes`. Closing it means marking at the throw
 sites — a wider change than this rule, and it should be judged on its own. This is the same
-fluent-call-time category already noted in `DOGFOOD-PLAN.md` G2.
+fluent-call-time category already noted in `DOGFOOD-PLAN.md` G6.
 
 **Verified:** `Core.Test/Pipeline/WhenTheActRunsASpec.cs` + `WhenTheSpecItselfIsMisconfigured`, 4
 requirements, written failing first. Suite 1627/1627 on all three frameworks. Both MyHotel documents

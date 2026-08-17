@@ -9,8 +9,9 @@ rendered. An item belongs here when the specification is the reason for wanting 
 `TODO.txt` when it is not. Laws and the stages past generation stay in
 [TSpec-vision.md](TSpec-vision.md).
 
-**State:** 2.1.0 published 2026-08-08. No observation open (§4); twenty done or closed (§5); five
-queued (§6), one of them pinned.
+**State:** 2.1.0 published 2026-08-08. Eight observations open (§4), all from the first `Core.Test`
+document, 2026-08-16 — **D8 is class 1 and class 4 and blocks the diff gate**; twenty done or closed
+(§5); five queued (§6), one of them (5.4) now superseded by D8.
 
 ## 1. Where the feedback comes from
 
@@ -18,6 +19,7 @@ queued (§6), one of them pinned.
 |---|---|
 | `SampleProjects/MyHotel/Core.Spec/SPECIFICATION.md` | domain rules, mocked collaborators, refusals |
 | `SampleProjects/MyHotel/MyHotel.Spec/SPECIFICATION.md` | black-box HTTP, one return type throughout |
+| `Core.Test/SPECIFICATION.md` | since 2026-08-16 — 1268 requirements over 574 headings, the only large one, and the only one whose subject is a library rather than an application |
 | Outside suites | the only source that can show a shape MyHotel cannot reach |
 
 Record the source on every entry. **A wart seen in two suites outranks one seen in one** — the
@@ -63,7 +65,113 @@ can be both, and 4.2 was: the phrasing half is closed in §5, the surface half i
 
 ## 4. Open observations
 
-None.
+First intake from `Core.Test/SPECIFICATION.md`, generated 2026-08-16 (`DOGFOOD-PLAN` item 1). A new
+number series, **D**, so it cannot collide with the 4.x/5.x/7.x labels above.
+
+### D1 — a failing-assertion probe states its assertion as a claim — **untrue**, `Core.Test`, seen 2026-08-16
+Rendered:  `- **Does contain other string fails** — `"abcd" contains "xxx"``
+From:      `=> Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => "abcd".Does().Contain("xxx"))`
+Jarred:    the document states the opposite of what the test claims. `"abcd"` does not contain
+           `"xxx"`; the test exists to say so. The assertion records into the ambient context on its
+           way to failing, and the `Xunit.Assert.Throws` wrapper is invisible to TSpec, so the
+           recording survives as the requirement's claim.
+Wanted:    the C2 shape already renders it right — `When "abcd".Does().Contain("xxx")` /
+           `Then throws XunitException`. So this is a suite conversion (`DOGFOOD-PLAN` item 12),
+           unless the renderer should refuse to publish a claim from a requirement that made no
+           TSpec assertion.
+Status:    open — the only class-1 item, and the strongest argument yet for item 12.
+
+### D2 — a requirement whose only assertion is foreign states its arrangement — **lost claim**, `Core.Test`, seen 2026-08-16
+Rendered:  `- **tags of different types share a name, then setup failed all the same**` /
+           `  Given Text is "x"` / `    and Number is 1`
+Also:      `- **the failure escapes rather than becoming an outcome**` /
+           `  `Given a MyModel is throw new ApplicationException()``
+From:      `Xunit.Assert.Throws<SetupFailed>(…)` with the arrangement recorded before it
+Jarred:    the bullet names a claim and then states arrangement instead. A reader takes the `Given`
+           line for the requirement.
+Wanted:    unknown. Either the test converts, or a requirement that made no TSpec assertion reads
+           like §5's 7.1 — `TODO: Assert behaviour` — rather than promoting its arrangement.
+Status:    open. Note 46 of these cannot convert: a `SetupFailed` raised outside any pipeline can
+           never be an outcome ([Pipeline.cs:192](Core/Internal/Pipelines/Pipeline.cs:192)), verified
+           2026-08-16.
+
+### D3 — an area holding classes directly renders an empty group heading — **noise**, `Core.Test`, seen 2026-08-16
+Rendered:  `## ` — line 1842 under `# Assert`, line 4263 under `# Auto fixture`
+From:      an area with more than one namespace below it, where some classes sit in the area's own
+           namespace and so contribute no name segment for the group level
+Jarred:    a heading with no words. It reads as a rendering fault, which it is.
+Wanted:    no heading at all for the un-suffixed group — its classes belong directly under the area.
+Status:    open. Unreachable in MyHotel, whose areas hold no classes directly.
+
+### D4 — the subject's own name is split at an uppercase run — **untrue**, `Core.Test`, seen 2026-08-16
+Rendered:  `# T Spec`
+From:      `TSpec.Test` → subject `TSpec`, then the same PascalCase word-split that makes
+           `MyHotel` → `My Hotel`
+Jarred:    it renames the product. There is no such thing as "T Spec", and the title is the first
+           line a reader sees.
+Wanted:    `# TSpec`. The rule that gives both: split before an uppercase letter followed by a
+           lowercase one, *unless* the letter before it is also uppercase.
+Status:    open. Small and self-contained; no MyHotel document moves.
+
+### D5 — a parameterless lambda keeps its arrow, a discarded-parameter one does not — **reads badly**, `Core.Test`, seen 2026-08-16
+Rendered:  `When void () => "abc".Has().Length(3)` and, already pinned,
+           `When () => A<MyModel>()` ([WhenGivenStaticModel.cs:45](Core.Test/Given/WhenGivenStaticModel.cs:45))
+From:      `When(void () => "abc".Has().Length(3))` — versus `When(_ => 2)`, which renders `When 2`
+Jarred:    `_ =>` is erased as the mechanism it is; `() =>` and `void () =>` are the same mechanism
+           and are kept. The reader is shown lambda syntax in one act line and not in the next.
+Wanted:    `When "abc".Has().Length(3)`. Per §8, erase mechanism and keep claims — this is the same
+           erasure already applied to `_ =>`, so it is justified semantically rather than by taste.
+Status:    open. **Gates the scale of `DOGFOOD-PLAN` item 12 and any act-as-assertion conversion**,
+           since an assertion-as-act takes no subject parameter and so always carries the prefix.
+
+### D6 — an act chained onto its own assertion is captured whole — **reads badly**, probe, seen 2026-08-16
+Rendered:  `Then throws XunitException that When(void () =>` /
+           `      "abc".Has().Length(5)).Then().Throws<Xunit.Sdk.XunitException>().that.` /
+           `      Message is "…"`
+From:      `When(void () => "abc".Has().Length(5)).Then().Throws<XunitException>().that.Message.Is(…)`
+           written as one expression
+Jarred:    `CallerArgumentExpression` captures the whole chain as the subject of the assertion, so
+           the act appears twice and the property under assertion is buried.
+Wanted:    `that Message is "…"` — which is what the same test renders when the act is bound in the
+           constructor and the assertion is its own statement. Verified both ways 2026-08-16.
+Status:    open as a possible trim rule; **binding is a style rule for item 12 either way** — never
+           chain `.that` onto the `When` that produced it.
+
+### D8 — two requirements that differ only in setup order are hoisted into one — **untrue** and **churn**, `Core.Test`, seen 2026-08-16
+Rendered:
+```
+## When giving multiple setups for method
+Subject under test: MyValueIntService
+Given IMyValueIntRepo.Get(the MyValueInt) throws an ApplicationException
+  and Get(the MyValueInt) returns a string
+When GetValue(a MyValueInt), returns string
+
+- **use the latest if returns** — `Result is the string`
+- **use the latest if throws** — `throws ApplicationException`
+```
+From:      [WhenGivingMultipleSetupsForMethod.cs](Core.Test/AutoMock/WhenGivingMultipleSetupsForMethod.cs) —
+           two facts stating the same two `Given` clauses in *opposite* order, whose whole point is
+           that the later setup wins.
+Jarred:    both clauses are stated by both requirements, so both rise to the heading — in one order.
+           The document then claims that with `throws` declared first and `returns` second you get
+           `Result is the string` **and** `throws ApplicationException`. One of the two is false, and
+           the distinction the tests exist to draw has been erased.
+           Worse, the surviving order is not deterministic: net8.0 and net10.0 write `throws` first,
+           **net9.0 writes `returns` first**. Run-to-run on one framework is stable; across
+           frameworks it is not, so `dotnet test && git diff --exit-code` fails depending on which
+           target framework ran. Verified 2026-08-16 by running all three and diffing.
+Wanted:    a clause set that two requirements state in different orders is not shared and must not
+           rise. Failing that, the tiebreak must be total so the churn half goes away.
+Status:    open. **This is §6's 5.4 — "setup order is lost across a hoist boundary", filed as
+           unreachable — now reached.** It was the standing argument for intake from a second
+           application; `Core.Test` supplied it. Two classes fixed on one sighting, and it blocks
+           committing `Core.Test/SPECIFICATION.md` behind a diff gate.
+
+### D7 — the outer act when the subject is a spec — **reads badly**, `Core.Test`, seen 2026-08-16
+Rendered:  `When when ++s.Counter.Until(_theCounterAfterTest = --s.Counter).Then().Result, returns int`
+Jarred:    see [SELF-HOSTING-PLAN.md](SELF-HOSTING-PLAN.md) §6b, which owns this item and costs it.
+Status:    parked, PO's ruling 2026-08-16 — specific to this suite, so it waits for a real
+           user-facing case (U1, testing a shared base spec) before any rendering work.
 
 ## 5. Done
 
@@ -139,12 +247,15 @@ described text either; it needs the count word the plural came from, which that 
 `ASecond`… and no `The`, so an author who wants to name the value rather than introduce it has no
 way to write it. A pure addition; nothing re-pins.
 
-**5.4 and 5.7** are not reachable in any suite we have, which is the argument for intake from a
-second application. 5.4: `Having` steps run last-declared-first and consecutive setups render joined
-by "after" to say so — hoist one to the heading and leave the other in the item, and nothing relates
-them in time. 5.7: the word-drop rule that turns `## When get room` + `When get` into `get` cannot
-tell a family keyword from a class-name segment, so it eats the `Given` that marks a block as
-arrangement.
+**5.4 is now reachable — see D8**, which is the same defect arriving through `Given` rather than
+`Having`, and which `Core.Test` reaches on its first generation. The original note stands as the
+description: `Having` steps run last-declared-first and consecutive setups render joined by "after"
+to say so — hoist one to the heading and leave the other in the item, and nothing relates them in
+time.
+
+**5.7** is still not reachable in any suite we have: the word-drop rule that turns `## When get room`
++ `When get` into `get` cannot tell a family keyword from a class-name segment, so it eats the
+`Given` that marks a block as arrangement.
 
 **5.6** stays **pinned**. Exact match, no partial credit: one requirement saying something else
 costs its whole sibling group the hoist. The open question, were it unpinned, is whether a dissenter

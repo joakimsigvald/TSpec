@@ -33,16 +33,21 @@ exist.
 
 ## 2. The two suites, measured
 
+Re-measured 2026-08-16; the 2026-08-09 figure follows in brackets where it moved.
+
 | | `Core.Test` | `Core.Spec` | `MyHotel.Spec` |
 |---|---|---|---|
 | Test files | 302 | 12 | 10 |
-| `[Fact]` / `[Theory]` | 1041 / 158 | 32 / 0 | 50 / 0 |
+| `[Fact]` / `[Theory]` | 1070 [1041] / 158 | 32 / 0 | 50 / 0 |
 | Statement-block test bodies | **663** | **0** | **0** |
-| `Specification.Is(…)` pins | **472** | 0 | 0 |
-| `Xunit.Assert.*` | 273 | 0 | 0 |
+| `Specification.Is(…)` pins | **478** [472] | 0 | 0 |
+| `Xunit.Assert.*` | 258 [273] | 0 | 0 |
 | `because:` | 8 | 0 | 0 |
 | Files with no `When` | 142 | 0 | 0 |
-| Generates `SPECIFICATION.md` | **no** | yes | yes |
+| Generates `SPECIFICATION.md` | **yes**, since 2026-08-16 | yes | yes |
+
+The `Xunit.Assert` residue is now 239 `Throws`, 13 `Equal`, 4 `Same`, and one each of `StartsWith`
+and `Contains`.
 
 MyHotel is the model and shows the conventions are livable: 82 facts, every one arrow-bodied, every
 one a single logical assertion, `When…`/`Given…` nesting throughout. It is also small and tame — one
@@ -63,16 +68,19 @@ Breakdown of the 1199 test methods:
 
 ## 3. Findings, ranked
 
-### F1 — TSpec does not specify itself
+### F1 — TSpec does not specify itself ✅ *closed 2026-08-16*
 
-`Core.Test` has no `[assembly: AssemblyFixture(typeof(SpecificationDocument))]`. The naming rule in
-README §6.2 already holds — `TSpec.Test` → `TSpec`, referenced directly, resolving to 2.2.0 in
-`deps.json` — so this is one line away.
+`Core.Test/AssemblyInfo.cs` now carries the fixture. The suite ran 1644 green with 1 skip on
+net10.0 and the document wrote first try: **1268 requirements over 574 headings, 6864 lines**.
 
-Everything else in this plan is judged against the document it produces, so it goes first even
-though the output will be bad. **Risk:** the completeness gate requires every non-skipped fact on
-every concrete `Spec` subclass to pass before the file is written; over 1041 facts on three target
-frameworks that is far tighter than over 82.
+**The risk did not materialise** — the completeness gate passed over 1644 facts, and the skipped
+`WhenListExpectedRequirements+SkippedSample` was excluded as designed.
+
+**The output is not bad, which the plan did not expect.** Assertion tests on literals read as
+genuine specification lines — `"AbC" is like "aBc"`, `New MyArrayModel(1, 2) is equivalent to new
+MyArrayModel(2, 1)`. What is wrong with it is specific and filed as D1–D7 in
+`SPECIFICATION-IMPROVEMENT-PLAN.md` §4, and the class-1 item among them, D1, is a direct consequence
+of F2's second assertion rather than a renderer fault.
 
 ### F2 — 468 test methods assert twice
 
@@ -248,11 +256,40 @@ rendering test be *separate tests*. `Specification.Is(…)` becomes
 `Then().SubjectUnderTest.Specification.Is(…)` — an assertion about the subject rather than about
 self, which is what those 468 pins have been reaching for.
 
-### G6 — `TSpec.Assert` has no standalone throw assertion
+### G6 — a `SetupFailed` raised outside any pipeline can never be an outcome
 
-Every `Throws` in the codebase hangs off `TestResult`, i.e. off the pipeline's captured outcome.
-There is no `Action`-level equivalent, so anything thrown outside the act needs
-`Xunit.Assert.Throws`. That is why all 60 non-`XunitException` probes use it — vocabulary, not habit.
+**Corrected 2026-08-16 — this was filed as "`TSpec.Assert` has no standalone throw assertion", which
+overstated it.** Making the throwing call the act works today for anything else. Verified by running
+it:
+
+```csharp
+Any<int>().Is(10); Any<int>().Is(20);
+When(void () => Any<int>()).Then().Throws<ValuesExhausted>();   // passes
+```
+
+So the 11 `ValuesExhausted` sites, the `InvalidTypeConversion` site and the `AutoDispose`
+`InvalidOperationException` need no product change at all — they are item 17.
+
+What remains is narrower and is **not** a vocabulary gap. Both of these fail, the exception escaping
+the pipeline rather than being captured:
+
+```csharp
+When(void () => "a.b().c".AssertNoTrainwreck()).Then().Throws<SetupFailed>();
+When(void () => "abc".Has().Length().InRange(4, 2)).Then().Throws<SetupFailed>();
+```
+
+[Pipeline.cs:192](Core/Internal/Pipelines/Pipeline.cs:192) refuses a `SetupFailed` that has not left
+an inner pipeline, which is exactly what C3 shipped on purpose: a misconfigured test must fail as
+misconfigured. These 46 sites raise it from an assertion continuation or a static helper — no
+pipeline at all — so they stay on `Xunit.Assert.Throws` unless the PO wants either an `Action`-level
+`Throws<T>()` in `TSpec.Assert` (C4) or marking at the 61 throw sites. Leaving them is defensible:
+what they claim is "TSpec rejects this misuse", and D2 records what that costs the document.
+
+**Side finding, 2026-08-16.** When the act throws, the catch block at
+[Pipeline.cs:194](Core/Internal/Pipelines/Pipeline.cs:194) builds the result from
+`_fixture.SubjectUnderTest`, which instantiates the subject lazily *inside the catch*. If that
+instantiation throws, the second exception escapes and masks the captured outcome. Reproduced with
+`Spec<int>` over an exhausted `int` sequence, where building the subject consumes a value.
 
 ### G2 — No `Is().SameAs(obj)` for objects
 
@@ -272,30 +309,38 @@ Whether that is worth public API is a PO call; G1 may make it unnecessary.
 
 | # | Item | Where | Blocked on |
 |---|---|---|---|
-| 1 | Add `[assembly: AssemblyFixture(typeof(SpecificationDocument))]`, run green, look at the output | `Core.Test` | — |
-| 2 | File what the document shows into `SPECIFICATION-IMPROVEMENT-PLAN.md` §4 | — | 1 |
+| 1 | ✅ **done 2026-08-16** — `[assembly: AssemblyFixture(typeof(SpecificationDocument))]`; suite 1644 green, document written | `Core.Test` | — |
+| 2 | ✅ **done 2026-08-16** — filed as D1–D7 in `SPECIFICATION-IMPROVEMENT-PLAN.md` §4 | — | 1 |
 | 3 | Answer the F2 question in §7 | — | 1 |
-| 4 | `Xunit.Assert.Equal/True/False` → `TSpec.Assert` (14 sites) | `Pipeline/AutoDispose.cs` | — |
+| 4 | ✅ done — `Xunit.Assert.Equal/True/False` → `TSpec.Assert` (14 sites) | `Pipeline/AutoDispose.cs` | — |
 | 5 | `Mock.Get(…).Verify(…)` → `Then<IDisposableService>(nameof(…), Never)` (1 site) | `Pipeline/AutoDispose.cs` | — |
-| 6 | `Xunit.Assert.Equal(-1, …)` → `.Is(-1)` (1 site) | `Pipeline/HavingWhenUntil.cs` | — |
+| 6 | ✅ done — `Xunit.Assert.Equal(-1, …)` → `.Is(-1)` (1 site) | `Pipeline/HavingWhenUntil.cs` | — |
 | 7 | `Xunit.Assert.Contains` → `.Does().Contain(…)` (1 site) | `Internal/Document/WhenResolveSubject.cs` | — |
 | 8 | `Xunit.Assert.StartsWith` → `.Does().StartWith(…)` (1 site) | `AutoFixture/WhenGivenTwo.cs` | — |
 | 9 | **Product:** add `Is().SameAs(obj)` (**G2**) | `Core/Assert/` | — |
 | 10 | `Xunit.Assert.Same` → `.Is().SameAs(…)` (4 sites) | `Pipeline/AutoDispose.cs` | 9 |
-| 11 | **Product:** fix `Throws` rendering (**G1**) | `Core/Internal/` | — |
-| 12 | Message-only probes → act + `Then().Throws<T>().that` (27 sites, 11 files) | 11 files | 11 |
+| 11 | ✅ done — **Product:** fix `Throws` rendering (**G1**), landed as C2 | `Core/Internal/` | — |
+| 12 | Message-only probes → act + `Then().Throws<T>().that` (27 sites, 11 files) | 11 files | — |
 | 13 | Whatever §7 decides about the 468 pins | `Core.Test` | 3 |
-| 14 | **Product:** give `SpecificationContext.Create()` scope semantics (**G4**) | `Core/Internal/Specification/` | — |
-| 15 | **Product:** let an inner spec's `SetupFailed` reach the outer pipeline (**G5.2**) | `Core/Internal/Pipelines/` | 14 |
-| 16 | Convert `HavingWhenUntil.cs` to the nested-spec shape as the pilot | `Pipeline/` | 14, 15 |
+| 14 | ✅ done — **Product:** `SpecificationContext.Create()` scope semantics (**G4**), landed as C1 | `Core/Internal/Specification/` | — |
+| 15 | ✅ done — **Product:** an inner spec's `SetupFailed` reaches the outer pipeline (**G5.2**), landed as C3 | `Core/Internal/Pipelines/` | 14 |
+| 16 | ✅ done — `HavingWhenUntil.cs` converted to the nested-spec shape; verdict in `SELF-HOSTING-PLAN` §6 | `Pipeline/` | 14, 15 |
+| 17 | `Xunit.Assert.Throws<ValuesExhausted>` and the two one-offs → act + `Then().Throws<T>()` (13 sites) | `Using/`, `AutoFixture/Generator/`, `Pipeline/AutoDispose.cs` | — |
+| 18 | **Product:** the title splits the subject's name — `# T Spec` (**D4**) | `Core/Internal/Document/` | — |
+| 19 | **Product:** erase `() =>` and `void () =>` from the act line as `_ =>` already is (**D5**) | `Core/Internal/Specification/` | — |
+| 20 | **Product:** a clause set two requirements state in different orders must not rise (**D8**) | `Core/Internal/Document/` | — |
 
-**Items 4–8 first in practice** — they need nothing and settle nothing, so they can run alongside
-item 1. Items 6–8 in `WhenAddText`, `WhenComposeText` and `WhenPlaceBreakPoints` are *neutral* swaps
+**Items 5, 7, 8 and 17 first in practice** — they need nothing and settle nothing. Items 6–8 in
+`WhenAddText`, `WhenComposeText` and `WhenPlaceBreakPoints` are *neutral* swaps
 (`Xunit.Assert.Equal(a, b)` and `b.Is(a)` read the same); take TSpec's failure output as the reason,
 and drop any individual site where the swap reads worse.
 
 Item 12 covers only the 11 of 19 files whose act slot is free. The other 8 need item 13's answer or
-stay as they are.
+stay as they are. **Item 19 gates item 12's scale** — every assertion-as-act carries the `void () =>`
+prefix into the document until it lands.
+
+**Item 17 needs no product change**, contrary to what G6 said: verified 2026-08-16 that
+`When(void () => Any<int>()).Then().Throws<ValuesExhausted>()` passes as written.
 
 **Verify every conversion against the code it replaces, not against a blank file** — see §6.
 
