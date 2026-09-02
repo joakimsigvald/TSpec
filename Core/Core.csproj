@@ -25,6 +25,7 @@
 			FIXED
 			* Render empty content correctly (no stray space before comma).
 			* Render indexer after Result with before correctly.
+			* Render generic type arguments after Result with before correctly.
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

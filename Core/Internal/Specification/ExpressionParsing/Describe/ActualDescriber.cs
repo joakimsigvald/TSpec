@@ -71,14 +71,38 @@ internal sealed class ActualDescriber(string? subject = null) : Describer
                     continue;
                 case Call c when _ignoreBeforeResult.Contains(c.MethodName):
                     return (Anchor.ResultWrapper, string.Empty);
-                case Call { Target: Member m } c:
-                    chain.Add($"{m.Name}({string.Join(", ", c.Args.Select(a => a.Raw))}){indexers}");
+                case Call c when TryCallee(c, out var callee, out var calledOn):
+                    chain.Add($"{callee}({string.Join(", ", c.Args.Select(a => a.Raw))}){indexers}");
                     indexers = string.Empty;
-                    cur = m.Target;
+                    cur = calledOn;
                     continue;
                 default:
                     return (Anchor.Expression, DescribeRoot(cur) + indexers);
             }
+    }
+
+    /// <summary>
+    /// The name a call invokes and what it is called on — false where it is called on something
+    /// unnamed, which the chain cannot hold. Type arguments spelled out at the call site are part
+    /// of that name: the chain says what the reader wrote, and the reader wrote them.
+    /// </summary>
+    private static bool TryCallee(Call call, out string callee, out Expr calledOn)
+    {
+        callee = string.Empty;
+        calledOn = call;
+        switch (call.Target)
+        {
+            case Member m:
+                callee = m.Name;
+                calledOn = m.Target;
+                return true;
+            case Generic { Target: Member m } g:
+                callee = $"{m.Name}<{g.TypeArgText}>";
+                calledOn = m.Target;
+                return true;
+            default:
+                return false;
+        }
     }
 
     private static string DescribeRoot(Expr root) => root is Identifier id ? id.Name : root.Raw;
