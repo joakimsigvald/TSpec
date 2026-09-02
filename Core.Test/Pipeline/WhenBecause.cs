@@ -3,7 +3,7 @@ using Xunit.Sdk;
 
 namespace TSpec.Test.Pipeline;
 
-public class WhenBecause : Spec<MyStateService, int>
+public class WhenBecause : Spec<MyStateService, int?>
 {
     [Fact]
     public void ThenReasonIsAppendedToSpecification()
@@ -62,6 +62,18 @@ public class WhenBecause : Spec<MyStateService, int>
             When ++Counter
             Then Result is greater than 0,
                   because the counter starts at zero and one increment must yield one
+            """);
+    }
+
+    [Fact]
+    public void NoStraySpaceAfterNull()
+    {
+        When(_ => (int?)null);
+        Because("it is null").Result.Is().Null();
+        Specification.Is(
+            """
+            When (int?)null
+            Then Result is null, because it is null
             """);
     }
 

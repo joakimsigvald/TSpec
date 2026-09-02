@@ -73,6 +73,9 @@ internal static class SpecificationRenderer
     /// </summary>
     private static void AppendWord(List<TextUnit> units, string content, string binder)
     {
+        if (string.IsNullOrEmpty(content))
+            return;
+
         if (binder.TrimEnd() is { Length: > 0 } punctuation && units.Count > 0)
             units[^1] = units[^1] with { Text = units[^1].Text + punctuation };
         units.Add(TextUnit.Word(content));

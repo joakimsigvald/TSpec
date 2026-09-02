@@ -39,30 +39,45 @@ internal sealed class ActualDescriber(string? subject = null) : Describer
             _ when chain.Count == 0 => Value.Describe(expr),
             // Chains not anchored in Then/And keep the user's wording: the root
             // and call segments render the source verbatim, never value-described
-            _ => $"{DescribeRoot(root)}.{Stitch(chain)}",
+            _ => $"{root}.{Stitch(chain)}",
         };
     }
 
-    private static (Anchor Kind, Expr Root) CollectChain(Expr expr, List<string> chain)
+    /// <summary>
+    /// Walks the chain right to left, collecting its segments. What comes back with it is the root
+    /// those segments hang off — empty where an anchor stands in its place, since the subject is
+    /// then what they hang off instead.
+    /// </summary>
+    private static (Anchor Kind, string Root) CollectChain(Expr expr, List<string> chain)
     {
         var cur = expr;
+        // An indexer is no segment of its own — it belongs to whatever it indexes, which the walk
+        // reaches later. So it waits here, to the right of the segment it will be written onto,
+        // and where the walk ends before reaching one, the root is what it was indexing.
+        var indexers = string.Empty;
         while (true)
             switch (cur = cur.WithoutNoise())
             {
                 case Member m when IsBindingWord(m.Name):
-                    return (Anchor.BindingWord, m);
+                    return (Anchor.BindingWord, string.Empty);
                 case Member m:
-                    chain.Add(m.Name);
+                    chain.Add(m.Name + indexers);
+                    indexers = string.Empty;
                     cur = m.Target;
                     continue;
+                case IndexExpr x:
+                    indexers = $"[{string.Join(", ", x.Args.Select(a => a.Raw))}]{indexers}";
+                    cur = x.Target;
+                    continue;
                 case Call c when _ignoreBeforeResult.Contains(c.MethodName):
-                    return (Anchor.ResultWrapper, c);
+                    return (Anchor.ResultWrapper, string.Empty);
                 case Call { Target: Member m } c:
-                    chain.Add($"{m.Name}({string.Join(", ", c.Args.Select(a => a.Raw))})");
+                    chain.Add($"{m.Name}({string.Join(", ", c.Args.Select(a => a.Raw))}){indexers}");
+                    indexers = string.Empty;
                     cur = m.Target;
                     continue;
                 default:
-                    return (Anchor.Expression, cur);
+                    return (Anchor.Expression, DescribeRoot(cur) + indexers);
             }
     }
 

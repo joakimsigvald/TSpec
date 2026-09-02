@@ -17,14 +17,14 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>2.2.1</PackageVersion>
+		<PackageVersion>2.2.2</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			FIXED
-			* The id in a SPECIFICATION.md header identifies the source of the code under test,
-			  so it no longer moves on every commit, nor sits still when the implementation changes.
+			* Render empty content correctly (no stray space before comma).
+			* Render indexer after Result with before correctly.
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
