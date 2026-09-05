@@ -31,15 +31,19 @@ internal static class BinaryRule
         .SelectMany((ops, prec) => ops.Select(op => (Op: op, Prec: prec)))
         .ToDictionary(entry => entry.Op, entry => entry.Prec);
 
+    /// How tightly an operator binds, for a printer rebuilding an expression from its operands.
+    /// <c>is</c> and <c>as</c> are not in the table and sit at the relational level.
+    public static int PrecedenceOf(string op)
+        => _precedenceByOp.TryGetValue(op, out var prec) ? prec : RelationalPrecedence;
+
     public static Expr Parse(TokenStream ts, int minPrec)
     {
-        int save = ts.Pos;
         var left = UnaryRule.Parse(ts);
         while (true)
         {
             if (IsTypeOp(ts) && RelationalPrecedence >= minPrec)
             {
-                left = ParseIsAs(ts, save, left);
+                left = ParseIsAs(ts, left);
                 continue;
             }
             var op = ts.Peek();
@@ -54,11 +58,12 @@ internal static class BinaryRule
 
     private static bool IsTypeOp(TokenStream ts) => ts.IsWord("is") || ts.IsWord("as");
 
-    private static IsAs ParseIsAs(TokenStream ts, int save, Expr left)
+    private static IsAs ParseIsAs(TokenStream ts, Expr left)
     {
         string op = ts.Peek().Text;
         ts.Advance();
-        return new(ts.RawFrom(save), op, left, TypeRefRule.ConsumeTypeRef(ts));
+        var typeName = TypeRefRule.ConsumeTypeRef(ts);
+        return new($"{left.Raw} {op} {typeName}", op, left, typeName);
     }
 
     private static int? Precedence(Token t, int minPrec)

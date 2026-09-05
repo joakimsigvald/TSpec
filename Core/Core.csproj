@@ -25,6 +25,7 @@
 			FIXED
 			* Split words and numbers correctly
 			* keep empty string litteral after ?? in specification (str ?? "")
+			* describe expression with operator properly
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

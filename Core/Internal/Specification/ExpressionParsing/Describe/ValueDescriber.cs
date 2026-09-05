@@ -1,4 +1,5 @@
 using TSpec.Internal.Specification.ExpressionParsing.Expressions;
+using TSpec.Internal.Specification.ExpressionParsing.Parse;
 
 namespace TSpec.Internal.Specification.ExpressionParsing.Describe;
 
@@ -27,7 +28,7 @@ internal sealed class ValueDescriber : Describer
             With w => $"{Describe(w.Target)} with{Braced(w.Init)}",
             TupleExpr t => $"({Wrap.Enter}{DescribeAll(t.Items)}{Wrap.Exit})",
             ArrayLit arr => $"[{Wrap.Enter}{DescribeAll(arr.Items)}{Wrap.Exit}]",
-            Binary b => $"{Describe(b.Left)} {b.Op} {Describe(b.Right)}",
+            Binary b => $"{Operand(b, b.Left, onRight: false)} {b.Op} {Operand(b, b.Right, onRight: true)}",
             Unary u => $"{u.Op}{Describe(u.Operand)}",
             Postfix p => $"{Describe(p.Operand)}{p.Op}",
             Conditional c => $"{Describe(c.Cond)} ? {Describe(c.Then)} : {Describe(c.Else)}",
@@ -50,6 +51,29 @@ internal sealed class ValueDescriber : Describer
             _ => Path(expr),
         };
     }
+
+    /// <summary>
+    /// An operand of a binary, parenthesized where the text would otherwise regroup it: a looser
+    /// operand needs them, and so does an equally tight one on the right, since a run of one
+    /// operator reads as nesting to the left.
+    /// </summary>
+    private string Operand(Binary parent, Expr operand, bool onRight)
+    {
+        var binding = BindingPower(operand);
+        var parentBinding = BinaryRule.PrecedenceOf(parent.Op);
+        return binding < parentBinding || onRight && binding == parentBinding
+            ? $"({Describe(operand)})"
+            : Describe(operand);
+    }
+
+    /// How tightly an operand holds together. Anything the parentheses cannot regroup binds tightest.
+    private static int BindingPower(Expr expr) => expr switch
+    {
+        Assign or Conditional => BinaryRule.MinPrecedence - 1,
+        IsAs isAs => BinaryRule.PrecedenceOf(isAs.Op),
+        Binary b => BinaryRule.PrecedenceOf(b.Op),
+        _ => int.MaxValue,
+    };
 
     private static string AssignTargetName(Expr target) => target switch
     {

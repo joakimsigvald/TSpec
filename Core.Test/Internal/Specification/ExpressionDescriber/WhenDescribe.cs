@@ -35,6 +35,13 @@ public class WhenDescribe : Spec<string>
     [InlineData("A<MyValue<int, Task<string>>>()", "a MyValue<int, Task<string>>")]
     [InlineData("A<(int, string, int, float)>", "a (int, string, int, float)")]
     [InlineData("i => $\"{2 * i}\"", "\"{2 * i}\"")]
+    // An operand keeps the parentheses that group it, and gets none it does not need
+    [InlineData("(a + b) * c", "(a + b) * c")]
+    [InlineData("a + b * c", "a + b * c")]
+    [InlineData("a * (b + c)", "a * (b + c)")]
+    [InlineData("a - (b - c)", "a - (b - c)")]
+    [InlineData("(a ? b : c) + 1", "(a ? b : c) + 1")]
+    [InlineData("(a + b)", "a + b")]
     [InlineData("_ => _ with { Name = A<string>() }", "Name = a string")]
     [InlineData("_ => _ with { Name = A<string>(), Id = 1 }", "Name = a string, Id = 1")]
     [InlineData("The<MyModel>() with { Name = A<string>() }", "the MyModel with { Name = a string }")]

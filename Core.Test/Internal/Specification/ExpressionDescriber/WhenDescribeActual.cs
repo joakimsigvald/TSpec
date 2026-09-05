@@ -29,6 +29,13 @@ public class WhenDescribeActual : Spec<string>
     [InlineData("(await Result.Read<VersionInfo>()).Version", "Result.Read<VersionInfo>().Version")]
     // A parenthesized root keeps both operands, and the parentheses that make it one
     [InlineData("(Result.Text ?? \"\").Contains(\"x\")", "(Result.Text ?? \"\").Contains(\"x\")")]
+    // An operator keeps its whole expression, whichever operator it is
+    [InlineData("Then().Result.Take(x is int)", "Result.Take(x is int)")]
+    [InlineData("Then().Result.Do(x = 1)", "Result.Do(x = 1)")]
+    [InlineData("Then().Result.Take(a ? b : c)", "Result.Take(a ? b : c)")]
+    [InlineData("Then().Result.Take(!flag)", "Result.Take(!flag)")]
+    [InlineData("Then().Result.Take(await x)", "Result.Take(await x)")]
+    [InlineData("Then().Result.Take((int)x)", "Result.Take((int)x)")]
     public void ThenReturnDescription(string? returnsExpr, string expected)
         => When(_ => returnsExpr.DescribeActual()).Then().Result.Is(expected);
 

@@ -13,16 +13,17 @@ internal static class UnaryRule
 {
     public static Expr Parse(TokenStream ts)
     {
-        int save = ts.Pos;
         if (ts.IsWord("await") && CanStartExpression(ts.Peek(1)))
         {
             ts.Advance();
-            return new Unary(ts.RawFrom(save), "await", Parse(ts));
+            var awaited = Parse(ts);
+            return new Unary($"await {awaited.Raw}", "await", awaited);
         }
         if (ts.Peek() is { Kind: TokenKind.Symbol, Text: "!" or "-" or "+" or "~" or "++" or "--" } op)
         {
             ts.Advance();
-            return new Unary(ts.RawFrom(save), op.Text, Parse(ts));
+            var operand = Parse(ts);
+            return new Unary($"{op.Text}{operand.Raw}", op.Text, operand);
         }
         if (ts.IsSym("(") && LooksLikeCast(ts) && TryParseCast(ts, out var cast))
             return cast;
@@ -52,7 +53,8 @@ internal static class UnaryRule
             ts.Pos = save;
             return false;
         }
-        cast = new Cast(ts.RawFrom(save), typeName, Parse(ts));
+        var operand = Parse(ts);
+        cast = new Cast($"({typeName}){operand.Raw}", typeName, operand);
         return true;
     }
 
