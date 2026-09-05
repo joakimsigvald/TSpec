@@ -9,20 +9,27 @@ namespace TSpec.Internal.Specification.ExpressionParsing.Parse;
 /// </summary>
 internal static class BinaryRule
 {
-    public const int MinPrecedence = 1;
-    private const int RelationalPrecedence = 5;
+    public const int MinPrecedence = 0;
+    private const int RelationalPrecedence = 4;
 
-    // (operator, precedence, right-associative)
-    private static readonly (string Op, int Prec, bool RightAssoc)[] _ops =
+    /// <summary>
+    /// The operators by precedence, loosest binding first
+    /// </summary>
+    private static readonly string[][] _ops =
     [
-        ("??", 1, true),
-        ("||", 2, false), ("|", 2, false),
-        ("&&", 3, false), ("&", 3, false),
-        ("==", 4, false), ("!=", 4, false),
-        ("<", 5, false), (">", 5, false), ("<=", 5, false), (">=", 5, false),
-        ("+", 6, false), ("-", 6, false),
-        ("*", 7, false), ("/", 7, false), ("%", 7, false),
+        ["??"],
+        ["||", "|"],
+        ["&&", "&"],
+        ["==", "!="],
+        ["<", ">", "<=", ">="],
+        ["+", "-"],
+        ["*", "/", "%"],
     ];
+
+    /// The same table, indexed the way the parser asks it: by the operator it just read.
+    private static readonly Dictionary<string, int> _precedenceByOp = _ops
+        .SelectMany((ops, prec) => ops.Select(op => (Op: op, Prec: prec)))
+        .ToDictionary(entry => entry.Op, entry => entry.Prec);
 
     public static Expr Parse(TokenStream ts, int minPrec)
     {
@@ -35,11 +42,13 @@ internal static class BinaryRule
                 left = ParseIsAs(ts, save, left);
                 continue;
             }
-            if (Match(ts.Peek(), minPrec) is not (var op, var prec, var rightAssoc))
+            var op = ts.Peek();
+            if (Precedence(op, minPrec) is not { } prec)
                 return left;
 
             ts.Advance();
-            left = new Binary(ts.RawFrom(save), op, left, Parse(ts, rightAssoc ? prec : prec + 1));
+            var right = Parse(ts, prec + 1);
+            left = new Binary($"{left.Raw} {op.Text} {right.Raw}", op.Text, left, right);
         }
     }
 
@@ -52,15 +61,9 @@ internal static class BinaryRule
         return new(ts.RawFrom(save), op, left, TypeRefRule.ConsumeTypeRef(ts));
     }
 
-    private static (string Op, int Prec, bool RightAssoc)? Match(Token t, int minPrec)
-    {
-        if (t.Kind != TokenKind.Symbol)
-            return null;
-
-        foreach (var op in _ops)
-            if (op.Op == t.Text && op.Prec >= minPrec)
-                return op;
-
-        return null;
-    }
+    private static int? Precedence(Token t, int minPrec)
+        => t.Kind == TokenKind.Symbol
+            && _precedenceByOp.TryGetValue(t.Text, out var prec)
+            && prec >= minPrec
+        ? prec : null;
 }

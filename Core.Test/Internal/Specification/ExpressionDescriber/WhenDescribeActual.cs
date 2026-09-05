@@ -27,6 +27,8 @@ public class WhenDescribeActual : Spec<string>
     [InlineData("await Result.Read<Room>()", "Result.Read<Room>()")]
     // The await sits mid-chain here, so peeling has to happen as the chain is walked
     [InlineData("(await Result.Read<VersionInfo>()).Version", "Result.Read<VersionInfo>().Version")]
+    // A parenthesized root keeps both operands, and the parentheses that make it one
+    [InlineData("(Result.Text ?? \"\").Contains(\"x\")", "(Result.Text ?? \"\").Contains(\"x\")")]
     public void ThenReturnDescription(string? returnsExpr, string expected)
         => When(_ => returnsExpr.DescribeActual()).Then().Result.Is(expected);
 

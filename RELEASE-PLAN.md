@@ -6,10 +6,13 @@ The notes of 2026-09-05, in build order.
 
 Small, independent, each one a wrong line in a real document. Test row first.
 
-1. **`??` loses an operand.** `(x ?? "").Contains(…)` renders `x ??.Contains(…)`. Reproduce first —
-   `Literal.Quoted` returns `""` intact, so the loss is either in the parse or in
-   [SpecificationRenderer.cs:76](Core/Internal/Specification/SpecificationRenderer.cs:76), where
-   2.2.2 added a drop-empty-content guard.
+1. ~~**`??` loses an operand.**~~ Done, and no operator is special. `Binary` took its raw text
+   before its right operand was consumed, so the text stopped at the operator; and an unwrapped
+   parenthesized expression dropped the parentheses that made it one thing, which it now keeps.
+   **Left open:** the same evaluation-order slip at five more sites —
+   `IsAs` ([BinaryRule.cs:52](Core/Internal/Specification/ExpressionParsing/Parse/BinaryRule.cs:52)),
+   `Assign`, `Conditional`, `Unary` (×2) and `Cast`. Latent, since each has a describe path that
+   rebuilds from its children; they show only where something falls back to `Raw`.
 2. **Raw string keeps its extra quotes.** `"""{"system":"ICD-10-SE"…}"""` renders with mangled
    quoting. [Expr.cs:35](Core/Internal/Specification/ExpressionParsing/Expressions/Expr.cs:35) strips
    one quote per end; `LiteralScanner.QuoteRun` already knows how many there are.

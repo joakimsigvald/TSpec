@@ -61,6 +61,10 @@ internal static class PrimaryRule
         if (!ts.TryParse(")", out var items))
             return new Unknown(ts.RawFrom(save));
 
-        return items.Count == 1 ? items[0] : new TupleExpr(ts.RawFrom(save), items);
+        // The single item unwraps, but its source text keeps the parentheses: they are what makes
+        // the expression one thing, and anything written onto it binds tighter than what is inside.
+        return items.Count == 1
+            ? items[0] with { Raw = ts.RawFrom(save) }
+            : new TupleExpr(ts.RawFrom(save), items);
     }
 }
