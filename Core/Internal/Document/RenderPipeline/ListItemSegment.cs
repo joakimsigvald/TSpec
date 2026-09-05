@@ -2,7 +2,13 @@ using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.Document.RenderPipeline;
 
-internal sealed record ListItemSegment(string Name, ComposedText Claim) : DocumentSegment
+/// <summary>
+/// One requirement as an item of a list. A theory's rows are tabled directly under the bullet,
+/// ahead of a claim that took a fence of its own: what the rows were is read before what is
+/// claimed of them, and a claim standing on the bullet's own line is read before either.
+/// </summary>
+internal sealed record ListItemSegment(
+    string Name, ComposedText Claim, IReadOnlyList<TheoryRow> Rows) : DocumentSegment
 {
     private const int ItemIndentation = 2;
     private const int FenceWidth = Document.Width - ItemIndentation;
@@ -10,12 +16,17 @@ internal sealed record ListItemSegment(string Name, ComposedText Claim) : Docume
     private const string ToDoHint = "*TODO: Assert behaviour*";
     private readonly string _bulletStart = $"- **{Name}**";
 
-    internal override string Render() => _bulletStart + RenderClaim(Claim.Fit(ClaimWidth));
+    internal override string Render()
+    {
+        var claim = Claim.Fit(ClaimWidth);
+        return Fenced(claim)
+            ? $"{_bulletStart}\n{Table()}{Indent(Blocked(Claim.Fit(FenceWidth)))}\n"
+            : _bulletStart + Beside(string.IsNullOrEmpty(claim) ? ToDoHint : $"`{claim}`") + Table();
+    }
 
-    private string RenderClaim(string claim)
-        => string.IsNullOrEmpty(claim) ? Beside(ToDoHint)
-            : claim.Contains('\n') ? $"\n{Indent(Blocked(Claim.Fit(FenceWidth)))}\n"
-            : Beside($"`{claim}`");
+    private static bool Fenced(string claim) => claim.Contains('\n');
+
+    private string Table() => Rows.Count == 0 ? string.Empty : new TableSegment(Rows).Render();
 
     private static string Blocked(string content) => $"```\n{content}\n```";
 

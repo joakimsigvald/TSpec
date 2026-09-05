@@ -15,10 +15,20 @@ public abstract record EnumerableConstraint<TItem, TContinuation> : Constraint<I
             ? $"{value.Count()}: {value.FormatValue()}"
             : value.FormatValue();
 
+    /// <summary>
+    /// A named value says both what it is called and what it was: the name alone would not say
+    /// which value failed, and the value alone would not say what the test called it. Where the
+    /// name is a theory parameter the value is the row's rather than the requirement's, so it is
+    /// marked as a hole — kept here, dropped by the document, which tables every row instead.
+    /// </summary>
     private protected static string Express<TValue>(string? valueExpr, TValue value)
     {
         var valueStr = value.FormatValue();
-        return valueExpr is null || valueExpr == valueStr ? valueStr : $"'{valueExpr.Describe()}' = {value}";
+        if (valueExpr is null || valueExpr == valueStr)
+            return valueStr;
+        var named = $"'{valueExpr.Describe()}'";
+        var assigned = $" = {value!.InvariantText()}";
+        return SpecificationContext.IsHole(valueExpr) ? named + Hole.Mark(assigned) : named + assigned;
     }
 
     private protected static Action<IEnumerable<TItem>?> NotEmptyAnd(Action<IEnumerable<TItem>> assert)

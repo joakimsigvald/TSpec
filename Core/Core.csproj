@@ -17,15 +17,18 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>2.3.0</PackageVersion>
+		<PackageVersion>2.4.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
+			NEW
+			* A [Theory] with [InlineData] renders as one requirement over a table of its rows
 			FIXED
 			* Split words and numbers correctly
-			* keep empty string litteral after ?? in specification (str ?? "")
+			* keep empty string literal after ?? in specification (str ?? "")
 			* describe expression with operator properly
+			* Format values culture-invariantly, dates as yyyy-MM-dd HH:mm:ss
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

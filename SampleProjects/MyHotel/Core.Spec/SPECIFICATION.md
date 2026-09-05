@@ -222,8 +222,13 @@ IRoomStore.Load() returns [the Room]
 
 - **store it** — `IBookingStore.Save was invoked once`
 - **return the booking with the number it was given**
+
+  | roomNumber |
+  | ---------- |
+  | 10001      |
+
   ```
-  Result is new Booking(10001, the Room's RoomNumber, the string, new(2026, 8, 10),
+  Result is new Booking(roomNumber, the Room's RoomNumber, the string, new(2026, 8, 10),
       new(2026, 8, 12))
   ```
 

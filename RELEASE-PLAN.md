@@ -6,70 +6,195 @@ The notes of 2026-09-05, in build order.
 
 Small, independent, each one a wrong line in a real document. Test row first.
 
-1. ~~**`??` loses an operand.**~~ Done, and no operator is special. `Binary` took its raw text
-   before its right operand was consumed, so the text stopped at the operator; and an unwrapped
-   parenthesized expression dropped the parentheses that made it one thing, which it now keeps.
-   **Left open:** the same evaluation-order slip at five more sites —
-   `IsAs` ([BinaryRule.cs:52](Core/Internal/Specification/ExpressionParsing/Parse/BinaryRule.cs:52)),
-   `Assign`, `Conditional`, `Unary` (×2) and `Cast`. Latent, since each has a describe path that
-   rebuilds from its children; they show only where something falls back to `Raw`.
-2. **Raw string keeps its extra quotes.** `"""{"system":"ICD-10-SE"…}"""` renders with mangled
-   quoting. [Expr.cs:35](Core/Internal/Specification/ExpressionParsing/Expressions/Expr.cs:35) strips
-   one quote per end; `LiteralScanner.QuoteRun` already knows how many there are.
-3. **Stray space before the because-comma.** `Result.SpecXml is not null ,`. Regenerate against
-   2.2.2 first — that release claims this fix; if it survives, it is the `IsAs` path.
+1. ~~**`??` loses an operand.**~~ Done, and no operator is special. Three causes, all fixed:
+   every operator node took its raw text before its operand was consumed, so the text stopped at
+   the operator (`Binary`, `IsAs`, `Assign`, `Conditional`, `Unary`, `Cast` — each now composes its
+   text from its own parts, and `RawFrom` survives only for the malformed-ternary `Unknown` and the
+   cast backtrack); an unwrapped parenthesized expression dropped the parentheses that made it one
+   thing; and the value path, which rebuilds a binary from its operands, did not put them back.
+2. ~~**Raw string keeps its extra quotes.**~~ Not a bug. `"""{"system":"ICD-10-SE"}"""` renders
+   `"{"system":"ICD-10-SE"}"`, which is the pinned ruling — the delimiter run is stripped correctly
+   and "how the author delimited it is mechanism; the same text is the same claim"
+   ([WhenDescribe.cs:113](Core.Test/Internal/Specification/ExpressionDescriber/WhenDescribe.cs:113)).
+   Reopen only as a rendering decision: whether quote-heavy content should keep the source's
+   delimiter run, since delimiter and content are then the same character.
+3. ~~**Stray space before the because-comma.**~~ Fixed in 2.2.2, verified 2026-09-05: the note
+   predates that release. `NoStraySpaceAfterNull` pinned only the `is null` branch, so
+   `NoStraySpaceAfterNotNull` now pins the reported one.
 4. ~~**No split at letter→digit.**~~ Done — `IsWordStart`.
 
 ## 2. What the document cannot say
 
-The two real gaps. Both additive: a suite that uses neither sees no change.
+5. ~~**`[Theory]` rows as a table.**~~ Done, 2026-09-05. Requirements settled with the PO, below.
 
-5. **Class doc-comment as section prose.** Biggest legibility win — the sentence exists in the code
-   and has no channel. Read it from the spec assembly's XML doc file (beside the dll, where
-   `PendingDocument.Prepare` already reads deps.json); `T:Namespace.WhenAddRoom` → `<summary>` at that
-   heading. Opt-in by construction: no doc file, no prose. Prose is not a claim — keep it out of
-   hoisting and out of `Requirement`.
-6. **`[Theory]` rows.** Today a theory renders once from the parameter *names* and states nothing:
-   `When identifier.AsWords()` / `Then Result is expected`. Two parts —
-   get the row values from `TestContext.Current` (or fall back to the display name, which has them),
-   and aggregate rows *before*
-   [Requirement.cs:34](Core/Internal/Document/Requirement.cs:34), whose `DistinctBy` drops three
-   rows of four today. Render as one requirement with a table of values.
-   **Decide:** table under one bullet, or one bullet per row. Table, I think — four rows are one rule.
+   **The requirement.** One `[Theory]` fed by `[InlineData]` renders as **one bullet and one
+   table**, whatever its data and assertions look like. Today it renders as one contentless bullet
+   when no parameter reaches the clause text — `GivenAtMost`'s two rows both say `count = 2`, and
+   `numbers` is never mentioned — and as several same-named bullets when one does: `GivenCount`
+   gives `'count' = 1` and `'count' = 2`. Both are the same defect. The document has nowhere to put
+   a row, so it either drops the data or repeats the claim.
+
+   **The abstraction: a theory parameter is a hole, not a value.** Wherever TSpec would print a
+   value that came from a theory parameter, the *document* prints the parameter's name. Every row
+   then composes identical text by construction — no stripping, no matching on syntax — the
+   existing fold collapses them, and the table supplies what the holes stand for. The **per-test**
+   specification keeps its values, so a failing row still reads `Numbers has count 'count' = 2`.
+   That, and only that, is what a step has to carry twice.
+
+   ```
+   - **count** — `Numbers has count 'count'`
+
+     | count | numbers |
+     | ----- | ------- |
+     | 1     | [1]     |
+     | 2     | [1, 3]  |
+   ```
+
+   Ruled, and not to be reopened while building:
+
+   - **`[InlineData]` only.** Data living in a separate file is not specification, so a theory fed
+     by `MemberData` or `ClassData` renders as it does today. One that mixes them counts as neither.
+   - **Automatic** for every such theory: no attribute, no opt-out, no row cap. The 88-row theory in
+     `WhenDescribe` gets an 88-row table, because that is what it verifies.
+   - **One column per parameter**, headers the C# identifiers verbatim so they match the `'count'`
+     in the clause letter for letter. A trailing `params` array is one column holding the collected
+     values.
+   - **Rows in `[InlineData]` declaration order**, so an author's grouping survives.
+   - **Only rows that ran and passed.** A skipped row is absent and unmarked: the document states
+     what a green run verified and nothing else.
+   - **Cells through `FormatValue`**, made culture-invariant — one convention for the whole
+     document: strings quoted, `null`, `true`/`false`, collections `[a, b, …]`.
+   - **A padded markdown table**, indented two spaces under the bullet with a blank line above, so
+     it is aligned in the raw file and a real table once rendered.
+   - **Document only.** `Specification` and every `Specification.Is(…)` pin keep their values. A pin
+     that breaks does so because a hole reached the per-test text by mistake.
+   - **MyHotel untouched.** It has no `[InlineData]`, so both committed documents stay
+     byte-identical.
+
+   Work items, each test-first:
+
+   - ~~**5a Culture-invariant values.**~~ Done. `FormatValue` fell through to `value.ToString()`,
+     and two more paths interpolated a value raw: the `expected` half of every failure message
+     ([Constraint.cs:171](Core/Assert/Continuations/Constraint.cs:171)) and the `'count' = 1` of
+     [EnumerableConstraint.cs:21](Core/Assert/Continuations/Enumerable/EnumerableConstraint.cs:21).
+     All three now go through `InvariantText`, which formats dates as `yyyy-MM-dd HH:mm:ss` — PO's
+     ruling, and what sv-SE already produced, so no pinned text moved. Left standing: eleven date
+     tests build their *expected* string with `$"{date}"`, so they still read the running machine's
+     culture and would fail outside sv-SE.
+   - ~~**5b Read the row.**~~ Done — [TheoryRow.cs](Core/Internal/Document/TheoryRow.cs). The plan
+     had the wrong source: `IXunitTestMethod.TestMethodArguments` is empty, being about generic
+     resolution. The running row is `IXunitTest.TestMethodArguments` from
+     `TestContext.Current.Test`, and it comes back already resolved — a trailing `params` array
+     collected — so there is no mapping to do, one value per parameter. The declaration index is
+     found by comparing the run against each `InlineDataAttribute.Data`, both flattened first,
+     since an author may spell a `params` argument loose or as one array. Nothing is read unless
+     every data attribute is `InlineData`.
+   - ~~**5c Carry it.**~~ Done. `SpecificationEntry` gains `Row`, and what a run hands to the
+     document moved out of `Collect` into `Spec.Reported()` — the collector only decides whether to
+     keep it. That seam is what lets a test read an entry without switching the process-wide
+     collector on mid-run.
+   - ~~**5d Punch the holes.**~~ Done, and `SpecificationStep` did not have to change. A value that
+     came from a theory parameter is bracketed with a marker where it is injected, in the same
+     idiom as [Wrap](Core/Internal/Specification/Wrap.cs) — see
+     [Hole.cs](Core/Internal/Specification/Hole.cs). The per-test specification and the failure
+     message keep what the markers enclose; `Requirement.From` drops it, which is what makes the
+     rows of a theory describe themselves identically and fold. One text, two resolutions, so no
+     second body to thread through the thirteen places that compose one.
+
+     Whether an expression is a hole is asked of `SpecificationContext.IsHole`, which reads the
+     running theory's parameter names once per test — expression-level, so a `[Fact]` with a local
+     of the same name is untouched.
+
+     `Express` in [EnumerableConstraint.cs:21](Core/Assert/Continuations/Enumerable/EnumerableConstraint.cs:21)
+     turned out to be the only injection point in the suite. Verified empirically rather than by
+     reading: uncomment the fixture in `Core.Test/AssemblyInfo.cs`, run the suite, and count
+     same-named bullets within a section —
+
+     ```
+     awk '/^#/{s++} /^- \*\*/{ n=$0; sub(/^- \*\*/,"",n); i=index(n,"**"); print s "@@" substr(n,1,i-1) }' \
+       Core.Test/SPECIFICATION.md | sort | uniq -c | awk '$1>1'
+     ```
+
+     which went from 6 repeated groups to none. `When count` fell from 22 bullets to 16, one per
+     test method, and the only lines the document lost anywhere were that section's duplicates. A
+     named value that is *not* a theory parameter still states itself (`Result has count 'the int'
+     = 2`), which is the distinction the marker exists to draw.
+   - ~~**5e Group instead of dedupe.**~~ Done. `Requirement.From` groups on the key it used to
+     de-duplicate by and collects the rows, ordered by declaration index since rows report in
+     whatever order a parallel run finished them. `Requirement` gains `Rows`. Regenerating
+     `Core.Test`'s document changed nothing but the source id, the rows having no renderer yet.
+   - ~~**5f Render it.**~~ Done — [TableSegment.cs](Core/Internal/Document/RenderPipeline/TableSegment.cs).
+     The table stands **directly under the bullet**, ahead of a claim that took a fence of its own
+     (PO's ruling, 2026-09-05): what the rows were is read before what is claimed of them. A claim
+     that fits on the bullet's own line is read before either, so the item owns its table rather
+     than the renderer placing a segment after it. Indented two spaces so the list survives it,
+     headers padded, `|` escaped and line breaks flattened so no value can end a cell or a row.
+
+     A table closes its item with a blank line and a heading opens with one, which left a gap in 30
+     places — the document had an unstated invariant of **one blank line at most**, which
+     `DocumentRenderer` now holds to.
+   - ~~**5g Width.**~~ Done. Columns divide the 87 places the indent and the bars leave, equally,
+     and take the lesser of that share and what they need; a value longer than its share is cut and
+     ends in an ellipsis. Verified on the regenerated document: 129 tables, 25 cut cells, widest
+     table line 89 characters.
+
+     **Later work, and worth doing.** Equal shares waste the page where columns differ. `count fail`
+     is the case to look at — `count` uses 5 of its 26 places while `errorMessage` is cut at 26 with
+     most of the message gone:
+
+     ```
+     | count | errorMessage               | numbers              |
+     | 2     | "Expected numbers to have… | [1]                  |
+     ```
+
+     Columns sized to what each needs would give `errorMessage` about 55. Wrapping a cell rather
+     than cutting it is the other half of the same refinement.
+   - ~~**5h Ship it.**~~ Done. README gains "Theories become tables" under 6.2; the agent reference
+     gains one bullet, this being presentation rather than a mechanism to learn, and its covers-line
+     moves to 2.4. `PackageVersion` 2.4.0 — 2.3.0 was packed but never uploaded, so its notes stay
+     and the new work joins them. Suite green on all three frameworks; both MyHotel documents
+     regenerate byte-identical, as ruled.
 
 ## 3. The id in the header
 
-7. **Make it optional.** Opt out, header carries the version alone. Pure addition.
-8. **Should a referenced project move it?** Today yes —
+6. **Make it optional.** Opt out, header carries the version alone. Pure addition.
+7. **Should a referenced project move it?** Today yes —
    [PendingDocument.cs:23](Core/Internal/Document/PendingDocument.cs:23) digests the closure from the
    subject. Packages are already excluded, so only projects are in question, and excluding them
    undoes what 2.2.1 set out to do. **Decide.** If 7 ships, this may not be worth changing.
 
 ## 4. The arrange surface
 
-9. **Setup by method name, arguments blind.** The verify side has it —
+8. **Setup by method name, arguments blind.** The verify side has it —
    `.And<IEventQueue>(nameof(IEventQueue.MarkFailed), Never)`. `Given<T>().That(…)` takes only an
    expression, so every parameter must be spelled with `It.IsAny`.
-10. **Sequenced setup without the wall.** `Given<IChatCompletion>().First().Returns(…).AndNext()…`.
+9. **Sequenced setup without the wall.** `Given<IChatCompletion>().First().Returns(…).AndNext()…`.
     `First()` sits on `IGivenThatContinuation`, reachable only after `.That(expr)`; the service-wide
     `Returns` has no sequence. Same resolution rule as 9, so build it after.
-11. **`It.IsAny<T>()` reads as "any T".** Rendering change, so it re-pins — do it after 9 and 10,
+10. **`It.IsAny<T>()` reads as "any T".** Rendering change, so it re-pins — do it after 8 and 9,
     which remove most occurrences, and re-pin once.
 
 ## 5. Header and navigation
 
-12. **Suppress `Subject under test: string` / `Return type: string` for a static function.**
+11. **Suppress `Subject under test: string` / `Return type: string` for a static function.**
     [CodeSegment.cs:11](Core/Internal/Document/RenderPipeline/CodeSegment.cs:11). **Decide the rule:**
     "the subject is not an argument of the act" — which `TestIdentity.Declares` already reasons
     about — or let the spec declare a display name.
-13. **Heading links to its test class/method.** Needs a path story first: the run has no file paths,
+12. **Heading links to its test class/method.** Needs a path story first: the run has no file paths,
     the PDB has the compiler's absolute ones, and embedding those is churn. Unshaped until there is a
     relativization stable across machines.
 
 ## 6. Ordering
 
-14. **An ordering hint**, so the happy path can come before the refusals — today
+13. **An ordering hint**, so the happy path can come before the refusals — today
     `ComplexityNumber` then key
     ([DocumentRenderer.cs:77](Core/Internal/Document/RenderPipeline/DocumentRenderer.cs:77)).
     Opt-in only: changing the default reflows every document. **Decide where the hint is written** —
     attribute on the class, or a number the spec declares.
+
+## 7. Parked
+
+14. **Class doc-comment as section prose.** Parked, PO's ruling 2026-09-05: comments are not
+    verifiable the way test code is, they lie once they drift, and inviting them into the
+    specification invites the pollution with them. The gap it addressed — section-level "what this
+    component is for" — stands; it wants a channel that a test can keep honest.

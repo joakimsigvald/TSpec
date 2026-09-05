@@ -38,7 +38,7 @@ internal class SpecificationRecording
 
     public override string ToString()
         => _cachedSpecification ??= SpecificationRenderer
-            .Compose(Clauses, _because)
+            .Compose(Hole.Filled(Clauses), _because)
             .Render(TextBuilder.PageWidth);
 
     /// Files a step under the statement it belongs to: anything but a word heads one of its own.

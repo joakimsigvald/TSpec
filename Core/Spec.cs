@@ -61,15 +61,20 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     {
         if (!SpecificationCollector.IsActive || !TestIdentity.Passed)
             return;
+        SpecificationCollector.Record(
+            ExpectedRequirements.Identity(GetType(), TestIdentity.Requirement), Reported());
+    }
+
+    /// What this run hands to the document, whether or not one is being written.
+    internal SpecificationEntry Reported()
+    {
         var testClass = GetType();
-        var requirement = TestIdentity.Requirement;
         var (subject, branch) = TestIdentity.Locate(testClass);
         var declared = TestIdentity.Declares(
             testClass, Pipeline.ActsOnSubject, Pipeline.YieldsResult);
-        SpecificationCollector.Record(
-            ExpectedRequirements.Identity(testClass, requirement),
-            new(subject, branch, requirement,
-                Pipeline.Specification.Clauses, Pipeline.Specification.Because,
-                declared?.SubjectUnderTest, declared?.ReturnType, testClass.Namespace));
+        return new(subject, branch, TestIdentity.Requirement,
+            Pipeline.Specification.Clauses, Pipeline.Specification.Because,
+            declared?.SubjectUnderTest, declared?.ReturnType, testClass.Namespace,
+            TheoryRow.Read());
     }
 }

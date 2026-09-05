@@ -78,6 +78,18 @@ public class WhenBecause : Spec<MyStateService, int?>
     }
 
     [Fact]
+    public void NoStraySpaceAfterNotNull()
+    {
+        When(_ => (int?)1);
+        Because("it is set").Result.Is().not.Null();
+        Specification.Is(
+            """
+            When (int?)1
+            Then Result is not null, because it is set
+            """);
+    }
+
+    [Fact]
     public void GivenAssertionFails_ThenReasonIsIncludedInFailureOutput()
     {
         var ex = Xunit.Assert.Throws<XunitException>(

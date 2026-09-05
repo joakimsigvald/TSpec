@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using TSpec.Internal.Document;
 using Xunit.Sdk;
 
 namespace TSpec.Internal.Specification;
@@ -29,6 +30,23 @@ internal class SpecificationContext : IAssertSpecificationContext
 
     /// The context this one displaced, restored when this one is released — see <see cref="Create"/>.
     private SpecificationContext? _enclosing;
+
+    /// The parameters of the theory this test is a row of, read once and kept for the test.
+    private IReadOnlySet<string>? _holes;
+
+    /// <summary>
+    /// Whether an expression names a parameter of the running theory, and so stands for a value
+    /// this row supplied rather than one the requirement states. Read lazily: by the time an
+    /// assertion asks, the runner has settled which row is running.
+    /// </summary>
+    internal static bool IsHole(string? expression)
+        => expression is not null
+            && (_currentAssertionContext.Value ??= new()).Holes.Contains(expression);
+
+    private IReadOnlySet<string> Holes
+        => _holes ??= TheoryRow.Read() is { } row
+            ? row.Headers.ToHashSet(StringComparer.Ordinal)
+            : new HashSet<string>(StringComparer.Ordinal);
 
     private SpecificationContext()
     {

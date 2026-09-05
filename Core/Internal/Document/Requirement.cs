@@ -4,7 +4,10 @@ using TSpec.Internal.Specification;
 namespace TSpec.Internal.Document;
 
 internal sealed record Requirement(
-    SpecificationEntry Entry, IReadOnlyList<SpecificationClause> Clauses, string Signature)
+    SpecificationEntry Entry,
+    IReadOnlyList<SpecificationClause> Clauses,
+    string Signature,
+    IReadOnlyList<TheoryRow> Rows)
 {
     internal int ArrangementCount => DocumentNode.CountArrangements(Clauses);
 
@@ -28,15 +31,32 @@ internal sealed record Requirement(
         => Clauses.Sum(clause => clause.Steps.Sum(step => step.Body.Length))
             + (Entry.Because?.Length ?? 0);
 
+    /// <summary>
+    /// Where a theory filled a hole, the document leaves it open: the value is the row's, not the
+    /// requirement's, and the table beneath states every row's. That is also what makes the rows
+    /// of one theory the same requirement, since they then describe themselves identically.
+    /// </summary>
+    /// <remarks>
+    /// What reported identically is one requirement — a theory's rows, and a requirement written
+    /// above the branches it ran in. The rows are collected rather than discarded, which is the
+    /// difference between a theory stating its data and stating only its parameter names.
+    /// </remarks>
     internal static IEnumerable<Requirement> From(IEnumerable<SpecificationEntry> entries)
         => entries
-            .Select(entry => new Requirement(entry, entry.Clauses, ToSignature(entry)))
-            .DistinctBy(requirement => (
-                requirement.Entry.Namespace,
-                requirement.Entry.Subject,
-                requirement.Entry.Branch,
-                requirement.Entry.Requirement,
-                requirement.Signature));
+            .Select(entry => entry with { Clauses = Hole.Hollow(entry.Clauses) })
+            .GroupBy(entry => (
+                entry.Namespace,
+                entry.Subject,
+                entry.Branch,
+                entry.Requirement,
+                Signature: ToSignature(entry)))
+            .Select(reported => new Requirement(
+                reported.First(), reported.First().Clauses, reported.Key.Signature,
+                RowsOf(reported)));
+
+    /// Declaration order, since rows report in whatever order a parallel run finished them.
+    private static IReadOnlyList<TheoryRow> RowsOf(IEnumerable<SpecificationEntry> reported)
+        => [.. reported.Select(entry => entry.Row).OfType<TheoryRow>().OrderBy(row => row.Index)];
 
     private static string ToSignature(SpecificationEntry entry)
         => string.Join('\n', entry.Clauses

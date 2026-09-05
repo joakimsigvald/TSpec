@@ -63,7 +63,7 @@ internal static class DocumentRenderer
         {
             Add(new NewLineSegment());
             foreach (var requirement in InReadingOrder(requirements))
-                Add(new ListItemSegment(requirement.Name, requirement.Claim));
+                Add(new ListItemSegment(requirement.Name, requirement.Claim, requirement.Rows));
         }
     }
 
@@ -96,6 +96,16 @@ internal static class DocumentRenderer
         StringBuilder text = new();
         foreach (var segment in segments)
             text.Append(segment.Render());
-        return text.ToString();
+        return Squeezed(text.ToString());
     }
+
+    /// <summary>
+    /// One blank line at most. Segments cannot see each other, so a table that closes its item with
+    /// a blank line and a heading that opens with one would together leave a gap the document
+    /// leaves nowhere else.
+    /// </summary>
+    private static string Squeezed(string text)
+        => text.Contains("\n\n\n", StringComparison.Ordinal)
+            ? Squeezed(text.Replace("\n\n\n", "\n\n", StringComparison.Ordinal))
+            : text;
 }
