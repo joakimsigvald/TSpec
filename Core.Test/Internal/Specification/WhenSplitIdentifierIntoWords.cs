@@ -25,6 +25,7 @@ public class WhenSplitIdentifierIntoWords : Spec<string>
     // An underscore separates clauses, not words
     [InlineData("GivenASnake_WithWings", "given a snake, with wings")]
     [InlineData("GivenA_GivenB_GivenC", "given a, given b, given c")]
+    [InlineData("GivenNumber123", "given number 123")]
     [InlineData("_leading", "leading")]
     public void ThenReadAsWords(string identifier, string expected)
         => When(_ => identifier.AsWords()).Then().Result.Is(expected);

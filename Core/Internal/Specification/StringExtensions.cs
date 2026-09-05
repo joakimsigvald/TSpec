@@ -153,15 +153,18 @@ internal static class StringExtensions
 
     private static IEnumerable<string> SplitWords(string camelCase)
     {
+        char prev = camelCase[0];
         int fromIndex = 0;
-        for (var toIndex = 0; toIndex < camelCase.Length; toIndex++)
+        for (var toIndex = 1; toIndex < camelCase.Length; toIndex++)
         {
-            if (!char.IsUpper(camelCase[toIndex]))
+            if (!IsWordStart(prev, camelCase[toIndex]))
                 continue;
-            if (toIndex > fromIndex)
-                yield return camelCase[fromIndex..toIndex];
+            yield return camelCase[fromIndex..toIndex];
             fromIndex = toIndex;
         }
         yield return camelCase[fromIndex..];
     }
+
+    private static bool IsWordStart(char prev, char next) 
+        => char.IsUpper(next) || char.IsNumber(next) && !char.IsNumber(prev);
 }

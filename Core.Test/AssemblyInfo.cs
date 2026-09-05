@@ -1,3 +1,3 @@
 using TSpec;
 
-[assembly: AssemblyFixture(typeof(SpecificationDocument))]
+//[assembly: AssemblyFixture(typeof(SpecificationDocument))]
