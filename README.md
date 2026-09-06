@@ -875,9 +875,8 @@ A `[Fact]` renders as a bullet point with the method name in words, followed by 
 A `[Theory]` fed by `[InlineData]` renders as a table of its rows, headed by
 the parameter names
 
-**The document is written only when every non-skipped test in the assembly passed.** A filtered run,
-a failure, or a constructor that threw all leave requirements unreported, and publishing then would
-silently shorten the document — so the existing file is left untouched and the gaps are named:
+**The document is written only when every non-skipped test in the assembly passed.** . A filtered or failed run
+leave the existing file untouched and the gaps are named:
 
 ```
 TSpec: SPECIFICATION.md left unchanged — 1 requirement(s) did not report a pass, so the document

@@ -59,10 +59,13 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
 
     private void Collect()
     {
-        if (!SpecificationCollector.IsActive || !TestIdentity.Passed)
+        if (!SpecificationCollector.IsActive)
             return;
-        SpecificationCollector.Record(
-            ExpectedRequirements.Identity(GetType(), TestIdentity.Requirement), Reported());
+        var identity = ExpectedRequirements.Identity(GetType(), TestIdentity.Requirement);
+        if (TestIdentity.Passed)
+            SpecificationCollector.Record(identity, Reported());
+        else if (TestIdentity.Skipped)
+            SpecificationCollector.Skipped(identity);
     }
 
     /// What this run hands to the document, whether or not one is being written.

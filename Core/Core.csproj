@@ -17,14 +17,20 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>2.4.0</PackageVersion>
+		<PackageVersion>2.3.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
+			CHANGED
+			* The SPECIFICATION.md header states the subject's version alone. The source id is gone:
+			the document renders what the tests claim, so the body is what has to stay in step with
+			them.
 			NEW
 			* A [Theory] with [InlineData] renders as one requirement over a table of its rows
 			FIXED
+			* A test skipped while it ran (Assert.Skip) no longer counts as a missing requirement,
+			which had left the document silently unwritten on an otherwise green run
 			* Split words and numbers correctly
 			* keep empty string literal after ?? in specification (str ?? "")
 			* describe expression with operator properly

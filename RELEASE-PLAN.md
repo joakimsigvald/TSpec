@@ -69,7 +69,12 @@ Small, independent, each one a wrong line in a real document. Test row first.
    - **Document only.** `Specification` and every `Specification.Is(…)` pin keep their values. A pin
      that breaks does so because a hole reached the per-test text by mistake.
    - **MyHotel untouched.** It has no `[InlineData]`, so both committed documents stay
-     byte-identical.
+     byte-identical. **Did not hold**, found 2026-09-06: the document committed in `da121e7` gave
+     `ThenReturnTheBookingWithTheNumberItWasGiven` — a `[Fact]` — a one-row `roomNumber` table, the
+     `Booking` constructor's parameter name having been read as a hole. The code at that commit is
+     right; regenerating there produces no table, so the committed file was written by an
+     intermediate build during 5d and never regenerated after the expression-level fix landed. It
+     was corrected by the 2.5.0 regeneration. Nothing was watching, which is the point of item 8.
 
    Work items, each test-first:
 
@@ -157,36 +162,71 @@ Small, independent, each one a wrong line in a real document. Test row first.
 
 ## 3. The id in the header
 
-6. **Make it optional.** Opt out, header carries the version alone. Pure addition.
-7. **Should a referenced project move it?** Today yes —
-   [PendingDocument.cs:23](Core/Internal/Document/PendingDocument.cs:23) digests the closure from the
-   subject. Packages are already excluded, so only projects are in question, and excluding them
-   undoes what 2.2.1 set out to do. **Decide.** If 7 ships, this may not be worth changing.
+6. ~~**Make it optional.**~~ and 7. ~~**Should a referenced project move it?**~~ Both answered by
+   one ruling, PO's, 2026-09-06: **the id is gone, and the header carries the subject's version
+   alone.**
+
+   The principle that settles it: *the specification gives an honest description of what is tested
+   and nothing more.* Verifying that the behaviour is correct belongs to the tests, coverage to a
+   coverage gate, effectiveness to Stryker. So the document names what it renders — the tests — and
+   an id naming the implementation's source had the header speak for something the document does
+   not describe.
+
+   That principle retires the id rather than re-rooting it at the spec project. The body is already
+   a deterministic function of the test source, which is what makes
+   `dotnet test && git diff --exit-code` work at all — regenerating and diffing the whole file *is*
+   the up-to-date check, and a hash over the same source only restates it. The two cases come out
+   asymmetric: where a test change alters a claim the body moves and the hash adds nothing, and
+   where it alters no claim (a renamed private helper, a reformat, a test whose requirement folds
+   into an existing one) the body correctly sits still and the hash moves alone — reporting that
+   mechanism changed, which is the one thing the document exists to erase.
+
+   Gone with it: `SourceDigest`, `ProjectReferences.ClosureFrom` and the graph it walked, and the
+   `obj/` exclusion that kept the commit id out. `ProjectReferences` is now only what names the
+   subject and states its version. Both MyHotel documents lost the `+id` from their header.
+
+   No opt-out, and none wanted: whether a header comment carries eight hex characters is not a
+   property of anyone's requirements, so there are no domain grounds on which to configure it.
+
+8. ~~**A test skipped while it ran counted as missing.**~~ Fixed 2026-09-06, found while ruling on
+   the above. `ExpectedRequirements` reads `FactAttribute.Skip`, which is empty for a runtime skip
+   (`Assert.Skip`, or a mapped `SkipExceptions`), so such a test was expected, reported nothing —
+   its result is `Skipped`, not `Passed` — and left `Missing` non-empty. The document was then not
+   written **at all**, on a run that exited 0, so the freshness gate compared a stale file against
+   itself and passed. Not one stale commit: the document stopped updating for as long as the skip
+   stood.
+
+   `Collect` now routes on the result — `Passed` records, `Skipped` marks the requirement excused —
+   and `Missing` subtracts both. A skip excuses itself and nothing else.
+
+   Verified against MyHotel rather than by reading, the branch being untestable from inside the
+   same assembly: a temporary `Assert.Skip` in `Core.Spec` left the document unwritten with the
+   branch disabled, and rewrote it with the branch live, both on a green 33-test run.
 
 ## 4. The arrange surface
 
-8. **Setup by method name, arguments blind.** The verify side has it —
+9. **Setup by method name, arguments blind.** The verify side has it —
    `.And<IEventQueue>(nameof(IEventQueue.MarkFailed), Never)`. `Given<T>().That(…)` takes only an
    expression, so every parameter must be spelled with `It.IsAny`.
-9. **Sequenced setup without the wall.** `Given<IChatCompletion>().First().Returns(…).AndNext()…`.
+10. **Sequenced setup without the wall.** `Given<IChatCompletion>().First().Returns(…).AndNext()…`.
     `First()` sits on `IGivenThatContinuation`, reachable only after `.That(expr)`; the service-wide
     `Returns` has no sequence. Same resolution rule as 9, so build it after.
-10. **`It.IsAny<T>()` reads as "any T".** Rendering change, so it re-pins — do it after 8 and 9,
+11. **`It.IsAny<T>()` reads as "any T".** Rendering change, so it re-pins — do it after 9 and 10,
     which remove most occurrences, and re-pin once.
 
 ## 5. Header and navigation
 
-11. **Suppress `Subject under test: string` / `Return type: string` for a static function.**
+12. **Suppress `Subject under test: string` / `Return type: string` for a static function.**
     [CodeSegment.cs:11](Core/Internal/Document/RenderPipeline/CodeSegment.cs:11). **Decide the rule:**
     "the subject is not an argument of the act" — which `TestIdentity.Declares` already reasons
     about — or let the spec declare a display name.
-12. **Heading links to its test class/method.** Needs a path story first: the run has no file paths,
+13. **Heading links to its test class/method.** Needs a path story first: the run has no file paths,
     the PDB has the compiler's absolute ones, and embedding those is churn. Unshaped until there is a
     relativization stable across machines.
 
 ## 6. Ordering
 
-13. **An ordering hint**, so the happy path can come before the refusals — today
+14. **An ordering hint**, so the happy path can come before the refusals — today
     `ComplexityNumber` then key
     ([DocumentRenderer.cs:77](Core/Internal/Document/RenderPipeline/DocumentRenderer.cs:77)).
     Opt-in only: changing the default reflows every document. **Decide where the hint is written** —
@@ -194,7 +234,7 @@ Small, independent, each one a wrong line in a real document. Test row first.
 
 ## 7. Parked
 
-14. **Class doc-comment as section prose.** Parked, PO's ruling 2026-09-05: comments are not
+15. **Class doc-comment as section prose.** Parked, PO's ruling 2026-09-05: comments are not
     verifiable the way test code is, they lie once they drift, and inviting them into the
     specification invites the pollution with them. The gap it addressed — section-level "what this
     component is for" — stands; it wants a channel that a test can keep honest.

@@ -22,30 +22,4 @@ public class WhenParseProjectReferences : Spec
 
     [Fact] public void GivenAnUnknownAssembly_ThenFindNothing()
         => ProjectReferences.Parse(DepsJson.MyHotelSpec, "Other").Names.Count.Is(0);
-
-    /// <summary>
-    /// Everything the subject is built on. A rule can live in any of them, so a document generated
-    /// before one of them changed describes code that is no longer there — which the id has to say.
-    /// </summary>
-    [Fact] public void ThenReachEverythingTheSubjectIsBuiltOn()
-        => Closure("MyHotel").Is().EqualTo(["MyHotel", "MyHotel.Persistence"]);
-
-    /// <summary>
-    /// A package is versioned, not built here, and has no source in the output to read — so the
-    /// closure stops at it rather than walking through it.
-    /// </summary>
-    [Fact] public void ThenStopAtPackages()
-        => Closure("MyHotel.Spec").Does().not.Contain("xunit.v3").and.not.Contain("TSpec");
-
-    /// <summary>
-    /// Walked from the subject rather than from the spec project, so the test framework and any
-    /// project only the specs reference stay out of an id that names the code under test.
-    /// </summary>
-    [Fact] public void ThenStartWhereItIsAsked()
-        => Closure("MyHotel.Persistence").Is().EqualTo(["MyHotel.Persistence"]);
-
-    [Fact] public void GivenAnUnknownSubject_ThenReachNothing()
-        => Closure("Other").Is().Empty();
-
-    private static string[] Closure(string name) => [.. Parse().ClosureFrom(name).Order(StringComparer.Ordinal)];
 }

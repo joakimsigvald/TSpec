@@ -10,6 +10,13 @@ internal static class TestIdentity
     internal static bool Passed
         => TestContext.Current.TestState?.Result == TestResult.Passed;
 
+    /// <summary>
+    /// Skipped while it ran, rather than by its attribute — the only place that distinction is
+    /// visible, since the attribute the assembly is read from carries no skip reason for it.
+    /// </summary>
+    internal static bool Skipped
+        => TestContext.Current.TestState?.Result == TestResult.Skipped;
+
     internal static string Requirement
         => TestContext.Current.TestMethod?.MethodName ?? "(unknown)";
 

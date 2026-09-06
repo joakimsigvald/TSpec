@@ -5,7 +5,6 @@ namespace TSpec.Internal.Document.RenderPipeline;
 internal sealed record Document(
     SpecificationSubject Subject,
     string SpecAssemblyName,
-    string? SourceId,
     string? SubjectUnderTest,
     string? ReturnType,
     IReadOnlyList<SpecificationClause> Whole,
@@ -14,12 +13,12 @@ internal sealed record Document(
     internal const int Width = 90;
 
     internal static Document Of(
-        SpecificationSubject subject, string specAssemblyName, string? sourceId,
+        SpecificationSubject subject, string specAssemblyName,
         IEnumerable<SpecificationEntry> entries)
     {
         Requirement[] requirements = [.. Requirement.From(entries)];
         var whole = Requirement.Shared(requirements, acts: false);
-        return new(subject, specAssemblyName, sourceId,
+        return new(subject, specAssemblyName,
             Requirement.SubjectOf(requirements), Requirement.ReturnTypeOf(requirements),
             whole, ToAreas(requirements, whole));
     }

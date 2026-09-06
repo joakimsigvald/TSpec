@@ -32,6 +32,28 @@ public class WhenListExpectedRequirements : Spec
     public void GivenNothingReported_ThenEveryRequirementIsMissing()
         => SpecificationCollector.Missing(new HashSet<string> { "A.b", "A.a" }).Is().EqualTo(["A.a", "A.b"]);
 
+    /// <summary>
+    /// A test skipped while it ran — Assert.Skip in the body, or a mapped SkipException — reports
+    /// nothing, and the attribute cannot tell it apart from a test that never ran. Counted as
+    /// missing it would stop the document being written for as long as the skip stood, on a green
+    /// pipeline that says nothing is wrong.
+    /// </summary>
+    [Fact]
+    public void GivenATestSkippedWhileItRan_ThenItIsNotMissing()
+    {
+        SpecificationCollector.Skipped("A.SkippedWhileItRan");
+        SpecificationCollector.Missing(new HashSet<string> { "A.SkippedWhileItRan" }).Is().Empty();
+    }
+
+    /// <summary>A skip excuses itself and nothing else: a run that fell short is still short.</summary>
+    [Fact]
+    public void GivenATestSkippedWhileItRan_ThenTheRestAreStillMissing()
+    {
+        SpecificationCollector.Skipped("A.AlsoSkipped");
+        SpecificationCollector.Missing(new HashSet<string> { "A.AlsoSkipped", "A.NeverRan" })
+            .Is().EqualTo(["A.NeverRan"]);
+    }
+
     public class SkippedSample : Spec
     {
         [Fact(Skip = "Present so that skip-handling has a regression test")]
