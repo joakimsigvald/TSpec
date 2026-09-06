@@ -1,4 +1,3 @@
-﻿using Moq;
 using TSpec.Assert;
 using TSpec.Test.Subjects.Order;
 using TSpec.Test.Subjects.Purchase;
@@ -19,7 +18,7 @@ public class WhenPurchase : Spec<Subjects.Purchase.PurchaseHandler, PurchaseResp
         [Fact]
         public void ThenPublishBasketPurchasedEventAndCheckoutIsClosed()
         {
-            Then<ITopicExchangeV2<BasketPurchasedV1>>(_ => _.Publish(It.IsAny<BasketPurchasedV1>()))
+            Then<ITopicExchangeV2<BasketPurchasedV1>>(_ => _.Publish(Any<BasketPurchasedV1>()))
             .And(The<Checkout>()).IsOpen.Is().False();
             Specification.Is(
                 """
@@ -27,7 +26,7 @@ public class WhenPurchase : Spec<Subjects.Purchase.PurchaseHandler, PurchaseResp
                 Given ICheckoutProvider.GetExistingCheckout(the int) returns a Checkout
                   and IBasketRepository.GetEditable(the int) returns the Checkout's Basket
                 When Purchase(an int)
-                Then ITopicExchangeV2<BasketPurchasedV1>.Publish(It.IsAny<BasketPurchasedV1>())
+                Then ITopicExchangeV2<BasketPurchasedV1>.Publish(any BasketPurchasedV1)
                   and the Checkout's IsOpen is false
                 """);
         }

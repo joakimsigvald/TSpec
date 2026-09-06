@@ -4,22 +4,19 @@ Open work first, in build order. What is finished is listed at the end.
 
 ## 1. The arrange surface
 
-1. **Setup by method name, arguments blind.** The verify side has it —
-   `.And<IEventQueue>(nameof(IEventQueue.MarkFailed), Never)`. `Given<T>().That(…)` takes only an
-   expression, so every parameter must be spelled with `It.IsAny`.
-2. **Sequenced setup without the wall.** `Given<IChatCompletion>().First().Returns(…).AndNext()…`.
-   `First()` sits on `IGivenThatContinuation`, reachable only after `.That(expr)`; the service-wide
-   `Returns` has no sequence. Same resolution rule as 1, so build it after.
-3. **`It.IsAny<T>()` reads as "any T".** Rendering change, so it re-pins — do it after 1 and 2,
-   which remove most occurrences, and re-pin once.
+1. **Sequenced setup without the wall.** `Given<IChatCompletion>().First().Returns(…).AndNext()…`,
+   service-wide, no method named. `First()` sits on `IGivenThatContinuation`, reachable only after
+   `.That(expr)`; the service-wide `Returns` rides on Moq's return default, which has no sequence,
+   so this has to enumerate the interface's matching methods and `SetupSequence` each. Naming the
+   method with `Any` arguments — `.That(_ => _.Complete(Any<string>())).First()` — works today.
 
 ## 2. Header and navigation
 
-4. **Suppress `Subject under test: string` / `Return type: string` for a static function.**
+2. **Suppress `Subject under test: string` / `Return type: string` for a static function.**
    [CodeSegment.cs:11](Core/Internal/Document/RenderPipeline/CodeSegment.cs:11). **Decide the rule:**
    "the subject is not an argument of the act" — which `TestIdentity.Declares` already reasons
    about — or let the spec declare a display name.
-5. **Heading links to its test class/method.** Needs a path story: the run has no file paths and the
+3. **Heading links to its test class/method.** Needs a path story: the run has no file paths and the
    PDB has the compiler's absolute ones. `ProjectDirectory.Locate` already finds the spec project
    root and the document is written into it, so a PDB path relative to that root is the link target —
    the cost is a PDB reader, and a rule for what a heading links to when several test classes fold
@@ -27,7 +24,7 @@ Open work first, in build order. What is finished is listed at the end.
 
 ## 3. Ordering
 
-6. **An ordering hint**, so the happy path can come before the refusals — today
+4. **An ordering hint**, so the happy path can come before the refusals — today
    `ComplexityNumber` then key
    ([DocumentRenderer.cs:77](Core/Internal/Document/RenderPipeline/DocumentRenderer.cs:77)).
    Opt-in only: changing the default reflows every document. **Decide where the hint is written** —
@@ -35,23 +32,33 @@ Open work first, in build order. What is finished is listed at the end.
 
 ## 4. Smaller
 
-7. **A cut cell could wrap instead.** Sizing columns to their content took most of the waste out,
+5. **A cut cell could wrap instead.** Sizing columns to their content took most of the waste out,
    but a value longer than the page still ends in an ellipsis. Wrapping within a cell is the other
    half of that refinement — and needs a rule for what a wrapped row looks like, since a row broken
    across lines stops being a row.
-8. **`Is().LowerCase()` and `UpperCase()` case with the machine's culture**
+6. **`Is().LowerCase()` and `UpperCase()` case with the machine's culture**
    ([IsString.cs:23](Core/Assert/Continuations/String/IsString.cs:23), four calls). Nothing fails on
    it. **Decide** whether these mean "lowercase in the user's culture" or invariantly, unlike the
    renderer, which is now invariant.
 
 ## 5. Parked
 
-9. **Class doc-comment as section prose.** Parked, PO's ruling 2026-09-05: comments are not
+7. **Class doc-comment as section prose.** Parked, PO's ruling 2026-09-05: comments are not
    verifiable the way test code is, they lie once they drift, and inviting them into the
    specification invites the pollution with them. The gap it addressed — section-level "what this
    component is for" — stands; it wants a channel that a test can keep honest.
 
 ## Done
+
+**`Any<T>()` in a mock call means any T.** `Any` yields a value that cannot be retrieved again, so a
+setup or verification written with `Any<int>()` could never match — the real call never carried
+that value. An expression visitor now swaps each parameterless `Any<T>()` for `It.IsAny<T>()` before
+the expression reaches Moq's `Setup`, `SetupSequence` or `Verify`, and `It.IsAny<T>()` renders as
+"any T" so both forms read the same and the document hints at the shorter one. Replaces setup by
+method name, dropped: the exact call is unambiguous where a name is not (overloads, generics, ref
+parameters, the return type), and `Any` removes the length that made the name attractive. A method
+named `_` as a two-character alias compiles but was rejected: three underscores in three roles on
+one line. 2026-09-06.
 
 **`??` loses an operand.** Every operator node took its raw text before its operand was consumed, so
 the text stopped at the operator. Each now composes its text from its own parts.

@@ -14,7 +14,7 @@ internal class GivenThatContinuation<TSUT, TResult, TService, TReturns, TActualR
         Spec<TSUT, TResult> spec,
         Expression<Func<TService, TActualReturns>> call,
         string callExpr)
-        : base(spec, GetSetup(call), callExpr) { }
+        : base(spec, GetSetup(AnyArgument.Rewrite(call)), callExpr) { }
 
     private static Func<Mock<TService>, bool, object> GetSetup(Expression<Func<TService, TActualReturns>> call)
         => (mock, isSequential) => isSequential ? mock.SetupSequence(call) : mock.Setup(call);

@@ -284,6 +284,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <summary>
     /// Yields a value of the given type that cannot be retrieved again.
     /// Using `Any` is synonymous to `Another` — pick the alias that reads best.
+    /// As an argument in a mock setup or verification it means any value of the type, like `It.IsAny`.
     /// </summary>
     /// <typeparam name="TValue">The type of the value</typeparam>
     /// <returns>The generated or previously provided value</returns>

@@ -14,7 +14,7 @@ internal class GivenThatVoidContinuation<TSUT, TResult, TService>
         Spec<TSUT, TResult> spec,
         Expression<Action<TService>> call,
         string callExpr)
-        : base(spec, GetSetup(call), callExpr) {}
+        : base(spec, GetSetup(AnyArgument.Rewrite(call)), callExpr) {}
 
     private static Func<Mock<TService>, bool, IFluentInterface> GetSetup(Expression<Action<TService>> call)
         => (mock, isSequential) => isSequential ? (IFluentInterface)mock.SetupSequence(call) : mock.Setup(call);

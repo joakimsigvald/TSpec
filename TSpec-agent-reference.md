@@ -43,7 +43,7 @@ Mentions generate-and-remember values **per type, per test** — the same mentio
 - Single values: `A<T>()`, `An<T>()`, `The<T>()`, `AFirst<T>()`, `TheFirst<T>()`, `ASecond<T>()`, `TheSecond<T>()` … up to `Fifth` (5 numbered slots per type).
 - With inline setup: `A<Cart>(_ => _.Id = 3)`.
 - Collections: `Zero<T>()`, `One<T>()`, `Two<T>()`, `Three<T>()`, `Four<T>()`, `Five<T>()`, `Some<T>()` (≥1), `Many<T>()` (≥2), `AnyNumberOf<T>()`. Everything but `One` renders the type as a plural — `Two<Room>()` reads "two Rooms", `Many<Query>()` reads "many Queries". Regular spelling only, so an irregular noun comes out regular (`Two<Child>()` reads "two Childs").
-- Throwaway values (never referenced again): `Any<T>()`, `Another<T>()`.
+- Throwaway values (never referenced again): `Any<T>()`, `Another<T>()`. In a mock setup/verify expression `Any<T>()` means any T (see Mocking).
 - Tags name values of the same type: `static Tag<string> name = new(nameof(name));` then `Given(name).Is("Ada")`, reference with `The(name)`, or register as default with `Using(name, For.Subject)`. `nameof(...)` is optional — `new()` takes the field's name. Renders as "the Name", and a member access after it reads possessively: `The(room).RoomNumber` is "the Room's RoomNumber".
 
 Value resolution order when a value is requested: (1) already-mentioned value; (2) registered conversion/value source, then explicit `Using` value/factory; (3) built-in generation (primitives, enums, collections, mocks for interfaces/abstract types, constructed concrete classes); then any `Given` setup/transform lambdas are applied.
@@ -79,10 +79,12 @@ Given<ICartRepository>().Returns(A<Cart>)
 
 Setups are identical whether the member returns `T`, `Task<T>` or `ValueTask<T>` — `Returns(() => 7)` supplies the unwrapped value.Unmocked interface methods return auto-generated defaults (no strict-mock failures). For Moq features TSpec lacks, build a `Mock<T>` manually and supply `Using(myMock.Object)`.
 
-Verification (in test methods): `Then<IOrderService>(_ => _.CreateOrder(The<Cart>()));` verifies the call was made ≥1 time. Note: mentions in verify expressions match by value — a fresh `Any<T>()` matches nothing; use `The<T>()`/`The(tag)` to match arguments used in the test.
+Arguments in a setup or verify expression match by value — `The<T>()`/`The(tag)` match the value used in the test — except `Any<T>()`, which in a mock call means any T (`It.IsAny<T>()`): `.That(_ => _.Save(Any<Booking>(), Any<CancellationToken>()))`. Prefer it over `It.IsAny<T>()`; both render as `any T`.
+
+Verification (in test methods): `Then<IOrderService>(_ => _.CreateOrder(The<Cart>()));` verifies the call was made ≥1 time.
 Invocation counts — `wasInvoked:` (a `Moq.Times`) closes all three scopes identically; only the selector in the parens changes. With `using static Moq.Times;`:
-- Expression (matches args): `Then<IEventQueue>(q => q.MarkRejected(42, It.IsAny<string>(), It.IsAny<CancellationToken>()), Once)` — positional `Times`; without it the bare form is ≥1.
-- Named method (any args): `.And<IEventQueue>(nameof(IEventQueue.MarkFailed), Never)` — avoids `It.IsAny<>()` per param; matches any invocation of that name (on overloads the count aggregates across all overloads; use the expression form when a specific overload/arg values matter).
+- Expression (matches args): `Then<IEventQueue>(q => q.MarkRejected(42, Any<string>(), Any<CancellationToken>()), Once)` — positional `Times`; without it the bare form is ≥1.
+- Named method (any args): `.And<IEventQueue>(nameof(IEventQueue.MarkFailed), Never)` — no expression needed; matches any invocation of that name (on overloads the count aggregates across all overloads; use the expression form when a specific overload/arg values matter).
 - Whole service (any method/property incl. gets/sets): `.And<IEntityWriter>(wasInvoked: Never)` — `wasInvoked:` must be named here.
 All three render the count into the spec (e.g. `IEventQueue.MarkFailed was not invoked`). Deprecated: `Then<TService>().WasInvoked(Times)` / `.And<TService>().WasInvoked(Times)` — use `Then<TService>(wasInvoked: Times)`.
 

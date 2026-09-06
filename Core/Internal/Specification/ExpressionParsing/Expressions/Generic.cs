@@ -10,7 +10,15 @@ internal sealed record Generic(string Raw, Expr Target, IReadOnlyList<Expr> Type
 
     internal string TypeArgText => string.Join(", ", TypeArgs.Select(t => t.Raw));
 
-    public override Mention? AsMention() => Target is Identifier id && TypeArgs.Count > 0
-        ? new Mention(Raw, id.Name, string.Join(", ", TypeArgs.Select(t => t.Raw)), null)
+    public override Mention? AsMention() => MentionVerb is { } verb && TypeArgs.Count > 0
+        ? new Mention(Raw, verb, string.Join(", ", TypeArgs.Select(t => t.Raw)), null)
         : null;
+
+    /// Moq's <c>It.IsAny&lt;T&gt;()</c> reads as TSpec's <c>Any&lt;T&gt;()</c>: both mean any T.
+    private string? MentionVerb => Target switch
+    {
+        Identifier id => id.Name,
+        Member { Target: Identifier { Name: "It" }, Name: "IsAny" } => "Any",
+        _ => null,
+    };
 }

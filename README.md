@@ -305,6 +305,8 @@ with an irregular plural is written as though it were regular — `Two<Child>()`
 For auto-generated values that are not intended to be referenced again:
 `Any`, `Another`
 
+As an argument in a mock setup or verification, `Any<T>()` means any value of the type (see [4.3](#43-mocking-with-arguments)).
+
 **Variation**
 Distinct mentions get distinct values where the type has room for them, deterministically. Small value spaces may repeat
 
@@ -425,6 +427,16 @@ Naming no method, `Given<[TheService]>().Returns(...)` sets a default that appli
 
 ### 4.3 Mocking with arguments
 
+Arguments in the mocked call match by value, so `The<int>()` matches the value the test passes.
+When the argument does not matter, write `Any<T>()` — in a mock setup or verification it means any value of the type, like Moq's `It.IsAny<T>()`, and renders as "any T":
+
+```csharp
+=> Given<IBookingStore>().That(_ => _.Save(Any<Booking>(), Any<CancellationToken>())).Throws<IOException>()
+// Given IBookingStore.Save(any Booking, any CancellationToken) throws IOException
+```
+
+`It.IsAny<T>()` still works and renders the same way.
+
 To vary mocked behavior based on arguments, supply a lambda with arguments to `Returns`. The lambda signature must match the mocked call.
 Up to five arguments are supported.
 
@@ -497,7 +509,7 @@ service):
 ```csharp
 using static Moq.Times;   // enables the paren-free method-group form
 
-Then<IEventQueue>(q => q.MarkRejected(42, It.IsAny<string>(), It.IsAny<CancellationToken>()), Once)
+Then<IEventQueue>(q => q.MarkRejected(42, Any<string>(), Any<CancellationToken>()), Once)
     .And<IEventQueue>(nameof(IEventQueue.MarkFailed), Never)   // named method, any args
     .And<IEntityWriter>(wasInvoked: Never);                    // whole service, any interaction
 ```
@@ -517,7 +529,7 @@ Then<IOrderService>(wasInvoked: Once)      // exactly one interaction
 ```
 
 **Named method** — `nameof(IEventQueue.MarkFailed)` keeps the name refactor-safe (a plain
-`"MarkFailed"` string also works) and avoids spelling out `It.IsAny<>()` for every parameter. It
+`"MarkFailed"` string also works) and needs no expression at all. It
 matches **any** invocation of that method regardless of arguments; on an **overloaded** method the
 count aggregates across all overloads (ideal for `Never` — when a specific overload or argument values
 matter, use the expression form).
