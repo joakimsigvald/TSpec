@@ -35,6 +35,7 @@
 			* keep empty string literal after ?? in specification (str ?? "")
 			* describe expression with operator properly
 			* Format values culture-invariantly, dates as yyyy-MM-dd HH:mm:ss
+			* Render the specification identically in every culture
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

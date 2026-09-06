@@ -7,6 +7,11 @@ namespace TSpec.Assert.Continuations.String;
 /// <summary>
 /// Object that allows assertions to be made on the provided string
 /// </summary>
+/// <remarks>
+/// Searching is ordinal unless a comparison is given. A culture-sensitive search answers by
+/// collation rather than by characters — Thai's ignores punctuation, and every culture ignores a
+/// zero-width joiner — so the same assertion would pass or fail by where the developer sits.
+/// </remarks>
 public record DoesString : StringConstraint<DoesStringContinuation>
 {
     /// <summary>
@@ -19,7 +24,7 @@ public record DoesString : StringConstraint<DoesStringContinuation>
         string? expected, [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
         => Assert(
             Describe(expected),
-            actual => Xunit.Assert.Contains(expected!, actual),
+            actual => Xunit.Assert.Contains(expected!, actual, StringComparison.Ordinal),
             expectedExpr!,
             verbalizationStrategy: VerbalizationStrategy.PresentSingularS).And();
 
@@ -77,7 +82,7 @@ public record DoesString : StringConstraint<DoesStringContinuation>
         string? expected, [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
         => Assert(
             Describe(expected),
-            actual => Xunit.Assert.StartsWith(expected!, actual),
+            actual => Xunit.Assert.StartsWith(expected!, actual, StringComparison.Ordinal),
             expectedExpr!,
             verbalizationStrategy: VerbalizationStrategy.PresentSingularS).And();
 
@@ -107,7 +112,7 @@ public record DoesString : StringConstraint<DoesStringContinuation>
         string? expected, [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
         => Assert(
             Describe(expected),
-            actual => Xunit.Assert.EndsWith(expected!, actual),
+            actual => Xunit.Assert.EndsWith(expected!, actual, StringComparison.Ordinal),
             expectedExpr!,
             verbalizationStrategy: VerbalizationStrategy.PresentSingularS)
         .And();

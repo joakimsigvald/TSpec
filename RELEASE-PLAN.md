@@ -83,9 +83,9 @@ Small, independent, each one a wrong line in a real document. Test row first.
      ([Constraint.cs:171](Core/Assert/Continuations/Constraint.cs:171)) and the `'count' = 1` of
      [EnumerableConstraint.cs:21](Core/Assert/Continuations/Enumerable/EnumerableConstraint.cs:21).
      All three now go through `InvariantText`, which formats dates as `yyyy-MM-dd HH:mm:ss` — PO's
-     ruling, and what sv-SE already produced, so no pinned text moved. Left standing: eleven date
+     ruling, and what sv-SE already produced, so no pinned text moved. ~~Left standing: eleven date
      tests build their *expected* string with `$"{date}"`, so they still read the running machine's
-     culture and would fail outside sv-SE.
+     culture and would fail outside sv-SE.~~ Done in 5i, along with three defects it uncovered.
    - ~~**5b Read the row.**~~ Done — [TheoryRow.cs](Core/Internal/Document/TheoryRow.cs). The plan
      had the wrong source: `IXunitTestMethod.TestMethodArguments` is empty, being about generic
      resolution. The running row is `IXunitTest.TestMethodArguments` from
@@ -159,6 +159,44 @@ Small, independent, each one a wrong line in a real document. Test row first.
      moves to 2.4. `PackageVersion` 2.4.0 — 2.3.0 was packed but never uploaded, so its notes stay
      and the new work joins them. Suite green on all three frameworks; both MyHotel documents
      regenerate byte-identical, as ruled.
+   - ~~**5i One document in every culture.**~~ Done 2026-09-06, finishing what 5a left standing.
+     The eleven date tests now build their expected text with `InvariantText()` rather than
+     `$"{date}"` — the claim is what TSpec's formatter produces, not what the ambient culture does.
+
+     **The suite now runs in en-US**, set by a module initializer in `Core.Test/AssemblyInfo.cs`.
+     This is the whole lesson: sv-SE writes dates exactly the way TSpec's convention does, so for
+     as long as the suite ran only here, nothing could ever disagree. Pinning the suite to a culture
+     that *matches* would have made that permanent; pinning it to one that differs makes a leak fail
+     on the next run. Ruled out as an alternative to the eleven call sites for the same reason.
+
+     Three defects it uncovered, each fixed test-first and each user-facing:
+
+     - **A type that formats itself leaked the culture.** `InvariantText` fell through to
+       `value.ToString()` for anything not `IFormattable`, and a record's generated `ToString`
+       renders its members with the ambient culture — so a document said `9/5/2026 1:45:00 PM` on
+       en-US. Fixed by wearing a culture for that call.
+     - **The formats were stated twice.** That culture and the four `DateTime`/`DateTimeOffset`/
+       `DateOnly`/`TimeOnly` branches said the same thing in two places. Collapsed: `InvariantText`
+       is now `null`, `IFormattable` through `_documentCulture`, everything else through
+       `Formatted`, and the convention lives on the culture alone. Guarded by pins for all four
+       types, written first and unmoved by the change.
+     - **Casing and searching read the machine.** `ToLower()`/`ToUpper()` in the renderer
+       ([StringExtensions.cs:96](Core/Internal/Specification/StringExtensions.cs:96) and
+       [:152](Core/Internal/Specification/StringExtensions.cs:152)) made tr-TR write `then list
+       ıtems` — **503 failures**, and a document that differs by where it was generated, which is
+       the one thing the freshness gate cannot survive. `Contain`/`StartWith`/`EndWith` inherited
+       xunit's current-culture comparison, so Thai collation found `###` in text holding none and
+       every culture found a zero-width joiner anywhere. Both now invariant and ordinal; the
+       explicit-comparison overloads still mean what they say.
+
+     Verified across eleven cultures — th-TH, tr-TR, az-AZ, en-US, sv-SE, de-DE, fr-FR, ja-JP,
+     ar-SA, ko-KR, zh-CN — green in all, on all three frameworks, with both MyHotel documents
+     byte-identical.
+
+     **Left standing:** the four `ToLower()`/`ToUpper()` calls in
+     [IsString.cs:23](Core/Assert/Continuations/String/IsString.cs:23). Nothing failed on them, and
+     whether `Is().LowerCase()` means "lowercase in the user's culture" is a semantic to decide
+     rather than a bug to fix.
 
 ## 3. The id in the header
 
