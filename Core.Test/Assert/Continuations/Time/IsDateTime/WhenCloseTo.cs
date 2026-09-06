@@ -1,4 +1,5 @@
 ﻿using TSpec.Assert;
+using TSpec.Internal.Specification;
 
 namespace TSpec.Test.Assert.Continuations.Time.IsDateTime;
 
@@ -18,6 +19,6 @@ public class WhenCloseTo : Spec
         var b = a.AddDays(1);
         var tolerance = TimeSpan.FromDays(0);
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => a.Is().CloseTo(b, tolerance));
-        ex.HasMessage($"Expected a to be close to {b} but found {a}", "A is close to b");
+        ex.HasMessage($"Expected a to be close to {b.InvariantText()} but found {a.InvariantText()}", "A is close to b");
     }
 }

@@ -46,4 +46,33 @@ public class WhenSplitIdentifierIntoWords : Spec<string>
     [InlineData("GivenA.WithB.ButC", "Given a, with b, but c")]
     public void ThenReadAsAHeading(string identifier, string expected)
         => When(_ => identifier.AsHeading()).Then().Result.Is(expected);
+
+    /// <summary>
+    /// Turkish maps I to a dotless ı and i to a dotted İ, so an identifier carrying either letter
+    /// comes out differently there unless the casing states the culture it means. A document that
+    /// read one way in Istanbul and another in Stockholm would not be the byte-identical artefact
+    /// the freshness check compares.
+    /// </summary>
+    [Theory]
+    [InlineData("ThenListItems", "then list items")]
+    [InlineData("GivenTheRoomIsBooked", "given the room is booked")]
+    public void ThenReadAsWordsTheSameInEveryCulture(string identifier, string expected)
+        => When(_ => InTurkish(() => identifier.AsWords())).Then().Result.Is(expected);
+
+    [Fact]
+    public void ThenReadAsAHeadingTheSameInEveryCulture()
+        => When(_ => InTurkish("GivenItIsIdle".AsHeading)).Then().Result.Is("Given it is idle");
+
+    private static string InTurkish(Func<string> render)
+    {
+        var rendered = string.Empty;
+        Thread thread = new(() =>
+        {
+            System.Globalization.CultureInfo.CurrentCulture = new("tr-TR");
+            rendered = render();
+        });
+        thread.Start();
+        thread.Join();
+        return rendered;
+    }
 }

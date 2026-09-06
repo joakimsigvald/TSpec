@@ -91,9 +91,13 @@ internal static class StringExtensions
             yield return acronym;
     }
 
-    /// An acronym keeps the case that identifies it as one; every other word is lowered.
+    /// <summary>
+    /// An acronym keeps the case that identifies it as one; every other word is lowered. Lowered
+    /// without a culture, since the document reads the same wherever it was generated — Turkish
+    /// would otherwise write the I of "Items" as a dotless ı.
+    /// </summary>
     private static string Normalize(string word)
-        => word.Length > 1 && word.All(char.IsUpper) ? word : word.ToLower();
+        => word.Length > 1 && word.All(char.IsUpper) ? word : word.ToLowerInvariant();
 
     /// <summary>
     /// A tag reads as a name of its own in a specification, not as the variable it happens to be
@@ -149,7 +153,7 @@ internal static class StringExtensions
     internal static string Capitalize(this string str)
         => string.IsNullOrWhiteSpace(str)
         ? string.Empty
-        : str[..1].ToUpper() + str[1..];
+        : str[..1].ToUpperInvariant() + str[1..];
 
     private static IEnumerable<string> SplitWords(string camelCase)
     {

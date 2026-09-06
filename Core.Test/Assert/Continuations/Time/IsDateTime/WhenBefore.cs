@@ -1,4 +1,5 @@
 ﻿using TSpec.Assert;
+using TSpec.Internal.Specification;
 
 namespace TSpec.Test.Assert.Continuations.Time.IsDateTime;
 
@@ -12,6 +13,6 @@ public class WhenBefore : Spec
         var a = A<DateTime>();
         var b = a.AddDays(-1);
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => a.Is().Before(b));
-        ex.HasMessage($"Expected a to occur before {b} but found {a}", "A is before b");
+        ex.HasMessage($"Expected a to occur before {b.InvariantText()} but found {a.InvariantText()}", "A is before b");
     }
 }

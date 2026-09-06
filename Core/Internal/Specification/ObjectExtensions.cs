@@ -7,8 +7,6 @@ internal static class ObjectExtensions
 {
     private const int MaxElements = 5;
     private const int MaxElementLength = 50;
-    private const string DateTimePattern = "yyyy-MM-dd HH:mm:ss";
-    private const string DateTimeOffsetPattern = "yyyy-MM-dd HH:mm:ss zzz";
     private const string DatePattern = "yyyy-MM-dd";
     private const string TimePattern = "HH:mm:ss";
 
@@ -31,13 +29,43 @@ internal static class ObjectExtensions
         => value switch
         {
             null => string.Empty,
-            DateTime date => date.ToString(DateTimePattern, CultureInfo.InvariantCulture),
-            DateTimeOffset date => date.ToString(DateTimeOffsetPattern, CultureInfo.InvariantCulture),
-            DateOnly date => date.ToString(DatePattern, CultureInfo.InvariantCulture),
-            TimeOnly time => time.ToString(TimePattern, CultureInfo.InvariantCulture),
-            IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
-            _ => value.ToString() ?? string.Empty
+            IFormattable formattable => formattable.ToString(null, _documentCulture),
+            _ => Formatted(value)
         };
+
+    /// <summary>
+    /// The one place the document's formats are stated. Every date-like type reaches its text
+    /// through this culture rather than through a pattern of its own — a type that formats itself,
+    /// a record's generated <c>ToString</c> among them, renders its members with it too.
+    /// </summary>
+    private static readonly CultureInfo _documentCulture = DocumentCulture();
+
+    private static CultureInfo DocumentCulture()
+    {
+        var culture = (CultureInfo)CultureInfo.InvariantCulture.Clone();
+        culture.DateTimeFormat.ShortDatePattern = DatePattern;
+        culture.DateTimeFormat.LongTimePattern = TimePattern;
+        culture.DateTimeFormat.ShortTimePattern = TimePattern;
+        return CultureInfo.ReadOnly(culture);
+    }
+
+    /// <summary>
+    /// A type that formats itself reads the ambient culture and takes no overload to pass one, so
+    /// the thread wears the document's for the length of the call and has its own back after.
+    /// </summary>
+    private static string Formatted(object value)
+    {
+        var ambient = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = _documentCulture;
+        try
+        {
+            return value.ToString() ?? string.Empty;
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = ambient;
+        }
+    }
 
     /// At most five elements are shown, then an ellipsis. Elements are rendered with their
     /// own ToString (capped in length), so records and tuples read naturally without
