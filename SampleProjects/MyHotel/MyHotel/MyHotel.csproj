@@ -14,13 +14,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
 		<!-- Pinned above the 2.0.0 that Microsoft.AspNetCore.OpenApi pulls in (GHSA-v5pm-xwqc-g5wc).
 		     Stay on 2.x: 10.0.10's XmlCommentGenerator source generator emits code against the 2.x
 		     IOpenApiMediaType shape (a settable Example) and fails to compile against 3.x, where it's
 		     read-only. Bump this only once Microsoft.AspNetCore.OpenApi's own dependency moves to 3.x. -->
 		<PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
-		<PackageReference Include="Scalar.AspNetCore" Version="2.16.17" />
+		<PackageReference Include="Scalar.AspNetCore" Version="2.17.2" />
 	</ItemGroup>
 
 	<ItemGroup>
