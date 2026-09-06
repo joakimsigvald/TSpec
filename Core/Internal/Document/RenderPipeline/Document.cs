@@ -8,20 +8,23 @@ internal sealed record Document(
     string? SubjectUnderTest,
     string? ReturnType,
     IReadOnlyList<SpecificationClause> Whole,
-    IReadOnlyList<DocumentNode> Areas)
+    IReadOnlyList<DocumentNode> Areas,
+    string? SourceRoot)
 {
     internal const int Width = 90;
 
     internal static Document Of(
         SpecificationSubject subject, string specAssemblyName,
-        IEnumerable<SpecificationEntry> entries)
+        IEnumerable<SpecificationEntry> entries, string? sourceRoot)
     {
         Requirement[] requirements = [.. Requirement.From(entries)];
         var whole = Requirement.Shared(requirements, acts: false);
         return new(subject, specAssemblyName,
             Requirement.SubjectOf(requirements), Requirement.ReturnTypeOf(requirements),
-            whole, ToAreas(requirements, whole));
+            whole, ToAreas(requirements, whole), sourceRoot);
     }
+
+    internal string? Href(SourceLocation? at) => SourceLink.Href(at, SourceRoot);
 
     private const int AreaLevel = 1;
     private const int GroupLevel = 2;
@@ -79,7 +82,8 @@ internal sealed record Document(
         return Over(new(group.Key, group.Key.AsHeading(), level, shared,
             Requirement.SubjectOf(ofSubject), Requirement.ReturnTypeOf(ofSubject),
             [.. ToBranches(ofSubject.Select(requirement => requirement.Without(shared)), level + 1)],
-            Requirements: []));
+            Requirements: [],
+            ofSubject[0].Entry.Source));
     }
 
     /// <summary>

@@ -16,15 +16,9 @@ Open work first, in build order. What is finished is listed at the end.
    [CodeSegment.cs:11](Core/Internal/Document/RenderPipeline/CodeSegment.cs:11). **Decide the rule:**
    "the subject is not an argument of the act" — which `TestIdentity.Declares` already reasons
    about — or let the spec declare a display name.
-3. **Heading links to its test class/method.** Needs a path story: the run has no file paths and the
-   PDB has the compiler's absolute ones. `ProjectDirectory.Locate` already finds the spec project
-   root and the document is written into it, so a PDB path relative to that root is the link target —
-   the cost is a PDB reader, and a rule for what a heading links to when several test classes fold
-   into one requirement.
-
 ## 3. Ordering
 
-4. **An ordering hint**, so the happy path can come before the refusals — today
+3. **An ordering hint**, so the happy path can come before the refusals — today
    `ComplexityNumber` then key
    ([DocumentRenderer.cs:77](Core/Internal/Document/RenderPipeline/DocumentRenderer.cs:77)).
    Opt-in only: changing the default reflows every document. **Decide where the hint is written** —
@@ -32,23 +26,42 @@ Open work first, in build order. What is finished is listed at the end.
 
 ## 4. Smaller
 
-5. **A cut cell could wrap instead.** Sizing columns to their content took most of the waste out,
+4. **A cut cell could wrap instead.** Sizing columns to their content took most of the waste out,
    but a value longer than the page still ends in an ellipsis. Wrapping within a cell is the other
    half of that refinement — and needs a rule for what a wrapped row looks like, since a row broken
    across lines stops being a row.
-6. **`Is().LowerCase()` and `UpperCase()` case with the machine's culture**
+5. **`Is().LowerCase()` and `UpperCase()` case with the machine's culture**
    ([IsString.cs:23](Core/Assert/Continuations/String/IsString.cs:23), four calls). Nothing fails on
    it. **Decide** whether these mean "lowercase in the user's culture" or invariantly, unlike the
    renderer, which is now invariant.
 
 ## 5. Parked
 
-7. **Class doc-comment as section prose.** Parked, PO's ruling 2026-09-05: comments are not
+6. **Class doc-comment as section prose.** Parked, PO's ruling 2026-09-05: comments are not
    verifiable the way test code is, they lie once they drift, and inviting them into the
    specification invites the pollution with them. The gap it addressed — section-level "what this
    component is for" — stands; it wants a channel that a test can keep honest.
 
 ## Done
+
+**A subject heading links to its file.** By a path relative to the spec project — the root every
+reader of the file shares — read from the portable PDB beside the spec assembly with
+`System.Reflection.Metadata` from the shared framework, so no package was added. A file outside the
+spec project, such as a shared base in another project, is not linked; namespace headings name no
+class and carry none. A build that maps source paths (`ContinuousIntegrationBuild`) records `/_/…`
+from the repository root, which is nowhere on disk; such a file is found under the spec project by
+the longest tail of its path that is a file there, so the CI freshness diff sees the same document
+a local build writes — verified byte-identical on MyHotel.Core.Spec. 2026-09-06.
+
+**Lines, and links on given-headings and bullets — parked.** Built and taken out the same day, PO's
+ruling: a link that does not work is worse than none. The `#L` anchor is followed by GitHub, VS Code
+and Markdown Editor v2, but Visual Studio's own preview treats any fragment on a file link as an
+in-page anchor and does nothing — one missed check in `LinkNavigationHelper.NavigateTo`, in
+`Microsoft.VisualStudio.Markdown.Platform.dll`, worth a Developer Community ticket. Without a line, a
+given-class or a method sits partway down a file, so those links went too. `SourceLocations` still
+reads lines (a method is where its body starts, an async method's in its state machine's `MoveNext`,
+a class at its constructor), pinned in `WhenLocateSource`, so reinstating is a rendering change once
+Visual Studio follows the anchor. 2026-09-06.
 
 **`Any<T>()` in a mock call means any T.** `Any` yields a value that cannot be retrieved again, so a
 setup or verification written with `Any<int>()` could never match — the real call never carried

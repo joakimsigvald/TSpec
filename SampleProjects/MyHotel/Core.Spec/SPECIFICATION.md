@@ -7,7 +7,7 @@
 # Rooms
 `Subject under test: RoomService`
 
-## When add room
+## [When add room](Rooms/RoomService/WhenAddRoom.cs)
 `Add(a Room), returns Room`
 
 ### Given no such room
@@ -22,7 +22,7 @@
 - **throw room already exists**\
   `throws RoomAlreadyExists that Message contains the Room's RoomNumber`
 
-## When delete room
+## [When delete room](Rooms/RoomService/WhenDeleteRoom.cs)
 `Delete(a Room's RoomNumber)`
 
 ### Given no such room
@@ -35,7 +35,7 @@
 
 - **store what is left** — `IRoomStore.Save(zero Rooms)`
 
-## When get room
+## [When get room](Rooms/RoomService/WhenGetRoom.cs)
 `Get(a Room's RoomNumber), returns Room`
 
 ### Given no such room
@@ -48,7 +48,7 @@
 
 - **return it** — `Result is the Room`
 
-## When list rooms
+## [When list rooms](Rooms/RoomService/WhenListRooms.cs)
 `List(), returns IReadOnlyList<Room>`
 
 ### Given no rooms
@@ -61,7 +61,7 @@
 
 - **return them in the order they are stored** — `Result is equal to two Rooms`
 
-## When update room
+## [When update room](Rooms/RoomService/WhenUpdateRoom.cs)
 `Update(a Room's RoomNumber, the UpdatedRoom), returns Room`
 
 ### Given the updated room has another number
@@ -103,7 +103,7 @@ Return type: int
 Using new BookingNumberSeed(10000)
 ```
 
-### When next
+### [When next](Bookings/BookingNumberGenerator/WhenNext.cs)
 `Next()`
 
 #### Given a number was issued
@@ -123,7 +123,7 @@ Using new BookingNumberSeed(10000)
 ## Booking Service
 `Subject under test: BookingService`
 
-### When book departure before arrival
+### [When book departure before arrival](Bookings/BookingService/WhenBookDepartureBeforeArrival.cs)
 ```
 Book(new BookingRequest(a string, a second string, new(2026, 8, 12), new(2026, 8, 10)))
 Return type: Booking
@@ -132,13 +132,13 @@ Return type: Booking
 - **throw invalid booking period**\
   `throws InvalidBookingPeriod that Message contains "at least one night"`
 
-### When book zero nights
+### [When book zero nights](Bookings/BookingService/WhenBookZeroNights.cs)
 `Book(new BookingRequest(a string, a second string, a DateOnly, the DateOnly)), returns Booking`
 
 - **throw invalid booking period**\
   `throws InvalidBookingPeriod that Message contains "at least one night"`
 
-### When cancel
+### [When cancel](Bookings/BookingService/WhenCancel.cs)
 `Cancel(a Booking's BookingNumber)`
 
 #### Given no such booking
@@ -153,7 +153,7 @@ Return type: Booking
 
 - **store what is left** — `IBookingStore.Save(zero Bookings)`
 
-### When get
+### [When get](Bookings/BookingService/WhenGet.cs)
 `Get(a Booking's BookingNumber), returns Booking`
 
 #### Given no such booking
@@ -167,7 +167,7 @@ Return type: Booking
 
 - **return the booking** — `Result is the Booking`
 
-### When list
+### [When list](Bookings/BookingService/WhenList.cs)
 `List(), returns IReadOnlyList<Booking>`
 
 #### Given no bookings
@@ -180,7 +180,7 @@ Return type: Booking
 
 - **return them in the order they were made** — `Result is equal to two Bookings`
 
-### When book
+### [When book](Bookings/BookingService/WhenBook.cs)
 ```
 Book(new BookingRequest(a Room's RoomNumber, a string, new(2026, 8, 10), new(2026, 8, 12)))
 Return type: Booking

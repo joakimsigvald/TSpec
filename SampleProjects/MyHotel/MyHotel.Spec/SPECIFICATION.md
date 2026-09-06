@@ -8,7 +8,7 @@ Return type: HttpResponseMessage
 
 ---
 
-## When get version
+## [When get version](WhenGetVersion.cs)
 `Api.GetAsync("/version")`
 
 - **respond ok** — `Result.StatusCode is OK`
@@ -17,7 +17,7 @@ Return type: HttpResponseMessage
 
 # Rooms
 
-## When add room
+## [When add room](Rooms/WhenAddRoom.cs)
 `Api.PostAsJsonAsync("/rooms", a Room)`
 
 ### Given no such room
@@ -32,7 +32,7 @@ Return type: HttpResponseMessage
 
 - **respond conflict** — `Result.StatusCode is Conflict`
 
-## When delete room
+## [When delete room](Rooms/WhenDeleteRoom.cs)
 `Api.DeleteAsync("/rooms/{a Room's RoomNumber}")`
 
 ### Given no such room
@@ -45,7 +45,7 @@ Return type: HttpResponseMessage
 
 - **respond no content** — `Result.StatusCode is NoContent`
 
-## When update room
+## [When update room](Rooms/WhenUpdateRoom.cs)
 `Api.PutAsJsonAsync("/rooms/{a Room's RoomNumber}", the Room with { BedCount = a second int })`
 
 ### Given no such room
@@ -60,7 +60,7 @@ Return type: HttpResponseMessage
 - **return the updated room**\
   `Result.Read<Room>() is the Room with { BedCount = a second int }`
 
-## When list rooms
+## [When list rooms](Rooms/WhenListRooms.cs)
 `Api.GetAsync("/rooms")`
 
 - **respond ok** — `Result.StatusCode is OK`
@@ -78,7 +78,7 @@ Having Api.PostAsJsonAsync("/rooms", a second Room)
 - **return both rooms in the order they were created**\
   `Result.Read<Room[]>() is equal to two Rooms`
 
-## When get room
+## [When get room](Rooms/WhenGetRoom.cs)
 `Api.GetAsync("/rooms/{a Room's RoomNumber}")`
 
 ### Given no such room
@@ -122,7 +122,7 @@ Having Api.PutAsJsonAsync("/rooms/{the Room's RoomNumber}",
 
 # Bookings
 
-## When book zero nights
+## [When book zero nights](Bookings/WhenBookRoom.cs)
 ```
 Api.PostAsJsonAsync("/bookings",
     new BookingRequest(a Room's RoomNumber, a string, new(2026, 8, 10), new(2026, 8, 10)))
@@ -135,7 +135,7 @@ Having Api.PostAsJsonAsync("/rooms", the Room)
 - **explain the period must be positive**\
   `Result.Read<ErrorBody>().Error contains "at least one night"`
 
-## When cancel booking
+## [When cancel booking](Bookings/WhenCancelBooking.cs)
 `Api.DeleteAsync("/bookings/10001")`
 
 ### Given no such booking
@@ -153,7 +153,7 @@ Having Api.PostAsJsonAsync("/bookings",
 
 - **respond no content** — `Result.StatusCode is NoContent`
 
-## When list bookings
+## [When list bookings](Bookings/WhenListBookings.cs)
 `Api.GetAsync("/bookings")`
 
 - **respond ok** — `Result.StatusCode is OK`
@@ -181,7 +181,7 @@ Having Api.PostAsJsonAsync("/bookings",
       the second DateOnly)]
   ```
 
-## When get booking
+## [When get booking](Bookings/WhenGetBooking.cs)
 `Api.GetAsync("/bookings/10001")`
 
 ### Given no such booking
@@ -220,7 +220,7 @@ Having Restart()
       new(2026, 8, 10), new(2026, 8, 12))
   ```
 
-## When book room
+## [When book room](Bookings/WhenBookRoom.cs)
 ```
 Api.PostAsJsonAsync("/bookings",
     new BookingRequest(a Room's RoomNumber, a string, new(2026, 8, 10), new(2026, 8, 12)))

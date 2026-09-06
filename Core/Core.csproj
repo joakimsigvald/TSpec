@@ -24,6 +24,7 @@
 		<PackageReleaseNotes>
 			CHANGED
 			* Any can be used instead of Moq's It.IsAny in Mock setup and verification. Both forms render as 'any' in the SPECIFICATION.md
+			* A When-heading in SPECIFICATION.md links to the file of its test class, relative to the spec project
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

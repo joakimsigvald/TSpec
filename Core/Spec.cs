@@ -78,6 +78,6 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         return new(subject, branch, TestIdentity.Requirement,
             Pipeline.Specification.Clauses, Pipeline.Specification.Because,
             declared?.SubjectUnderTest, declared?.ReturnType, testClass.Namespace,
-            TheoryRow.Read());
+            TheoryRow.Read(), SourceLocations.Of(TestIdentity.Nesting(testClass)[0]));
     }
 }

@@ -20,6 +20,8 @@ namespace TSpec.Internal.Document;
 /// <param name="Row">The <c>[InlineData]</c> row this run filled, or null for anything else. Every
 /// row of a theory states the same clauses, so the row is the only thing that tells two of them
 /// apart — and the only thing the document can lay out as a table.</param>
+/// <param name="Source">Where the outermost test class is written, for its heading to link to;
+/// null when it is not known.</param>
 internal sealed record SpecificationEntry(
     string Subject,
     string Branch,
@@ -29,4 +31,5 @@ internal sealed record SpecificationEntry(
     string? SubjectUnderTest = null,
     string? ReturnType = null,
     string? Namespace = null,
-    TheoryRow? Row = null);
+    TheoryRow? Row = null,
+    SourceLocation? Source = null);

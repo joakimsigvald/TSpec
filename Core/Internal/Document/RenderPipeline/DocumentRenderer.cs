@@ -12,8 +12,8 @@ internal static class DocumentRenderer
 {
     internal static string Render(
         SpecificationSubject subject, string specAssemblyName,
-        IEnumerable<SpecificationEntry> entries)
-        => Document.Of(subject, specAssemblyName, entries).Layout().Render();
+        IEnumerable<SpecificationEntry> entries, string? sourceRoot = null)
+        => Document.Of(subject, specAssemblyName, entries, sourceRoot).Layout().Render();
 
     private static DocumentSegment[] Layout(this Document _document)
     {
@@ -51,7 +51,7 @@ internal static class DocumentRenderer
 
         void AddHeading(DocumentNode node, string heading, string? statedSubject, string? statedReturnType)
         {
-            Add(new HeadingSegment(heading, node.Level));
+            Add(new HeadingSegment(heading, node.Level, _document.Href(node.Source)));
             Add(new CodeSegment(
                 statedSubject is null ? node.SubjectUnderTest : null,
                 statedReturnType is null ? node.ReturnType : null,

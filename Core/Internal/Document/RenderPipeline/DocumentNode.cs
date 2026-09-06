@@ -16,13 +16,13 @@ namespace TSpec.Internal.Document.RenderPipeline;
 internal sealed record DocumentNode(
     string Key, string? Heading, int Level, IReadOnlyList<SpecificationClause> Shared,
     string? SubjectUnderTest, string? ReturnType, IReadOnlyList<DocumentNode> Children,
-    IReadOnlyList<Requirement> Requirements)
+    IReadOnlyList<Requirement> Requirements, SourceLocation? Source = null)
 {
     internal DocumentNode(
         string Key, string? Heading, int Level, IReadOnlyList<SpecificationClause> Shared,
-        IReadOnlyList<Requirement> Requirements)
+        IReadOnlyList<Requirement> Requirements, SourceLocation? Source = null)
         : this(Key, Heading, Level, Shared,
-            SubjectUnderTest: null, ReturnType: null, Children: [], Requirements)
+            SubjectUnderTest: null, ReturnType: null, Children: [], Requirements, Source)
     { }
 
     internal bool HasKey => !string.IsNullOrEmpty(Key);

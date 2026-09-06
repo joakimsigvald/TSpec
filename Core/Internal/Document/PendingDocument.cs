@@ -18,8 +18,11 @@ internal sealed record PendingDocument(
             System.IO.Path.Combine(directory, SpecificationDocument.FileName), subject, specAssemblyName);
     }
 
+    /// The spec project's directory, which the document's links to source are relative to.
+    internal string SourceRoot => System.IO.Path.GetDirectoryName(Path)!;
+
     internal string Render(IEnumerable<SpecificationEntry> entries)
-        => DocumentRenderer.Render(Subject, SpecAssemblyName, entries);
+        => DocumentRenderer.Render(Subject, SpecAssemblyName, entries, SourceRoot);
 
     internal void Write(IEnumerable<SpecificationEntry> entries)
         => File.WriteAllText(Path, Render(entries));

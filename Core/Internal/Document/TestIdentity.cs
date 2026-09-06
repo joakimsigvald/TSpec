@@ -27,11 +27,18 @@ internal static class TestIdentity
     /// </summary>
     internal static (string Subject, string Branch) Locate(Type testClass)
     {
-        var nesting = new List<string>();
-        for (var type = testClass; type is not null; type = type.DeclaringType)
-            nesting.Add(type.Name);
-        nesting.Reverse();
+        var nesting = Nesting(testClass).Select(type => type.Name).ToArray();
         return (nesting[0], string.Join(".", nesting.Skip(1)));
+    }
+
+    /// The test class and the classes it is nested in, outermost first.
+    internal static IReadOnlyList<Type> Nesting(Type testClass)
+    {
+        var nesting = new List<Type>();
+        for (var type = testClass; type is not null; type = type.DeclaringType)
+            nesting.Add(type);
+        nesting.Reverse();
+        return nesting;
     }
 
     /// <summary>
