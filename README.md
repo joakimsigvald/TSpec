@@ -873,7 +873,7 @@ project that fails it throws `SetupFailed` immediately rather than after the sui
 A `[Fact]` renders as a bullet point with the method name in words, followed by the assertion in a code block.
 
 A `[Theory]` fed by `[InlineData]` renders as a table of its rows, headed by
-the parameter names
+the parameter names. A theory of more than **eight** parameters cannot be tabled and fails generation.
 
 **The document is written only when every non-skipped test in the assembly passed.** . A filtered or failed run
 leave the existing file untouched and the gaps are named:

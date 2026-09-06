@@ -7,8 +7,7 @@ namespace TSpec.Internal.Document.RenderPipeline;
 /// <remarks>
 /// A table cannot wrap the way prose does — a broken row stops being a row — so instead of laying
 /// the text out to a width, the columns divide the width between them and a value too long for its
-/// share is cut. Equal shares are the simple rule, not the best one: columns sized to what each
-/// needs would fit more, and is the refinement to make when a real document asks for it.
+/// share is cut.
 /// </remarks>
 internal sealed record TableSegment(IReadOnlyList<TheoryRow> Rows) : DocumentSegment
 {
@@ -16,11 +15,19 @@ internal sealed record TableSegment(IReadOnlyList<TheoryRow> Rows) : DocumentSeg
 
     /// A bar opens a cell and one closes it, with a space inside each: four places per column.
     private const int Furniture = 3;
-    private const int NarrowestColumn = 3;
+    private const int NarrowestColumn = 5;
     private const char Cut = '…';
+
+    /// <summary>
+    /// What the page holds with every column still readable. Ten would fit at the narrowest a
+    /// column may be; eight leaves room to breathe, and a theory wanting more has more parameters
+    /// than a reader can hold in their head anyway.
+    /// </summary>
+    private const int MostColumns = 8;
 
     internal override string Render()
     {
+        Fits(Rows[0].Headers);
         string[][] cells = [Escaped(Rows[0].Headers), .. Rows.Select(row => Escaped(row.Values))];
         var widths = Widths(cells, Rows[0].Headers.Count);
         return "\n"
@@ -30,18 +37,38 @@ internal sealed record TableSegment(IReadOnlyList<TheoryRow> Rows) : DocumentSeg
             + "\n";
     }
 
-    /// What each column needs, up to what it may have.
-    private static int[] Widths(string[][] cells, int columns)
+    private static void Fits(IReadOnlyList<string> headers)
     {
-        var share = Share(columns);
-        return [.. Enumerable.Range(0, columns).Select(column =>
-            Math.Min(share, cells.Max(row => column < row.Length ? row[column].Length : 0)))];
+        if (headers.Count <= MostColumns)
+            return;
+        throw new SetupFailed(
+            $"TSpec cannot table a theory of {headers.Count} parameters ({string.Join(", ", headers)}): "
+            + $"a row states at most {MostColumns} and stays readable. Group the parameters into a "
+            + "type, or feed the theory from MemberData, which is not tabled.");
     }
 
-    private static int Share(int columns)
-        => Math.Max(
-            NarrowestColumn,
-            (Document.Width - Indentation - 1) / columns - Furniture);
+    /// <summary>
+    /// What each column needs, up to what it may have. A column that needs less than an equal share
+    /// takes only what it needs and leaves the rest to the columns that have more to say — so the
+    /// narrowest are settled first, and every one after them divides what is still unspoken for.
+    /// </summary>
+    private static int[] Widths(string[][] cells, int columns)
+    {
+        var needed = Enumerable.Range(0, columns)
+            .Select(column => cells.Max(row => column < row.Length ? row[column].Length : 0))
+            .ToArray();
+        var widths = new int[columns];
+        var unspokenFor = Document.Width - Indentation - 1 - Furniture * columns;
+        var remaining = columns;
+        foreach (var column in Enumerable.Range(0, columns).OrderBy(column => needed[column]))
+        {
+            var share = Math.Max(NarrowestColumn, unspokenFor / remaining);
+            widths[column] = Math.Min(needed[column], share);
+            unspokenFor -= widths[column];
+            remaining--;
+        }
+        return widths;
+    }
 
     private static string Line(IReadOnlyList<string> row, int[] widths)
         => new string(' ', Indentation)

@@ -137,7 +137,7 @@ Opt in with one line in the spec project; the document is written to the spec pr
 - **The document's structure is the test structure**, so names are the whole of what you control: folder → `# Area`, `When…` class → `## Subject`, `Given…` class → `### Given…`, `Then…` method → a list item, each read as prose (`WhenListRooms` → `## When list rooms`). Name a test method after the claim it makes.
 - **Written only when every non-skipped test in the assembly passed.** A filtered run, a failure, or a constructor that threw all leave the file untouched, with the missing requirements named — so run the whole suite before expecting a diff.
 - Deterministic: sorted, deduplicated, LF-normalized. Verify freshness in CI with `dotnet test && git diff --exit-code -- "**/SPECIFICATION.md"`.
-- **A `[Theory]` with `[InlineData]` is one list item over a table of its rows**, headed by the parameter names. Nothing to write differently: a parameter's value leaves the claim and appears in the table instead, while the test's own specification keeps it. `MemberData` and `ClassData` theories render as before.
+- **A `[Theory]` with `[InlineData]` is one list item over a table of its rows**, headed by the parameter names. . **At most 8 parameters** — more than that throws `SetupFailed` when the document is generated.
 - **Work in progress:** no `[Specification]` / `[ExcludeFromSpecification]` opt-out attributes yet.
 
 ## Complete examples

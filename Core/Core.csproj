@@ -27,7 +27,7 @@
 			the document renders what the tests claim, so the body is what has to stay in step with
 			them.
 			NEW
-			* A [Theory] with [InlineData] renders as one requirement over a table of its rows
+			* A [Theory] with [InlineData] renders as one requirement over a table of its rows.
 			FIXED
 			* A test skipped while it ran (Assert.Skip) no longer counts as a missing requirement,
 			which had left the document silently unwritten on an otherwise green run

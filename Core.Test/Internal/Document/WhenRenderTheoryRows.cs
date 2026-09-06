@@ -66,8 +66,9 @@ public class WhenRenderTheoryRows : Spec
             .Does().Contain("  | \"a\\|b\" |\n");
 
     /// <summary>
-    /// Two columns share the eighty-seven places the indent and the bars leave, so neither may run
-    /// past forty. What does not fit is cut, and says that it was.
+    /// Two columns that both want more than the page holds divide what there is between them, and
+    /// what does not fit is cut and says that it was. The odd place goes to the last column settled
+    /// rather than being left unused.
     /// </summary>
     [Fact]
     public void GivenAValueOutrunsItsShare_ThenCutItAndSaySo()
@@ -75,9 +76,74 @@ public class WhenRenderTheoryRows : Spec
         var document = Render(Theory(
             ["identifier", "expected"],
             [$"\"{new string('a', 60)}\"", $"\"{new string('b', 60)}\""]));
-        document.Does().Contain($"  | \"{new string('a', 38)}… | \"{new string('b', 38)}… |\n");
+        document.Does().Contain($"  | \"{new string('a', 38)}… | \"{new string('b', 39)}… |\n");
         document.Split('\n').Where(IsTable).Max(line => line.Length).Is().not.GreaterThan(90);
     }
+
+    /// <summary>
+    /// A column takes what it needs and no more, so what it leaves goes to the column that has more
+    /// to say. Equal shares would cut the message at forty while a one-character count kept
+    /// thirty-nine places it has no use for.
+    /// </summary>
+    [Fact]
+    public void GivenAColumnNeedsLittle_ThenLeaveTheRestToTheOthers()
+    {
+        var document = Render(Theory(["n", "message"], ["1", $"\"{new string('m', 100)}\""]));
+        document.Does().Contain($"  | 1 | \"{new string('m', 78)}… |\n");
+        document.Split('\n').Where(IsTable).Max(line => line.Length).Is().not.GreaterThan(90);
+    }
+
+    /// <summary>
+    /// What every column needs together fits, so nothing is cut and the table is as wide as its
+    /// content rather than as wide as the page.
+    /// </summary>
+    [Fact]
+    public void GivenEveryColumnFits_ThenCutNothing()
+        => Render(Theory(["n", "word"], ["1", "\"short\""]))
+            .Does().Contain("  | n | word    |\n").and.not.Contain("…");
+
+    /// <summary>
+    /// Eight columns is what the page holds while every one of them stays readable. A theory with
+    /// more parameters than that has outgrown a table, and the document says so rather than
+    /// printing a row nobody can read.
+    /// </summary>
+    [Fact]
+    public void GivenMoreColumnsThanTheTableHolds_ThenFail()
+    {
+        var headers = Enumerable.Range(1, 9).Select(n => $"p{n}").ToArray();
+        var error = Xunit.Assert.Throws<SetupFailed>(
+            () => Render(Theory(headers, [.. headers.Select(_ => "1")])));
+        error.Message.Does().Contain("9").and.Contain("8").and.Contain("p1");
+    }
+
+    [Fact]
+    public void GivenTheMostColumnsTheTableHolds_ThenRenderThem()
+    {
+        var headers = Enumerable.Range(1, 8).Select(n => $"p{n}").ToArray();
+        Render(Theory(headers, [.. headers.Select(_ => "1")]))
+            .Does().Contain("| p1 | p2 | p3 | p4 | p5 | p6 | p7 | p8 |");
+    }
+
+    /// <summary>
+    /// A cut cell still shows something of what it held: no column is narrower than five, even when
+    /// every one of them wants the whole page. The column limit is what makes that hold — eight
+    /// columns leave the narrowest seven places — so this says the two settings agree.
+    /// </summary>
+    [Fact]
+    public void ThenLeaveEveryColumnAtLeastFivePlaces()
+    {
+        var headers = Enumerable.Range(1, 8).Select(n => $"p{n}").ToArray();
+        var document = Render(Theory(headers, [.. headers.Select(_ => new string('x', 40))]));
+        document.Split('\n').Where(IsTable).Max(line => line.Length).Is().not.GreaterThan(90);
+        Widths(document).Min().Is().not.LessThan(5);
+    }
+
+    /// The separator row states each column's width as a run of dashes.
+    private static int[] Widths(string document)
+        => [.. document.Split('\n').First(line => line.StartsWith("  | ---", StringComparison.Ordinal))
+            .Split('|')
+            .Select(cell => cell.Trim().Length)
+            .Where(width => width > 0)];
 
     /// <summary>
     /// A table closes its item with a blank line and a heading opens with one, which together would
