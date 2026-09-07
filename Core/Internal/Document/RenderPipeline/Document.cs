@@ -22,26 +22,47 @@ internal sealed record Document(
     internal string GeneratedFrom
         => Root.HasKey ? $"{SpecAssemblyName}/{Root.Key}" : SpecAssemblyName;
 
+    // ----------- What the index says of the file: counted as the file shows them
+
+    /// The acts, one heading each below whatever group holds them.
+    internal int Whens => Root.Children.Sum(group => group.Children.Count);
+
+    /// The cases, each heading a nested given takes counted.
+    internal int Givens
+        => Root.Children.SelectMany(group => group.Children).Sum(subject => Headed(subject.Children));
+
+    /// The requirements listed, a theory once and a repeated requirement where it is listed.
+    internal int Thens => Listed(Root);
+
+    private static int Headed(IReadOnlyList<DocumentNode> nodes)
+        => nodes.Sum(node => (node.Heading is null ? 0 : 1) + Headed(node.Children));
+
+    private static int Listed(DocumentNode node)
+        => node.Requirements.Count + node.Children.Sum(Listed);
+
     /// <summary>
-    /// The files of the specification, by name. A folder named as the project is would take the
-    /// file the root already has, so that fails rather than writes one over the other.
+    /// The files of the specification, by name. A folder named as the project is, or README, would
+    /// take a file the specification already writes, so that fails rather than writes one over the
+    /// other.
     /// </summary>
     internal static IReadOnlyList<Document> Of(
         SpecificationSubject subject, string specAssemblyName,
-        IEnumerable<SpecificationEntry> entries, string? sourceRoot)
+        IReadOnlyList<Requirement> requirements, string? sourceRoot)
     {
-        Requirement[] requirements = [.. Requirement.From(entries)];
         var rootDepth = RootDepth(requirements, specAssemblyName);
         var documents = requirements
             .GroupBy(requirement => AreaOf(requirement.Entry.Namespace, rootDepth))
             .Select(area => ToDocument(area, rootDepth, subject, specAssemblyName, sourceRoot))
             .OrderBy(document => document.Name, StringComparer.Ordinal)
             .ToArray();
-        var clash = documents.GroupBy(document => document.Name).FirstOrDefault(name => name.Count() > 1);
+        var clash = documents.Select(document => document.Name)
+            .Append(IndexRenderer.Name)
+            .GroupBy(name => name)
+            .FirstOrDefault(name => name.Count() > 1);
         if (clash is not null)
             throw new SetupFailed(
                 $"TSpec cannot write the specification: a folder of {specAssemblyName} is named "
-                + $"'{clash.Key}', which is the file the project's own requirements take. Rename the folder.");
+                + $"'{clash.Key}', which is a file the specification already writes. Rename the folder.");
         return documents;
     }
 
@@ -169,7 +190,7 @@ internal sealed record Document(
     /// when it is the only one. Specs that do not sit under it have no project to be relative to,
     /// and there what they share stands in for it.
     /// </summary>
-    private static int RootDepth(Requirement[] requirements, string specAssemblyName)
+    private static int RootDepth(IReadOnlyList<Requirement> requirements, string specAssemblyName)
     {
         var paths = requirements.Select(requirement => Segments(requirement.Entry.Namespace)).ToArray();
         var project = Segments(specAssemblyName);

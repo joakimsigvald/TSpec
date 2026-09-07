@@ -6,6 +6,24 @@ namespace TSpec.Test.Internal.Document;
 /// </summary>
 internal static class DepsJson
 {
+    /// A spec of TSpec itself, whose assembly is loaded in this very process — with a Description.
+    internal const string TSpecSpec =
+        """
+        {
+          "runtimeTarget": { "name": ".NETCoreApp,Version=v10.0" },
+          "targets": {
+            ".NETCoreApp,Version=v10.0": {
+              "TSpec.Spec/1.0.0": { "dependencies": { "TSpec": "2.5.0" } },
+              "TSpec/2.5.0": {}
+            }
+          },
+          "libraries": {
+            "TSpec.Spec/1.0.0": { "type": "project" },
+            "TSpec/2.5.0": { "type": "project" }
+          }
+        }
+        """;
+
     internal const string MyHotelSpec =
         """
         {

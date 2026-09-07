@@ -33,7 +33,8 @@ public class WhenRenderDocument : Spec
         => DocumentRenderer.Render(_myHotel, "MyHotel.Spec", entries);
 
     /// The one file the entries render to, which is what every test not about the split reads.
-    private static string Render(params SpecificationEntry[] entries) => Files(entries).Single().Content;
+    private static string Render(params SpecificationEntry[] entries)
+        => Files(entries).Documents().Single().Content;
 
     [Fact] public void GivenNoEntries_ThenWriteNoFile() => Files().Is().Empty();
 
@@ -64,7 +65,7 @@ public class WhenRenderDocument : Spec
     public void GivenADottedSubjectName_ThenNameTheRootFileByItsLastPart()
     {
         var file = DocumentRenderer.Render(new("MyHotel.Core", "0.1.0"), "MyHotel.Core.Spec",
-            [InNamespace("MyHotel.Core.Spec", "WhenX", "ThenA")]).Single();
+            [InNamespace("MyHotel.Core.Spec", "WhenX", "ThenA")]).Documents().Single();
         file.Name.Is("Core");
         file.FileName.Is("Core.md");
         file.Content.Does().StartWith(
@@ -696,7 +697,7 @@ public class WhenRenderDocument : Spec
         => new(subject, "", name, [Claim(name.AsWords())], Namespace: @namespace);
 
     private static string[] Names(IReadOnlyList<SpecificationFile> files)
-        => [.. files.Select(file => file.Name)];
+        => [.. files.Documents().Select(file => file.Name)];
 
     private static string Named(IReadOnlyList<SpecificationFile> files, string name)
         => files.Single(file => file.Name == name).Content;

@@ -7,6 +7,7 @@
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<Version>0.2.0</Version>
+		<Description>A small hotel booking API: rooms, bookings, and the rules that keep them consistent.</Description>
 		<AssemblyName>MyHotel</AssemblyName>
 		<RootNamespace>MyHotel</RootNamespace>
 		<IsPackable>false</IsPackable>

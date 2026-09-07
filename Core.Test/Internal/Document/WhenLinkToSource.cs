@@ -25,7 +25,7 @@ public class WhenLinkToSource : Spec
         => Path.Combine(_root, relative.Replace('/', Path.DirectorySeparatorChar));
 
     private static string Render(SpecificationEntry entry, string? root)
-        => DocumentRenderer.Render(new("MyHotel", "0.1.0"), "MyHotel.Spec", [entry], root).Single().Content;
+        => DocumentRenderer.Render(new("MyHotel", "0.1.0"), "MyHotel.Spec", [entry], root).Documents().Single().Content;
 
     [Fact]
     public void ThenTheSubjectHeadingLinksToItsFile()

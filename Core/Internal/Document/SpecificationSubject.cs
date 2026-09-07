@@ -1,11 +1,11 @@
 namespace TSpec.Internal.Document;
 
 /// <summary>
-/// The project a specification document describes, and its version.
+/// The project a specification describes, its version, and what its project file says of it.
 /// The name is derived from the spec assembly name by stripping its last suffix
 /// (MyHotel.Spec describes MyHotel), then verified against the build's project references.
 /// </summary>
-internal sealed record SpecificationSubject(string Name, string Version)
+internal sealed record SpecificationSubject(string Name, string Version, string? Description = null)
 {
     /// <summary>
     /// Stated identically by both failures, so the fix reads the same whichever half of the rule broke.

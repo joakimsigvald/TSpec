@@ -186,5 +186,5 @@ public class WhenRenderTheoryRows : Spec
         => new([new SpecificationStep(layout) { Family = family, Body = body }]);
 
     private static string Render(params SpecificationEntry[] entries)
-        => DocumentRenderer.Render(_myHotel, "MyHotel.Spec", entries).Single().Content;
+        => DocumentRenderer.Render(_myHotel, "MyHotel.Spec", entries).Documents().Single().Content;
 }

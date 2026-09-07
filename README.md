@@ -884,6 +884,13 @@ by its name and reads as its own document: what every requirement in it declares
 stated once at the top, and the headings below follow the test structure. A full green run replaces
 the folder's contents, so a file for a folder that was renamed or removed does not linger.
 
+A `README.md` in the folder is the entry point, which GitHub renders as the folder's landing page.
+It carries the project's title, the `<Description>` of its project file when it has one, what holds
+throughout the specification, and a table with one row
+per file: the file as a link and how many `When`, `Given` and
+`Then` it holds, with an *All* row at the bottom. In a review, its diff says in one line per file where
+a change landed.
+
 **The spec project must be named after the project it describes** — `MyHotel.Spec` describes
 `MyHotel` — and must reference that project **directly**; a transitive reference is not enough. Any
 suffix works, `.Spec` preferred and `.Test` fine. This is checked before the first test runs, so a

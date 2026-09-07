@@ -15,6 +15,7 @@ internal sealed record PendingSpecification(
     {
         var references = ProjectReferences.Read(baseDirectory, specAssemblyName);
         var subject = SpecificationSubject.Resolve(specAssemblyName, references);
+        subject = subject with { Description = SubjectDescription.Of(subject.Name) };
         var directory = ProjectDirectory.Locate(baseDirectory);
         return new(Path.Combine(directory, SpecificationDocument.FolderName), subject, specAssemblyName);
     }
