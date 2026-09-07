@@ -6,7 +6,7 @@ product.
 TSpec's own `Core.Test` is a framework testing itself: its specifications describe the TSpec API
 rather than a domain, so they say little about how TSpec reads when applied to real software.
 MyHotel is the counterpart — an ordinary ASP.NET Core minimal API, driven out entirely by
-specifications — and the proving ground for `SPECIFICATION.md` generation
+specifications — and the proving ground for specification generation
 ([SPECIFICATION-IMPROVEMENT-PLAN.md](../../SPECIFICATION-IMPROVEMENT-PLAN.md)). What is built and
 what is next: [BACKLOG.md](BACKLOG.md).
 
@@ -38,8 +38,9 @@ dotnet build SampleProjects/MyHotel/MyHotel.Spec -f net10.0
 SampleProjects/MyHotel/MyHotel.Spec/bin/Debug/net10.0/MyHotel.Spec.exe
 ```
 
-A green run regenerates [`MyHotel.Spec/SPECIFICATION.md`](MyHotel.Spec/SPECIFICATION.md). It is a
-generated file — review it in diffs, never edit it by hand. Its version comes from `<Version>` in
+A green run regenerates [`MyHotel.Spec/_specification/`](MyHotel.Spec/_specification) — one file per
+top-level folder, plus `MyHotel.md` for the root. They are
+generated files — review them in diffs, never edit them by hand. Their version comes from `<Version>` in
 [MyHotel.csproj](MyHotel/MyHotel.csproj).
 
 ## Endpoints

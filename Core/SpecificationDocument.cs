@@ -4,9 +4,10 @@ using TSpec.Internal.Document;
 namespace TSpec;
 
 /// <summary>
-/// Generates SPECIFICATION.md for a spec project. Enable it with one line in the spec project:
+/// Generates the specification of a spec project — one markdown file per top-level folder, and one
+/// for what sits at the root, in a _specification folder. Enable it with one line in the spec project:
 /// <code>[assembly: AssemblyFixture(typeof(SpecificationDocument))]</code>
-/// The document is written to the spec project's source directory when the test run ends.
+/// The files are written to the spec project's source directory when the test run ends.
 /// A project without that line behaves exactly as before.
 /// </summary>
 /// <remarks>
@@ -15,9 +16,9 @@ namespace TSpec;
 /// </remarks>
 public sealed class SpecificationDocument : IDisposable
 {
-    internal const string FileName = "SPECIFICATION.md";
+    internal const string FolderName = "_specification";
 
-    private readonly PendingDocument _document;
+    private readonly PendingSpecification _specification;
     private readonly Assembly _specAssembly;
 
     /// <summary>
@@ -27,29 +28,29 @@ public sealed class SpecificationDocument : IDisposable
     public SpecificationDocument()
     {
         _specAssembly = FindSpecAssembly();
-        _document = PendingDocument.Prepare(ReadName(_specAssembly), AppContext.BaseDirectory);
+        _specification = PendingSpecification.Prepare(ReadName(_specAssembly), AppContext.BaseDirectory);
         SpecificationCollector.IsActive = true;
     }
 
     /// <summary>
-    /// Writes the document, but only when every non-skipped test in the assembly reported a pass.
+    /// Writes the files, but only when every non-skipped test in the assembly reported a pass.
     /// A filtered run, a failure, or a test whose constructor threw all leave requirements
-    /// unreported, and publishing then would silently shorten the document — so the existing file
-    /// is left alone and the missing requirements are named instead.
+    /// unreported, and publishing then would silently shorten the specification — so the existing files
+    /// are left alone and the missing requirements are named instead.
     /// </summary>
     public void Dispose()
     {
         SpecificationCollector.IsActive = false;
         var missing = SpecificationCollector.Missing(ExpectedRequirements.Of(_specAssembly));
         if (missing.Count == 0)
-            _document.Write(SpecificationCollector.Entries);
+            _specification.Write(SpecificationCollector.Entries);
         else
             Console.Error.WriteLine(Report(missing));
     }
 
     private static string Report(IReadOnlyCollection<string> missing)
-        => $"TSpec: {FileName} left unchanged — {missing.Count} requirement(s) did not report a pass, "
-        + "so the document would be incomplete. Run the whole suite green to regenerate it."
+        => $"TSpec: {FolderName}/ left unchanged — {missing.Count} requirement(s) did not report a pass, "
+        + "so the specification would be incomplete. Run the whole suite green to regenerate it."
         + string.Concat(missing.Take(10).Select(requirement => $"\n  - {requirement}"))
         + (missing.Count > 10 ? $"\n  ... and {missing.Count - 10} more" : string.Empty);
 

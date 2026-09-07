@@ -77,10 +77,10 @@ interface without a mock or a second implementation that needs it, no repository
 configuration. Storage stays in memory until asked otherwise.
 
 **The document is the artifact, not the per-test text.** MyHotel exists to exercise
-`SPECIFICATION.md`; per-test rendering is already locked by the expectations in `Core.Test`. Do not
+the generated `_specification/` folder; per-test rendering is already locked by the expectations in `Core.Test`. Do not
 add `Specification.Is("""…""")` here to pin rendering — it duplicates that cover and brings a failure
 mode of its own, since reading the specification from inside a test freezes it mid-test. A rendering
-change is caught where it matters: in the committed document's diff.
+change is caught where it matters: in the committed files' diff.
 
 ## Mechanics
 
@@ -107,7 +107,7 @@ change is caught where it matters: in the committed document's diff.
 - **`Microsoft.OpenApi` stays on the 2.x line.** `Microsoft.AspNetCore.OpenApi`'s source generator
   emits code that only compiles against 2.x's object model; 3.x breaks the build.
 - Update README.md's endpoint table whenever an endpoint is added, removed, or changes contract.
-- Each Spec project generates its own `SPECIFICATION.md` from a green run. Never hand-edit one;
-  commit the regenerated file and read its diff as part of reviewing the change.
+- Each Spec project generates its own `_specification/` folder from a green run. Never hand-edit a file in it;
+  commit the regenerated files and read their diff as part of reviewing the change.
 - TSpec usage: [TSpec-agent-reference.md](../../TSpec-agent-reference.md) — referenced by project, so
   always the working copy.

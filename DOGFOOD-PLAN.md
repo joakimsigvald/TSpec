@@ -115,7 +115,7 @@ Four costs, in descending order of how much they matter:
 document plus the CI check README §6.2 already prescribes:
 
 ```bash
-dotnet test && git diff --exit-code -- "**/SPECIFICATION.md"
+dotnet test && git diff --exit-code -- "**/_specification/*.md"
 ```
 
 But the document is **not** a verbatim substitute, and the plan must not pretend otherwise. It

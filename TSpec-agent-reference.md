@@ -1,13 +1,13 @@
 # TSpec — Agent Reference
 
-Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 2.4).
+Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 2.5).
 TSpec is a fluent Given–When–Then specification framework for .NET on top of xUnit v3 + Moq.
 Full human documentation: [README.md](https://github.com/joakimsigvald/TSpec#readme).
 
 ## Core model — read this first
 
 - A test class subclasses `Spec<TSUT, TResult>` (subject type, return type of the method under test). Variants: `Spec<T>` = `Spec<T, T>`, also the spelling for a subject whose result is not asserted; non-generic `Spec` = no subject, no result (static/void).
-- In `SPECIFICATION.md`, `Spec<TSUT, TResult>` states both types, `Spec<T>` states the subject only (a return type would just repeat it), and non-generic `Spec` states neither.
+- In the generated specification, `Spec<TSUT, TResult>` states both types, `Spec<T>` states the subject only (a return type would just repeat it), and non-generic `Spec` states neither.
 - **Execution is deferred**: nothing runs until the first `Then()` call or `Result` access. The pipeline runs **at most once** per test method.
 - **Declaration order of arrange steps does not matter.** Effective execution order is always: `Given` → `Having` → `When` → `Until`.
   - `Having` steps run in **reverse** declaration order (last declared runs first), just before `When`.
@@ -127,18 +127,19 @@ Also works standalone in plain xUnit tests (no `Spec` base class required), as a
 
 One test project per production project (`X.Spec`); one folder per class under test; one abstract class per method under test (`WhenMethodName`) holding the `When` in its constructor; nested concrete/abstract classes per precondition (`GivenSomething`) adding `Given` in their constructors; one test method per logical assertion (`Then...`). Prefer expression-bodied members and fluent chaining.
 
-## Generating SPECIFICATION.md
+## Generating the specification
 
-Opt in with one line in the spec project; the document is written to the spec project root when the run ends. Without it, nothing is collected and nothing changes.
+Opt in with one line in the spec project; a `_specification/` folder of markdown files is written to the spec project root when the run ends. Without it, nothing is collected and nothing changes.
 
 ```csharp
 [assembly: AssemblyFixture(typeof(SpecificationDocument))]
 ```
 
-- **The spec assembly must be named after the project it describes**, minus one suffix (`MyHotel.Spec` → `MyHotel`; any suffix works, `.Spec` preferred and `.Test` fine), and must reference that project **directly** — a transitive reference is not enough. Either half failing throws `SetupFailed` before the first test. The version in the header is that project's `<Version>`.
-- **The document's structure is the test structure**, so names are the whole of what you control: folder → `# Area`, `When…` class → `## Subject`, `Given…` class → `### Given…`, `Then…` method → a list item, each read as prose (`WhenListRooms` → `## When list rooms`). Name a test method after the claim it makes.
-- **Written only when every non-skipped test in the assembly passed.** A filtered run, a failure, or a constructor that threw all leave the file untouched, with the missing requirements named — so run the whole suite before expecting a diff.
-- Deterministic: sorted, deduplicated, LF-normalized. Verify freshness in CI with `dotnet test && git diff --exit-code -- "**/SPECIFICATION.md"`.
+- **The spec assembly must be named after the project it describes**, minus one suffix (`MyHotel.Spec` → `MyHotel`; any suffix works, `.Spec` preferred and `.Test` fine), and must reference that project **directly** — a transitive reference is not enough. Either half failing throws `SetupFailed` before the first test. The version in each file's header is that project's `<Version>`.
+- **One file per top-level folder of the spec project, named as the folder** (`Rooms.md`), plus one named as the project under test for classes tested at its root (`MyHotel.md`; `Core.md` for `MyHotel.Core.Spec`). A folder named as the project throws `SetupFailed`. A green run replaces the folder's contents, so stale files go.
+- **Each file's structure is the test structure**, so names are the whole of what you control: folder → the file and its `# Title`, `When…` class → `## Subject`, `Given…` class → `### Given…`, `Then…` method → a list item, each read as prose (`WhenListRooms` → `## When list rooms`). Name a test method after the claim it makes.
+- **Written only when every non-skipped test in the assembly passed.** A filtered run, a failure, or a constructor that threw all leave the files untouched, with the missing requirements named — so run the whole suite before expecting a diff.
+- Deterministic: sorted, deduplicated, LF-normalized. Verify freshness in CI with `dotnet test && git diff --exit-code -- "**/_specification/*.md"` (a file for a new folder is untracked; `git status --porcelain` sees it).
 - **A `[Theory]` with `[InlineData]` is one list item over a table of its rows**, headed by the parameter names. . **At most 8 parameters** — more than that throws `SetupFailed` when the document is generated.
 - **Work in progress:** no `[Specification]` / `[ExcludeFromSpecification]` opt-out attributes yet.
 

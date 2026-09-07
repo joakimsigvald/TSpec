@@ -17,14 +17,14 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>2.4.0</PackageVersion>
+		<PackageVersion>2.5.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			CHANGED
-			* Any can be used instead of Moq's It.IsAny in Mock setup and verification. Both forms render as 'any' in the SPECIFICATION.md
-			* A When-heading in SPECIFICATION.md links to the file of its test class, relative to the spec project
+			* The specification is split into a _specification/ folder: one file per top-level folder of the spec project, named as the folder, plus one named as the project under test for classes tested at its root. Each file is titled by its name and states once at its top what every requirement in it declares. A green run replaces the folder's contents. The old SPECIFICATION.md in the spec project root is left for you to delete.
+			* When-heading links are relative to the _specification/ folder
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

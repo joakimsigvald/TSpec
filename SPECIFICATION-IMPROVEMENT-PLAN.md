@@ -17,9 +17,9 @@ document, 2026-08-16 — **D8 is class 1 and class 4 and blocks the diff gate**;
 
 | Source | What it is good for |
 |---|---|
-| `SampleProjects/MyHotel/Core.Spec/SPECIFICATION.md` | domain rules, mocked collaborators, refusals |
-| `SampleProjects/MyHotel/MyHotel.Spec/SPECIFICATION.md` | black-box HTTP, one return type throughout |
-| `Core.Test/SPECIFICATION.md` | since 2026-08-16 — 1268 requirements over 574 headings, the only large one, and the only one whose subject is a library rather than an application |
+| `SampleProjects/MyHotel/Core.Spec/_specification/` | domain rules, mocked collaborators, refusals |
+| `SampleProjects/MyHotel/MyHotel.Spec/_specification/` | black-box HTTP, one return type throughout |
+| `Core.Test/_specification/` (`Core.Test/SPECIFICATION.md` until 2.5.0) | since 2026-08-16 — 1268 requirements over 574 headings, the only large one, and the only one whose subject is a library rather than an application |
 | Outside suites | the only source that can show a shape MyHotel cannot reach |
 
 Record the source on every entry. **A wart seen in two suites outranks one seen in one** — the

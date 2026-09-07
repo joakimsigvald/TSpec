@@ -6,8 +6,8 @@ using TSpec.Internal.Specification;
 namespace TSpec.Test.Internal.Document;
 
 /// <summary>
-/// A subject heading links to the file its class is written in, by a path relative to the spec
-/// project — the one root every reader of the file shares. Nothing else links: a given-class or a
+/// A subject heading links to the file its class is written in, by a path from the Specification
+/// folder the document sits in — the one place every reader of the file shares. Nothing else links: a given-class or a
 /// test method sits partway down a file, and a link that cannot say where would open at the top
 /// and read as broken in a reader that does not follow line anchors, Visual Studio among them.
 /// </summary>
@@ -25,11 +25,11 @@ public class WhenLinkToSource : Spec
         => Path.Combine(_root, relative.Replace('/', Path.DirectorySeparatorChar));
 
     private static string Render(SpecificationEntry entry, string? root)
-        => DocumentRenderer.Render(new("MyHotel", "0.1.0"), "MyHotel.Spec", [entry], root);
+        => DocumentRenderer.Render(new("MyHotel", "0.1.0"), "MyHotel.Spec", [entry], root).Single().Content;
 
     [Fact]
     public void ThenTheSubjectHeadingLinksToItsFile()
-        => Render(_respondOk, _root).Does().Contain("## [When get version](Api/WhenGetVersion.cs)\n");
+        => Render(_respondOk, _root).Does().Contain("## [When get version](../Api/WhenGetVersion.cs)\n");
 
     [Fact]
     public void ThenABranchHeadingAndARequirementDoNotLink()
@@ -56,7 +56,7 @@ public class WhenLinkToSource : Spec
         Directory.CreateDirectory(Path.Combine(project.Root, "Api"));
         File.WriteAllText(Path.Combine(project.Root, "Api", "WhenGetVersion.cs"), "");
         Render(_respondOk with { Source = new("/_/Spec/Api/WhenGetVersion.cs", 7) }, project.Root)
-            .Does().Contain("## [When get version](Api/WhenGetVersion.cs)\n");
+            .Does().Contain("## [When get version](../Api/WhenGetVersion.cs)\n");
     }
 
     [Fact]

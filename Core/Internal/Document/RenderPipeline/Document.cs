@@ -2,59 +2,78 @@ using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.Document.RenderPipeline;
 
+/// <summary>
+/// One file of the specification: the requirements of one top-level folder of the spec project,
+/// or of what sits at its root, under a title naming it. What every requirement in the file states
+/// is stated once at its top, and the root node holds that along with the groups below it.
+/// </summary>
 internal sealed record Document(
     SpecificationSubject Subject,
     string SpecAssemblyName,
-    string? SubjectUnderTest,
-    string? ReturnType,
-    IReadOnlyList<SpecificationClause> Whole,
-    IReadOnlyList<DocumentNode> Areas,
+    string Name,
+    DocumentNode Root,
     string? SourceRoot)
 {
     internal const int Width = 90;
 
-    internal static Document Of(
+    internal string Title => Root.Heading!;
+
+    /// The spec assembly, and the folder of it a folder's file was generated from.
+    internal string GeneratedFrom
+        => Root.HasKey ? $"{SpecAssemblyName}/{Root.Key}" : SpecAssemblyName;
+
+    /// <summary>
+    /// The files of the specification, by name. A folder named as the project is would take the
+    /// file the root already has, so that fails rather than writes one over the other.
+    /// </summary>
+    internal static IReadOnlyList<Document> Of(
         SpecificationSubject subject, string specAssemblyName,
         IEnumerable<SpecificationEntry> entries, string? sourceRoot)
     {
         Requirement[] requirements = [.. Requirement.From(entries)];
-        var whole = Requirement.Shared(requirements, acts: false);
-        return new(subject, specAssemblyName,
-            Requirement.SubjectOf(requirements), Requirement.ReturnTypeOf(requirements),
-            whole, ToAreas(requirements, whole), sourceRoot);
+        var rootDepth = RootDepth(requirements, specAssemblyName);
+        var documents = requirements
+            .GroupBy(requirement => AreaOf(requirement.Entry.Namespace, rootDepth))
+            .Select(area => ToDocument(area, rootDepth, subject, specAssemblyName, sourceRoot))
+            .OrderBy(document => document.Name, StringComparer.Ordinal)
+            .ToArray();
+        var clash = documents.GroupBy(document => document.Name).FirstOrDefault(name => name.Count() > 1);
+        if (clash is not null)
+            throw new SetupFailed(
+                $"TSpec cannot write the specification: a folder of {specAssemblyName} is named "
+                + $"'{clash.Key}', which is the file the project's own requirements take. Rename the folder.");
+        return documents;
     }
 
-    internal string? Href(SourceLocation? at) => SourceLink.Href(at, SourceRoot);
+    /// Where the documents' links to source point, from the folder the documents sit in.
+    internal string? Href(SourceLocation? at)
+        => SourceLink.Href(at, SourceRoot) is { } relative ? $"../{relative}" : null;
 
-    private const int AreaLevel = 1;
+    private const int RootLevel = 1;
     private const int GroupLevel = 2;
     private const int MaxLevel = 4;
 
-    private static DocumentNode[] ToAreas(
-        Requirement[] requirements, IReadOnlyList<SpecificationClause> hoisted)
-    {
-        var rootDepth = CommonRootDepth(requirements);
-        return [.. requirements
-            .Select(requirement => requirement.Without(hoisted))
-            .GroupBy(requirement => AreaOf(requirement.Entry.Namespace, rootDepth))
-            .Select(area => ToArea(area, rootDepth))];
-    }
-
-    private static DocumentNode ToArea(IGrouping<string, Requirement> area, int rootDepth)
+    private static Document ToDocument(
+        IGrouping<string, Requirement> area, int rootDepth,
+        SpecificationSubject subject, string specAssemblyName, string? sourceRoot)
     {
         var ofArea = area.ToArray();
-        var heads = area.Key.Length > 0;
-        var shared = heads ? Requirement.Shared(ofArea, acts: false) : [];
-        var subject = heads ? Requirement.SubjectOf(ofArea) : null;
+        var atRoot = area.Key.Length == 0;
+        var name = atRoot ? LastPart(subject.Name) : area.Key;
+        var title = atRoot ? name.AsTitle() : area.Key.AsHeading();
+        var shared = Requirement.Shared(ofArea, acts: false);
         var groups = ofArea
             .Select(requirement => requirement.Without(shared))
             .GroupBy(requirement => GroupOf(requirement.Entry.Namespace, rootDepth + 1))
             .ToArray();
-        return new(area.Key, heads ? area.Key.AsHeading() : null, AreaLevel, shared,
-            subject, heads ? Requirement.ReturnTypeOf(ofArea) : null,
+        DocumentNode root = new(area.Key, title, RootLevel, shared,
+            Requirement.SubjectOf(ofArea), Requirement.ReturnTypeOf(ofArea),
             [.. groups.Select(group => ToGroup(group, heads: groups.Length > 1))],
             Requirements: []);
+        return new(subject, specAssemblyName, name, root, sourceRoot);
     }
+
+    private static string LastPart(string subjectName) => subjectName[(subjectName.LastIndexOf('.') + 1)..];
 
     private static DocumentNode ToGroup(IGrouping<string, Requirement> group, bool heads)
     {
@@ -145,9 +164,22 @@ internal sealed record Document(
             [.. ofBranch.Select(requirement => requirement.Without(shared))]);
     }
 
-    private static int CommonRootDepth(Requirement[] requirements)
+    /// <summary>
+    /// The project's own namespace is the root the folders sit under, so a folder is a file even
+    /// when it is the only one. Specs that do not sit under it have no project to be relative to,
+    /// and there what they share stands in for it.
+    /// </summary>
+    private static int RootDepth(Requirement[] requirements, string specAssemblyName)
     {
         var paths = requirements.Select(requirement => Segments(requirement.Entry.Namespace)).ToArray();
+        var project = Segments(specAssemblyName);
+        return paths.Length > 0 && paths.All(path => CommonPrefixDepth(project, path, project.Length) == project.Length)
+            ? project.Length
+            : CommonRootDepth(paths);
+    }
+
+    private static int CommonRootDepth(string[][] paths)
+    {
         if (paths.Length == 0)
             return 0;
 
