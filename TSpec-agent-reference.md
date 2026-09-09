@@ -116,7 +116,7 @@ Also works standalone in plain xUnit tests (no `Spec` base class required), as a
 | `When must be called before Then or Result` | Missing `When` — every spec needs exactly one. |
 | `Cannot call When twice in the same pipeline` | Two `When` calls; use nested given-classes to vary preconditions instead. |
 | `Tried to use Result, but an action ... was provided` | `When` got an `Action` but the test reads `Result`. Pass a `Func` matching the declared `TResult`. |
-| `No trainwrecks in Then/And!` | Subject expression like `Then(x.A.B)`; assert on `x.A` and chain `.B` after the continuation. |
+| `No trainwrecks in Then: 'x.A.B' chains a member on its subject` | Hand over the root and chain the rest after it, as the message spells out: `Then(x).A.B`. |
 | `AndNext must be preceded by First` | Sequential mock setup must start with `.First()`. |
 | `Because can only be provided once per test method` | One logical assertion (and one `because`) per test method. |
 | `ValuesExhausted` | A `From` sequence/list ran out of unique values; widen the sequence or provide more values. |

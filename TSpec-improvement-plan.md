@@ -154,8 +154,8 @@ A `[Theory]` parameter named with `@` (a keyword) rendered the claim with its wh
 `.and.` loses the actual's name ("Expected  to contain"). Same code path as item 1.
 
 ### 21. Point the trainwreck error at the idiom
-"No trainwrecks in Then/And! Chain additional properties/method calls outside of the subject expression" stopped a
-first-time author; the fix is `.And(root).Member.Is(...)`. Say so in the message.
+DONE in 2.6.0. The message names the verb, the expression, and the rewrite: "No trainwrecks in And:
+'Result.Length' chains a member on its subject. Hand over the root and chain the rest after it: And(Result).Length".
 
 ## Suggested order of work
 1. Items 1, 2, 3 (P1) - each a day or less, each closes a class of silently wrong specs.

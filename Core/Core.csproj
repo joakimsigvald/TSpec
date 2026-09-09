@@ -24,6 +24,7 @@
 		<PackageReleaseNotes>
 			CHANGED
 			* A test that provides When must claim something. A bare Then() asserts nothing, not even that the act completed, and now fails the test at teardown; so does Then(subject) or And(subject) with nothing asserted on it. State a completed act with Then().DoesNotThrow().
+			* The trainwreck error names the expression and spells out the rewrite: "Hand over the root and chain the rest after it: And(Result).Length".
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

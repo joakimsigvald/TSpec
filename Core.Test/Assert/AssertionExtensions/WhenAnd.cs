@@ -9,7 +9,9 @@ public class WhenAnd : Spec<string>
     [Fact]
     public void GivenTrainwreck_ThenThrowSetupFailed()
         => Xunit.Assert.Throws<SetupFailed>(
-            () => Then().Result.Is().Not(null!).And(Result.Length));
+            () => Then().Result.Is().Not(null!).And(Result.Length)).Message.Is(
+            "No trainwrecks in And: 'Result.Length' chains a member on its subject. "
+            + "Hand over the root and chain the rest after it: And(Result).Length");
 
     [Fact]
     public void GivenTrainwreckAfterTestResult_ThenThrowSetupFailed()

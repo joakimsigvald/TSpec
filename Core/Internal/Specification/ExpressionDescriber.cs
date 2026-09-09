@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using TSpec.Internal.Specification.ExpressionParsing.Describe;
 using TSpec.Internal.Specification.ExpressionParsing.Expressions;
 using TSpec.Internal.Specification.ExpressionParsing.Parse;
@@ -31,11 +32,29 @@ internal static class ExpressionDescriber
     /// value.Property and Property1.Property2 are trainwrecks. Only the
     /// top-level chain is inspected — call arguments (lambdas, constraints)
     /// never count.
-    public static void AssertNoTrainwreck(this string? expr)
+    public static void AssertNoTrainwreck(this string? expr, [CallerMemberName] string? verb = null)
     {
-        if (!string.IsNullOrWhiteSpace(expr) && IsTrainwreck(Parser.Parse(expr.ToSingleLine())))
-            throw new SetupFailed("No trainwrecks in Then/And! Chain additional properties/method calls outside of the subject expression");
+        if (string.IsNullOrWhiteSpace(expr))
+            return;
+
+        var parsed = Parser.Parse(expr.ToSingleLine());
+        if (!IsTrainwreck(parsed))
+            return;
+
+        var whole = parsed.ToSource();
+        var root = RootOf(parsed).ToSource();
+        throw new SetupFailed(
+            $"No trainwrecks in {verb}: '{whole}' chains a member on its subject. "
+            + $"Hand over the root and chain the rest after it: {verb}({root}){whole[root.Length..]}");
     }
+
+    /// The innermost target the chain hangs off, which is what the subject should have been.
+    private static Expr RootOf(Expr e) => e switch
+    {
+        Member m => IsTrainwreck(m.Target) ? RootOf(m.Target) : m.Target,
+        Call c => RootOf(c.Target),
+        _ => e,
+    };
 
     private static bool IsTrainwreck(Expr e) => e switch
     {
