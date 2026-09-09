@@ -25,14 +25,25 @@ spelling and no `Pass()` was added. A test where a SetupFailed was raised is exe
 into another spec's subject graph is checked by neither.
 
 ### 2. A tag read before the pipeline ran returns the type default silently
-`The(package)` in a Then before `Result` was touched returns the `Using` default, so a "before" comparison
-compares against the wrong input and passes by luck of evaluation order (ManualBuild's stacks-field claim,
-2026-09-07; the review of 2026-09-09 found two more). `Then<TSubject>(TSubject)` does not help: C# evaluates the
-argument first, so `Then(RootOf(The(package))).Children` reads the default too (probed 2026-09-09). Proposal,
-in order of preference: (a) `The(tag)` runs the pipeline when read from a Then; (b) a lazy overload
-`Then(Func<T>)` evaluated after the run, so `Then(() => RootOf(The(package))).Children` gates; (c) throw
-"read before run". Done when M5's gated getters in `WhenApplyPopulationEdits`, `WhenApplyDatasetEdits`,
-`WhenApplyManualBuildEdits` and `WhenApplyEditsToTheRiskprofil` can drop their `{ get { Then(); ... } }` bodies.
+DONE in 2.6.0, as (c) — detection rather than a syntactic rule. The defect is wider than a Then: any read
+before arrangement yields a placeholder, so `Given(b).Is(The(a) + 1)` was silently wrong too. TSpec now
+records every slot read before the pipeline is arranged, and throws where an arrangement REPLACES what was
+read, naming it: "the tag '_name' was read before the pipeline was arranged, so the read yielded a generated
+value rather than the one arranged for it. Run the pipeline with Then() before reading it".
+
+Replacement is the whole test, and getting there took two passes. "Read then arranged" is too crude: it
+condemns `Given(Many<T>())`, where the read feeds the arrangement and the same values are stored back, and it
+condemns an arrangement that mutates a value in place, where the read reference still points at the object the
+pipeline uses. Both keep the test holding the right thing. So the check sits at the one place every value is
+stored, compares what lands against what the slot already held, and runs only while arrangement is running —
+after it, a fresh mention that grows a collection is not an overwrite of anything the test relied on.
+(a) was rejected because the recommended structure puts `When` in an outer constructor and `Given` in nested
+ones, so a read from a Given constructor would run the pipeline mid-arrangement; (b) was rejected as
+unintuitive about who runs the lambda and when. M5's gated getters stay as they are — `Then(); ...` is now the
+stated idiom, and the failure is loud instead of silent.
+
+Also closed with it: a lambda handed to `Then(subject)`/`And(subject)` used to bind as a `Func<>` subject and
+render as one. It is refused now, on the same ground as (b) — running the pipeline does not affect a lambda.
 
 ### 3. Two `Using(() => null)` factories collapse into one rendered line
 Two factories that both read `() => null` for different types render as ONE "and null" line (dedup by text), so

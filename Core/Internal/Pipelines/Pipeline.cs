@@ -35,6 +35,7 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
     internal TSubject Then<TSubject>(TSubject subject, string subjectExpr)
     {
         subjectExpr.AssertNoTrainwreck();
+        HandedOverSubject.AssertIsNotALambda(subject, subjectExpr);
         Specification.SetSubject(subjectExpr);
         _ = Claim;
         return subject;
@@ -82,9 +83,9 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         where TService : class
         => Claim.Verify(expression, wasInvoked, expressionExpr, wasInvokedExpr);
 
-    internal TValue Mention<TValue>(int? index = 0) => _context.Produce<TValue>(index);
+    internal TValue Mention<TValue>(int? index = 0) => _context.Mention<TValue>(index);
 
-    internal TValue Mention<TValue>(Tag<TValue> tag) => _context.Produce(tag);
+    internal TValue Mention<TValue>(Tag<TValue> tag) => _context.Mention(tag);
 
     internal TValue Assign<TValue>(Tag<TValue> tag, TValue value)
     {

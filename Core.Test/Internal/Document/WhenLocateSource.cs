@@ -19,11 +19,13 @@ public class WhenLocateSource : Spec
 
     internal void Probe() => Mark();
 
+    /// <summary>
+    /// Body on one line: a debug build starts an async body at its brace and a release build at its
+    /// first statement, so only where the two share a line does the method have one body-start line
+    /// to state.
+    /// </summary>
     internal async Task ProbeAsync()
-    {
-        Mark();
-        await Task.Yield();
-    }
+    { Mark(); await Task.Yield(); }
 
     private sealed class WithConstructor : Spec
     {
@@ -54,7 +56,6 @@ public class WhenLocateSource : Spec
 
     /// <summary>
     /// An async method's body is compiled into a state machine, which is where its lines are kept.
-    /// A block body starts at its brace, the line above the first statement.
     /// </summary>
     [Fact]
     public async Task GivenAnAsyncMethod_ThenItIsWhereItsBodyStarts()
@@ -62,7 +63,7 @@ public class WhenLocateSource : Spec
         await ProbeAsync();
         var location = SourceLocations.Of(typeof(WhenLocateSource).GetMethod(nameof(ProbeAsync), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!)!;
         location.File.Is(_file);
-        location.Line.Is(_line - 1);
+        location.Line.Is(_line);
     }
 
     [Fact]

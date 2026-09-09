@@ -2,6 +2,8 @@
 using TSpec.Continuations;
 using TSpec.Internal.Specification;
 
+using TSpec.Internal.Pipelines;
+
 namespace TSpec.Internal.Verification;
 
 internal class AndThen<TSUT, TResult> : IAndThen<TResult>
@@ -33,6 +35,7 @@ internal class AndThen<TSUT, TResult> : IAndThen<TResult>
         [CallerArgumentExpression(nameof(subject))] string? subjectExpr = null)
     {
         subjectExpr.AssertNoTrainwreck();
+        HandedOverSubject.AssertIsNotALambda(subject, subjectExpr);
         SpecificationContext.Current.AddThen();
         SpecificationContext.Current.SetSubject(subjectExpr!);
         return subject;

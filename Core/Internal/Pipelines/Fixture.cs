@@ -110,7 +110,9 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
 
     internal Lazy<TSUT> Arrange()
     {
+        _context.BeginArranging();
         _arranger.Arrange();
+        _context.EndArranging();
         return new Lazy<TSUT>(Instantiate<TSUT>);
     }
 

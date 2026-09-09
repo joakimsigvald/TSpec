@@ -1,4 +1,5 @@
 ﻿using Moq;
+using TSpec.Internal.Specification;
 using TSpec.Internal.Pipelines;
 using TSpec.Internal.TestData.Generation.Strategies;
 
@@ -9,6 +10,70 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
     private readonly Repository _repository = new(specificationProvider, disposalTracker);
     private readonly Dictionary<Type, Dictionary<object, int>> _tagIndices = [];
     private readonly HashSet<string> _tagNames = new(StringComparer.Ordinal);
+    private readonly HashSet<(Type, int)> _readBeforeArranging = [];
+    private readonly Dictionary<(Type, int), string> _namesByIndex = [];
+    private Arranging _arranging;
+
+    /// Reads are early only before arrangement; overwrites are suspect only while it runs.
+    private enum Arranging { NotStarted, Running, Done }
+
+    internal void BeginArranging() => _arranging = Arranging.Running;
+
+    internal void EndArranging() => _arranging = Arranging.Done;
+
+    /// <summary>
+    /// A read the test made before the pipeline was arranged. Harmless on its own — it generates a
+    /// value and keeps it — but wrong the moment an arrangement replaces it, because what the test is
+    /// holding is then not what the pipeline used.
+    /// </summary>
+    private TValue Read<TValue>(int? index)
+    {
+        if (index is not null)
+            NoteRead(typeof(TValue), index.Value);
+        return Produce<TValue>(index);
+    }
+
+    private void NoteRead(Type type, int index)
+    {
+        if (_arranging == Arranging.NotStarted)
+            _readBeforeArranging.Add((type, index));
+    }
+
+    /// <summary>
+    /// Raised where the arrangement lands, which is the first moment TSpec can tell the earlier read
+    /// was wrong. Only a REPLACEMENT is wrong: an arrangement built from what was read stores it back
+    /// unchanged — <c>Given(Many&lt;T&gt;())</c> — and one that mutates a value in place leaves the
+    /// read reference pointing at the arranged object, so both keep the test holding the right thing.
+    /// </summary>
+    private void AssertNotReplacingWhatWasRead(Type type, int index, object? value)
+    {
+        if (_arranging != Arranging.Running || !_readBeforeArranging.Contains((type, index)))
+            return;
+
+        var (prior, found) = _repository.Retrieve(type, index);
+        if (!found || Equals(prior, value))
+            return;
+
+        throw new SetupFailed(
+            $"{NameOf(type, index)} was read before the pipeline was arranged, so the read yielded a "
+            + "generated value rather than the one arranged for it. "
+            + "Run the pipeline with Then() before reading it");
+    }
+
+    private string NameOf(Type type, int index)
+        => _namesByIndex.TryGetValue((type, index), out var name)
+            ? $"the tag '{name}'"
+            : $"the {Ordinal(index)} {type.Alias()}";
+
+    private static string Ordinal(int index) => index switch
+    {
+        0 => "first",
+        1 => "second",
+        2 => "third",
+        3 => "fourth",
+        4 => "fifth",
+        _ => $"#{index + 1}"
+    };
 
     internal TClass Instantiate<TClass>()
         => (TClass)(_repository.Instantiate<TClass>() ?? Create<TClass>())!;
@@ -48,7 +113,9 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
         }
     }
 
-    internal TValue Produce<TValue>(Tag<TValue> tag) => Produce<TValue>(GetTagIndex(tag));
+    internal TValue Mention<TValue>(int? index) => Read<TValue>(index);
+
+    internal TValue Mention<TValue>(Tag<TValue> tag) => Read<TValue>(GetTagIndex(tag));
 
     internal TValue Assign<TValue>(Tag<TValue> tag, TValue value) => Assign(value, GetTagIndex(tag));
 
@@ -75,14 +142,19 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
     internal TValue[] AssignMany<TValue>(TValue[] values)
         => Assign(values);
 
+    /// Every stored value passes here, which is the one place a replacement can be caught.
     internal TValue Assign<TValue>(TValue value, int index = 0)
     {
+        AssertNotReplacingWhatWasRead(typeof(TValue), index, value);
         _repository.Assign(typeof(TValue), value, index);
         return value;
     }
 
     internal TValue[] MentionMany<TValue>(int count, int? minCount)
-        => Assign(Reuse(GetArray<TValue>(), count, minCount));
+    {
+        NoteRead(typeof(TValue[]), 0);
+        return Assign(Reuse(GetArray<TValue>(), count, minCount));
+    }
 
     private TValue[]? GetArray<TValue>()
     {
@@ -126,6 +198,7 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
         AssertNameIsUnique(tag.Name);
         index = GetNextTagIndex(typedTagIndices);
         specificationProvider.Specification.TagIndex(type, index, tag.Name);
+        _namesByIndex[(type, index)] = tag.Name;
         return typedTagIndices[tag] = index;
     }
 
@@ -149,7 +222,7 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
         => typedTagIndices.Count > 0 ? typedTagIndices.Values.Min() - 1 : -1;
 
     private TValue[] Reuse<TValue>(TValue[]? arr, int count, int? minCount)
-        => arr is null ? [.. Enumerable.Range(0, count).Select(i => Produce<TValue>(i))]
+        => arr is null ? [.. Enumerable.Range(0, count).Select(i => Read<TValue>(i))]
         : arr.Length >= minCount || arr?.Length == count ? arr
         : arr!.Length > count ? arr[..count]
         : Extend(arr, count);
@@ -157,6 +230,6 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
     private TValue[] Extend<TValue>(TValue[] arr, int count)
         => [
             .. arr,
-            .. Enumerable.Range(arr.Length, count - arr.Length).Select(i => Produce<TValue>(i))
+            .. Enumerable.Range(arr.Length, count - arr.Length).Select(i => Read<TValue>(i))
             ];
 }

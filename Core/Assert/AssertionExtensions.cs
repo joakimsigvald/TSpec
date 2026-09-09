@@ -2,6 +2,8 @@
 using TSpec.Assert.Continuations;
 using TSpec.Internal.Specification;
 
+using TSpec.Internal.Pipelines;
+
 namespace TSpec.Assert;
 
 /// <summary>
@@ -101,6 +103,7 @@ public static class AssertionExtensions
         where TContinuation : Constraint
     {
         actualExpr.AssertNoTrainwreck();
+        HandedOverSubject.AssertIsNotALambda(actual, actualExpr);
         SpecificationContext.Current.AddThen();
         SpecificationContext.Current.SetSubject(actualExpr!);
         return actual;
