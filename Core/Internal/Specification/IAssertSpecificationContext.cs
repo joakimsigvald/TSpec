@@ -6,7 +6,8 @@ internal interface IAssertSpecificationContext
 {
     void Assert(Action assert, string actual, string? expected, string verb);
     void AddThen();
-    void SetSubject(string? subjectExpr);
+    void SetSubject(string subjectExpr, [CallerMemberName] string? provider = null);
+    void ClearSubject();
     void AddVerify<TService>(string expressionExpr, string? wasInvokedExpr = null);
     void AddWasInvoked<TService>(string? wasInvokedExpr);
     void AddWasInvoked<TService>(string method, string? wasInvokedExpr);

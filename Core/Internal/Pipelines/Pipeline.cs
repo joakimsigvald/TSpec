@@ -26,7 +26,7 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
 
     internal ITestResultWithSUT<TSUT, TResult> Then(string? because)
     {
-        Specification.SetSubject(null);
+        Specification.ClearSubject();
         if (because is not null)
             Specification.AddBecause(because);
         return Claim;
@@ -162,6 +162,7 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         catch (SetupFailed ex)
         {
             ex.MarkLeftItsPipeline();
+            Specification.NoteSetupFailure();
             throw;
         }
     }
@@ -200,6 +201,13 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
     }
 
     private Command MethodUnderTest => _methodUnderTest ?? throw new SetupFailed("When must be called before Then or Result");
+
+    /// A spec that never provided a When is not driving this pipeline, and is left alone.
+    internal void AssertClaimed()
+    {
+        if (_methodUnderTest is not null)
+            Specification.AssertClaimed();
+    }
 
     private void AssertHasNotRun()
     {

@@ -17,13 +17,13 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>2.5.0</PackageVersion>
+		<PackageVersion>2.66.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			CHANGED
-			* SPECIFICATION.md is replaced by a _specification/ folder: one file per top-level folder of the spec project, one for classes tested at its root, and a README.md index with the project's Description and a table of When/Given/Then counts per file. A green run replaces the folder's contents; delete the old SPECIFICATION.md yourself.
+			* A test that provides When must claim something. A bare Then() asserts nothing, not even that the act completed, and now fails the test at teardown; so does Then(subject) or And(subject) with nothing asserted on it. State a completed act with Then().DoesNotThrow().
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

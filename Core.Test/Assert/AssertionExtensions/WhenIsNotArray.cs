@@ -6,7 +6,7 @@ public class WhenIsNotArray : Spec<int[]>
 {
     public WhenIsNotArray() => Using(() => new int[] { 1, 2, 3 }, For.Input);
 
-    [Fact] public void GivenNotSame_ThenDoesNotThrow() => When(_ => _.Is().Not(null)).Then();
+    [Fact] public void GivenNotSame_ThenDoesNotThrow() => When(_ => _.Is().Not(null)).Then().DoesNotThrow();
 
     [Fact]
     public void GivenFail_ThenGetException()

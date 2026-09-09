@@ -34,7 +34,7 @@ internal class AndThen<TSUT, TResult> : IAndThen<TResult>
     {
         subjectExpr.AssertNoTrainwreck();
         SpecificationContext.Current.AddThen();
-        SpecificationContext.Current.SetSubject(subjectExpr);
+        SpecificationContext.Current.SetSubject(subjectExpr!);
         return subject;
     }
 }

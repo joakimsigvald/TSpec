@@ -1,14 +1,18 @@
-﻿namespace TSpec;
+﻿using TSpec.Internal.Specification;
+
+namespace TSpec;
 
 /// <summary>
 /// Exception thrown when executing a test with invalid setup
 /// </summary>
 public class SetupFailed : ApplicationException
 {
-    internal SetupFailed(string message) : base(message) { }
+    internal SetupFailed(string message) : base(message)
+        => SpecificationContext.NoteSetupFailureInCurrent();
 
     internal SetupFailed(string message, Exception innerException)
-        : base($"{message}, because: {innerException.Message}", innerException) { }
+        : base($"{message}, because: {innerException.Message}", innerException)
+        => SpecificationContext.NoteSetupFailureInCurrent();
 
     /// <summary>
     /// Set as the failure leaves the pipeline that raised it, so a pipeline can tell a nested

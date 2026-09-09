@@ -151,7 +151,7 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
         var expectation = DescribeInvocationTimes(timesExpr);
         try
         {
-            SpecificationContext.Current.SetSubject(null);
+            SpecificationContext.Current.ClearSubject();
             SpecificationContext.Current.AddWasInvoked<TService>(timesExpr);
             var count = Mocked<TService>().Invocations.Count;
             if (!times.Validate(count))
@@ -173,7 +173,7 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
         var expectation = DescribeInvocationTimes(timesExpr);
         try
         {
-            SpecificationContext.Current.SetSubject(null);
+            SpecificationContext.Current.ClearSubject();
             SpecificationContext.Current.AddWasInvoked<TService>(method, timesExpr);
             var count = Mocked<TService>().Invocations.Count(i => i.Method.Name == method);
             if (!times.Validate(count))
@@ -285,7 +285,7 @@ Try providing a function with the Spec's declared return type instead as paramet
     {
         try
         {
-            SpecificationContext.Current.SetSubject(null);
+            SpecificationContext.Current.ClearSubject();
             SpecificationContext.Current.AddVerify<TService>(expressionExpr, timesExpr);
             verify(Mocked<TService>());
             return new AndVerify<TSUT, TResult>(this);

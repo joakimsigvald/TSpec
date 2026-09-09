@@ -24,7 +24,7 @@ public abstract class Spec<TSUTorResult> : Spec<TSUTorResult, TSUTorResult>;
 /// </summary>
 /// <typeparam name="TSUT">The class to instantiate and execute the method-under-test on</typeparam>
 /// <typeparam name="TResult">The return type of the method-under-test</typeparam>
-public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>, IDisposable
+public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>, IDisposable, IDependencySpec
 {
     private readonly Lazy<string> _lazySpecification = null!;
 
@@ -50,9 +50,15 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// generated input data are not disposed. To manage the subject's lifetime yourself,
     /// provide your own instance with Using.
     /// </summary>
-    public void Dispose()
+    public void Dispose() => Dispose(checkClaims: true);
+
+    void IDependencySpec.DisposeAsDependency() => Dispose(checkClaims: false);
+
+    private void Dispose(bool checkClaims)
     {
         Pipeline.TearDown();
+        if (checkClaims)
+            Pipeline.AssertClaimed();
         Collect();
         GC.SuppressFinalize(this);
     }

@@ -4,7 +4,7 @@ namespace TSpec.Test.Assert.AssertionExtensionsNumerical;
 
 public class WhenIsInt : Spec<int>
 {
-    [Fact] public void GivenSame_ThenDoesNotThrow() => When(_ => _.Is(_)).Then();
+    [Fact] public void GivenSame_ThenDoesNotThrow() => When(_ => _.Is(_)).Then().DoesNotThrow();
 
     [Fact] public void GivenFail_ThenGetException() 
     {

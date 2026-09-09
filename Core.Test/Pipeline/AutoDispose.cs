@@ -32,7 +32,7 @@ public class AutoDispose
         var mySut = new DisposableSubject();
         var spec = new DisposableSutSpec();
         var sut = spec.Using(mySut).When(_ => _.GetValue()).Then().SubjectUnderTest;
-        Xunit.Assert.Same(mySut, sut);
+        sut.Is(mySut);
         spec.Dispose();
         mySut.IsDisposed.Is().False();
     }
@@ -43,7 +43,7 @@ public class AutoDispose
         var mySut = new DisposableSubject();
         var spec = new DisposableSutSpec();
         var sut = spec.Using(() => mySut).When(_ => _.GetValue()).Then().SubjectUnderTest;
-        Xunit.Assert.Same(mySut, sut);
+        sut.Is(mySut);
         spec.Dispose();
         mySut.IsDisposed.Is().False();
     }
@@ -122,7 +122,7 @@ public class AutoDispose
         spec.Using(log, For.Subject)
             .When(_ => _.GetValue())
             .Until(_ => log.Entries.Add("until"))
-            .Then();
+            .Then().DoesNotThrow();
         spec.Dispose();
         log.Entries.Is().EqualTo(["until", "subject", "dependency"]);
     }
@@ -145,6 +145,7 @@ public class AutoDispose
         var sut = spec.When(_ => _.GetValue())
             .Until(_ => _.Dispose())
             .Then().SubjectUnderTest;
+        sut.DisposeCount.Is(0);
         spec.Dispose();
         sut.DisposeCount.Is(2);
     }
@@ -154,6 +155,7 @@ public class AutoDispose
     {
         var spec = new MockedServiceSutSpec();
         var sut = spec.When(_ => _.GetValue()).Then().SubjectUnderTest;
+        spec.Then().DoesNotThrow();
         spec.Dispose();
         Mock.Get(sut.Service).Verify(_ => _.Dispose(), Times.Never());
     }
@@ -163,8 +165,9 @@ public class AutoDispose
     {
         var spec = new InputDataSpec();
         var model = spec.Then().Result;
-        spec.Dispose();
         model!.IsDisposed.Is().False();
+        spec.Dispose();
+        model.IsDisposed.Is().False();
     }
 
     [Fact]
@@ -173,7 +176,8 @@ public class AutoDispose
         var createdBefore = CountingDisposable.Created;
         var spec = new NeverRunSpec();
         spec.When(_ => _.GetValue());
-        spec.Dispose();
+        // Teardown runs before it reports that nothing was claimed
+        Xunit.Assert.Throws<SetupFailed>(spec.Dispose);
         CountingDisposable.Created.Is(createdBefore);
     }
 }

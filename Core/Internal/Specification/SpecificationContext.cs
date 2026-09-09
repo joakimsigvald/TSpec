@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using TSpec.Internal.Document;
 using Xunit.Sdk;
 
@@ -27,6 +27,22 @@ internal class SpecificationContext : IAssertSpecificationContext
     private readonly SpecificationAssignments _assignments = new();
     private readonly List<string> _setupWarnings = [];
     private string? _subjectDescription;
+    private string? _subjectExpr;
+    private string? _subjectProvider;
+    private Claims _claims;
+
+    /// <summary>
+    /// What the test has claimed so far. A subject handed over by Then or And awaits an assertion
+    /// until one is made; a setup failure is terminal, since the test has either failed already or
+    /// deliberately caught it.
+    /// </summary>
+    private enum Claims
+    {
+        None,
+        AwaitingAssertionOnSubject,
+        Made,
+        SetupFailed
+    }
 
     /// The context this one displaced, restored when this one is released — see <see cref="Create"/>.
     private SpecificationContext? _enclosing;
@@ -57,11 +73,55 @@ internal class SpecificationContext : IAssertSpecificationContext
     }
 
     /// <summary>
-    /// Register the subject of the current assertion chain, as declared by the
-    /// Then/And overload that received it. Pass null when the wrapper takes no
-    /// subject, so a previously registered subject cannot leak into it.
+    /// Register the subject of the current assertion chain, as declared by the Then/And overload
+    /// that received it — the caller's name says which, for the report should no assertion follow.
     /// </summary>
-    public void SetSubject(string? subjectExpr) => _subjectDescription = subjectExpr?.Describe();
+    public void SetSubject(string subjectExpr, [CallerMemberName] string? provider = null)
+    {
+        _subjectDescription = subjectExpr.Describe();
+        _subjectExpr = subjectExpr;
+        _subjectProvider = provider;
+        Claim(Claims.AwaitingAssertionOnSubject);
+    }
+
+    /// Clear the subject where the wrapper takes none, so a previously registered one cannot leak into it.
+    public void ClearSubject() => _subjectDescription = null;
+
+    /// <summary>
+    /// A test is green by what it claims, so one that claims nothing is green for no reason. Checked
+    /// once the pipeline is torn down, and only for a test that provided a When — a spec without one
+    /// is not driving the pipeline, and what it asserts is its own business.
+    /// </summary>
+    internal void AssertClaimed()
+    {
+        switch (_claims)
+        {
+            case Claims.AwaitingAssertionOnSubject:
+                throw new SetupFailed(
+                    $"{_subjectProvider}({_subjectExpr}) hands over a subject to be asserted on, but no assertion follows it");
+            case Claims.None:
+                throw new SetupFailed(
+                    "Nothing was asserted. A test that provides When must assert on the result or a subject, "
+                    + "verify a mock, or state Then().DoesNotThrow(); a bare Then() asserts nothing");
+        }
+    }
+
+    /// Every SetupFailed reports itself here as it is raised, whichever pipeline or assertion raised it.
+    internal static void NoteSetupFailureInCurrent() => _currentAssertionContext.Value?.NoteSetupFailure();
+
+    /// <summary>
+    /// A failure raised inside the act, or before the claim took the slot, marks some other context;
+    /// the pipeline it leaves marks its own on the way out.
+    /// </summary>
+    internal void NoteSetupFailure() => _claims = Claims.SetupFailed;
+
+    private void NoteAssertion() => Claim(Claims.Made);
+
+    private void Claim(Claims claims)
+    {
+        if (_claims != Claims.SetupFailed)
+            _claims = claims;
+    }
 
     internal static string? PendingSubject => _currentAssertionContext.Value?._subjectDescription;
 
@@ -137,6 +197,7 @@ internal class SpecificationContext : IAssertSpecificationContext
     string? expected,
     string verb)
     {
+        NoteAssertion();
         _assertion.AddAssert(actual, verb, expected);
         try
         {
@@ -185,20 +246,47 @@ internal class SpecificationContext : IAssertSpecificationContext
 
     public void AddThat() => _assertion.AddThat();
 
-    public void AddVerify<TService>(string expressionExpr, string? wasInvokedExpr = null) => _assertion.AddVerify<TService>(expressionExpr, wasInvokedExpr);
+    public void AddVerify<TService>(string expressionExpr, string? wasInvokedExpr = null)
+    {
+        NoteAssertion();
+        _assertion.AddVerify<TService>(expressionExpr, wasInvokedExpr);
+    }
 
-    public void AddWasInvoked<TService>(string? wasInvokedExpr) => _assertion.AddWasInvoked<TService>(wasInvokedExpr);
+    public void AddWasInvoked<TService>(string? wasInvokedExpr)
+    {
+        NoteAssertion();
+        _assertion.AddWasInvoked<TService>(wasInvokedExpr);
+    }
 
-    public void AddWasInvoked<TService>(string method, string? wasInvokedExpr) => _assertion.AddWasInvoked<TService>(method, wasInvokedExpr);
+    public void AddWasInvoked<TService>(string method, string? wasInvokedExpr)
+    {
+        NoteAssertion();
+        _assertion.AddWasInvoked<TService>(method, wasInvokedExpr);
+    }
 
-    public void AddAssertThrows<TError>(string? binder = null) => _assertion.AddAssertThrows<TError>(binder);
+    public void AddAssertThrows<TError>(string? binder = null)
+    {
+        NoteAssertion();
+        _assertion.AddAssertThrows<TError>(binder);
+    }
 
-    public void AddAssertThrows(string expectedExpr) => _assertion.AddAssertThrows(expectedExpr);
+    public void AddAssertThrows(string expectedExpr)
+    {
+        NoteAssertion();
+        _assertion.AddAssertThrows(expectedExpr);
+    }
 
-    public void AddAssertDoesNotThrow<TError>() => _assertion.AddAssertDoesNotThrow<TError>();
+    public void AddAssertDoesNotThrow<TError>()
+    {
+        NoteAssertion();
+        _assertion.AddAssertDoesNotThrow<TError>();
+    }
 
     public void AddAssert([CallerMemberName] string? assertName = null)
-         => _assertion.AddAssert(assertName!);
+    {
+        NoteAssertion();
+        _assertion.AddAssert(assertName!);
+    }
 
     public void AddAssertConjunction(string conjunction) => _assertion.AddAssertConjunction(conjunction);
 

@@ -102,7 +102,7 @@ public static class AssertionExtensions
     {
         actualExpr.AssertNoTrainwreck();
         SpecificationContext.Current.AddThen();
-        SpecificationContext.Current.SetSubject(actualExpr);
+        SpecificationContext.Current.SetSubject(actualExpr!);
         return actual;
     }
 

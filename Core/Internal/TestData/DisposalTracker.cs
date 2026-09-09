@@ -55,7 +55,9 @@ internal class DisposalTracker
 
     private static void Dispose(object instance)
     {
-        if (instance is IDisposable disposable)
+        if (instance is IDependencySpec spec)
+            spec.DisposeAsDependency();
+        else if (instance is IDisposable disposable)
             disposable.Dispose();
         else if (instance is IAsyncDisposable asyncDisposable)
             AsyncHelper.Execute(() => asyncDisposable.DisposeAsync().AsTask());
