@@ -20,6 +20,26 @@ public class WhenGivenStaticModel : Spec<MyModel>
             """);
     }
 
+    /// <summary>
+    /// A parameter spelled as a keyword reads as the word alone. Its <c>@</c> used to leave the
+    /// whole expression unparsed, so the arrangement rendered as its own source: "with _.Name =
+    /// @lock".
+    /// </summary>
+    [Theory]
+    [InlineData("abc")]
+    public void GivenAParameterSpelledAsAKeyword_ThenNameItWithoutTheAt(string @lock)
+    {
+        Using<MyModel>(_ => _.Name = @lock)
+            .When(_ => _)
+            .Then().Result.Name.Is(@lock);
+        Specification.Is(
+            """
+            Using MyModel with Name = lock
+            When _
+            Then Result.Name is lock
+            """);
+    }
+
     [Theory]
     [InlineData("abc")]
     public void GivenDefaultSetup_ThenUseDefaultSetupOnAValue(string value)

@@ -35,15 +35,20 @@ internal static class Tokenizer
             ?? ReadSymbolToken(input, start);
     }
 
+    /// A verbatim identifier is its name: the '@' of `@lock` is a spelling, and the word is `lock`.
     private static Token? ReadWord(char c, string input, int start)
     {
-        if (!char.IsLetter(c) && c != '_') 
+        var name = c == '@' && StartsWord(input, start + 1) ? start + 1 : start;
+        if (!StartsWord(input, name))
             return null;
 
-        int i = start;
+        int i = name;
         while (i < input.Length && (char.IsLetterOrDigit(input[i]) || input[i] == '_')) i++;
-        return new Token(TokenKind.Word, input[start..i], start, i);
+        return new Token(TokenKind.Word, input[name..i], start, i);
     }
+
+    private static bool StartsWord(string input, int at)
+        => at < input.Length && (char.IsLetter(input[at]) || input[at] == '_');
 
     private static Token? ReadNumber(char c, string input, int start)
     {

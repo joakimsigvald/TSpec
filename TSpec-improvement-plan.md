@@ -300,6 +300,11 @@ Its one spec in `OpenAi/OpenAiChatCompletion/` rendered into `Integration.md` wi
 README, where `Core.Spec`'s folders each get their own file (`Engine.md`, `Workbench.md`). RootNamespace comes from
 `Directory.Build.props` in both.
 
+CLOSED 2026-09-10, not an issue: `_specification` and its content look right on M5. Whatever the
+single-spec case did when this was written, it does not reproduce there, and nothing is worth
+changing on a report that no longer holds. The cause below is kept because it is real and would
+resurface if a project ever does land its only spec in the root file.
+
 **Cause found.** Files are grouped by NAMESPACE, not by folder. The root depth is the assembly name's segments
 when every namespace starts with it, and otherwise the common prefix of all namespaces. With a RootNamespace from
 `Directory.Build.props` and a single spec, that common prefix is the whole namespace, so the area comes out empty
@@ -315,9 +320,23 @@ description to one line to work around it). And Joakim's wish: list
 the main components (top five by claims, say) of each sub-domain under its row in the README, so the README is a
 map and not only a count table.
 
-**Decided:** trim and re-flow the description — small, do. The component list is a RENDERING decision and the PO
-owns it: the recommendation is yes, top subjects by claim count under each row, shown as a before/after render
-before anything is pinned.
+**Decided:** trim and re-flow the description — small, do.
+
+The component list: **recommendation reversed on 2026-09-10, do NOT build it.** PO's question was
+whether the win beats the attention it costs, and it does not.
+
+For: it answers "where is X specified?" without opening a file, and a component appearing or
+disappearing would show in the index diff.
+
+Against, and heavier. "Top five by claim count" is an arbitrary cut a reader cannot see — a missing
+component reads as absent when it may just be sixth, which is worse than listing none. The ranking
+moves whenever counts move, so the index would churn on changes that alter no component. It cannot
+stay a table: five names per row is not a cell, so the index stops being the one-screen summary it
+is. And it duplicates what is already one click away — every subject is a heading in its own file,
+which GitHub renders as that file's outline.
+
+If a map is still wanted, the honest form is every subject, not the top five, and it belongs beside
+the table rather than inside it. Show a before/after render before pinning anything.
 
 ## P4 - Rendering
 
@@ -328,30 +347,71 @@ population" comment on `WhenApplyPopulationEdits`). The sentence exists in the c
 Names and `Because` carry a lot but not the section-level "what this component is for". The `///` or
 `/* */` comment directly above a When or Given class renders as the paragraph under its heading.
 
-**Decided: read the SOURCE FILE, not the XML doc file.** The XML file would need documentation generation enabled
-in every spec project and brings CS1591 noise; the PDB already tells us the file and the class's constructor line,
-so reading the source is zero configuration and works today. Do it — the biggest legibility win of the P4 set.
+**SETTLED 2026-09-10: do not build it. Closed, not parked.** This item re-opened a question the PO
+had already ruled on (2026-09-05, recorded in RELEASE-PLAN.md §5): comments are not verifiable the
+way test code is, they lie once they drift, and inviting them into the specification invites the
+pollution with them. M5's report does not answer that ruling — it confirms the gap exists, which the
+ruling already granted.
+
+The one counterargument worth stating, so it is not raised a third time: TSpec ALREADY renders text
+no test verifies — class and method names, `Because`, tag names. So "unverifiable" alone does not
+disqualify prose. What disqualifies it is that a name is BOUND to a claim: it labels an assertion
+that ran, the assertion is printed under it, and a name that lies is visibly contradicted by the
+line beneath it. A paragraph stands alone with nothing under it to check it against, and it can
+assert whole behaviours no test covers — the failure scales with the length. The document's one
+guarantee is that a green run produced everything in it; a doc comment is the only thing that would
+ride in without that.
+
+The gap stands and wants a channel a test can keep honest. Nothing proposed so far is one, and
+"read it from the source file rather than the XML" was an answer to the wrong question — it solves
+the plumbing, not the objection.
 
 ### 15. Suppress the subject/return header when it adds nothing, or let the spec name it
 "Subject under test: string / Return type: string" is noise for static-function subjects; a ValueTuple subject
 renders as `ValueTuple<ReportPackage, IReadOnlyList<string>>` where the code says `(Package, Notes)`.
 
-**Decided: do two of the three.** Omit the block when both types are primitive or string, and render tuple element
-names — the compiler does emit them on the class for a base type. The third, letting a spec declare a display
-name, is dropped: new API surface for a rendering nicety.
+**Revised 2026-09-10 by PO's argument, which holds: do not suppress.** The header states what the
+When-lambda takes and returns. That is true whatever the test does with it, and a rule that hides it
+when both types happen to be primitive or string decides on a coincidence of type SHAPE — the same
+fault 8a refused when it rejected "take the default when it happens to fall inside the space". Uses
+and misuses of subject and return type cannot all be foreseen, so a case-by-case rule will be wrong
+in cases nobody listed. Uniform and truthful beats clever. Suppression: DROPPED.
+
+The tuple half survives, because it is not a case distinction: `(Package, Notes)` states the same
+fact as `ValueTuple<ReportPackage, IReadOnlyList<string>>` and states it as the code writes it —
+more truthful, not less. Kept as a small item of its own; it moves rendered text, so before/after
+first, and confirm the compiler really emits the element names on the class before promising it.
+The display-name idea stays dropped: new API surface for a rendering nicety.
 
 ### 16. An ordering hint for sections and Givens
 Alphabetical order is deterministic but puts the happy path last in a rule catalogue ("compiles clean" after the
 refusals). Proposal: an optional order attribute or a "first" marker on a Given; alphabetical stays the default.
 
-**Decided: NOT now.** It is new attribute surface that exists only for rendering, and alphabetical is a contract
-users can predict. Revisit after item 14 lands, if M5 still wants it.
+**SETTLED 2026-09-10: no hint, ever.** Not "not now" — an ordering the user has to think about is a
+thing the user has to think about, and the value of a deterministic order is that nobody does. The
+ordering ITSELF may still improve; a knob to override it may not. Item 14, which this was waiting
+on, is closed.
 
 ### 17. A verbatim identifier (`string @lock`) defeats the arrangement stripping
-A `[Theory]` parameter named with `@` (a keyword) rendered the claim with its whole
-`Given(locks).Is(@lock).Then()...` prefix where a plain name renders "Result.Succeeded is false and ...".
+DONE in 2.6.1, in the tokenizer.
 
-**Decided:** strip the `@` in the preprocessor, before matching. Trivial; do it.
+The report read as cosmetic, an `@` surviving into the text. It is a parse failure: `ReadWord`
+accepted a letter or `_` and nothing else, so `@lock` was a stray symbol and the expression around it
+fell back to its raw source. `ReadWord` now steps over the `@` of a verbatim identifier and reads the
+word after it, so the token is `lock`. It needs no literal handling of its own — `ReadWord` is tried
+before `ReadString` and fires only on `@` before a letter or `_`, so `@"path"` and `@$"…"` still
+reach the string reader.
+
+Built first in `SourcePreprocessor`, as this item had decided, on the belief that a tokenizer fix
+would leave the `@` in the raw slices `RawFrom`/`ScanBalanced` hand back. Measured on the same probe,
+the two versions render identical text — every path that surfaces such a slice is parsed, so the
+tokenizer has already dropped it — while the preprocessor version cost three times the lines,
+because working on raw text needs a literal-aware walk the tokenizer gets for free. Replaced.
+
+OPEN, and not part of this: a `Tap` renders its expression RAW. `ActionPhrases.AddTap` neither parses
+nor preprocesses it, so `tap((int value) => _seen = @lock)` keeps the `@` where the same name in a
+parsed clause of the same test reads `lock`. Whether a tap should read as written or as named is a
+PO question, and today one test renders it both ways.
 
 ### 18. Picks: render a picking helper by its name, keep indexers, stop the duplicated prefix
 - A helper that picks (`Column(alias) => TheColumns.Has().OneItem(c => c.As == alias).that`) expands its whole inner
@@ -366,9 +426,9 @@ A `[Theory]` parameter named with `@` (a keyword) rendered the claim with its wh
 - A pick through a protected property renders both the inner assertion and the property name.
 - Article: "a InlinePopulation" -> "an".
 
-**Decided: one sub-bullet at a time, each with a before/after render** — the article, the duplicated base pick and
-the dropped indexer first. "Render the helper by its own name" is PARKED until the others are done: it is the hard
-one, because the helper EXECUTES its inner `Has().OneItem` and that call records itself.
+**POSTPONED 2026-09-10, PO: too complex as stated.** Six sub-bullets that were collected together
+because they all involve a pick, not because they are one change. Re-analyse and RESTATE it as
+separate items when it is picked up — do not start from this list.
 
 ### 19. Names and literals
 - The humanizer splits a digit inside a word: `MeanHba1c` reads "mean hba 1c".
@@ -396,8 +456,10 @@ one, because the helper EXECUTES its inner `Has().OneItem` and that call records
   with a stray closing paren, and `default(List<int>)` reads "default list int". Found while doing item
   3; `default(DateTime)` and the cast form of both are correct, so it is the `default(...)` parse.
 
-**Decided:** the digit split, the list-literal parentheses, the raw strings, the `default(...)` parse and the
-heading two levels down are all parser or humanizer fixes — do them. The from-arguments `Returns` overloads for 2
+**POSTPONED 2026-09-10, PO: too much at once.** Nine unrelated parser and humanizer faults under one
+heading. When it is picked up, bring the LOWEST-HANGING one on its own and discuss it before any
+work: the from-arguments `Returns` overloads are the obvious candidate — see the note above, they are
+five signatures and one test. Everything below stands as the record of what is known, not as a plan. The from-arguments `Returns` overloads for 2
 to 5 arguments simply lack the caller-expression parameter that the 1-argument one has: trivial, do — add it to
 the five interface overloads and pass it through `Computed`, and pin all five with a rendering test so the
 clause cannot go quiet again. Every `Tap` arity already has the parameter, so the fault is confined to these five. `const` by
@@ -407,9 +469,11 @@ NAME versus VALUE is a policy call for the PO; the recommendation is to render t
 `.and.not.Contain(x)` renders "and not contain x" where the sentence is "and does not contain x"; a failure after
 `.and.` loses the actual's name ("Expected  to contain"). Same code path as item 1.
 
-**Cause and fix.** The continuation blanks the actual's expression deliberately, so the specification does not
-repeat it — but the FAILURE MESSAGE reads the same field. Keep the name for the message and blank it only for the
-specification. Do it.
+**POSTPONED 2026-09-10, PO: not understood as written.** Restate it before doing anything — the item
+mixes a WORDING complaint about the specification ("and not contain x" versus "and does not contain
+x") with a FAILURE-MESSAGE defect ("Expected  to contain", the actual's name blanked). They share a
+field, not a problem. The cause below is real and holds: the continuation blanks the actual's
+expression so the specification does not repeat it, and the failure message reads the same field.
 
 ### 21. Point the trainwreck error at the idiom
 DONE in 2.6.0. The message names the verb, the expression, and the rewrite: "No trainwrecks in And:
@@ -419,11 +483,10 @@ DONE in 2.6.0. The message names the verb, the expression, and the rewrite: "No 
 1. ~~Items 1, 2, 3 (P1)~~ — done in 2.6.0, with 7 and 21.
 2. Remaining P2: item 8's `For.Parameter` half — 8a shipped in 2.6.0. Steps 2 and 3 of 4/5/6 (setup by name in the general case) are NOT planned —
    too complicated for the value, and a possible move off Moq would reopen the design anyway. Steps 2 and 3 of 4/5/6 are skippable — decide after step 1 lands, not before.
-3. Items 10, 11 (P3) - both DONE in 2.6.1. Item 12 no longer rides along with 10 — locating the project
-   by source file does not by itself change how files are GROUPED, and regrouping by folder is a
-   rendering change to show before/after. Then 13.
-4. Items 14, 15 (P4) - the rendering changes that change how a specification READS; then 17-20 as polish.
-   Item 16 is deferred by decision, not by order: revisit only after 14 has landed.
+3. Items 10, 11, 17 DONE in 2.6.1. Item 12 closed as not an issue; items 14 and 16 closed by ruling.
+4. What is left, and none of it is obvious work: item 13's description trim (small, do), item 15's
+   tuple element names, item 8's `For.Parameter`. Items 18, 19 and 20 are postponed for RESTATEMENT,
+   not for scheduling — each needs to be broken up and re-argued before any of it is built.
 
 Lesson from the reverted 4/5/6 attempt (2026-09-10): a mocking change is only as good as the member
 kinds it was tried against. Before claiming one works, probe it against a property, a generic method,
