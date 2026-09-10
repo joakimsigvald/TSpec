@@ -939,8 +939,9 @@ would be incomplete. Run the whole suite green to regenerate it.
 
 #### Keeping it fresh
 
-The files are deterministic — sorted, deduplicated, LF-normalized — so the same source produces
-byte-identical files on every machine, and a stale one shows up as a diff. Let the build catch it:
+The files are deterministic — sorted and deduplicated — so the same source produces the same files on
+every machine, and a stale one shows up as a diff. Each is rewritten with the line endings it already
+has, so regenerating on a CRLF checkout leaves `git status` quiet. Let the build catch a stale file:
 
 ```bash
 dotnet test && git diff --exit-code -- "**/_specification/*.md"

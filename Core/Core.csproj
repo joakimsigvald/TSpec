@@ -23,9 +23,10 @@
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			FIXED
-			* The specification is written beside the spec project's own project file even when the build put the binaries somewhere else. The project is found from the files the spec classes are written in.
+			* The specification is written beside the spec project's own project file even when the build put the binaries outside the tree.
+			* Regenerated _specification files keep the line endings they already have
 			CHANGED
-			* A run that cannot locate the spec project directory no longer fails. Nothing is written and the reason is printed: no test claims the specification, so nothing fails over it. A spec project that names or references its subject wrongly still fails before the first test, as before.
+			* A run that cannot locate the spec project directory no longer fails the tests; nothing is written and the reason is printed.
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

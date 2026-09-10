@@ -283,11 +283,17 @@ project references (`MyHotel`, `MyHotel.Contract`, `TSpec`), and two even once T
 reference, so the "exactly one" case only helps a two-project solution.
 
 ### 11. Write `_specification/` with the checkout's line endings
-The generator writes LF; on an autocrlf checkout every regenerated file shows as modified in `git status` even when
-its content is unchanged (ten files "modified" for a one-file change, 2026-09-09).
+DONE in 2.6.1, as decided: a file is rewritten with the endings it already has, a new one as composed.
+`WithLineEndingsOf` sits beside `NormalizeLineEndings` as its complement, so the write path names no
+line ending of its own.
 
-**Decided:** preserve the existing file's line ending where the file exists, LF otherwise. Small; do it.
-No `core.autocrlf`/`.gitattributes` reading — the file already on disk is the answer.
+Two things worth not re-deriving. It is NOT a mismatched blob: with `core.autocrlf` at `true`, `input`
+OR `false`, a CRLF working tree rewritten with LF reports ` M` for every file — and `git diff` stays
+EMPTY while it does, the filtered hash being identical to the index's. So `git status --porcelain`
+flags the working-tree endings and `git diff --exit-code` never did; the README's freshness check was
+unaffected either way. And this repository cannot reproduce the fault, which is why it went unseen
+here: `.gitattributes` carries `* text=auto eol=lf`, so the generator agreed with the working tree by
+accident.
 
 ### 12. `Integration.Spec` renders into the project-root file instead of its folder file
 Its one spec in `OpenAi/OpenAiChatCompletion/` rendered into `Integration.md` with the subject block at the top of the
@@ -413,9 +419,9 @@ DONE in 2.6.0. The message names the verb, the expression, and the rewrite: "No 
 1. ~~Items 1, 2, 3 (P1)~~ — done in 2.6.0, with 7 and 21.
 2. Remaining P2: item 8's `For.Parameter` half — 8a shipped in 2.6.0. Steps 2 and 3 of 4/5/6 (setup by name in the general case) are NOT planned —
    too complicated for the value, and a possible move off Moq would reopen the design anyway. Steps 2 and 3 of 4/5/6 are skippable — decide after step 1 lands, not before.
-3. Items 10, 11 (P3) - build-layout independence DONE in 2.6.1; item 11 (line endings) next, then 12,
-   which no longer rides along with 10 — locating the project by source file does not by itself change
-   how files are GROUPED, and regrouping by folder is a rendering change to show before/after. Then 13.
+3. Items 10, 11 (P3) - both DONE in 2.6.1. Item 12 no longer rides along with 10 — locating the project
+   by source file does not by itself change how files are GROUPED, and regrouping by folder is a
+   rendering change to show before/after. Then 13.
 4. Items 14, 15 (P4) - the rendering changes that change how a specification READS; then 17-20 as polish.
    Item 16 is deferred by decision, not by order: revisit only after 14 has landed.
 

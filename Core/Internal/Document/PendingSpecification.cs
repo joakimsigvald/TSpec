@@ -1,4 +1,5 @@
 using TSpec.Internal.Document.RenderPipeline;
+using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.Document;
 
@@ -47,6 +48,14 @@ internal sealed record PendingSpecification(
             if (!written.Contains(Path.GetFileName(stale)))
                 File.Delete(stale);
         foreach (var file in files)
-            File.WriteAllText(Path.Combine(Directory, file.FileName), file.Content);
+            Write(Path.Combine(Directory, file.FileName), file.Content);
     }
+
+    /// <summary>
+    /// Keeping the line endings the file already has, so a checkout that holds them as carriage
+    /// returns does not report every regenerated file as modified.
+    /// </summary>
+    private static void Write(string path, string content)
+        => File.WriteAllText(
+            path, File.Exists(path) ? content.WithLineEndingsOf(File.ReadAllText(path)) : content);
 }

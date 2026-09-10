@@ -135,6 +135,12 @@ internal static class StringExtensions
     internal static string NormalizeLineEndings(this string str)
         => str.Replace("\r\n", "\n").Replace('\r', '\n');
 
+    /// The complement: the text with the line endings the sample uses.
+    internal static string WithLineEndingsOf(this string str, string sample)
+        => sample.Contains('\r')
+            ? str.NormalizeLineEndings().Replace("\n", "\r\n")
+            : str.NormalizeLineEndings();
+
     /// Reduce a captured Times expression to its bare factory name, so that both the
     /// `using static Moq.Times;` form (`Once`) and the qualified form (`Times.Once()`)
     /// render alike: "Once", "Never", "Exactly(2)".

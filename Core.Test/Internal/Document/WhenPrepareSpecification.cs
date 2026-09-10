@@ -98,6 +98,33 @@ public class WhenPrepareSpecification : Spec
         File.Exists(Path.Combine(specification.Directory, "Rooms.md")).Is(true);
     }
 
+    /// <summary>
+    /// A checkout that holds the files as CRLF would otherwise report every one of them modified
+    /// after a run, though nothing in them changed. What is on disk decides, not the environment.
+    /// </summary>
+    [Fact]
+    public void GivenAFileWrittenWithCarriageReturns_ThenKeepThem()
+    {
+        using var project = new TempProject("MyHotel.Spec", DepsJson.MyHotelSpec);
+        var specification = PendingSpecification.Prepare("MyHotel.Spec", project.BaseDirectory)!;
+        Directory.CreateDirectory(specification.Directory);
+        File.WriteAllText(Path.Combine(specification.Directory, "Rooms.md"), "# Rooms\r\n");
+        specification.Write([_inRooms]);
+        File.ReadAllText(Path.Combine(specification.Directory, "Rooms.md"))
+            .Is(specification.Render([_inRooms]).Documents().Single().Content.Replace("\n", "\r\n"));
+    }
+
+    /// A file the folder does not hold yet has no endings to keep, and is written as composed.
+    [Fact]
+    public void GivenANewFile_ThenWriteItAsComposed()
+    {
+        using var project = new TempProject("MyHotel.Spec", DepsJson.MyHotelSpec);
+        var specification = PendingSpecification.Prepare("MyHotel.Spec", project.BaseDirectory)!;
+        specification.Write([_inRooms]);
+        File.ReadAllText(Path.Combine(specification.Directory, "Rooms.md"))
+            .Is(specification.Render([_inRooms]).Documents().Single().Content);
+    }
+
     [Fact]
     public void GivenNoDependencyManifest_ThenFail()
     {
