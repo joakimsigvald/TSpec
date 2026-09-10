@@ -416,6 +416,8 @@ You can supply your own constructor arguments by calling `Using`, or modify the 
 You can even provide the subject under test itself:
 `Using(new MyClass(42, "Thursday"))`
 
+**Subject's Constructor defaults are honoured.** A parameter that declares a default gets what the test arranged — a value from `Using`, a registered conversion, or a mock the test has already set up — and keeps its default otherwise.
+
 ### 4.2 Mocking
 
 To mock the behavior of a dependency, call `Given<[TheService]>().That(_ => _.[TheMethod](...)).Returns/Throws(...)`. 

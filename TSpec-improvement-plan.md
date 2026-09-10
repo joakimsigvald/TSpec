@@ -195,6 +195,48 @@ must be pinned by a null factory per type. Proposal: `Using("sk-test", For.Param
 "default" for a named optional arg. Related, Joakim: HONOUR the constructor's default values when auto-generating
 an object instead of generating a value for every parameter. Done when `WhenComplete`'s `Using` factory goes.
 
+#### 8a. Honour the constructor's default values — DONE in 2.6.0
+
+Building the subject, a parameter that declares a default is filled only with what the TEST said —
+a `Using` value or factory, a registered conversion or value space, or a mock the test has already
+set up. Where the test said nothing, the default stands, and nothing TSpec would otherwise INVENT
+reaches such a parameter: `Svc(IRepo repo, bool logUsage = false, int retries = 3)` is built
+`false`/`3` where it used to come out `True`/`2`.
+
+No precedence rule of its own was needed. `DataGenerator.TryCreateFromSetup` asks the setup-driven
+strategies (`TypeConversionStrategy`, then `DefaultStrategy`) and stops there, so a
+`Using<int>().From<int>().StartingAt(6)` value space beats a default of 3. The rejected alternative
+was "take the default when it happens to fall inside the space", which would turn behaviour on a
+coincidence between two unrelated declarations.
+
+**An optional parameter of a MOCKABLE type gets the mock only if the test arranged one**
+(`MockRegistry.HasMock`), and is null otherwise. Read strictly, an unarranged mock is not something
+the setup asked for. The accepted cost: arranging it after the act comes too late, since the subject
+is constructed once every arrangement has run — a spec that only VERIFIES an optional dependency
+verifies a mock that was never injected.
+
+**Subject scope only** (`For.Subject`) — which is the whole subject constructor graph, not just the
+SUT's own constructor: a component the subject takes as an argument is built the same way. Test data
+from `A<T>()` is still generated, defaults and all. Re-asked and re-confirmed: an input model is a
+WITNESS, and a witness has to be distinguishable. Honour `Ref = ""` there and
+`Result.Ref.Is(The<Order>().Ref)` passes against an empty string while proving nothing — the subject
+gets more truthful, the input gets weaker.
+
+A property fed by a honoured default is no longer refilled by
+`ObjectStrategy.PopulatePublicProperties`, which had been half-undoing the feature on a record
+subject: `Size = 7` survived, `Verbose = false` and `Label = null` were replaced, because only a
+value equal to the type's zero looks like an empty slot.
+
+A null default on a non-mockable type IS honoured (`string? connection = null` becomes null): if the
+subject dereferences it that is an NRE where the test used to pass, but it was passing on a fiction
+production would not produce. Constructor choice is unaffected — greediest still wins. A `params`
+array and an `[Optional]` parameter with no value have no `HasDefaultValue` and stay generated.
+Reflection reports the default of a struct that is not a primitive as null, so `DateTime stamp =
+default` is turned back into the zeroed value before the constructor sees it.
+
+The blast radius was behavioural and silent — no specification text changed, in Core.Test or in
+either MyHotel suite.
+
 ### 9. A deviation passed as a ctor arg is invisible in the rendered Given
 Design consequence, recorded so it is not re-asked: M5 decided a per-Given deviation is a Tag with a `Using` type
 default, never a ctor arg (TESTING.md 5.3). If TSpec renders ctor args of the Given class one day, revisit.

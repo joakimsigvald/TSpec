@@ -16,6 +16,7 @@ Full human documentation: [README.md](https://github.com/joakimsigvald/TSpec#rea
 - **Exactly one `When` per spec class.** Put shared `When`/`Given` in an abstract base constructor; specialize with nested subclasses (see Structure below).
 - xUnit creates a new test-class instance per test method, so the whole pipeline is built and torn down per test.
 - The subject under test (SUT) is auto-constructed: interfaces/abstract dependencies become Moq mocks automatically; concrete constructor args are generated. Provide your own with `Using(instance)`.
+- **A subject's constructor parameter that declares a default keeps it** unless the test arranged something for that type.
 - Test methods do **not** need to be `async`, even for async code under test. `When(_ => _.DoAsync())` is awaited internally, for `Task`, `Task<T>`, `ValueTask` and `ValueTask<T>` alike — don't write the lambda `async` yourself; one that is binds to the `Task` overloads with no return type stated — state one only to select `ValueTask` (`When(async ValueTask (_) => ...)`) or for a bare `throw`, which has no return type to infer: `Until(void (_) => throw ...)`. Async test methods are supported when needed (e.g. awaiting external setup before asserting).
 
 ## Pipeline verbs

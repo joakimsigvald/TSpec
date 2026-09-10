@@ -32,6 +32,16 @@ internal class DataGenerator(
     internal object? Create(Type type, For scope) => Create(new GenerationRequest(type, true, [], this, scope));
     internal object? CreateNew(Type type, For scope) => Create(new GenerationRequest(type, false, [], this, scope));
 
+    // Only what the test said: the strategies that answer from the setup, plus a mock the test
+    // has already arranged. Nothing here invents a value.
+    internal bool TryCreateFromSetup(GenerationRequest request, out object? val)
+    {
+        val = null;
+        return typeConversionStrategy.TryGenerate(request, ref val)
+            || defaultStrategy.TryGenerate(request, ref val)
+            || mockingStrategy.TryUseArrangedMock(request, ref val);
+    }
+
     internal object? Create(GenerationRequest request)
     {
         object? val = null;

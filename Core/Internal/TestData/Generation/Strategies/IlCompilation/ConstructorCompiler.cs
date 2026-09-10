@@ -22,22 +22,37 @@ internal static class ConstructorCompiler
 
     private static CompiledConstructor CompileConstructor(ConstructorInfo constructor)
     {
-        var paramTypes = GetParameterTypes(constructor);
+        var parameters = GetParameters(constructor);
         var args = Parameter(typeof(object[]), "args");
-        return new(CompileFactory(constructor, paramTypes, args), paramTypes);
+        return new(CompileFactory(constructor, parameters, args), parameters);
     }
 
-    private static Type[] GetParameterTypes(ConstructorInfo constructor) =>
-        [.. constructor.GetParameters().Select(p => p.ParameterType)];
+    private static CompiledParameter[] GetParameters(ConstructorInfo constructor) =>
+        [.. constructor.GetParameters().Select(Describe)];
 
-    private static Func<object[], object> CompileFactory(ConstructorInfo constructor, Type[] paramTypes, ParameterExpression args) =>
-        Lambda<Func<object[], object>>(BuildInstantiation(constructor, paramTypes, args), args).Compile();
+    private static CompiledParameter Describe(ParameterInfo parameter) =>
+        new(parameter.Name ?? string.Empty, parameter.ParameterType, parameter.HasDefaultValue, DefaultOf(parameter));
 
-    private static UnaryExpression BuildInstantiation(ConstructorInfo constructor, Type[] paramTypes, ParameterExpression args) =>
-        Convert(New(constructor, BuildArguments(paramTypes, args)), typeof(object));
+    private static object? DefaultOf(ParameterInfo parameter)
+    {
+        if (!parameter.HasDefaultValue)
+            return null;
+        // Reflection reports the default of a struct that is not a primitive as null,
+        // so `DateTime stamp = default` has to be turned back into the zeroed value.
+        return parameter.DefaultValue
+            ?? (parameter.ParameterType.IsValueType && Nullable.GetUnderlyingType(parameter.ParameterType) is null
+                ? Activator.CreateInstance(parameter.ParameterType)
+                : null);
+    }
 
-    private static Expression[] BuildArguments(Type[] paramTypes, ParameterExpression args) =>
-        [.. paramTypes.Select((type, index) => CastArgument(type, index, args))];
+    private static Func<object[], object> CompileFactory(ConstructorInfo constructor, CompiledParameter[] parameters, ParameterExpression args) =>
+        Lambda<Func<object[], object>>(BuildInstantiation(constructor, parameters, args), args).Compile();
+
+    private static UnaryExpression BuildInstantiation(ConstructorInfo constructor, CompiledParameter[] parameters, ParameterExpression args) =>
+        Convert(New(constructor, BuildArguments(parameters, args)), typeof(object));
+
+    private static Expression[] BuildArguments(CompiledParameter[] parameters, ParameterExpression args) =>
+        [.. parameters.Select((parameter, index) => CastArgument(parameter.Type, index, args))];
 
     private static UnaryExpression CastArgument(Type targetType, int index, ParameterExpression args) =>
         Convert(ArrayIndex(args, Constant(index)), targetType);

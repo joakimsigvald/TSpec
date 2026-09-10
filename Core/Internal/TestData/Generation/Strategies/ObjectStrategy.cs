@@ -14,6 +14,7 @@ internal class ObjectStrategy : IGenerationStrategy
     {
         var type = request.Type;
         var stack = request.Stack;
+        List<string>? honouredDefaults = null;
         result = InstantiateWithConstructor()
             ?? InstantiateWithConversionOperator()
             ?? (type.IsValueType ? Activator.CreateInstance(request.Type) : null);
@@ -28,15 +29,16 @@ internal class ObjectStrategy : IGenerationStrategy
             if (compiled.Instantiate is null)
                 return null;
 
-            var args = new object?[compiled.ParameterTypes.Length];
-            for (int i = 0; i < compiled.ParameterTypes.Length; i++)
-                args[i] = request.Next.Create(compiled.ParameterTypes[i]);
+            var args = new object?[compiled.Parameters.Length];
+            for (int i = 0; i < compiled.Parameters.Length; i++)
+                args[i] = Fill(compiled.Parameters[i]);
             try
             {
                 return compiled.Instantiate(args!);
             }
             catch (Exception ex)
             {
+                honouredDefaults = null;
                 object instance;
                 try
                 {
@@ -56,6 +58,19 @@ internal class ObjectStrategy : IGenerationStrategy
             }
         }
 
+        // A parameter with a default value says what the class runs without, so building the
+        // subject fills it with what the test arranged and lets the default stand for the rest.
+        object? Fill(CompiledParameter parameter)
+        {
+            if (!parameter.HasDefault || !request.Scope.HasFlag(For.Subject))
+                return request.Next.Create(parameter.Type);
+            if (request.Next.TryCreateFromSetup(parameter.Type, out var arranged))
+                return arranged;
+
+            (honouredDefaults ??= []).Add(parameter.Name);
+            return parameter.Default;
+        }
+
         object? InstantiateWithConversionOperator()
         {
             var compiled = ConversionOperatorCompiler.Get(type);
@@ -73,6 +88,11 @@ internal class ObjectStrategy : IGenerationStrategy
             var accessors = PropertyCompiler.GetAccessors(type);
             foreach (var accessor in accessors)
             {
+                // A property fed by a default the constructor was allowed to keep already carries
+                // a value: false, 0 and null look like empty slots but are what the class chose.
+                if (CarriesAHonouredDefault(accessor.Name))
+                    continue;
+
                 var currentValue = accessor.Get(instance);
                 var emptyValue = _defaultCache.GetOrAdd(accessor.PropertyType, _defaultFactory);
                 if (Equals(emptyValue, currentValue))
@@ -82,5 +102,8 @@ internal class ObjectStrategy : IGenerationStrategy
                 }
             }
         }
+
+        bool CarriesAHonouredDefault(string propertyName)
+            => honouredDefaults?.Any(parameterName => string.Equals(parameterName, propertyName, StringComparison.OrdinalIgnoreCase)) ?? false;
     }
 }

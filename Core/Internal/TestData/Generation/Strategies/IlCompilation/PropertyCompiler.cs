@@ -24,7 +24,7 @@ internal static class PropertyCompiler
                      && p.GetIndexParameters().Length == 0);
 
     private static CompiledProperty CompileProperty(Type declaringType, PropertyInfo property)
-        => new(property.PropertyType, CompileGetter(declaringType, property), CompileSetter(declaringType, property));
+        => new(property.Name, property.PropertyType, CompileGetter(declaringType, property), CompileSetter(declaringType, property));
 
     private static Func<object, object?> CompileGetter(Type declaringType, PropertyInfo property)
         => Lambda<Func<object, object?>>(BuildGetterBody(declaringType, property), _instance).Compile();

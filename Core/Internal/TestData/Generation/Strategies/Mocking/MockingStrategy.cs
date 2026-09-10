@@ -19,6 +19,15 @@ internal class MockingStrategy(FluentDefaultProvider fluentDefaultProvider) : IG
         return false;
     }
 
+    internal bool TryUseArrangedMock(GenerationRequest request, ref object? result)
+    {
+        if (!IsMockingResponsibility(request) || !_registry.HasMock(request.Type))
+            return false;
+
+        result = _registry.GetMock(request.Type).Object;
+        return true;
+    }
+
     private static bool IsMockingResponsibility(GenerationRequest request)
         => request.Type.IsInterface
         || request.Type.IsAbstract

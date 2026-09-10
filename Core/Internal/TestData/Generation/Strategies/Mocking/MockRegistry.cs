@@ -8,6 +8,8 @@ internal class MockRegistry(FluentDefaultProvider defaultProvider)
 
     internal Mock GetMock(Type type) => _mocks.GetOrAdd(type, CreateMock);
 
+    internal bool HasMock(Type type) => _mocks.ContainsKey(type);
+
     internal Mock<TObject> GetMock<TObject>() where TObject : class
         => (Mock<TObject>)GetMock(typeof(TObject));
 

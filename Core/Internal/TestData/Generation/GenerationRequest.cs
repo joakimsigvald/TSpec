@@ -10,5 +10,6 @@ internal record GenerationRequest(
     For Scope)
 {
     internal object? Create(Type type) => Orchestrator.Create(this with { Type = type });
+    internal bool TryCreateFromSetup(Type type, out object? val) => Orchestrator.TryCreateFromSetup(this with { Type = type }, out val);
     internal GenerationRequest Next => this with { WithDefaultFallback = true, Stack = Stack.Push(Type) };
 }
