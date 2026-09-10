@@ -66,8 +66,12 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
         Tag<TReturns?> tag, [CallerArgumentExpression(nameof(tag))] string? tagExpr = null)
         => Returns(() => _spec.The(tag), tagExpr!.AsTagName());
 
+    /// <summary>
+    /// The default of nothing is nothing: where the call answers with no value there is no default
+    /// to hand back, and asking Moq for one finds no Returns to ask.
+    /// </summary>
     public IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> ReturnsDefault()
-        => Returns(() => default);
+        => typeof(TReturns) == typeof(Continuations.Void) ? Returns() : Returns(() => default);
 
     public IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Throws<TException>()
         where TException : Exception, new()

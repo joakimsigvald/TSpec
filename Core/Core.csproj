@@ -29,8 +29,10 @@
 			* A lambda handed to Then(subject) or And(subject) is refused: running the pipeline does not affect it and a delegate has nothing to assert on.
 			* A null reads as the type it stands for, wherever it appears: a cast over null renders "null ILogger" rather than "(ILogger)null".
 			* Tap is available on a mock sequence: First() and AndNext() now take a tap
+			* A PROTECTED member can be mocked with ThatProtected&lt;ReturnType&gt;(methodName).Returns(...).
 			* Both DoesNotThrow forms are obsolete. An act either completes or throws, so Then().Completes() states the fact positively and renders "completes".
 			FIXED
+			* ReturnsDefault() on a call that answers with nothing no longer fails. The default of nothing is nothing, so it now states what Returns() states.
 			* Two taps on one mocked call both run, in the order they were written, and the specification states both.
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>

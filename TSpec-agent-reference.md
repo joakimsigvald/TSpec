@@ -80,6 +80,9 @@ Given<IMyInterface>().That(_ => _.Get(Any<int>()))
     .AndNext().Tap<int>(_asked.Add).Returns(() => 2)
 // Service-wide default for any return type Cart fits (most specific wins)
 Given<ICartRepository>().Returns(A<Cart>)
+// A protected member can only be mocked by name
+Given<HttpMessageHandler>().ThatProtected<HttpResponseMessage>("SendAsync").Returns(A<HttpResponseMessage>)
+Given<Dispatcher>().ThatProtected("Record").Returns()   // one answering with nothing
 ```
 
 Setups are identical whether the member returns `T`, `Task<T>` or `ValueTask<T>` — `Returns(() => 7)` supplies the unwrapped value.Unmocked interface methods return auto-generated defaults (no strict-mock failures). For Moq features TSpec lacks, build a `Mock<T>` manually and supply `Using(myMock.Object)`.

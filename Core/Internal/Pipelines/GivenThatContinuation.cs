@@ -21,6 +21,13 @@ internal class GivenThatContinuation<TSUT, TResult, TService, TReturns, TActualR
         string callExpr)
         : base(spec, GetSetup(AnyArgument.Rewrite(call)), callExpr) { }
 
+    /// A member named because no expression can name it; the name is what the specification states.
+    internal GivenThatContinuation(Spec<TSUT, TResult> spec, string member)
+        : base(spec, mock => ProtectedMember.Setup(mock, member, Answering), member) { }
+
+    private static Type[] Answering =>
+        [typeof(TReturns), typeof(Task<TReturns>), typeof(ValueTask<TReturns>)];
+
     private static Func<Mock<TService>, object> GetSetup(Expression<Func<TService, TActualReturns>> call)
         => mock => mock.Setup(call);
 

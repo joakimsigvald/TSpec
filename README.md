@@ -425,6 +425,14 @@ This allows most mocking scenarios to be expressed inline, close to the behavior
 
 Naming no method, `Given<[TheService]>().Returns(...)` sets a default that applies to every method of the interface returning a type assignable from that type.
 
+A **protected** member can only be mocked by name:
+
+```csharp
+=> Given<HttpMessageHandler>()
+   .ThatProtected<HttpResponseMessage>("SendAsync")
+   .Returns(A<HttpResponseMessage>)
+```
+
 ### 4.3 Mocking with arguments
 
 Arguments in the mocked call match by value, so `The<int>()` matches the value the test passes.

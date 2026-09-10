@@ -1,4 +1,4 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
 namespace TSpec.Continuations;
@@ -57,6 +57,28 @@ public interface IGivenServiceContinuation<TSUT, TResult, TService>
     /// <returns>A continuation for providing further arrangement of the test pipeline</returns>
     IGivenTestPipeline<TSUT, TResult> Throws(
         Func<Exception> expected, [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null);
+
+    /// <summary>
+    /// Mock a PROTECTED member, naming it, because no expression can name one. The setup applies
+    /// whatever the member is passed. Prefer nameof where the test can see the name.
+    /// </summary>
+    /// <typeparam name="TReturns">The member's own return type, stated exactly</typeparam>
+    /// <param name="member">The name of the protected member to mock, e.g. "SendAsync"</param>
+    /// <returns>A continuation for providing the result to mock</returns>
+    /// <example>
+    /// <code>
+    /// Given&lt;HttpMessageHandler&gt;().ThatProtected&lt;HttpResponseMessage&gt;("SendAsync").Returns(A&lt;HttpResponseMessage&gt;)
+    /// </code>
+    /// </example>
+    IGivenThatContinuation<TSUT, TResult, TService, TReturns> ThatProtected<TReturns>(string member);
+
+    /// <summary>
+    /// Mock a PROTECTED member that answers with nothing — void, or a task carrying no value —
+    /// naming it, because no expression can name one.
+    /// </summary>
+    /// <param name="member">The name of the protected member to mock</param>
+    /// <returns>A continuation for providing the result to mock</returns>
+    IGivenThatVoidContinuation<TSUT, TResult, TService> ThatProtected(string member);
 
     /// <summary>
     /// Mock the void method invocation

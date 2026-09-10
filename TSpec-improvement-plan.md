@@ -99,6 +99,32 @@ overload of it, as a type-wide `Returns` covers every method. A from-arguments `
 signature and narrows the name to the overload matching it. The rendering names the method and no
 arguments — "Given IChat.Complete returns …" — as a verification by name already reads.
 
+#### Step 1 (item 4) — DONE in 2.6.0. Protected members only.
+`Given<TService>().ThatProtected<TReturns>(name)`, and `ThatProtected(name)` where the member answers
+with nothing. The name is deliberate: general setup by name is NOT implemented, so a spelling that
+promised it would have lied. Everything Moq-specific lives in `ProtectedMember`, one file, since Moq
+may be replaced later — what it hands back is an ordinary setup, so `Returns`, `Throws`, `Tap`,
+`First`/`AndNext` know nothing about how the call was named. The rendering says what it says for any
+other call: accessibility is a fact about the mock, not about the behaviour.
+
+Refused, each naming the limit it met rather than reporting a missing member — every one of these was
+a case the reverted attempt got wrong: an OVERLOADED member (a name states no arguments, so nothing
+could say which overload was meant, and setting up all of them is a guess the test never made), a
+GENERIC member (a name carries no type argument), a member taking a parameter by REF or OUT, a member
+that is not virtual or abstract (nothing can intercept it), and a PUBLIC member (pointed at the
+expression form). The return type is matched exactly, and where it does not match the failure says
+what the member actually returns. A protected PROPERTY works — Moq reaches one by name too.
+
+Two things this deliberately does NOT do, recorded so they are not re-litigated: an overloaded
+protected member cannot be set up at all, and a setup states nothing until an outcome is given it, so
+a refusal is raised when `Returns` is stated rather than when the member is named.
+
+Found and fixed alongside it: `ReturnsDefault()` failed on ANY call answering with nothing, named or
+written as an expression, since Moq's void setup has no Returns to ask. The default of nothing is
+nothing, so it now states what `Returns()` states. That bug predated all of this.
+
+ORIGINAL PLAN:
+
 #### Step 1 (item 4) — protected members only. The one with the evidence behind it.
 `Integration.Spec/OpenAi/OpenAiChatCompletion/WhenComplete` keeps a hand-written recording fake because
 `HttpMessageHandler.SendAsync` is protected and no lambda can name it. This is the only part of 4/5/6
@@ -260,7 +286,8 @@ DONE in 2.6.0. The message names the verb, the expression, and the rewrite: "No 
 
 ## Suggested order of work
 1. ~~Items 1, 2, 3 (P1)~~ — done in 2.6.0, with 7 and 21.
-2. Remaining P2: 4/5/6 step 1 (protected members), then item 8. Item 22 is done. Steps 2 and 3 of 4/5/6 are skippable — decide after step 1 lands, not before.
+2. Remaining P2: item 8. Steps 2 and 3 of 4/5/6 (setup by name in the general case) are NOT planned —
+   too complicated for the value, and a possible move off Moq would reopen the design anyway. Steps 2 and 3 of 4/5/6 are skippable — decide after step 1 lands, not before.
 3. Items 10, 11 (P3) - build-layout independence and line endings; 12 and 13 after.
 4. Items 14, 15, 16 (P4) - the three rendering changes that change how a specification READS; then 17-20 as polish.
 
