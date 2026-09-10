@@ -45,9 +45,19 @@ stated idiom, and the failure is loud instead of silent.
 Also closed with it: a lambda handed to `Then(subject)`/`And(subject)` used to bind as a `Func<>` subject and
 render as one. It is refused now, on the same ground as (b) — running the pipeline does not affect a lambda.
 
-### 3. Two `Using(() => null)` factories collapse into one rendered line
-Two factories that both read `() => null` for different types render as ONE "and null" line (dedup by text), so
-the specification hides a Given. Proposal: dedup by (type, text), or render the type ("null ILogger").
+### 3. Two `Using(() => null)` factories render as two indistinguishable lines
+DONE in 2.6.0, by rendering the type. There is no dedup by text: both lines are recorded, composed and
+written to the document — verified on the chained, separate-statement, constructor, `For.Subject` and
+value forms, and on a document rendered from two identical clauses. What M5 saw is that both lines read
+the bare word "null", which names no type: two null factories for two dependencies stated one word each,
+so a reader could not tell which was arranged, or that two were.
+
+A null now reads as the type it stands for. `default(T)` already rendered "default T", so a cast over
+null — which states the same fact and nothing else — renders "null T" rather than "(T)null", everywhere
+a value is described: "When null DateTime?", "Given IMyValueIntRepo returns null int[]?". Other casts
+still print as written, since only over null does a cast say nothing but the type. Where the spec wrote
+a bare null and there is no cast to read the type from, `Using` supplies the type it is using the value
+for. Both spellings meet at one, and it is the one the rest of the Using family already uses.
 
 ## P2 - Mocking and subject construction
 
@@ -159,6 +169,9 @@ A `[Theory]` parameter named with `@` (a keyword) rendered the claim with its wh
 - The from-arguments `Returns((a, b, c) => F(a))` overloads have no caller-expression parameter and render
   "returns retVal".
 - A class folder two levels down joins the sub-folder into its heading ("Calc Calc Expression").
+- `default(T)` mangles a type that is not a bare name: `default(DateTime?)` reads "default DateTime?)",
+  with a stray closing paren, and `default(List<int>)` reads "default list int". Found while doing item
+  3; `default(DateTime)` and the cast form of both are correct, so it is the `default(...)` parse.
 
 ### 20. `Does()` chains: wording and failure messages
 `.and.not.Contain(x)` renders "and not contain x" where the sentence is "and does not contain x"; a failure after

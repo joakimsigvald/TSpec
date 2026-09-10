@@ -32,14 +32,14 @@ internal class SetupPhrases(SpecificationRecording recording)
     internal void AddGivenThat(string customArrangementExpr)
         => recording.Record(() => Given($"that {customArrangementExpr.Describe()}"));
 
-    internal void AddUsing(string valueExpr, For scope, bool owned = false)
-        => RecordSetup(() => Using(valueExpr, scope, owned));
+    internal void AddUsing<TValue>(string valueExpr, For scope, bool owned = false)
+        => RecordSetup(() => Using(NameTheTypeOfNull<TValue>(valueExpr.Describe()), scope, owned));
 
     internal void AddUsing(Func<bool> shouldRender, string valueExpr, For scope)
         => RecordSetup(() =>
         {
             if (shouldRender())
-                Using(valueExpr, scope, owned: false);
+                Using(valueExpr.Describe(), scope, owned: false);
         });
 
     internal void AddUsingConversion<TTarget, TSource>(For scope, Func<string> describeSequence)
@@ -90,9 +90,12 @@ internal class SetupPhrases(SpecificationRecording recording)
 
     private void Given(string body) => Add(StepLayout.SentenceOrPhrase, StepFamily.Given, body);
 
-    private void Using(string valueExpr, For scope, bool owned)
+    private void Using(string value, For scope, bool owned)
         => Add(StepLayout.SentenceOrPhrase, StepFamily.Using,
-            $"{(owned ? "owned " : "")}{valueExpr.Describe()}{ScopeSuffix(scope)}");
+            $"{(owned ? "owned " : "")}{value}{ScopeSuffix(scope)}");
+
+    private static string NameTheTypeOfNull<TValue>(string value)
+        => value == "null" ? $"null {typeof(TValue).Alias()}" : value;
 
     private void Mock<TService>(StepLayout layout, string body, char binder = ' ')
         => recording.Add(new(layout)

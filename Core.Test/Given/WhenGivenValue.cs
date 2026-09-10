@@ -57,7 +57,7 @@ public class WhenGivenValue : Spec<MyService, MyModel>
             .When(_ => _.GetModel()).Then().Result.Is().Null();
         Specification.Is(
             """
-            Using (MyModel?)null
+            Using null MyModel?
             Given IMyRepository.GetModel() returns a MyModel
             When GetModel()
             Then Result is null

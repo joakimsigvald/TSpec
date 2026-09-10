@@ -36,7 +36,7 @@ public class WhenNullableDateTime : Spec<DateTime?>
         When(_ => (DateTime?)null).Then().Result.Is().Null();
         Specification.Is(
             """
-            When (DateTime?)null
+            When null DateTime?
             Then Result is null
             """);
     }

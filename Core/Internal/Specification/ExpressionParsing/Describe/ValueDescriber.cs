@@ -32,6 +32,7 @@ internal sealed class ValueDescriber : Describer
             Unary u => $"{u.Op}{Describe(u.Operand)}",
             Postfix p => $"{Describe(p.Operand)}{p.Op}",
             Conditional c => $"{Describe(c.Cond)} ? {Describe(c.Then)} : {Describe(c.Else)}",
+            Cast c when c.IsNullOfType() => $"null {c.TypeName}",
             Cast c => $"({c.TypeName}){Describe(c.Operand)}",
             IsAs ia => $"{Describe(ia.Operand)} {ia.Op} {ia.TypeName}",
             InterpolatedString s => s.Quoted(Describe),

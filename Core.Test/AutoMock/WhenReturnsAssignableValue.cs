@@ -26,7 +26,7 @@ public class WhenReturnsAssignableValue : Spec<MyValueIntService, ICollection<in
             .Then().Result.Is().Null();
         Specification.Is(
             """
-            Given IMyValueIntRepo returns (int[]?)null
+            Given IMyValueIntRepo returns null int[]?
             When GetNumbers()
             Then Result is null
             """);

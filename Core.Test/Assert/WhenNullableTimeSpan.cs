@@ -36,7 +36,7 @@ public class WhenNullableTimeSpan : Spec<TimeSpan?>
         When(_ => (TimeSpan?)null).Then().Result.Is().Null();
         Specification.Is(
             """
-            When (TimeSpan?)null
+            When null TimeSpan?
             Then Result is null
             """);
     }

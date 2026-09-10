@@ -72,7 +72,7 @@ public class WhenBecause : Spec<MyStateService, int?>
         Because("it is null").Result.Is().Null();
         Specification.Is(
             """
-            When (int?)null
+            When null int?
             Then Result is null, because it is null
             """);
     }

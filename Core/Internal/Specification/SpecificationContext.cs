@@ -144,8 +144,8 @@ internal class SpecificationContext : IAssertSpecificationContext
 
     internal void AddGiven(string valueExpr, For scope) => _setup.AddGiven(valueExpr, scope);
 
-    internal void AddUsing(string valueExpr, For scope, bool owned = false)
-        => _setup.AddUsing(valueExpr, scope, owned);
+    internal void AddUsing<TValue>(string valueExpr, For scope, bool owned = false)
+        => _setup.AddUsing<TValue>(valueExpr, scope, owned);
 
     internal void AddUsing(Func<bool> shouldRender, string valueExpr, For scope)
         => _setup.AddUsing(shouldRender, valueExpr, scope);

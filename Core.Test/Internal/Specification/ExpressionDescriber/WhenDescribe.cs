@@ -89,6 +89,12 @@ public class WhenDescribe : Spec<string>
     [InlineData("() => (ICollection<int>)[1, 2]", "(ICollection<int>)[1, 2]")]
     [InlineData("() => (IReadOnlyList<int>)[The(x)]", "(IReadOnlyList<int>)[the X]")]
     [InlineData("() => (ICollection<int>)Two<int>()", "(ICollection<int>)two ints")]
+    // A cast is what the test wrote, except over null, where it only gives the null a type —
+    // the fact default(T) states, and it is read the way default(T) is read
+    [InlineData("default(IMyRepository)", "default IMyRepository")]
+    [InlineData("(IMyRepository)null", "null IMyRepository")]
+    [InlineData("(MyModel?)null!", "null MyModel?")]
+    [InlineData("_.Handle((ILogger)null)", "_.Handle(null ILogger)")]
     // Read as that cast, and prints back either way
     [InlineData("(x)[0]", "(x)[0]")]
     [InlineData("await.Length", "await.Length")]

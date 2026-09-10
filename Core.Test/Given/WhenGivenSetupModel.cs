@@ -32,7 +32,7 @@ public class WhenGivenSetupModel : Spec<MyService, MyModel>
             .Then().Result.Is().Null();
         Specification.Is(
             """
-            Given a second MyModel is (MyModel?)null
+            Given a second MyModel is null MyModel?
               and IMyRepository.GetModel() returns a second MyModel
             When GetModel()
             Then Result is null
@@ -48,7 +48,7 @@ public class WhenGivenSetupModel : Spec<MyService, MyModel>
             .Then().Result.Is().not.Null(); //Not the provide null mentioned value
         Specification.Is(
             """
-            Given a MyModel is (MyModel?)null
+            Given a MyModel is null MyModel?
               and IMyRepository.GetModels() returns one MyModel
             When GetModel()
             Then Result is not null
