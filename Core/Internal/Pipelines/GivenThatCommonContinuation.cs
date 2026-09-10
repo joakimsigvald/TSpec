@@ -19,7 +19,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
     private readonly Lazy<object> _lazyContinuation;
     private readonly Func<object> _setup;
     private readonly string _callExpr;
-    private readonly string? _tapExpr;
+    private readonly IReadOnlyList<string> _tapExprs;
     private readonly Action<IReadOnlyList<object>>? _stepTap;
     internal readonly MockCallSequence<TReturns>? _sequence;
 
@@ -35,7 +35,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
         Spec<TSUT, TResult> spec,
         Func<object> setup,
         string callExpr,
-        string? tapExpr = null,
+        IReadOnlyList<string>? tapExprs = null,
         Lazy<object>? lazyContinuation = null,
         MockCallSequence<TReturns>? sequence = null,
         Action<IReadOnlyList<object>>? stepTap = null)
@@ -43,7 +43,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
         _spec = spec;
         _setup = setup;
         _callExpr = callExpr;
-        _tapExpr = tapExpr;
+        _tapExprs = tapExprs ?? [];
         _lazyContinuation = lazyContinuation ?? new Lazy<object>(DoSetup);
         _sequence = sequence;
         _stepTap = stepTap;
@@ -133,8 +133,10 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
         => InSequence("next", _sequence!);
 
     protected GivenThatNextContinuation<TSUT, TResult, TService, TReturns> ContinueWith(
-        Func<object> callback, string? tapExpr = null)
-        => new(_spec, callback, _callExpr, tapExpr, sequence: _sequence, stepTap: _stepTap);
+        Func<object> callback,
+        IReadOnlyList<string>? tapExprs = null,
+        Action<IReadOnlyList<object>>? stepTap = null)
+        => new(_spec, callback, _callExpr, tapExprs, sequence: _sequence, stepTap: stepTap ?? _stepTap);
 
     protected object Continuation => _lazyContinuation.Value;
 
@@ -150,15 +152,21 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
 
     /// <summary>
     /// A tap inside a sequence belongs to the step it precedes, so it fires on the call that step
-    /// answers and no other. Outside one there is a single answer and a single call to tap, so the
-    /// tap goes straight onto the setup.
+    /// answers and no other; outside one it fires on every call. Either way it is folded into the
+    /// taps already in hand rather than replacing them, since a second tap is a second observation
+    /// of the call and not a correction of the first — and Moq keeps only one callback per setup,
+    /// so what reaches it has to be the fold.
     /// </summary>
     private IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> Tapping(
         Action<IReadOnlyList<object>> tap, string? tapExpr)
-        => _sequence is null
-            ? ContinueWith(() => Capturing(tap), tapExpr)
+    {
+        var observed = Then(_stepTap, tap);
+        var stated = tapExpr is null ? _tapExprs : [.. _tapExprs, tapExpr];
+        return _sequence is null
+            ? ContinueWith(() => Capturing(observed), stated, observed)
             : new GivenThatNextContinuation<TSUT, TResult, TService, TReturns>(
-                _spec, _setup, _callExpr, tapExpr, _lazyContinuation, _sequence, Then(_stepTap, tap));
+                _spec, _setup, _callExpr, stated, _lazyContinuation, _sequence, observed);
+    }
 
     private static Action<IReadOnlyList<object>> Then(
         Action<IReadOnlyList<object>>? first, Action<IReadOnlyList<object>> next)
@@ -347,7 +355,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
     {
         if (_callExpr is not null)
             _spec.Pipeline.Specification.AddMockSetup<TService>(_callExpr);
-        if (_tapExpr is not null)
-            _spec.Pipeline.Specification.AddTap(_tapExpr);
+        foreach (var tapExpr in _tapExprs)
+            _spec.Pipeline.Specification.AddTap(tapExpr);
     }
 }

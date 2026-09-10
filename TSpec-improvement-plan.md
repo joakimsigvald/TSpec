@@ -68,21 +68,71 @@ for. Both spellings meet at one, and it is the one the rest of the Using family 
 
 ## P2 - Mocking and subject construction
 
-### 4. Set up a PROTECTED member on a generated mock
-`HttpMessageHandler.SendAsync` is protected, the common case for every HTTP adapter; TSpec's `Given<T>().That(...)`
-cannot reach it, so `Integration.Spec/OpenAi/OpenAiChatCompletion/WhenComplete` keeps a hand-written recording fake.
-Proposal: Moq's `Protected()` surfaced through TSpec, or `TheMock<T>()` giving the `Mock<T>` behind `The<T>()`.
-Done when that fake can be deleted and the handler is a TSpec mock with a from-arguments `Returns`.
+### 4, 5, 6. Set up a mocked call by METHOD NAME — as steps
+A first attempt at all three at once was written and REVERTED on 2026-09-10: it worked for the cases
+it was written against and broke on four it was not, and it grew `GivenThatCommonContinuation` to 368
+lines of `object`-typed Moq dispatch. The patch is not kept; what it established is, because it was
+established by probing Moq rather than by reasoning, and it does not need re-deriving.
 
-### 5. Argument-blind setup by method name
-Verification by name exists (`Then<T>("Method", Times.Once())`); setup does not. Every setup needs
-`.That(_ => _.Method(It.IsAny<A>(), It.IsAny<B>(), ...))`, and the `It.IsAny` wall drowns the arranges (WhenGenerate,
-WhenAnswer). Proposal: `Given<T>().That("Method").Returns(value)` and `.Returns((A a, B b) => ...)`, argument-blind,
-mirroring the verification form. Done when WhenGenerate's arranges lose their `It.IsAny` lists.
+**What is known.** Every setup route ends at the same Moq type, `IReturnsThrows<TService, TReturns>`:
+`mock.Setup(expr)`, `mock.Setup(expr built by reflection)`, and `mock.Protected().Setup<T>(name,
+matchers)` alike. So the outcome vocabulary — `Returns`, `Throws`, `Tap`, `First`/`AndNext` — needs no
+change whatever names the call. `Protected()` REFUSES a public member ("Method X is public. Use
+strong-typed Expect overload instead"), so accessibility has to pick the route, but it picks it below
+the API. `Callback` works on a protected setup, so `Tap` reaches a protected member. Moq needs one
+`ItExpr.IsAny<T>()` per parameter, so the parameter types must be found by reflection on either route.
+Covering N overloads means N Moq setups; since item 7 they share one queue, so "the first call" is the
+first call to the method whichever overload took it.
 
-### 6. Argument-blind SEQUENCES
-`Given<T>().First().Returns(a).AndNext().Returns(b)` forces the full matcher signature; the service-wide default form
-exists only for single returns. Proposal: the same name-based or matcher-free form for sequences.
+**What broke, and is not to be repeated.** An `out`/`ref` parameter crashed with a raw
+`ArgumentException` ("The type 'System.String&' may not be used as a type argument") — no `SetupFailed`,
+no method name. `ReturnsDefault()` failed on a by-name void call where the expression form works, since
+`That("X")` on a `Task`-returning method gives `TReturns = Void` while `That(_ => _.X())` gives
+`TReturns = Task`. A property (`get_Name` is the real name) and a generic method (whose return type is
+`T`) both failed with "has no method 'X' returning Y", which reads as a typo rather than as an
+unsupported kind of member. A non-virtual protected member failed with Moq's raw "Unsupported
+expression" text, never saying it must be virtual.
+
+**Decided.** Return type matches EXACTLY — so by-name and expression forms are NOT interchangeable
+where a method returns a subtype of what the test asks for, and that is accepted. A name covers every
+overload of it, as a type-wide `Returns` covers every method. A from-arguments `Returns` states a
+signature and narrows the name to the overload matching it. The rendering names the method and no
+arguments — "Given IChat.Complete returns …" — as a verification by name already reads.
+
+#### Step 1 (item 4) — protected members only. The one with the evidence behind it.
+`Integration.Spec/OpenAi/OpenAiChatCompletion/WhenComplete` keeps a hand-written recording fake because
+`HttpMessageHandler.SendAsync` is protected and no lambda can name it. This is the only part of 4/5/6
+with a named workaround waiting on it. Scope: `That<TReturns>(name)` / `That(name)` resolving NON-PUBLIC
+virtual or abstract members through `Protected()`. A public member named this way is refused, pointing at
+the expression form that already works for it — which keeps the "are the two forms interchangeable"
+question out of this step entirely. Refuse `out`/`ref`, properties and generic methods by name, each
+saying what is actually unsupported. Say "must be virtual or abstract" where Moq cannot intercept.
+Done when that fake is deleted and the handler is a TSpec mock with a `Tap`.
+
+#### Step 2 (item 5) — public members by name. Optional; weigh before starting.
+`Any<T>()` shipped in 2.5.0, so the `It.IsAny` wall this item was written about was already half gone
+when it was written — M5 could have written `Any<Prompt>(), Any<Options>()`. What remains is brevity and
+overload coverage, against building expressions by reflection and the exact-vs-assignable mismatch with
+the expression form. Skippable. Do it only if a real spec is worse without it. M5's done condition, if
+it is taken: `WhenGenerate`'s and `WhenAnswer`'s arranges lose their `It.IsAny` lists.
+
+#### Step 3 (item 6) — sequences by name. Falls out; tests only.
+`That(name)` returns the same continuation, so `First()`/`AndNext()` are already on it. Nothing to build
+after step 1 or 2 but the tests that pin it. M5's complaint was that the matcher-free form existed only
+for single returns, never for a sequence.
+
+### 22. `Tap(a).Tap(b)` silently drops the first tap
+DONE in 2.6.0. Moq's `Callback` keeps one callback per setup, so a second `Tap` replaced the first
+rather than joining it — the tap ran, the earlier one just never did. The sequence path already
+composed its steps' taps, so the two paths now share that: a tap is folded into the taps before it,
+and outside a sequence the folded action is what reaches Moq. The stated text was wrong the same way
+and for the same reason — only the last continuation carried a tap expression — so a continuation now
+carries the list, and every tap is stated, in order:
+
+    Given IMyValueIntRepo.Get(any int) tap(() => _seen.Add("first"))
+          tap(() => _seen.Add("second")) returns "x"
+
+It predated item 7, which only made `Tap` reachable in more places.
 
 ### 7. Observe a sequence: `Tap` and from-arguments `Returns` on `First()/AndNext()`
 DONE in 2.6.0, by TSpec owning the sequence. The cause was that `First()` switched to Moq's
@@ -209,10 +259,15 @@ DONE in 2.6.0. The message names the verb, the expression, and the rewrite: "No 
 'Result.Length' chains a member on its subject. Hand over the root and chain the rest after it: And(Result).Length".
 
 ## Suggested order of work
-1. Items 1, 2, 3 (P1) - each a day or less, each closes a class of silently wrong specs.
-2. Items 4, 7, 5, 6, 8 (P2) - the mocking gaps; 4 and 7 remove the last hand-written fakes and tag-held scripts in M5.
+1. ~~Items 1, 2, 3 (P1)~~ — done in 2.6.0, with 7 and 21.
+2. Remaining P2: 4/5/6 step 1 (protected members), then item 8. Item 22 is done. Steps 2 and 3 of 4/5/6 are skippable — decide after step 1 lands, not before.
 3. Items 10, 11 (P3) - build-layout independence and line endings; 12 and 13 after.
-4. Items 14, 15, 16 (P4) - the three rendering changes that change how a specification READS; then 17-21 as polish.
+4. Items 14, 15, 16 (P4) - the three rendering changes that change how a specification READS; then 17-20 as polish.
+
+Lesson from the reverted 4/5/6 attempt (2026-09-10): a mocking change is only as good as the member
+kinds it was tried against. Before claiming one works, probe it against a property, a generic method,
+an `out` parameter, an overload set, a non-virtual member and a `Task`-returning void — the six that
+broke it. Each step above lands on its own, with the suite green, before the next is started.
 
 After each item, regenerate M5's `_specification/` and diff it: the rendering items are done when the named
 passages read as the spec is written, the correctness items when the M5 workarounds can be removed.

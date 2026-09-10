@@ -30,6 +30,8 @@
 			* A null reads as the type it stands for, wherever it appears: a cast over null renders "null ILogger" rather than "(ILogger)null".
 			* Tap is available on a mock sequence: First() and AndNext() now take a tap
 			* Both DoesNotThrow forms are obsolete. An act either completes or throws, so Then().Completes() states the fact positively and renders "completes".
+			FIXED
+			* Two taps on one mocked call both run, in the order they were written, and the specification states both.
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
