@@ -246,25 +246,43 @@ default, never a ctor arg (TESTING.md 5.3). If TSpec renders ctor args of the Gi
 ### 10. Find the production project by static reference, not by folder layout
 TSpec finds the project a spec assembly describes by walking up from the binaries and stripping one suffix
 (`Core.Spec` -> `Core`), so an out-of-tree build (`--artifacts-path`) fails EVERY spec, and the assembly name must
-equal the project name. M5 lives with "always build in tree" and a Directory.Build.props note. Proposal: resolve
-the described project from the spec assembly's static references (the `ProjectReference`, or the referenced
-assembly's location), so build layout and assembly naming stop mattering.
+equal the project name. M5 lives with "always build in tree" and a Directory.Build.props note.
+
+**Decided: two separate mechanisms, both small, do both.** The OUTPUT FOLDER is what breaks under
+`--artifacts-path`, because it walks up from the BINARIES to a `.csproj`; TSpec already reads source file paths
+from the PDB for the heading links, so walk up from a spec class's SOURCE FILE instead. The SUBJECT PROJECT is
+derived by stripping the suffix and verifying against the direct project references in `deps.json` — and where
+there is exactly one direct project reference, use it and drop the naming rule, keeping the rule only as a
+tiebreak.
 
 ### 11. Write `_specification/` with the checkout's line endings
 The generator writes LF; on an autocrlf checkout every regenerated file shows as modified in `git status` even when
-its content is unchanged (ten files "modified" for a one-file change, 2026-09-09). Proposal: preserve the existing
-file's line endings, or honour `core.autocrlf`/`.gitattributes`.
+its content is unchanged (ten files "modified" for a one-file change, 2026-09-09).
+
+**Decided:** preserve the existing file's line ending where the file exists, LF otherwise. Small; do it.
+No `core.autocrlf`/`.gitattributes` reading — the file already on disk is the answer.
 
 ### 12. `Integration.Spec` renders into the project-root file instead of its folder file
 Its one spec in `OpenAi/OpenAiChatCompletion/` rendered into `Integration.md` with the subject block at the top of the
 README, where `Core.Spec`'s folders each get their own file (`Engine.md`, `Workbench.md`). RootNamespace comes from
-`Directory.Build.props` in both. Cause not found on 2026-09-08 - reproduce with a one-folder spec project.
+`Directory.Build.props` in both.
+
+**Cause found.** Files are grouped by NAMESPACE, not by folder. The root depth is the assembly name's segments
+when every namespace starts with it, and otherwise the common prefix of all namespaces. With a RootNamespace from
+`Directory.Build.props` and a single spec, that common prefix is the whole namespace, so the area comes out empty
+and the spec lands in the root file. `Core.Spec` has several namespaces, so its prefix stops earlier and it works
+by luck. **Fix:** derive the area from the source path relative to the spec project — which is what the docs
+promise — with the namespace as fallback when there is no PDB. Do it with item 10.
 
 ### 13. README: the project description verbatim, and a component list per sub-domain
 The csproj `<Description>` is pasted as-is: a multi-line element arrives with its indentation (M5 flattened its
-description to one line to work around it). Proposal: trim and re-flow the description. And Joakim's wish: list
+description to one line to work around it). And Joakim's wish: list
 the main components (top five by claims, say) of each sub-domain under its row in the README, so the README is a
 map and not only a count table.
+
+**Decided:** trim and re-flow the description — small, do. The component list is a RENDERING decision and the PO
+owns it: the recommendation is yes, top subjects by claim count under each row, shown as a before/after render
+before anything is pinned.
 
 ## P4 - Rendering
 
@@ -272,14 +290,20 @@ map and not only a count table.
 The single biggest legibility win: every cryptic passage in the review traced to context that lives in a class
 comment the generator drops (the transition-matrix comment on `WhenApplyARemappingEdit`, the "editing the base
 population" comment on `WhenApplyPopulationEdits`). The sentence exists in the code; it needs a rendering channel.
-Names and `Because` carry a lot but not the section-level "what this component is for". Proposal: the `///` or
+Names and `Because` carry a lot but not the section-level "what this component is for". The `///` or
 `/* */` comment directly above a When or Given class renders as the paragraph under its heading.
+
+**Decided: read the SOURCE FILE, not the XML doc file.** The XML file would need documentation generation enabled
+in every spec project and brings CS1591 noise; the PDB already tells us the file and the class's constructor line,
+so reading the source is zero configuration and works today. Do it — the biggest legibility win of the P4 set.
 
 ### 15. Suppress the subject/return header when it adds nothing, or let the spec name it
 "Subject under test: string / Return type: string" is noise for static-function subjects; a ValueTuple subject
-renders as `ValueTuple<ReportPackage, IReadOnlyList<string>>` where the code says `(Package, Notes)`. Proposal:
-omit the block when subject and return are primitives or identical to the When's generic arguments; render tuple
-element names; or let the spec declare a display name.
+renders as `ValueTuple<ReportPackage, IReadOnlyList<string>>` where the code says `(Package, Notes)`.
+
+**Decided: do two of the three.** Omit the block when both types are primitive or string, and render tuple element
+names — the compiler does emit them on the class for a base type. The third, letting a spec declare a display
+name, is dropped: new API surface for a rendering nicety.
 
 ### 16. An ordering hint for sections and Givens
 Alphabetical order is deterministic but puts the happy path last in a rule catalogue ("compiles clean" after the
