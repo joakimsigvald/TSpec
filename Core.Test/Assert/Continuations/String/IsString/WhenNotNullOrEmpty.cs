@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.String.IsString;
 public class WhenNotNullOrEmpty : StringSpec
 {
     [Fact]
-    public void GivenNotNullOrEmpty_ThenDoesNotThrow()
+    public void GivenNotNullOrEmpty_ThenCompletes()
         => "abc".Is().not.NullOrEmpty().and.Does().Contain("a");
 
     [Theory]

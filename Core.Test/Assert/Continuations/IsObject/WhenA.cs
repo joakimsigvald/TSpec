@@ -21,7 +21,7 @@ public class WhenA : Spec
     }
 
     [Fact]
-    public void GivenSubtype_ThenDoesNotThrow()
+    public void GivenSubtype_ThenCompletes()
     {
         object ex = new ApplicationException("boom");
         var exception = ex.Is().A<Exception>().that;

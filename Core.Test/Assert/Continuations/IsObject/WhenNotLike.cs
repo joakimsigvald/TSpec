@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.IsObject;
 public class WhenNotLike : Spec
 {
     [Fact]
-    public void GivenNotLike_ThenDoesNotThrow()
+    public void GivenNotLike_ThenCompletes()
         => new MyRecord("abc").Is().not.Like(new MyOtherRecord("def")).and.not.Null();
 
     [Fact]

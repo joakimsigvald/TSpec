@@ -41,11 +41,11 @@ public class WhenTheActAsserts : Spec
     public void GivenTheActsAssertionPasses_ThenStateOnlyTheAct()
     {
         int[] arr = [1];
-        When(_ => arr.Has().Count(1)).Then().DoesNotThrow();
+        When(_ => arr.Has().Count(1)).Then().Completes();
         Specification.Is(
             """
             When arr.Has().Count(1)
-            Then does not throw
+            Then completes
             """);
     }
 }

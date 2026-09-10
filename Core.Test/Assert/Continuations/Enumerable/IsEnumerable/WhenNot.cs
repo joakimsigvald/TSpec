@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.Enumerable.IsEnumerable;
 public class WhenNot : Spec
 {
     [Fact]
-    public void GivenNotSameInstance_ThenDoesNotThrow() => (new int[] { 1 }).Is().Not([1]).and.not.Empty();
+    public void GivenNotSameInstance_ThenCompletes() => (new int[] { 1 }).Is().Not([1]).and.not.Empty();
 
     [Fact]
     public void GivenSameInstance_ThenGetException()

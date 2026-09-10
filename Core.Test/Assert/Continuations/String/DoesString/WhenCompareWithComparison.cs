@@ -33,7 +33,7 @@ public class WhenCompareWithComparison : StringSpec
         => text.Does().EndWith(expected, StringComparison.OrdinalIgnoreCase);
 
     [Fact]
-    public void GivenInvariantCultureComparison_ThenDoesNotThrow()
+    public void GivenInvariantCultureComparison_ThenCompletes()
     {
         var text = "xabcy";
         text.Does().Contain("abc", StringComparison.InvariantCulture);

@@ -4,7 +4,7 @@ namespace TSpec.Test.Assert.Continuations.Numerical.IsInt;
 
 public class WhenLessThan : Spec
 {
-    [Fact] public void GivenLess_ThenDoesNotThrow() => 1.Is().LessThan(2);
+    [Fact] public void GivenLess_ThenCompletes() => 1.Is().LessThan(2);
 
     [Theory]
     [InlineData(2, 1)]

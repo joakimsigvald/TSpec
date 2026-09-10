@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.Enumerable.HasEnumerable;
 public class WhenFourItemsCondition : Spec
 {
     [Fact]
-    public void GivenFourItemsConditionSatisfied_AndVerifyIt_ThenDoesNotThrow()
+    public void GivenFourItemsConditionSatisfied_AndVerifyIt_ThenCompletes()
     {
         int[] arr = [1, 2, 3, 4];
         arr.Has().FourItems(it => it > 0).that.fourth.Is(4);

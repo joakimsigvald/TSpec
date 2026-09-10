@@ -4,7 +4,7 @@ namespace TSpec.Test.Assert.Continuations.Numerical.Nullable.IsNullableInt;
 
 public class WhenNotNull : Spec
 {
-    [Fact] public void GivenNotNull_ThenDoesNotThrow() => ((int?)1).Is().not.Null().and.LessThan(2);
+    [Fact] public void GivenNotNull_ThenCompletes() => ((int?)1).Is().not.Null().and.LessThan(2);
 
     [Fact]
     public void GivenFail_ThenGetException()

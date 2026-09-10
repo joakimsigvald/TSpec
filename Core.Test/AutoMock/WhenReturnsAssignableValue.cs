@@ -38,7 +38,7 @@ public class WhenReturnsAssignableValue : Spec<MyValueIntService, ICollection<in
             When(_ => _.GetNumbers())
                 .Given<IMyValueIntRepo>().Returns(Two<int>)
                 .And<IMyValueIntRepo>().Returns(A<List<int>>)
-                .Then().DoesNotThrow());
+                .Then().Completes());
 }
 
 public class WhenReturnsMostSpecificValue : Spec<MyValueIntService, IEnumerable<int>>

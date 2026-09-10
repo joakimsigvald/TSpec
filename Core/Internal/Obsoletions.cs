@@ -11,4 +11,13 @@ internal static class Obsoletions
     internal const string TypeSetup =
         "A setup on the whole type is a type arrangement — use Using<TValue>(setup) instead. "
         + "To set up one particular value, use Given().A<TValue>(setup).";
+
+    /// <summary>
+    /// An act either completes or throws, so naming one exception it did not throw states nothing
+    /// the act completing does not state already — and it passes when the act threw anything else,
+    /// which is every wrong outcome but one.
+    /// </summary>
+    internal const string DoesNotThrow =
+        "An act either completes or throws — use Completes() to state that it ran to the end. "
+        + "If it throws, state what it throws with Throws<TError>().";
 }

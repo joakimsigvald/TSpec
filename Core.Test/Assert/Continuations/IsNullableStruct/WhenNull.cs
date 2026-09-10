@@ -4,7 +4,7 @@ namespace TSpec.Test.Assert.Continuations.IsNullableStruct;
 
 public class WhenNull : Spec
 {
-    [Fact] public void GivenNull_ThenDoesNotThrow() => ((Money?)null).Is().Null();
+    [Fact] public void GivenNull_ThenCompletes() => ((Money?)null).Is().Null();
 
     [Fact]
     public void GivenNotNull_ThenGetException()

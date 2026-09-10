@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.String.IsString;
 public class WhenEmpty : StringSpec
 {
     [Fact]
-    public void GivenEmpty_ThenDoesNotThrow()
+    public void GivenEmpty_ThenCompletes()
         => "".Is().Empty().and.Does().Contain("");
 
     [Theory]

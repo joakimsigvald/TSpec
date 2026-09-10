@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.Enumerable.HasEnumerable;
 public class WhenOneItem : Spec
 {
     [Fact]
-    public void GivenOneItem_ThenDoesNotThrow()
+    public void GivenOneItem_ThenCompletes()
     {
         One<int>().Has().OneItem().and.Is().not.Empty();
         Specification.Is(

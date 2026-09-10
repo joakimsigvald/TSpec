@@ -76,14 +76,14 @@ public abstract class WhenAddItem : Spec<Subjects.ShoppingServiceAsync, Shopping
         [Fact]
         public void ThenDoNotThrow()
         {
-            Then().DoesNotThrow();
+            Then().Completes();
             Specification.Is(
                 """
                 Given IShoppingCartRepository.GetCart(CartId)
                       returns new ShoppingCart { Id = CartId, Items = _cartItems ?? [] }
                   and that _cartItems = [new ShoppingCartItem("A1")]
                 When AddToCart(CartId, _newItem)
-                Then does not throw
+                Then completes
                 """);
         }
 

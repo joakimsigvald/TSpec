@@ -20,9 +20,16 @@ DONE in 2.6.0. `And(b)` after any chain is a legitimate subject switch (`.Is(1).
 compile error was not an option; the fault is a subject nothing is asserted on. TSpec now checks at teardown,
 for every test that provided a When, that something was claimed: `Then(subject)`/`And(subject)` with nothing
 asserted on it fails with a message stating the rule, and a test that asserts nothing at all fails too. That
-forbids a bare `Then()`, which passed even when the act threw; `Then().DoesNotThrow()` is the explicit
+forbids a bare `Then()`, which passed even when the act threw; `Then().Completes()` is the explicit
 spelling and no `Pass()` was added. A test where a SetupFailed was raised is exempt, and a spec TSpec built
 into another spec's subject graph is checked by neither.
+
+Both `DoesNotThrow` forms went obsolete in the same version. An act either completes or throws, so the
+parameterless one was a negative name for a positive fact and `Completes()` renders it as one. The generic
+`DoesNotThrow<TError>()` had no sound reading: as written it passes when the act throws anything else — every
+wrong outcome but one — and made to imply completion it states nothing `Completes()` does not, since
+completing already entails throwing nothing. Its one call site in the repo was a rendering test riding on an
+act that threw, and it is gone.
 
 ### 2. A tag read before the pipeline ran returns the type default silently
 DONE in 2.6.0, as (c) — detection rather than a syntactic rule. The defect is wider than a Then: any read

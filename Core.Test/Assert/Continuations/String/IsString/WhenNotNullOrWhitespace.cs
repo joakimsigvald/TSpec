@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.String.IsString;
 public class WhenNotNullOrWhitespace : StringSpec
 {
     [Fact]
-    public void GivenNotNullOrWhitespace_ThenDoesNotThrow()
+    public void GivenNotNullOrWhitespace_ThenCompletes()
         => "abc".Is().not.NullOrWhitespace().and.not.NullOrWhitespace();
 
     [Theory]

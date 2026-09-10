@@ -1,5 +1,4 @@
 ﻿using Moq;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using TSpec.Continuations;
@@ -120,10 +119,22 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
     }
 
     /// <summary>
+    /// Assert that the method under test ran to the end — it returned rather than threw.
+    /// </summary>
+    /// <returns></returns>
+    public IAndThen<TResult> Completes()
+    {
+        SpecificationContext.Current.AddAssert();
+        AssertNoError<Exception>();
+        return And();
+    }
+
+    /// <summary>
     /// Assert that the method under test did not throw a specific exception
     /// </summary>
     /// <typeparam name="TError"></typeparam>
     /// <returns></returns>
+    [Obsolete(Obsoletions.DoesNotThrow)]
     public IAndThen<TResult> DoesNotThrow<TError>()
     {
         SpecificationContext.Current.AddAssertDoesNotThrow<TError>();
@@ -135,12 +146,8 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
     /// Assert that the method under test did not throw any exception
     /// </summary>
     /// <returns></returns>
-    public IAndThen<TResult> DoesNotThrow()
-    {
-        SpecificationContext.Current.AddAssert();
-        AssertNoError<Exception>();
-        return And();
-    }
+    [Obsolete(Obsoletions.DoesNotThrow)]
+    public IAndThen<TResult> DoesNotThrow() => Completes();
 
     internal IVerifyService<TResult> VerifyService<TService>() where TService : class
         => new VerifyService<TSUT, TResult, TService>(this);

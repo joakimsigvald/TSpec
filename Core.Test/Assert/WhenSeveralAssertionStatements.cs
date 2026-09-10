@@ -39,13 +39,13 @@ public class WhenSeveralAssertionStatements : Spec<MyService, MyModel>
     [Fact]
     public void GivenAssertionAfterThrowsCheck_ThenEachClaimTakesItsOwnLine()
     {
-        Then().DoesNotThrow();
+        Then().Completes();
         Then().Result.Is(The<MyModel>());
         Specification.Is(
             """
             Given IMyRepository returns a MyModel
             When GetModel()
-            Then does not throw
+            Then completes
               and Result is the MyModel
             """);
     }

@@ -4,7 +4,7 @@ namespace TSpec.Test.Assert.Continuations.Numerical.IsInt;
 
 public class WhenGreaterThan : Spec
 {
-    [Fact] public void GivenGreater_ThenDoesNotThrow() => 3.Is().GreaterThan(2);
+    [Fact] public void GivenGreater_ThenCompletes() => 3.Is().GreaterThan(2);
 
     [Theory]
     [InlineData(1, 1)]

@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.IsObject;
 public class WhenNull : Spec
 {
     [Fact]
-    public void GivenNull_ThenDoesNotThrow()
+    public void GivenNull_ThenCompletes()
         => ((object?)null).Is().Null();
 
     [Fact]

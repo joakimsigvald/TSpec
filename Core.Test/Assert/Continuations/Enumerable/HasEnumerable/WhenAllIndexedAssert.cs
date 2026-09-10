@@ -5,11 +5,11 @@ namespace TSpec.Test.Assert.Continuations.Enumerable.HasEnumerable;
 public class WhenAllIndexedAssert : Spec
 {
     [Fact]
-    public void GivenEmpty_ThenDoesNotThrow() 
+    public void GivenEmpty_ThenCompletes() 
         => Zero<int>().Has().All((it, i) => it.Is(i)).and.Is().Empty();
 
     [Fact]
-    public void GivenAllSatisfyCondition_ThenDoesNotThrow()
+    public void GivenAllSatisfyCondition_ThenCompletes()
     {
         int[] arr = [1, 2];
         arr.Has().All((it, i) => it.Is(i + 1)).and.Is().not.Empty();

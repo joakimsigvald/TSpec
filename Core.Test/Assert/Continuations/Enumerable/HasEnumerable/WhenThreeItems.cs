@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.Enumerable.HasEnumerable;
 public class WhenThreeItems : Spec
 {
     [Fact]
-    public void GivenThreeItems_ThenDoesNotThrow()
+    public void GivenThreeItems_ThenCompletes()
     {
         Three<int>().Has().ThreeItems().and.Is().not.Empty();
         Specification.Is(

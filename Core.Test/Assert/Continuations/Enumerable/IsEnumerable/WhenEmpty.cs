@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.Enumerable.IsEnumerable;
 public class WhenEmpty : Spec
 {
     [Fact]
-    public void GivenEmpty_ThenDoesNotThrow() => Zero<int>().Is().Empty().and.Empty();
+    public void GivenEmpty_ThenCompletes() => Zero<int>().Is().Empty().and.Empty();
 
     [Fact]
     public void GivenNotEmpty_ThenGetException()

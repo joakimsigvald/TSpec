@@ -4,7 +4,7 @@ namespace TSpec.Test.Assert.Continuations.Time.IsNullableTimeSpan;
 
 public class WhenNull : Spec
 {
-    [Fact] public void GivenNull_ThenDoesNotThrow() => ((TimeSpan?)null).Is().Null();
+    [Fact] public void GivenNull_ThenCompletes() => ((TimeSpan?)null).Is().Null();
 
     [Fact]
     public void GivenFail_ThenGetException()

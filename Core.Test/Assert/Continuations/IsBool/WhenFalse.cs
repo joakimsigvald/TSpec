@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.IsBool;
 public class WhenFalse : Spec
 {
     [Fact]
-    public void GivenFalse_ThenDoesNotThrow()
+    public void GivenFalse_ThenCompletes()
         => false.Is().False().and.False();
 
     [Fact]

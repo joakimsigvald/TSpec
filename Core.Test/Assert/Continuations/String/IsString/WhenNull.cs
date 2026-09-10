@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.String.IsString;
 public class WhenNull : StringSpec
 {
     [Fact]
-    public void GivenNull_ThenDoesNotThrow()
+    public void GivenNull_ThenCompletes()
         => ((string?)null).Is().Null().and.Null();
 
     [Fact]

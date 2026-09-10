@@ -4,7 +4,7 @@ namespace TSpec.Test.Assert.Continuations.Numerical.Nullable.IsNullableInt;
 
 public class WhenGreaterThan : Spec
 {
-    [Fact] public void GivenGreater_ThenDoesNotThrow() => ((int?)3).Is().GreaterThan(2);
+    [Fact] public void GivenGreater_ThenCompletes() => ((int?)3).Is().GreaterThan(2);
 
     [Theory]
     [InlineData(1, 1)]

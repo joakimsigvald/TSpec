@@ -772,7 +772,7 @@ When the behavior under test is expected to throw, assert the thrown exception t
 | `Then().Throws<TError>(e => e.Code == 42)` | threw `TError` satisfying a predicate |
 | `Then().Throws<TError>(e => e.Message.Is("Nope"))` | threw `TError` satisfying inline assertions |
 | `Then().Throws(The<TError>)` | threw *this exact instance* (by reference — pass a mention of the arranged exception) |
-| `Then().DoesNotThrow<TError>()` / `Then().DoesNotThrow()` | did not throw `TError` / did not throw at all |
+| `Then().Completes()` | ran to the end — returned rather than threw |
 
 ```csharp
 [Fact] public void ThenRejectsEmptyCart()

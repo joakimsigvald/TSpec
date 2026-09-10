@@ -13,14 +13,14 @@ public class WhenSome : Spec
     }
 
     [Fact]
-    public void GivenSomeSatisfyCondition_ThenDoesNotThrow()
+    public void GivenSomeSatisfyCondition_ThenCompletes()
     {
         int[] arr = [1, 2];
         arr.Has().Some((it, i) => it == 1).and.Is().not.Empty();
     }
 
     [Fact]
-    public void GivenSomeSatisfyIndexedCondition_ThenDoesNotThrow()
+    public void GivenSomeSatisfyIndexedCondition_ThenCompletes()
     {
         int[] arr = [1, 3];
         arr.Has().Some((it, i) => it == i + 1).and.Is().not.Empty();

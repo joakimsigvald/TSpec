@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.Time.IsTimeSpan;
 public class WhenPositive : Spec
 {
     [Fact]
-    public void GivenPositive_ThenDoesNotThrow()
+    public void GivenPositive_ThenCompletes()
         => TimeSpan.FromDays(1).Is().Positive();
 
     [Theory]

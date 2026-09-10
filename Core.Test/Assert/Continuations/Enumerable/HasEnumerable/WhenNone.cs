@@ -7,7 +7,7 @@ namespace TSpec.Test.Assert.Continuations.Enumerable.HasEnumerable;
 public class WhenNone : Spec
 {
     [Fact]
-    public void GivenEmpty_ThenDoesNotThrow()
+    public void GivenEmpty_ThenCompletes()
     {
         Zero<int>().Has().None(it => it > 3);
         Specification.Is("Zero ints has not some it > 3");
@@ -30,14 +30,14 @@ public class WhenNone : Spec
     }
 
     [Fact]
-    public void GivenConditionNotSatisfiedForAny_ThenDoesNotThrow()
+    public void GivenConditionNotSatisfiedForAny_ThenCompletes()
     {
         int[] arr = [2, 3];
         arr.Has().None(it => it == 1).and.Is().not.Empty();
     }
 
     [Fact]
-    public void GivenIndexedConditionNotSatisfiedForAny_ThenDoesNotThrow()
+    public void GivenIndexedConditionNotSatisfiedForAny_ThenCompletes()
     {
         int[] arr = [2, 3];
         arr.Has().None((it, i) => it == i + 1).and.Is().not.Empty();

@@ -16,7 +16,7 @@ public class WhenAnd : Spec<string>
     [Fact]
     public void GivenTrainwreckAfterTestResult_ThenThrowSetupFailed()
         => Xunit.Assert.Throws<SetupFailed>(
-            () => Then().DoesNotThrow().And(Result.Length));
+            () => Then().Completes().And(Result.Length));
 
     [Fact]
     public void GivenTrainwreckInThenSubject_ThenThrowSetupFailed()

@@ -23,11 +23,12 @@
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			CHANGED
-			* A test that provides When must claim something. A bare Then() asserts nothing, not even that the act completed, and now fails the test at teardown; so does Then(subject) or And(subject) with nothing asserted on it. State a completed act with Then().DoesNotThrow().
+			* A test that provides When must claim something. A bare Then() asserts nothing, not even that the act completed, and now fails the test at teardown; so does Then(subject) or And(subject) with nothing asserted on it. State a completed act with Then().Completes().
 			* The trainwreck error names the expression and spells out the rewrite: "Hand over the root and chain the rest after it: And(Result).Length".
 			* A value read before the pipeline was arranged now fails the test when an arrangement replaces it.
 			* A lambda handed to Then(subject) or And(subject) is refused: running the pipeline does not affect it and a delegate has nothing to assert on.
 			* A null reads as the type it stands for, wherever it appears: a cast over null renders "null ILogger" rather than "(ILogger)null".
+			* Both DoesNotThrow forms are obsolete. An act either completes or throws, so Then().Completes() states the fact positively and renders "completes".
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

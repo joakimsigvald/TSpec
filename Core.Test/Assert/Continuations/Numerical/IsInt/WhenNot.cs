@@ -4,7 +4,7 @@ namespace TSpec.Test.Assert.Continuations.Numerical.IsInt;
 
 public class WhenNot : Spec
 {
-    [Fact] public void GivenDifferent_ThenDoesNotThrow() => 1.Is().Not(2);
+    [Fact] public void GivenDifferent_ThenCompletes() => 1.Is().Not(2);
 
     [Fact]
     public void GivenFail_ThenGetException()

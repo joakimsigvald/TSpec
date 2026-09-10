@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.Enumerable.IsEnumerable;
 public class WhenNotNull : Spec
 {
     [Fact]
-    public void GivenNotNull_ThenDoesNotThrow() => Zero<int>().Is().not.Null().and.Empty();
+    public void GivenNotNull_ThenCompletes() => Zero<int>().Is().not.Null().and.Empty();
 
     [Fact]
     public void GivenNull_ThenGetException()

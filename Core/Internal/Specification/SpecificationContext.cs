@@ -102,7 +102,7 @@ internal class SpecificationContext : IAssertSpecificationContext
             case Claims.None:
                 throw new SetupFailed(
                     "Nothing was asserted. A test that provides When must assert on the result or a subject, "
-                    + "verify a mock, or state Then().DoesNotThrow(); a bare Then() asserts nothing");
+                    + "verify a mock, or state Then().Completes(); a bare Then() asserts nothing");
         }
     }
 

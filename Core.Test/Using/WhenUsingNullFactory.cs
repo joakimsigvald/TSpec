@@ -16,13 +16,13 @@ public class WhenUsingNullFactory : Spec<MyService, DateTime>
         Using<IMyRepository>(() => null!)
             .And<IMySettings>(() => null!)
             .When(_ => _.GetTime())
-            .Then().DoesNotThrow();
+            .Then().Completes();
         Specification.Is(
             """
             Using null IMyRepository
               and null IMySettings
             When GetTime()
-            Then does not throw
+            Then completes
             """);
     }
 
@@ -32,12 +32,12 @@ public class WhenUsingNullFactory : Spec<MyService, DateTime>
     {
         Using((IMyRepository)null!, For.Subject)
             .When(_ => _.GetTime())
-            .Then().DoesNotThrow();
+            .Then().Completes();
         Specification.Is(
             """
             Using null IMyRepository for Subject
             When GetTime()
-            Then does not throw
+            Then completes
             """);
     }
 }

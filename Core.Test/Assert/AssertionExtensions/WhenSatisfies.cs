@@ -6,7 +6,7 @@ namespace TSpec.Test.Assert.AssertionExtensions;
 public class WhenSatisfies : Spec
 {
     [Fact]
-    public void GivenTrue_ThenDoesNotThrow()
+    public void GivenTrue_ThenCompletes()
     {
         MyRecord actual = new("Abc");
         actual.Has(_ => _.Name == "Abc").and.Has(_ => _.Name == "Abc").and.Is().not.Null();

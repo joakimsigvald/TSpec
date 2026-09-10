@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.IsObject;
 public class WhenEqualTo : Spec
 {
     [Fact]
-    public void GivenEqualTo_ThenDoesNotThrow()
+    public void GivenEqualTo_ThenCompletes()
         => new MyRecord("abc").Is().EqualTo(new MyRecord("abc")).and.not.Null();
 
     [Fact]

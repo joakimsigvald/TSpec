@@ -33,6 +33,6 @@ public abstract class WhenCallAsyncActionTwice : Spec<InterfaceService>
             .AndNext().Returns();
 
         [Fact]
-        public void ThenDoesNotThrow() => Then().DoesNotThrow();
+        public void ThenCompletes() => Then().Completes();
     }
 }

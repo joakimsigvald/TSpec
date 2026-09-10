@@ -122,7 +122,7 @@ public class AutoDispose
         spec.Using(log, For.Subject)
             .When(_ => _.GetValue())
             .Until(_ => log.Entries.Add("until"))
-            .Then().DoesNotThrow();
+            .Then().Completes();
         spec.Dispose();
         log.Entries.Is().EqualTo(["until", "subject", "dependency"]);
     }
@@ -155,7 +155,7 @@ public class AutoDispose
     {
         var spec = new MockedServiceSutSpec();
         var sut = spec.When(_ => _.GetValue()).Then().SubjectUnderTest;
-        spec.Then().DoesNotThrow();
+        spec.Then().Completes();
         spec.Dispose();
         Mock.Get(sut.Service).Verify(_ => _.Dispose(), Times.Never());
     }

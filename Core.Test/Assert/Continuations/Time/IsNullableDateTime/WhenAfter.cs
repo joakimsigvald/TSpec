@@ -6,7 +6,7 @@ namespace TSpec.Test.Assert.Continuations.Time.IsNullableDateTime;
 public class WhenAfter : Spec
 {
     [Fact]
-    public void GivenAfter_ThenDoesNotThrow()
+    public void GivenAfter_ThenCompletes()
         => A<DateTime?>().Is().After(The<DateTime?>()!.Value.AddDays(-1))
         .and.CloseTo(The<DateTime?>()!.Value, TimeSpan.Zero);
 

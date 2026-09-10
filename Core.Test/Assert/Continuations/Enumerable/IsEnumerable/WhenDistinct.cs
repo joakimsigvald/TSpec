@@ -6,21 +6,21 @@ namespace TSpec.Test.Assert.Continuations.Enumerable.IsEnumerable;
 public class WhenDistinct : Spec
 {
     [Fact]
-    public void GivenEmpty_ThenDoesNotThrow()
+    public void GivenEmpty_ThenCompletes()
     {
         Zero<int>().Is().Distinct();
         Specification.Is("Zero ints is distinct");
     }
 
     [Fact]
-    public void GivenOneItem_ThenDoesNotThrow()
+    public void GivenOneItem_ThenCompletes()
     {
         One<int>().Is().Distinct();
         Specification.Is("One int is distinct");
     }
 
     [Fact]
-    public void GivenTwoDifferentItems_ThenDoesNotThrow()
+    public void GivenTwoDifferentItems_ThenCompletes()
     {
         new int[] { 1, 2 }.Is().Distinct();
         Specification.Is("Int[1, 2] is distinct");

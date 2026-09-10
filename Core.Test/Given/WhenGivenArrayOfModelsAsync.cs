@@ -15,12 +15,12 @@ public abstract class WhenGivenArrayOfModelsAsync : Spec<MyService, MyModel[]>
         [Fact]
         public void ThenCanGetTaskOfEnumerable()
         {
-            Then().DoesNotThrow();
+            Then().Completes();
             Specification.Is(
                 """
             Given IMyRepository returns an IEnumerable<MyModel>
             When GetModelsAsync()
-            Then does not throw
+            Then completes
             """);
         }
     }

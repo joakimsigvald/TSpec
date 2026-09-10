@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.Time.IsTimeSpan;
 public class WhenNegative : Spec
 {
     [Fact]
-    public void GivenNegative_ThenDoesNotThrow()
+    public void GivenNegative_ThenCompletes()
         => TimeSpan.FromDays(-1).Is().Negative();
 
     [Theory]

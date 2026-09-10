@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.Time.IsDateTime;
 
 public class WhenAfter : Spec
 {
-    [Fact] public void GivenAfter_ThenDoesNotThrow() => A<DateTime>().Is().After(The<DateTime>().AddDays(-1));
+    [Fact] public void GivenAfter_ThenCompletes() => A<DateTime>().Is().After(The<DateTime>().AddDays(-1));
 
     [Fact]
     public void GivenFail_ThenGetException()

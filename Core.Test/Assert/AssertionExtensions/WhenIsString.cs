@@ -4,7 +4,7 @@ namespace TSpec.Test.Assert.AssertionExtensions;
 
 public class WhenIsString : Spec<string>
 {
-    [Fact] public void GivenSame_ThenDoesNotThrow() => When(_ => _.Is(_)).Then().DoesNotThrow();
+    [Fact] public void GivenSame_ThenCompletes() => When(_ => _.Is(_)).Then().Completes();
 
     [Fact]
     public void GivenFail_ThenGetException()

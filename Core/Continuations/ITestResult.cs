@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using TSpec.Internal;
 
 namespace TSpec.Continuations;
 
@@ -62,15 +63,24 @@ public interface ITestResult<TResult>
     IThrowsThen<TResult, Exception> Throws();
 
     /// <summary>
+    /// Asserts that the test-run ran to the end — it returned rather than threw.
+    /// The claim a test states when the act completing is all it has to say.
+    /// </summary>
+    /// <returns>A continuation to apply additional assertions on the test result</returns>
+    IAndThen<TResult> Completes();
+
+    /// <summary>
     /// Asserts that the test-run did not throw an error of the given type
     /// </summary>
     /// <typeparam name="TError">The type of error that is not expected</typeparam>
     /// <returns>A continuation to apply additional assertions on the test result</returns>
+    [Obsolete(Obsoletions.DoesNotThrow)]
     IAndThen<TResult> DoesNotThrow<TError>();
 
     /// <summary>
     /// Asserts that the test-run did not throw an error
     /// </summary>
     /// <returns>A continuation to apply additional assertions on the test result</returns>
+    [Obsolete(Obsoletions.DoesNotThrow)]
     IAndThen<TResult> DoesNotThrow();
 }

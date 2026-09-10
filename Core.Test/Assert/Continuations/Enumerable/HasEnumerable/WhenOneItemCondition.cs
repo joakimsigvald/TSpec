@@ -5,28 +5,28 @@ namespace TSpec.Test.Assert.Continuations.Enumerable.HasEnumerable;
 public class WhenOneItemCondition : Spec
 {
     [Fact]
-    public void GivenOneItemConditionSatisfied_ThenDoesNotThrow()
+    public void GivenOneItemConditionSatisfied_ThenCompletes()
     {
         int[] arr = [123];
         arr.Has().OneItem(it => it == 123).and.Is().not.Empty();
     }
 
     [Fact]
-    public void GivenOneSatisfyingElementOutOfTwo_ThenDoesNotThrow()
+    public void GivenOneSatisfyingElementOutOfTwo_ThenCompletes()
     {
         int[] arr = [123, 999];
         arr.Has().OneItem(it => it == 123);
     }
 
     [Fact]
-    public void GivenOneItemConditionSatisfied_AndVerifyIt_ThenDoesNotThrow()
+    public void GivenOneItemConditionSatisfied_AndVerifyIt_ThenCompletes()
     {
         int[] arr = [123];
         arr.Has().OneItem(it => it == 123).that.Is().LessThan(200);
     }
 
     [Fact]
-    public void GivenOneSatisfyingItemOutOfTwo_AndVerifyIt_ThenDoesNotThrow()
+    public void GivenOneSatisfyingItemOutOfTwo_AndVerifyIt_ThenCompletes()
     {
         int[] arr = [123, 999];
         arr.Has().OneItem(it => it == 123).that.Is().GreaterThan(100);

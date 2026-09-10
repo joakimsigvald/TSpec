@@ -5,21 +5,21 @@ namespace TSpec.Test.Assert.Continuations.Enumerable.HasEnumerable;
 public class WhenTwoItemsCondition : Spec
 {
     [Fact]
-    public void GivenTwoItemsConditionSatisfied_ThenDoesNotThrow()
+    public void GivenTwoItemsConditionSatisfied_ThenCompletes()
     {
         int[] arr = [1, 1];
         arr.Has().TwoItems(it => it == 1).and.Is().not.Empty();
     }
 
     [Fact]
-    public void GivenTwoSatisfyingElementOutOfThree_ThenDoesNotThrow()
+    public void GivenTwoSatisfyingElementOutOfThree_ThenCompletes()
     {
         int[] arr = [1, 1, 999];
         arr.Has().TwoItems(it => it == 1);
     }
 
     [Fact]
-    public void GivenTwoItemsConditionSatisfied_AndVerifyIt_ThenDoesNotThrow()
+    public void GivenTwoItemsConditionSatisfied_AndVerifyIt_ThenCompletes()
     {
         int[] arr = [1, 1];
         arr.Has().TwoItems(it => it == 1).that.first.Is().LessThan(200);

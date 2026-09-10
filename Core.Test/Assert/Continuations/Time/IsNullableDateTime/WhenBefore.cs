@@ -6,7 +6,7 @@ namespace TSpec.Test.Assert.Continuations.Time.IsNullableDateTime;
 public class WhenBefore : Spec
 {
     [Fact]
-    public void GivenBefore_ThenDoesNotThrow()
+    public void GivenBefore_ThenCompletes()
         => A<DateTime?>().Is().Before(The<DateTime?>()!.Value.AddDays(1))
         .and.CloseTo(The<DateTime?>()!.Value, TimeSpan.Zero);
 

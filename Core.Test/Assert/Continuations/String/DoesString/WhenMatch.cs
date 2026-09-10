@@ -24,11 +24,11 @@ public class WhenMatch : StringSpec
     }
 
     [Fact]
-    public void GivenNotMatch_ThenDoesNotThrow()
+    public void GivenNotMatch_ThenCompletes()
         => "abc".Does().not.Match(@"\d+");
 
     [Fact]
-    public void GivenRegexWithOptions_ThenDoesNotThrow()
+    public void GivenRegexWithOptions_ThenCompletes()
     {
         var regex = new Regex("^ABC$", RegexOptions.IgnoreCase);
         "abc".Does().Match(regex);

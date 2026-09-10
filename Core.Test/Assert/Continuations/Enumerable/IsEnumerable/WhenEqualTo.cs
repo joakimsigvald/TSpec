@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.Enumerable.IsEnumerable;
 public class WhenEqualTo : Spec
 {
     [Fact]
-    public void GivenEqualTo_ThenDoesNotThrow() => (new int[] {1, 2}).Is().EqualTo([1, 2]).and.not.Empty();
+    public void GivenEqualTo_ThenCompletes() => (new int[] {1, 2}).Is().EqualTo([1, 2]).and.not.Empty();
 
     [Fact]
     public void GivenNotEqualTo_ThenGetException()

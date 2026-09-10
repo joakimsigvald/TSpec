@@ -5,11 +5,11 @@ namespace TSpec.Test.Assert.Continuations.IsObject;
 public class WhenNot : Spec
 {
     [Fact]
-    public void GivenNotSame_ThenDoesNotThrow()
+    public void GivenNotSame_ThenCompletes()
         => new object().Is().Not(new object()).and.not.Null();
 
     [Fact]
-    public void GivenNotSameButEqual_ThenDoesNotThrow()
+    public void GivenNotSameButEqual_ThenCompletes()
         => new MyRecord("abc").Is().Not(new MyRecord("abc"));
 
     [Fact]

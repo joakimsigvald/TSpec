@@ -89,7 +89,7 @@ public class WhenEitherWithoutOr : Spec<int>
     }
 
     [Fact]
-    public void AndIsFalse_ThenDoesNotThrow()
+    public void AndIsFalse_ThenCompletes()
     {
         When(_ => 3)
         .Then().Result.Is().either

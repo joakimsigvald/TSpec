@@ -26,7 +26,7 @@ public class WhenNothingIsAsserted
 
     private const string NothingAsserted =
         "Nothing was asserted. A test that provides When must assert on the result or a subject, "
-        + "verify a mock, or state Then().DoesNotThrow(); a bare Then() asserts nothing";
+        + "verify a mock, or state Then().Completes(); a bare Then() asserts nothing";
 
     [Fact]
     public void GivenNoWhen_ThenDoNotComplain()
@@ -89,10 +89,10 @@ public class WhenNothingIsAsserted
     }
 
     [Fact]
-    public void GivenDoesNotThrow_ThenDoNotComplain()
+    public void GivenCompletes_ThenDoNotComplain()
     {
         var spec = new MySpec();
-        spec.When(_ => 1).Then().DoesNotThrow();
+        spec.When(_ => 1).Then().Completes();
         spec.Dispose();
     }
 

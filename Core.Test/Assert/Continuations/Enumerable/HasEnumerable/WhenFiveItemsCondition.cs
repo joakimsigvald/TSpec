@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.Enumerable.HasEnumerable;
 public class WhenFiveItemsCondition : Spec
 {
     [Fact]
-    public void GivenFiveItemsConditionSatisfied_AndVerifyIt_ThenDoesNotThrow()
+    public void GivenFiveItemsConditionSatisfied_AndVerifyIt_ThenCompletes()
     {
         int[] arr = [1, 2, 3, 4, 5];
         arr.Has().FiveItems(it => it > 0).that.fifth.Is(5);

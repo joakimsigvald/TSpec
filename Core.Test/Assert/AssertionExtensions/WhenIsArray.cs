@@ -6,7 +6,7 @@ public class WhenIsArray : Spec<int[]>
 {
     public WhenIsArray() => Using(() => new int[] { 1, 2, 3 }, For.Subject);
 
-    [Fact] public void GivenSame_ThenDoesNotThrow() => When(_ => _.Is(_)).Then().DoesNotThrow();
+    [Fact] public void GivenSame_ThenCompletes() => When(_ => _.Is(_)).Then().Completes();
 
     [Fact]
     public void GivenFail_ThenGetException()

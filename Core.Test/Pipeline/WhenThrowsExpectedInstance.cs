@@ -41,15 +41,4 @@ public class WhenThrowsExpectedInstance : Spec<MyStateService, int>
             Then throws
             """);
     }
-
-    [Fact]
-    public void GivenDoesNotThrowOtherType_ThenSpecificationIncludesAssertion()
-    {
-        Then().DoesNotThrow<InvalidOperationException>();
-        Specification.Is(
-            """
-            When Throw()
-            Then does not throw InvalidOperationException
-            """);
-    }
 }

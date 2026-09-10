@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.Time.IsTimeSpan;
 public class WhenNotCloseTo : Spec
 {
     [Fact]
-    public void GivenNotCloseTo_ThenDoesNotThrow()
+    public void GivenNotCloseTo_ThenCompletes()
         => A<TimeSpan>().Is().not.CloseTo(The<TimeSpan>().Add(TimeSpan.FromDays(1)), TimeSpan.Zero);
 
     [Theory]

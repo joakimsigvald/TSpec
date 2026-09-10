@@ -8,6 +8,6 @@ public class GivenDefaultEnumerableNotProvidedWhenGetTaskOfIEnumerable : Spec<My
     public void GivenDefaultEnumerableNotProvided_WhenGetTaskOfEnumerable_ThrowSetupFailed()
     {
         Xunit.Assert.Throws<SetupFailed>(() =>
-        When(_ => _.GetModelsAsync()).Then().DoesNotThrow());
+        When(_ => _.GetModelsAsync()).Then().Completes());
     }
 }

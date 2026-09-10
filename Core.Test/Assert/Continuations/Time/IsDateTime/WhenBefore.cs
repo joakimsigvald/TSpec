@@ -5,7 +5,7 @@ namespace TSpec.Test.Assert.Continuations.Time.IsDateTime;
 
 public class WhenBefore : Spec
 {
-    [Fact] public void GivenBefore_ThenDoesNotThrow() => A<DateTime>().Is().Before(The<DateTime>().AddDays(1));
+    [Fact] public void GivenBefore_ThenCompletes() => A<DateTime>().Is().Before(The<DateTime>().AddDays(1));
 
     [Fact]
     public void GivenFail_ThenGetException()
