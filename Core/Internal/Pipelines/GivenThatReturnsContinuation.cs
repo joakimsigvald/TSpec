@@ -21,7 +21,7 @@ internal class GivenThatReturnsContinuation<TSUT, TResult, TService, TReturns>
 
     public IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> AndNext()
     {
-        if (_previous is null || !_previous._isSequential)
+        if (_previous?._sequence is null)
             throw new SetupFailed("AndNext must be preceded by First, which starts a sequential mock setup: Given...That...First");
         return _previous.AndNext();
     }

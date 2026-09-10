@@ -475,6 +475,17 @@ int _tappedValue = -1;
    .Returns(() => _retVal)
 ```
 
+A sequence can be tapped too:
+
+```csharp
+List<int> _asked = [];
+
+=> Given<IMyInterface>()
+   .That(_ => _.Get(Any<int>()))
+   .First().Tap<int>(_asked.Add).Returns(() => 1)
+   .AndNext().Tap<int>(_asked.Add).Returns(() => 2)
+```
+
 ### 4.6 Verification
 
 To verify a call to a mocked dependency, call `Then<[TheService]>([SomeLambdaExpression])`. 

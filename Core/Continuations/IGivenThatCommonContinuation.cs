@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 namespace TSpec.Continuations;
 
@@ -59,4 +59,88 @@ public interface IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns>
     /// <returns>A continuation for providing further arrangement of the test pipeline</returns>
     IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Throws(
         Func<Exception> expected, [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null);
+
+    /// <summary>
+    /// Provide a callback to observe the mocked call without deciding its outcome. Inside a
+    /// sequence the tap belongs to the step it precedes, so it fires on the call that step answers;
+    /// outside one it fires on every call. Follow it with Returns or Throws to complete the setup.
+    /// </summary>
+    /// <param name="callback">A callback invoked when the mocked method is called</param>
+    /// <param name="callbackExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for specifying the outcome of the mocked invocation</returns>
+    IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> Tap(
+        Action callback,
+        [CallerArgumentExpression(nameof(callback))] string? callbackExpr = null);
+
+    /// <summary>
+    /// Provide a callback to observe the arguments of the mocked call without deciding its outcome.
+    /// </summary>
+    /// <typeparam name="TArg">The type of argument 1 passed to the mocked method</typeparam>
+    /// <param name="callback">A callback invoked with the arguments passed to the mocked method</param>
+    /// <param name="callbackExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for specifying the outcome of the mocked invocation</returns>
+    IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> Tap<TArg>(
+        Action<TArg> callback,
+        [CallerArgumentExpression(nameof(callback))] string? callbackExpr = null);
+
+    /// <summary>
+    /// Provide a callback to observe the arguments of the mocked call without deciding its outcome.
+    /// </summary>
+    /// <typeparam name="TArg1">The type of argument 1 passed to the mocked method</typeparam>
+    /// <typeparam name="TArg2">The type of argument 2 passed to the mocked method</typeparam>
+    /// <param name="callback">A callback invoked with the arguments passed to the mocked method</param>
+    /// <param name="callbackExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for specifying the outcome of the mocked invocation</returns>
+    IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> Tap<TArg1, TArg2>(
+        Action<TArg1, TArg2> callback,
+        [CallerArgumentExpression(nameof(callback))] string? callbackExpr = null);
+
+    /// <summary>
+    /// Provide a callback to observe the arguments of the mocked call without deciding its outcome.
+    /// </summary>
+    /// <typeparam name="TArg1">The type of argument 1 passed to the mocked method</typeparam>
+    /// <typeparam name="TArg2">The type of argument 2 passed to the mocked method</typeparam>
+    /// <typeparam name="TArg3">The type of argument 3 passed to the mocked method</typeparam>
+    /// <param name="callback">A callback invoked with the arguments passed to the mocked method</param>
+    /// <param name="callbackExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for specifying the outcome of the mocked invocation</returns>
+    IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> Tap<TArg1, TArg2, TArg3>(
+        Action<TArg1, TArg2, TArg3> callback,
+        [CallerArgumentExpression(nameof(callback))] string? callbackExpr = null);
+
+    /// <summary>
+    /// Provide a callback to observe the arguments of the mocked call without deciding its outcome.
+    /// </summary>
+    /// <typeparam name="TArg1">The type of argument 1 passed to the mocked method</typeparam>
+    /// <typeparam name="TArg2">The type of argument 2 passed to the mocked method</typeparam>
+    /// <typeparam name="TArg3">The type of argument 3 passed to the mocked method</typeparam>
+    /// <typeparam name="TArg4">The type of argument 4 passed to the mocked method</typeparam>
+    /// <param name="callback">A callback invoked with the arguments passed to the mocked method</param>
+    /// <param name="callbackExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for specifying the outcome of the mocked invocation</returns>
+    IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> Tap<TArg1, TArg2, TArg3, TArg4>(
+        Action<TArg1, TArg2, TArg3, TArg4> callback,
+        [CallerArgumentExpression(nameof(callback))] string? callbackExpr = null);
+
+    /// <summary>
+    /// Provide a callback to observe the arguments of the mocked call without deciding its outcome.
+    /// </summary>
+    /// <typeparam name="TArg1">The type of argument 1 passed to the mocked method</typeparam>
+    /// <typeparam name="TArg2">The type of argument 2 passed to the mocked method</typeparam>
+    /// <typeparam name="TArg3">The type of argument 3 passed to the mocked method</typeparam>
+    /// <typeparam name="TArg4">The type of argument 4 passed to the mocked method</typeparam>
+    /// <typeparam name="TArg5">The type of argument 5 passed to the mocked method</typeparam>
+    /// <param name="callback">A callback invoked with the arguments passed to the mocked method</param>
+    /// <param name="callbackExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for specifying the outcome of the mocked invocation</returns>
+    IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> Tap<TArg1, TArg2, TArg3, TArg4, TArg5>(
+        Action<TArg1, TArg2, TArg3, TArg4, TArg5> callback,
+        [CallerArgumentExpression(nameof(callback))] string? callbackExpr = null);
+
+    /// <summary>
+    /// Begin a sequence: this and each AndNext state the outcome of one successive call.
+    /// Past the last step the call answers with the return type's default.
+    /// </summary>
+    /// <returns>A continuation for specifying the outcome of the first invocation</returns>
+    IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> First();
 }

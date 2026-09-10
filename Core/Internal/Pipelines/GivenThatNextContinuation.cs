@@ -6,12 +6,13 @@ internal class GivenThatNextContinuation<TSUT, TResult, TService, TReturns>
 {
     internal GivenThatNextContinuation(
         Spec<TSUT, TResult> spec,
-        Func<bool, object> setup,
+        Func<object> setup,
         string callExpr,
         string? tapExpr = null,
         Lazy<object>? lazyContinuation = null,
-        bool isSequential = false)
-        : base(spec, setup, callExpr, tapExpr, lazyContinuation, isSequential)
+        MockCallSequence<TReturns>? sequence = null,
+        Action<IReadOnlyList<object>>? stepTap = null)
+        : base(spec, setup, callExpr, tapExpr, lazyContinuation, sequence, stepTap)
     {
     }
 }

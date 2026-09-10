@@ -85,6 +85,26 @@ mirroring the verification form. Done when WhenGenerate's arranges lose their `I
 exists only for single returns. Proposal: the same name-based or matcher-free form for sequences.
 
 ### 7. Observe a sequence: `Tap` and from-arguments `Returns` on `First()/AndNext()`
+DONE in 2.6.0, by TSpec owning the sequence. The cause was that `First()` switched to Moq's
+`SetupSequence`, whose `ISetupSequentialResult<T>` is not a setup and has no `Callback` — so a
+sequence could state what each call answers or what it was asked, never both. A sequence is now a
+TSpec queue behind ONE ordinary `Setup`, driven by `Returns(() => queue.Next())` (a call answering
+with nothing is driven by the callback instead, since it has no `Returns` to ask). `Tap` and
+`First` moved to `IGivenThatCommonContinuation`, so a tap reads the same before `First` as after
+it, and a tap inside a sequence belongs to the step it precedes — it fires on the call that step
+answers and no other. Past its last step a sequence still answers with the type's default, as
+Moq's own did. The `ISetupSequentialResult` half of the dispatch in `GivenThatCommonContinuation`
+is gone, and both derived continuations lost their duplicated `Tap` overloads: one
+`Callback(InvocationAction)` reports every invocation, so a step of any arity reads its own call.
+
+Left open: the from-arguments `Returns` overloads work on a sequence in the implementation, but are
+declared on `IGivenThatContinuation`, which `First()`/`AndNext()` do not return. Exposing them
+means either putting them on the common continuation — where they are meaningless for a void call,
+whose `TReturns` is `Void` — or giving `IGivenThatReturnsContinuation` a type parameter so
+`AndNext()` can return the specific continuation. `Tap` alone meets this item's done condition, so
+the choice was not forced here.
+
+ORIGINAL REPORT:
 `Tap` and the from-arguments `Returns` live on the unsequenced continuation; `First()` moves to a continuation that
 has neither, `AndNext()` has none. So a scripted chat whose calls must be read back is a TAG holding the script
 behind ONE from-arguments `Returns` that also records the call (ReportPackageGenerator, ReportAssistant specs).

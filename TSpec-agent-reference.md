@@ -74,6 +74,10 @@ Given<IMyService>().That(_ => _.GetValueAsync())
     .AndNext().Returns();
 // Observe arguments without changing behavior
 Given<IMyInterface>().That(_ => _.Get(An<int>())).Tap<int>(i => _captured = i).Returns(() => 42)
+// Tap a sequence: the tap belongs to the step it precedes, firing on the call that step answers
+Given<IMyInterface>().That(_ => _.Get(Any<int>()))
+    .First().Tap<int>(_asked.Add).Returns(() => 1)
+    .AndNext().Tap<int>(_asked.Add).Returns(() => 2)
 // Service-wide default for any return type Cart fits (most specific wins)
 Given<ICartRepository>().Returns(A<Cart>)
 ```
