@@ -244,16 +244,43 @@ default, never a ctor arg (TESTING.md 5.3). If TSpec renders ctor args of the Gi
 ## P3 - Generation and infrastructure
 
 ### 10. Find the production project by static reference, not by folder layout
-TSpec finds the project a spec assembly describes by walking up from the binaries and stripping one suffix
-(`Core.Spec` -> `Core`), so an out-of-tree build (`--artifacts-path`) fails EVERY spec, and the assembly name must
-equal the project name. M5 lives with "always build in tree" and a Directory.Build.props note.
+The OUTPUT FOLDER half is DONE in 2.6.1. The two mechanisms this item bundles are independent, and only
+one of them was broken: `deps.json` sits beside the binaries and travels with them, so subject resolution
+was never affected by where the build wrote them. What broke was `ProjectDirectory`, which inferred the
+SOURCE tree from the BINARIES — the one thing a build is free to relocate.
 
-**Decided: two separate mechanisms, both small, do both.** The OUTPUT FOLDER is what breaks under
-`--artifacts-path`, because it walks up from the BINARIES to a `.csproj`; TSpec already reads source file paths
-from the PDB for the heading links, so walk up from a spec class's SOURCE FILE instead. The SUBJECT PROJECT is
-derived by stripping the suffix and verifying against the direct project references in `deps.json` — and where
-there is exactly one direct project reference, use it and drop the naming rule, keeping the rule only as a
-tiebreak.
+Reproduced, both ways, before touching anything. Copying `MyHotel.Spec`'s output to a folder with no
+`.csproj` above it failed all 52 tests in the fixture constructor, on a message about project layout
+rather than about any test. The quieter one is worse: with the output under
+`fake/artifacts/bin/MyHotel.Spec/debug` and an unrelated `Unrelated.csproj` at `fake/`, the suite went
+GREEN and wrote a full `_specification/` into the unrelated project, every link rendered
+`../C:/Development/…`. That is the `UseArtifactsOutput` default layout in any repo whose root is a project.
+
+The spec classes' own source files are what says where the project is. `SpecClasses.SourcesOf` reads them
+from the PDB — the same read the heading links already do — and the project is the nearest `.csproj`
+above the directory MOST of them are in, so a linked file or one from a shared project is outvoted rather
+than followed, and the outermost wins a tie. The binaries walk stays as the fallback for a build that
+wrote no debug information; where NEITHER answers, nothing is written and the reason is printed, rather
+than failing the run — decided 2026-09-10: no test claims the specification, so nothing fails over it.
+Naming or referencing the subject wrongly still fails before the first test, which is a rule about the
+spec project itself.
+
+Found while proving it and fixed with it: `SourceLink.FoundUnder` could match a file outside the root.
+The whole of an absolute Windows path is a tail of itself, and `Path.Combine(root, "C:\…")` gives the
+rooted path back — so any file that existed anywhere on the drive was linked as `../C:/…`. A rooted tail
+is rejected now.
+
+One correction to what this item said: "the assembly name must equal the project name" does not hold.
+`deps.json` keys projects by ASSEMBLY name throughout — TSpec's own `Core.csproj` appears as `TSpec/2.6.0`
+— and `ProjectReferences` compares assembly name to assembly name, so it is consistent. The project FILE
+name only ever mattered to the walk-up that is now gone. `SubjectDescription` is the one place that
+assumes the two agree, and it degrades to no description rather than failing.
+
+STILL OPEN, and unrelated to the build layout: derive the SUBJECT from the direct project references
+rather than from the naming rule — where there is exactly one direct project reference, use it and keep
+the suffix rule only as a tiebreak. Worth checking what it buys first: `MyHotel.Spec` has three direct
+project references (`MyHotel`, `MyHotel.Contract`, `TSpec`), and two even once TSpec is a package
+reference, so the "exactly one" case only helps a two-project solution.
 
 ### 11. Write `_specification/` with the checkout's line endings
 The generator writes LF; on an autocrlf checkout every regenerated file shows as modified in `git status` even when
@@ -272,7 +299,9 @@ when every namespace starts with it, and otherwise the common prefix of all name
 `Directory.Build.props` and a single spec, that common prefix is the whole namespace, so the area comes out empty
 and the spec lands in the root file. `Core.Spec` has several namespaces, so its prefix stops earlier and it works
 by luck. **Fix:** derive the area from the source path relative to the spec project — which is what the docs
-promise — with the namespace as fallback when there is no PDB. Do it with item 10.
+promise — with the namespace as fallback when there is no PDB. The path is available now that item 10 finds the project
+from the source files, but this did NOT ride along with it: regrouping the files is a rendering change and
+wants a before/after render on both MyHotel suites before it is pinned.
 
 ### 13. README: the project description verbatim, and a component list per sub-domain
 The csproj `<Description>` is pasted as-is: a multi-line element arrives with its indentation (M5 flattened its
@@ -343,8 +372,19 @@ one, because the helper EXECUTES its inner `Has().OneItem` and that call records
   "[call for "x", Args, Demo]" - three items where there are two.
 - A single-line raw string literal keeps one `"` per side, so its inner quotes read as unescaped; a multi-line raw
   string renders its lines but keeps one `"` of the closing delimiter (`... ``` "]`).
-- The from-arguments `Returns((a, b, c) => F(a))` overloads have no caller-expression parameter and render
-  "returns retVal".
+- The from-arguments `Returns((a, b, c) => F(a))` overloads have no caller-expression parameter, so the
+  clause states no answer at all. Reported against 2.6.0 on 2026-09-10 as a rendering DIFF from 2.5.0, and
+  confirmed by probe — `Returns<int>(a => $"{a}")` renders `returns "{a}"`, `Returns((int a, int b) =>
+  $"{a + b}")` renders `returns` and stops.
+
+  One defect, two symptoms, and 2.6.0 changed which one shows. In 2.5.0 each overload called
+  `continuation.Returns(() => retVal)` with no expression argument, so the INNER `Returns`'s
+  `[CallerArgumentExpression]` captured the source text of TSpec's own internal lambda: the
+  specification read "returns retVal", naming a private variable that appears nowhere in the test.
+  2.6.0 folded the five overloads into one `Computed(...)` (item 7's sequence work) which passes the
+  expression explicitly, and it is `null` for arities 2 to 5 — so the leaked word became nothing.
+  Neither states what the test arranged; the empty one at least says nothing false. There is no
+  rendering test for arities 2 to 5, which is why both slid.
 - A class folder two levels down joins the sub-folder into its heading ("Calc Calc Expression").
 - `default(T)` mangles a type that is not a bare name: `default(DateTime?)` reads "default DateTime?)",
   with a stray closing paren, and `default(List<int>)` reads "default list int". Found while doing item
@@ -352,7 +392,9 @@ one, because the helper EXECUTES its inner `Has().OneItem` and that call records
 
 **Decided:** the digit split, the list-literal parentheses, the raw strings, the `default(...)` parse and the
 heading two levels down are all parser or humanizer fixes — do them. The from-arguments `Returns` overloads for 2
-to 5 arguments simply lack the caller-expression parameter that the 1-argument one has: trivial, do. `const` by
+to 5 arguments simply lack the caller-expression parameter that the 1-argument one has: trivial, do — add it to
+the five interface overloads and pass it through `Computed`, and pin all five with a rendering test so the
+clause cannot go quiet again. Every `Tap` arity already has the parameter, so the fault is confined to these five. `const` by
 NAME versus VALUE is a policy call for the PO; the recommendation is to render the value.
 
 ### 20. `Does()` chains: wording and failure messages
@@ -371,7 +413,9 @@ DONE in 2.6.0. The message names the verb, the expression, and the rewrite: "No 
 1. ~~Items 1, 2, 3 (P1)~~ — done in 2.6.0, with 7 and 21.
 2. Remaining P2: item 8's `For.Parameter` half — 8a shipped in 2.6.0. Steps 2 and 3 of 4/5/6 (setup by name in the general case) are NOT planned —
    too complicated for the value, and a possible move off Moq would reopen the design anyway. Steps 2 and 3 of 4/5/6 are skippable — decide after step 1 lands, not before.
-3. Items 10, 11 (P3) - build-layout independence and line endings; 12 rides along with 10, then 13.
+3. Items 10, 11 (P3) - build-layout independence DONE in 2.6.1; item 11 (line endings) next, then 12,
+   which no longer rides along with 10 — locating the project by source file does not by itself change
+   how files are GROUPED, and regrouping by folder is a rendering change to show before/after. Then 13.
 4. Items 14, 15 (P4) - the rendering changes that change how a specification READS; then 17-20 as polish.
    Item 16 is deferred by decision, not by order: revisit only after 14 has landed.
 

@@ -898,6 +898,12 @@ Add one line to the spec project:
 A `_specification/` folder is then written to the spec project root when the run ends. Without that
 line nothing is collected and nothing changes.
 
+The project root is found from the files the spec classes are written in, as the build's debug
+information records them, so where the build puts the binaries does not matter — an artifacts path
+outside the tree works, and so does one nested under another project. A build that writes no debug
+information, or maps its source paths away, falls back to the folder the binaries are in; when
+neither answers, nothing is written and the reason is printed.
+
 The folder holds one markdown file per top-level folder of the spec project, named as the folder —
 `Rooms.md`, `Bookings.md` — plus one named as the project under test for the classes tested directly
 at its root (`MyHotel.md` for `MyHotel.Spec`, `Core.md` for `MyHotel.Core.Spec`). Each file is titled

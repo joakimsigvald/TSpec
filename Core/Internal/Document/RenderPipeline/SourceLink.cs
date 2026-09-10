@@ -34,7 +34,9 @@ internal static class SourceLink
     /// <summary>
     /// A build that maps source paths records the file as <c>/_/…</c> from the repository root,
     /// which is nowhere on disk. It is found under the spec project by its tail: the longest tail
-    /// of the recorded path that is a file there.
+    /// of the recorded path that is a file there. A tail that is itself rooted — the whole of an
+    /// absolute path, drive and all — names a file the root has no say over, and rejoining it
+    /// would give that path back rather than one under the root.
     /// </summary>
     private static string? FoundUnder(string root, string file)
     {
@@ -43,7 +45,7 @@ internal static class SourceLink
         for (var take = 1; take <= segments.Length; take++)
         {
             var tail = Path.Combine(segments[^take..]);
-            if (File.Exists(Path.Combine(root, tail)))
+            if (!Path.IsPathRooted(tail) && File.Exists(Path.Combine(root, tail)))
                 found = tail;
         }
         return found;

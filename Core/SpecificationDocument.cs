@@ -18,18 +18,24 @@ public sealed class SpecificationDocument : IDisposable
 {
     internal const string FolderName = "_specification";
 
-    private readonly PendingSpecification _specification;
+    private readonly PendingSpecification? _specification;
     private readonly Assembly _specAssembly;
 
     /// <summary>
     /// Resolves the spec assembly, its subject and the output path. Throws
-    /// <see cref="SetupFailed"/> if any of them cannot be determined.
+    /// <see cref="SetupFailed"/> if the assembly or its subject cannot be determined. Where the
+    /// output path cannot be, nothing is collected and the reason is reported: the specification
+    /// is a by-product of the run and no test claims it, so nothing fails over it.
     /// </summary>
     public SpecificationDocument()
     {
         _specAssembly = FindSpecAssembly();
-        _specification = PendingSpecification.Prepare(ReadName(_specAssembly), AppContext.BaseDirectory);
-        SpecificationCollector.IsActive = true;
+        _specification = PendingSpecification.Prepare(
+            ReadName(_specAssembly), AppContext.BaseDirectory, SpecClasses.SourcesOf(_specAssembly));
+        if (_specification is null)
+            Console.Error.WriteLine(ProjectDirectory.Unlocatable(AppContext.BaseDirectory));
+        else
+            SpecificationCollector.IsActive = true;
     }
 
     /// <summary>
@@ -40,6 +46,8 @@ public sealed class SpecificationDocument : IDisposable
     /// </summary>
     public void Dispose()
     {
+        if (_specification is null)
+            return;
         SpecificationCollector.IsActive = false;
         var missing = SpecificationCollector.Missing(ExpectedRequirements.Of(_specAssembly));
         if (missing.Count == 0)

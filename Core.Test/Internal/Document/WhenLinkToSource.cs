@@ -67,6 +67,21 @@ public class WhenLinkToSource : Spec
             .Does().Contain("## When get version\n");
     }
 
+    /// <summary>
+    /// The tail search must not walk out of the root. The whole of an absolute Windows path is a
+    /// tail of itself, and rejoining it to the root gave the path back rather than a path under
+    /// it — so a file that exists anywhere on the drive was linked as <c>../C:/…</c>, which no
+    /// reader of the document can follow.
+    /// </summary>
+    [Fact]
+    public void GivenAFileThatExistsOutsideTheRoot_ThenNoLink()
+    {
+        using var project = new TempProject("MyHotel.Spec");
+        using var elsewhere = new TempProject("Shared");
+        Render(_respondOk with { Source = new(elsewhere.AddSource("Api", "WhenGetVersion.cs"), 7) }, project.Root)
+            .Does().Contain("## When get version\n");
+    }
+
     /// A file outside the spec project has no path every reader shares, so it is not linked.
     [Fact]
     public void GivenAFileOutsideTheRoot_ThenNoLink()

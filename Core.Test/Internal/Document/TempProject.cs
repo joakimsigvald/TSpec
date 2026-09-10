@@ -21,6 +21,18 @@ internal sealed class TempProject : IDisposable
     }
 
     /// <summary>
+    /// A source file of the project, where a spec class would be written, and its full path —
+    /// which is what the debug information records and the project directory is found from.
+    /// </summary>
+    internal string AddSource(params string[] path)
+    {
+        var file = Path.Combine([Root, .. path]);
+        Directory.CreateDirectory(Path.GetDirectoryName(file)!);
+        File.WriteAllText(file, "// a spec");
+        return file;
+    }
+
+    /// <summary>
     /// Puts a real assembly and its debug information in the output directory under the name a
     /// subject would have, which is what lets the document identify the source it was built from.
     /// </summary>

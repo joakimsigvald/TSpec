@@ -14,24 +14,12 @@ namespace TSpec.Internal.Document;
 internal static class ExpectedRequirements
 {
     internal static IReadOnlySet<string> Of(Assembly assembly)
-        => assembly.GetTypes()
-            .Where(IsConcreteSpec)
+        => SpecClasses.Of(assembly)
             .SelectMany(type => TestMethods(type).Select(method => Identity(type, method.Name)))
             .ToHashSet(StringComparer.Ordinal);
 
     internal static string Identity(Type testClass, string methodName)
         => $"{testClass.FullName}.{methodName}";
-
-    private static bool IsConcreteSpec(Type type)
-        => type is { IsAbstract: false, IsGenericTypeDefinition: false } && DerivesFromSpec(type);
-
-    private static bool DerivesFromSpec(Type type)
-    {
-        for (var current = type.BaseType; current is not null; current = current.BaseType)
-            if (current.IsGenericType && current.GetGenericTypeDefinition() == typeof(Spec<,>))
-                return true;
-        return false;
-    }
 
     private static IEnumerable<MethodInfo> TestMethods(Type type)
         => type.GetMethods(BindingFlags.Public | BindingFlags.Instance)
