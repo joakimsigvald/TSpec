@@ -309,10 +309,14 @@ name, is dropped: new API surface for a rendering nicety.
 Alphabetical order is deterministic but puts the happy path last in a rule catalogue ("compiles clean" after the
 refusals). Proposal: an optional order attribute or a "first" marker on a Given; alphabetical stays the default.
 
+**Decided: NOT now.** It is new attribute surface that exists only for rendering, and alphabetical is a contract
+users can predict. Revisit after item 14 lands, if M5 still wants it.
+
 ### 17. A verbatim identifier (`string @lock`) defeats the arrangement stripping
 A `[Theory]` parameter named with `@` (a keyword) rendered the claim with its whole
-`Given(locks).Is(@lock).Then()...` prefix where a plain name renders "Result.Succeeded is false and ...". Strip the
-`@` before matching.
+`Given(locks).Is(@lock).Then()...` prefix where a plain name renders "Result.Succeeded is false and ...".
+
+**Decided:** strip the `@` in the preprocessor, before matching. Trivial; do it.
 
 ### 18. Picks: render a picking helper by its name, keep indexers, stop the duplicated prefix
 - A helper that picks (`Column(alias) => TheColumns.Has().OneItem(c => c.As == alias).that`) expands its whole inner
@@ -326,6 +330,10 @@ A `[Theory]` parameter named with `@` (a keyword) rendered the claim with its wh
   InlinePopulation that package.Query.Population is a InlinePopulation that Children is equal to ChildrenBefore").
 - A pick through a protected property renders both the inner assertion and the property name.
 - Article: "a InlinePopulation" -> "an".
+
+**Decided: one sub-bullet at a time, each with a before/after render** — the article, the duplicated base pick and
+the dropped indexer first. "Render the helper by its own name" is PARKED until the others are done: it is the hard
+one, because the helper EXECUTES its inner `Has().OneItem` and that call records itself.
 
 ### 19. Names and literals
 - The humanizer splits a digit inside a word: `MeanHba1c` reads "mean hba 1c".
@@ -342,9 +350,18 @@ A `[Theory]` parameter named with `@` (a keyword) rendered the claim with its wh
   with a stray closing paren, and `default(List<int>)` reads "default list int". Found while doing item
   3; `default(DateTime)` and the cast form of both are correct, so it is the `default(...)` parse.
 
+**Decided:** the digit split, the list-literal parentheses, the raw strings, the `default(...)` parse and the
+heading two levels down are all parser or humanizer fixes — do them. The from-arguments `Returns` overloads for 2
+to 5 arguments simply lack the caller-expression parameter that the 1-argument one has: trivial, do. `const` by
+NAME versus VALUE is a policy call for the PO; the recommendation is to render the value.
+
 ### 20. `Does()` chains: wording and failure messages
 `.and.not.Contain(x)` renders "and not contain x" where the sentence is "and does not contain x"; a failure after
 `.and.` loses the actual's name ("Expected  to contain"). Same code path as item 1.
+
+**Cause and fix.** The continuation blanks the actual's expression deliberately, so the specification does not
+repeat it — but the FAILURE MESSAGE reads the same field. Keep the name for the message and blank it only for the
+specification. Do it.
 
 ### 21. Point the trainwreck error at the idiom
 DONE in 2.6.0. The message names the verb, the expression, and the rewrite: "No trainwrecks in And:
@@ -352,10 +369,11 @@ DONE in 2.6.0. The message names the verb, the expression, and the rewrite: "No 
 
 ## Suggested order of work
 1. ~~Items 1, 2, 3 (P1)~~ — done in 2.6.0, with 7 and 21.
-2. Remaining P2: item 8. Steps 2 and 3 of 4/5/6 (setup by name in the general case) are NOT planned —
+2. Remaining P2: item 8's `For.Parameter` half — 8a shipped in 2.6.0. Steps 2 and 3 of 4/5/6 (setup by name in the general case) are NOT planned —
    too complicated for the value, and a possible move off Moq would reopen the design anyway. Steps 2 and 3 of 4/5/6 are skippable — decide after step 1 lands, not before.
-3. Items 10, 11 (P3) - build-layout independence and line endings; 12 and 13 after.
-4. Items 14, 15, 16 (P4) - the three rendering changes that change how a specification READS; then 17-20 as polish.
+3. Items 10, 11 (P3) - build-layout independence and line endings; 12 rides along with 10, then 13.
+4. Items 14, 15 (P4) - the rendering changes that change how a specification READS; then 17-20 as polish.
+   Item 16 is deferred by decision, not by order: revisit only after 14 has landed.
 
 Lesson from the reverted 4/5/6 attempt (2026-09-10): a mocking change is only as good as the member
 kinds it was tried against. Before claiming one works, probe it against a property, a generic method,
