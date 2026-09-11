@@ -412,10 +412,10 @@ the two versions render identical text — every path that surfaces such a slice
 tokenizer has already dropped it — while the preprocessor version cost three times the lines,
 because working on raw text needs a literal-aware walk the tokenizer gets for free. Replaced.
 
-OPEN, and not part of this: a `Tap` renders its expression RAW. `ActionPhrases.AddTap` neither parses
-nor preprocesses it, so `tap((int value) => _seen = @lock)` keeps the `@` where the same name in a
-parsed clause of the same test reads `lock`. Whether a tap should read as written or as named is a
-PO question, and today one test renders it both ways.
+Found with it, DONE in 2.6.2: a `Tap` rendered its expression raw — the one Given clause that skipped
+`Describe()` — so it kept the parameter types, the `@`, and a multi-line lambda's source layout. PO:
+read as named. It is described now, under the lambda rules of item 19's from-arguments `Returns`:
+`tap(_seen.Add(lock))`, `tap((v1, v2) => _tappedValue = v1 + v2)`, a block on one line.
 
 ### 18. Picks: render a picking helper by its name, keep indexers, stop the duplicated prefix
 - A helper that picks (`Column(alias) => TheColumns.Has().OneItem(c => c.As == alias).that`) expands its whole inner
@@ -503,8 +503,8 @@ DONE in 2.6.0. The message names the verb, the expression, and the rewrite: "No 
    too complicated for the value, and a possible move off Moq would reopen the design anyway. Steps 2 and 3 of 4/5/6 are skippable — decide after step 1 lands, not before.
 3. Items 10, 11, 17 and 13's description DONE in 2.6.1. Item 12 closed as not an issue; items 14 and
    16 closed by ruling.
-4. What is left, in order: item 15's tuple element names; then how a `Tap` renders (17's open
-   note). The from-arguments `Returns` is DONE in 2.6.2. Everything else in this plan is done, closed or dropped. Items 18, 19 and
+4. What is left: item 15's tuple element names. The from-arguments `Returns` and the tap rendering
+   are DONE in 2.6.2. Everything else in this plan is done, closed or dropped. Items 18, 19 and
    20 are postponed for RESTATEMENT, not for scheduling — each needs to be broken up and re-argued
    before any of it is built.
 

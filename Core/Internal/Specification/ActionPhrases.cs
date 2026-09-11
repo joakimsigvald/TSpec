@@ -13,7 +13,7 @@ internal class ActionPhrases(SpecificationRecording recording)
     internal void AddUntil(string tearDownExpr) => Add(StepFamily.Until, tearDownExpr);
 
     internal void AddTap(string expr)
-        => recording.Record(() => recording.Add(new(StepLayout.Word) { Body = $"tap({expr})" }));
+        => recording.Record(() => recording.Add(new(StepLayout.Word) { Body = $"tap({expr.Describe()})" }));
 
     private void Add(StepFamily family, string expr)
         => recording.Record(() => recording.Add(new(StepLayout.SentenceOrPhrase)

@@ -25,7 +25,7 @@ public class WhenTapMockWithTwoArguments : Spec<MyValueIntService, string>
         Specification.Is(
             """
             Given IMyValueIntRepo.Get2(the MyValueInt, the second MyValueInt)
-                  tap((int v1, int v2) => _tappedValue = v1 + v2) returns RetVal
+                  tap((v1, v2) => _tappedValue = v1 + v2) returns RetVal
             When GetValue2(a MyValueInt, a second MyValueInt)
             Then _tappedValue is the MyValueInt + the second MyValueInt
             """);

@@ -20,8 +20,8 @@ public class WhenTapMockThatReturnsValueAsync : Spec<MyValueIntService, string>
         _tappedValue.Is(The<MyValueInt>());
         Specification.Is(
             """
-            Given IMyValueIntRepo.GetAsync(the MyValueInt)
-                  tap((int value) => _tappedValue = value) returns RetVal
+            Given IMyValueIntRepo.GetAsync(the MyValueInt) tap(_tappedValue = value)
+                  returns RetVal
             When GetValueAsync(a MyValueInt)
             Then _tappedValue is the MyValueInt
             """);
@@ -39,8 +39,7 @@ public class WhenTapMockThatReturnsValueAsync : Spec<MyValueIntService, string>
         _tappedValue.Is(The<MyValueInt>());
         Specification.Is(
             """
-            Given IMyValueIntRepo.SetAsync(the MyValueInt)
-                  tap((int value) => _tappedValue = value) returns
+            Given IMyValueIntRepo.SetAsync(the MyValueInt) tap(_tappedValue = value) returns
             When SetValueAsync(a MyValueInt)
             Then _tappedValue is the MyValueInt
             """);

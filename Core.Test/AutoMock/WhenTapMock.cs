@@ -20,8 +20,31 @@ public class WhenTapMock : Spec<MyValueIntService, string>
         _tappedValue.Is(The<MyValueInt>());
         Specification.Is(
             """
-            Given IMyValueIntRepo.Get(the MyValueInt) tap(i => _tappedValue = i)
-                  returns RetVal
+            Given IMyValueIntRepo.Get(the MyValueInt) tap(_tappedValue = i) returns RetVal
+            When GetValue(a MyValueInt)
+            Then _tappedValue is the MyValueInt
+            """);
+    }
+
+    /// A tap written over several lines reads as one, not as its source layout.
+    [Fact]
+    public void GivenATapOverSeveralLines_ThenStateItOnOne()
+    {
+        When(_ => _.GetValue(A<MyValueInt>()))
+        .Given<IMyValueIntRepo>()
+        .That(_ => _.Get(The<MyValueInt>()))
+        .Tap<int>(i =>
+        {
+            _tappedValue = 0;
+            _tappedValue += i;
+        })
+        .Returns(() => RetVal)
+        .Then();
+        _tappedValue.Is(The<MyValueInt>());
+        Specification.Is(
+            """
+            Given IMyValueIntRepo.Get(the MyValueInt)
+                  tap({ _tappedValue = 0; _tappedValue += i; }) returns RetVal
             When GetValue(a MyValueInt)
             Then _tappedValue is the MyValueInt
             """);
@@ -39,7 +62,7 @@ public class WhenTapMock : Spec<MyValueIntService, string>
         _tappedValue.Is(The<MyValueInt>());
         Specification.Is(
             """
-            Given IMyValueIntRepo.Set(the MyValueInt) tap(i => _tappedValue = i) returns
+            Given IMyValueIntRepo.Set(the MyValueInt) tap(_tappedValue = i) returns
             When SetValue(a MyValueInt)
             Then _tappedValue is the MyValueInt
             """);

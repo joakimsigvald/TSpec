@@ -32,8 +32,8 @@ public class WhenTappingTwice : Spec<MyValueIntService, string>
         Then().Result.Is("x");
         Specification.Is(
             """
-            Given IMyValueIntRepo.Get(any int) tap(() => _seen.Add("first"))
-                  tap(() => _seen.Add("second")) returns "x"
+            Given IMyValueIntRepo.Get(any int) tap(_seen.Add("first"))
+                  tap(_seen.Add("second")) returns "x"
             When GetValue(a MyValueInt)
             Then Result is "x"
             """);
