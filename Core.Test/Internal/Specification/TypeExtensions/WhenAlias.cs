@@ -21,4 +21,8 @@ public class WhenAlias : Spec<Type, string>
     [Fact] public void GivenGenericInterface() => Using(typeof(Moq.IMock<MyModel>)).Then().Result.Is("IMock<MyModel>");
     [Fact] public void GivenTwoGenericParameters() => Using(typeof(Key<int, long>)).Then().Result.Is("Key<int, long>");
     [Fact] public void GivenNestedGenericParameters() => Using(typeof(Moq.Mock<Moq.IMock<MyModel>>)).Then().Result.Is("Mock<IMock<MyModel>>");
+    [Fact] public void GivenATuple() => Using(typeof((int, string))).Then().Result.Is("(int, string)");
+    [Fact] public void GivenATupleInAGeneric() => Using(typeof(List<(int, string)>)).Then().Result.Is("List<(int, string)>");
+    /// The compiler nests the eighth element on in a tuple of its own; C# writes them as one.
+    [Fact] public void GivenATupleOfEight() => Using(typeof((int, int, int, int, int, int, int, string))).Then().Result.Is("(int, int, int, int, int, int, int, string)");
 }

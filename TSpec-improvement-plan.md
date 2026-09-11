@@ -381,10 +381,11 @@ fault 8a refused when it rejected "take the default when it happens to fall insi
 and misuses of subject and return type cannot all be foreseen, so a case-by-case rule will be wrong
 in cases nobody listed. Uniform and truthful beats clever. Suppression: DROPPED.
 
-The tuple half survives, because it is not a case distinction: `(Package, Notes)` states the same
-fact as `ValueTuple<ReportPackage, IReadOnlyList<string>>` and states it as the code writes it —
-more truthful, not less. Kept as a small item of its own; it moves rendered text, so before/after
-first, and confirm the compiler really emits the element names on the class before promising it.
+The tuple half is DONE in 2.6.2, types kept: `(ReportPackage Package, IReadOnlyList<string> Notes)`.
+Names only was rejected — the header is the one place that states the types. `Alias()` writes any
+value tuple as C# does; the names come from `[TupleElementNames]` on the class that names the spec
+base, one list in the compiler's order (a tuple's own names, then its inner tuples'; a long tuple's
+nested tail listed as unnamed). `System.Tuple` is a different type and stays as written.
 The display-name idea stays dropped: new API surface for a rendering nicety.
 
 ### 16. An ordering hint for sections and Givens
@@ -503,8 +504,8 @@ DONE in 2.6.0. The message names the verb, the expression, and the rewrite: "No 
    too complicated for the value, and a possible move off Moq would reopen the design anyway. Steps 2 and 3 of 4/5/6 are skippable — decide after step 1 lands, not before.
 3. Items 10, 11, 17 and 13's description DONE in 2.6.1. Item 12 closed as not an issue; items 14 and
    16 closed by ruling.
-4. What is left: item 15's tuple element names. The from-arguments `Returns` and the tap rendering
-   are DONE in 2.6.2. Everything else in this plan is done, closed or dropped. Items 18, 19 and
+4. Nothing is left to build. The from-arguments `Returns`, the tap rendering and the tuple names are
+   DONE in 2.6.2. Everything else in this plan is done, closed or dropped. Items 18, 19 and
    20 are postponed for RESTATEMENT, not for scheduling — each needs to be broken up and re-argued
    before any of it is built.
 

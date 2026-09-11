@@ -64,6 +64,35 @@ public class WhenReadDeclaredTypes : Spec
         => TestIdentity.Declares(typeof(Subject), actsOnSubject: false, yieldsResult: false)
             .Is().Null();
 
+    /// <summary>
+    /// A tuple reads as C# writes it, with the element names the spec declared. The compiler keeps
+    /// them on the class that names the base, as one list: each tuple's own names, then those of the
+    /// tuples inside it.
+    /// </summary>
+    [Theory]
+    [InlineData(typeof(NamedResult), "MyModel", "(int Id, string Name)")]
+    [InlineData(typeof(UnnamedResult), "MyModel", "(int, string)")]
+    [InlineData(typeof(PartlyNamedResult), "MyModel", "(int Id, string)")]
+    [InlineData(typeof(NamedInsideAGeneric), "MyModel", "IReadOnlyList<(int Id, string Name)>")]
+    [InlineData(typeof(NamedInsideANamedTuple), "MyModel", "(int A, (int B, int C) D)")]
+    [InlineData(typeof(NamedSubject), "(int X, int Y)", "int")]
+    [InlineData(typeof(NamedSubjectIsAlsoTheResult), "(int X, int Y)", "(int X, int Y)")]
+    [InlineData(typeof(InheritsANamedResult), "MyModel", "(int Id, string Name)")]
+    [InlineData(typeof(NamedAfterALongTuple), "(int, int, int, int, int, int, int, int)", "(int A, int B)")]
+    public void GivenATuple_ThenReadItAsDeclared(Type testClass, string subject, string result)
+        => Declares(testClass).Is((subject, result));
+
+    private sealed class NamedResult : Spec<MyModel, (int Id, string Name)>;
+    private sealed class UnnamedResult : Spec<MyModel, (int, string)>;
+    private sealed class PartlyNamedResult : Spec<MyModel, (int Id, string)>;
+    private sealed class NamedInsideAGeneric : Spec<MyModel, IReadOnlyList<(int Id, string Name)>>;
+    private sealed class NamedInsideANamedTuple : Spec<MyModel, (int A, (int B, int C) D)>;
+    private sealed class NamedSubject : Spec<(int X, int Y), int>;
+    private sealed class NamedSubjectIsAlsoTheResult : Spec<(int X, int Y)>;
+    private abstract class NamedResultBase : Spec<MyModel, (int Id, string Name)>;
+    private sealed class InheritsANamedResult : NamedResultBase;
+    private sealed class NamedAfterALongTuple : Spec<(int, int, int, int, int, int, int, int), (int A, int B)>;
+
     private class Outer : Spec<MyModel, int>
     {
         internal sealed class GivenSomething : Outer;

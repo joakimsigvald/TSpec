@@ -1,3 +1,5 @@
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.Document;
@@ -54,22 +56,30 @@ internal static class TestIdentity
     /// Narrowed to what the spec actually uses: a type argument states something only where the act
     /// uses it in that capacity. An act taking no subject leaves a generated value nothing reads,
     /// and one yielding no result has no return type whatever <c>TResult</c> was written as.
-    /// <c>Spec&lt;T&gt;</c> needs no case of its own — being <c>Spec&lt;T, T&gt;</c>, it states T
-    /// twice where both are used and once where one is.
+    /// <c>Spec&lt;T&gt;</c> states T as both, where both are used.
+    /// </remarks>
+    /// <remarks>
+    /// The types are read where the spec names its base, since that is where the compiler keeps the
+    /// element names of any tuple among them.
     /// </remarks>
     internal static (string? SubjectUnderTest, string? ReturnType)? Declares(
         Type testClass, bool actsOnSubject, bool yieldsResult)
     {
-        for (var type = testClass; type is not null; type = type.BaseType)
+        for (var type = testClass; type is not null && type != typeof(Spec); type = type.BaseType)
         {
-            if (type == typeof(Spec))
+            if (!NamesTheSpec(type.BaseType))
+                continue;
+            if (!actsOnSubject && !yieldsResult)
                 return null;
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Spec<,>))
-                return actsOnSubject || yieldsResult
-                    ? (actsOnSubject ? type.GenericTypeArguments[0].Alias() : null,
-                        yieldsResult ? type.GenericTypeArguments[1].Alias() : null)
-                    : null;
+            var names = new Queue<string?>(type.GetCustomAttribute<TupleElementNamesAttribute>()?.TransformNames ?? []);
+            string[] declared = [.. type.BaseType!.GenericTypeArguments.Select(argument => argument.Alias(names))];
+            return (actsOnSubject ? declared[0] : null, yieldsResult ? declared[^1] : null);
         }
         return null;
     }
+
+    private static bool NamesTheSpec(Type? type)
+        => type is { IsGenericType: true }
+        && type.GetGenericTypeDefinition() is var definition
+        && (definition == typeof(Spec<,>) || definition == typeof(Spec<>));
 }
