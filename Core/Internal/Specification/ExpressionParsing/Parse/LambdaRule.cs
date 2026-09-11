@@ -99,14 +99,13 @@ internal static class LambdaRule
         var list = new List<string>();
         while (!ts.IsSym(")"))
         {
-            if (ts.Peek() is not { Kind: TokenKind.Word } param)
+            if (!TryParam(ts, out var name))
             {
                 ts.Pos = save;
                 return false;
             }
 
-            list.Add(param.Text);
-            ts.Advance();
+            list.Add(name);
             if (!ts.AcceptSym(","))
                 break;
         }
@@ -118,5 +117,24 @@ internal static class LambdaRule
 
         ps = list;
         return true;
+    }
+
+    /// A parameter, typed or not: the name is its last word, and a type before it is dropped.
+    private static bool TryParam(TokenStream ts, out string name)
+    {
+        name = "";
+        for (var depth = 0; depth > 0 || !(ts.IsSym(",") || ts.IsSym(")")); ts.Advance())
+        {
+            var token = ts.Peek();
+            if (token.Kind == TokenKind.Word)
+                name = token.Text;
+            else if (token.Text == "<")
+                depth++;
+            else if (token.Text == ">")
+                depth--;
+            else if (token.Kind != TokenKind.Symbol || token.Text is not ("." or "?" or "[" or "]" or ","))
+                return false;
+        }
+        return name.Length > 0;
     }
 }

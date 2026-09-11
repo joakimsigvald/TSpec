@@ -37,32 +37,36 @@ internal class GivenThatContinuation<TSUT, TResult, TService, TReturns, TActualR
         => Computed(returns, args => returns(Arg<TArg>(args, 0)), returnsExpr);
 
     public IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Returns<TArg1, TArg2>(
-        Func<TArg1, TArg2, TReturns> returns)
-        => Computed(returns, args => returns(Arg<TArg1>(args, 0), Arg<TArg2>(args, 1)), null);
+        Func<TArg1, TArg2, TReturns> returns,
+        [CallerArgumentExpression(nameof(returns))] string? returnsExpr = null)
+        => Computed(returns, args => returns(Arg<TArg1>(args, 0), Arg<TArg2>(args, 1)), returnsExpr);
 
     public IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Returns<TArg1, TArg2, TArg3>(
-        Func<TArg1, TArg2, TArg3, TReturns> returns)
+        Func<TArg1, TArg2, TArg3, TReturns> returns,
+        [CallerArgumentExpression(nameof(returns))] string? returnsExpr = null)
         => Computed(
             returns,
             args => returns(Arg<TArg1>(args, 0), Arg<TArg2>(args, 1), Arg<TArg3>(args, 2)),
-            null);
+            returnsExpr);
 
     public IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Returns<TArg1, TArg2, TArg3, TArg4>(
-        Func<TArg1, TArg2, TArg3, TArg4, TReturns> returns)
+        Func<TArg1, TArg2, TArg3, TArg4, TReturns> returns,
+        [CallerArgumentExpression(nameof(returns))] string? returnsExpr = null)
         => Computed(
             returns,
             args => returns(
                 Arg<TArg1>(args, 0), Arg<TArg2>(args, 1), Arg<TArg3>(args, 2), Arg<TArg4>(args, 3)),
-            null);
+            returnsExpr);
 
     public IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Returns<TArg1, TArg2, TArg3, TArg4, TArg5>(
-        Func<TArg1, TArg2, TArg3, TArg4, TArg5, TReturns> returns)
+        Func<TArg1, TArg2, TArg3, TArg4, TArg5, TReturns> returns,
+        [CallerArgumentExpression(nameof(returns))] string? returnsExpr = null)
         => Computed(
             returns,
             args => returns(
                 Arg<TArg1>(args, 0), Arg<TArg2>(args, 1), Arg<TArg3>(args, 2), Arg<TArg4>(args, 3),
                 Arg<TArg5>(args, 4)),
-            null);
+            returnsExpr);
 
     /// <summary>
     /// The answer is computed as the call arrives and held until the call is answered — the one

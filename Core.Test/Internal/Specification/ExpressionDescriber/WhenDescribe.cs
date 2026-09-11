@@ -81,11 +81,13 @@ public class WhenDescribe : Spec<string>
     [InlineData("async Task<int> (_) => await _.GetAsync()", "_.GetAsync()")]
     // A return type is only recognised after async, so this one stays unparsed
     [InlineData("Task<int> (_) => _.GetAsync()", "Task<int> (_) => _.GetAsync()")]
-    // A 2+ parameter lambda has no prose rendering, so it prints as source —
-    // rebuilt from the tree, which is what keeps the keywords out of it
-    [InlineData("async ValueTask<int> (a, b) => await Add(a, b)", "(a, b) => Add(a, b)")]
+    // A 2+ parameter lambda names its parameters, which its body reads, and describes the body
+    // as any value — without the keywords, and without the types a typed parameter list states
+    [InlineData("async ValueTask<int> (a, b) => await Add(a, b)", "(a, b) => add a, b")]
     [InlineData("(a,b) => a.Combine( b )", "(a, b) => a.Combine(b)")]
     [InlineData("(a, b, c) => a ? b[0] : (int)c", "(a, b, c) => a ? b[0] : (int)c")]
+    [InlineData("(int a, int b) => a + b", "(a, b) => a + b")]
+    [InlineData("(Dictionary<string, int> d, int _) => d.Count", "(d, _) => d.Count")]
     [InlineData("() => (ICollection<int>)[1, 2]", "(ICollection<int>)[1, 2]")]
     [InlineData("() => (IReadOnlyList<int>)[The(x)]", "(IReadOnlyList<int>)[the X]")]
     [InlineData("() => (ICollection<int>)Two<int>()", "(ICollection<int>)two ints")]

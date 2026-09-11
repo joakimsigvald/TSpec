@@ -24,6 +24,8 @@
 		<PackageReleaseNotes>
 			FIXED
 			* A project Description written on several indented lines heads the specification as one line
+			* Returns computed from two to five arguments renders as "returns (a, b) => body" instead of rendering no answer
+			* A lambda with typed parameters no longer makes the claim in the same chain render as raw source
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

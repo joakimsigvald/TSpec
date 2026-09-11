@@ -178,7 +178,7 @@ declared on `IGivenThatContinuation`, which `First()`/`AndNext()` do not return.
 means either putting them on the common continuation — where they are meaningless for a void call,
 whose `TReturns` is `Void` — or giving `IGivenThatReturnsContinuation` a type parameter so
 `AndNext()` can return the specific continuation. `Tap` alone meets this item's done condition, so
-the choice was not forced here.
+the choice was not forced here. DROPPED 2026-09-11 by PO: nothing reported needs it.
 
 ORIGINAL REPORT:
 `Tap` and the from-arguments `Returns` live on the unsequenced continuation; `First()` moves to a continuation that
@@ -194,6 +194,8 @@ apart by type - so it is built by a factory. An optional ctor arg (`reasoningEff
 must be pinned by a null factory per type. Proposal: `Using("sk-test", For.Parameter("apiKey"))` and a way to say
 "default" for a named optional arg. Related, Joakim: HONOUR the constructor's default values when auto-generating
 an object instead of generating a value for every parameter. Done when `WhenComplete`'s `Using` factory goes.
+
+`For.Parameter` DROPPED 2026-09-11 by PO; 8a is what this item delivers. M5's `WhenComplete` keeps its factory.
 
 #### 8a. Honour the constructor's default values — DONE in 2.6.0
 
@@ -280,7 +282,7 @@ STILL OPEN, and unrelated to the build layout: derive the SUBJECT from the direc
 rather than from the naming rule — where there is exactly one direct project reference, use it and keep
 the suffix rule only as a tiebreak. Worth checking what it buys first: `MyHotel.Spec` has three direct
 project references (`MyHotel`, `MyHotel.Contract`, `TSpec`), and two even once TSpec is a package
-reference, so the "exactly one" case only helps a two-project solution.
+reference, so the "exactly one" case only helps a two-project solution. DROPPED 2026-09-11 by PO.
 
 ### 11. Write `_specification/` with the checkout's line endings
 DONE in 2.6.1, as decided: a file is rewritten with the endings it already has, a new one as composed.
@@ -338,8 +340,7 @@ stay a table: five names per row is not a cell, so the index stops being the one
 is. And it duplicates what is already one click away — every subject is a heading in its own file,
 which GitHub renders as that file's outline.
 
-If a map is still wanted, the honest form is every subject, not the top five, and it belongs beside
-the table rather than inside it. Show a before/after render before pinning anything.
+DROPPED 2026-09-11 by PO.
 
 ## P4 - Rendering
 
@@ -441,7 +442,10 @@ separate items when it is picked up — do not start from this list.
   "[call for "x", Args, Demo]" - three items where there are two.
 - A single-line raw string literal keeps one `"` per side, so its inner quotes read as unescaped; a multi-line raw
   string renders its lines but keeps one `"` of the closing delimiter (`... ``` "]`).
-- The from-arguments `Returns((a, b, c) => F(a))` overloads have no caller-expression parameter, so the
+- DONE in 2.6.2, as option B: `returns (messages, _, _) => the model answers messages` — names kept,
+  types dropped, body described as any value; a one-parameter lambda still renders its body alone.
+  The parser now reads a typed parameter list, which also ends the `Then`-line fallback.
+  The from-arguments `Returns((a, b, c) => F(a))` overloads have no caller-expression parameter, so the
   clause states no answer at all. Reported against 2.6.0 on 2026-09-10 as a rendering DIFF from 2.5.0, and
   confirmed by probe — `Returns<int>(a => $"{a}")` renders `returns "{a}"`, `Returns((int a, int b) =>
   $"{a + b}")` renders `returns` and stops.
@@ -454,6 +458,17 @@ separate items when it is picked up — do not start from this list.
   expression explicitly, and it is `null` for arities 2 to 5 — so the leaked word became nothing.
   Neither states what the test arranged; the empty one at least says nothing false. There is no
   rendering test for arities 2 to 5, which is why both slid.
+
+  Analysed 2026-09-11 by probe. A second fault rides with it: a parenthesized TYPED parameter list —
+  `(int a, int b) => …`, M5's spelling — does not parse, so the whole `Then` line of such a chain falls
+  back to raw source. Untyped `(a, b) => …` parses. Merely capturing the expression renders the lambda
+  as written, every type stated twice. Rendering options put to the PO, M5's call as the example:
+  (A) body only, the one-argument rule — `returns TheModelAnswers(messages)` — leaves `messages`
+  unbound and hides argument order, a claim; (B) names kept, types dropped — `returns (messages, _, _)
+  => TheModelAnswers(messages)` — one rule for every arity, so the one-argument form becomes
+  `returns i => "{2 * i}"` (2 pinned expectations move, none in MyHotel); (C) names placed into the
+  call — `Complete(any IReadOnlyList<string> messages, …) returns TheModelAnswers(messages)` — reads
+  best, but needs new cross-clause machinery. Recommended B; the parser fix is needed under any.
 - A class folder two levels down joins the sub-folder into its heading ("Calc Calc Expression").
 - `default(T)` mangles a type that is not a bare name: `default(DateTime?)` reads "default DateTime?)",
   with a stray closing paren, and `default(List<int>)` reads "default list int". Found while doing item
@@ -488,9 +503,10 @@ DONE in 2.6.0. The message names the verb, the expression, and the rewrite: "No 
    too complicated for the value, and a possible move off Moq would reopen the design anyway. Steps 2 and 3 of 4/5/6 are skippable — decide after step 1 lands, not before.
 3. Items 10, 11, 17 and 13's description DONE in 2.6.1. Item 12 closed as not an issue; items 14 and
    16 closed by ruling.
-4. What is left: the from-arguments `Returns` rendering no answer (19, shipped broken in 2.6.0),
-   item 15's tuple element names, item 8's `For.Parameter`. Items 18, 19 and 20 are postponed for RESTATEMENT,
-   not for scheduling — each needs to be broken up and re-argued before any of it is built.
+4. What is left, in order: item 15's tuple element names; then how a `Tap` renders (17's open
+   note). The from-arguments `Returns` is DONE in 2.6.2. Everything else in this plan is done, closed or dropped. Items 18, 19 and
+   20 are postponed for RESTATEMENT, not for scheduling — each needs to be broken up and re-argued
+   before any of it is built.
 
 Lesson from the reverted 4/5/6 attempt (2026-09-10): a mocking change is only as good as the member
 kinds it was tried against. Before claiming one works, probe it against a property, a generic method,

@@ -21,7 +21,7 @@ internal sealed class ValueDescriber : Describer
                 => $"{pa.Target.Name} {pa.Op} {Describe(pa.Value)}",
             Lambda l when l.Params.Count <= 1 && l.AsParamRefWith() is { } w => DescribeAll(w.Init),
             Lambda l when l.Params.Count <= 1 => Describe(l.Body),
-            Lambda l => l.ToSource(),
+            Lambda l => $"({string.Join(", ", l.Params)}) => {Describe(l.Body)}",
             Assign a => $"{AssignTargetName(a.Target)} {a.Op} {Describe(a.Value)}",
             // The copy is of something the reader was told about, so it is named: a value described
             // by its changes alone is not the value, and "BedCount = any int" is not a room.
