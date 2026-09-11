@@ -17,17 +17,13 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>2.6.1</PackageVersion>
+		<PackageVersion>2.6.2</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			FIXED
-			* The specification is written beside the spec project's own project file even when the build put the binaries outside the tree.
-			* Regenerated _specification files keep the line endings they already have
-			* An expression naming a verbatim identifier (@lock) renders without '@', instead of falling back to its raw source
-			CHANGED
-			* A run that cannot locate the spec project directory no longer fails the tests; nothing is written and the reason is printed.
+			* A project Description written on several indented lines heads the specification as one line
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

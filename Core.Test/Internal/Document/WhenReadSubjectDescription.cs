@@ -24,4 +24,9 @@ public class WhenReadSubjectDescription : Spec
     [Fact]
     public void GivenNoSuchAssembly_ThenNone()
         => SubjectDescription.Of("TSpec.NoSuchAssembly").Is().Null();
+
+    /// How a project file lays out its Description is not part of what it says.
+    [Fact]
+    public void GivenADescriptionOnSeveralIndentedLines_ThenReflowItAsOne()
+        => SubjectDescription.Reflowed("\n\t\tThe domain rules,\n\t\tbehind ports.\n\t").Is("The domain rules, behind ports.");
 }

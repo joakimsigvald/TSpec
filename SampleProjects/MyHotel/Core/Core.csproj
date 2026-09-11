@@ -7,7 +7,10 @@
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<Version>0.2.0</Version>
-		<Description>The domain rules of My Hotel: rooms, bookings and booking numbers, behind ports for storage.</Description>
+		<Description>
+			The domain rules of My Hotel: rooms, bookings and booking numbers, behind ports for storage.
+			Communicate with Data sources and integrations via ports that it owns, not direct dependencies.
+		</Description>
 		<AssemblyName>MyHotel.Core</AssemblyName>
 		<RootNamespace>MyHotel.Core</RootNamespace>
 		<IsPackable>false</IsPackable>

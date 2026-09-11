@@ -320,7 +320,10 @@ description to one line to work around it). And Joakim's wish: list
 the main components (top five by claims, say) of each sub-domain under its row in the README, so the README is a
 map and not only a count table.
 
-**Decided:** trim and re-flow the description — small, do.
+The description half is DONE in 2.6.1: `SubjectDescription` collapses every whitespace run to one
+space, so the csproj's line breaks and indentation no longer reach the README. Verified on
+MyHotel.Core with a tab-indented two-line Description: before, the second line arrived with its
+three tabs; after, the README is byte-identical to the one-line original.
 
 The component list: **recommendation reversed on 2026-09-10, do NOT build it.** PO's question was
 whether the win beats the attention it costs, and it does not.
@@ -483,9 +486,10 @@ DONE in 2.6.0. The message names the verb, the expression, and the rewrite: "No 
 1. ~~Items 1, 2, 3 (P1)~~ — done in 2.6.0, with 7 and 21.
 2. Remaining P2: item 8's `For.Parameter` half — 8a shipped in 2.6.0. Steps 2 and 3 of 4/5/6 (setup by name in the general case) are NOT planned —
    too complicated for the value, and a possible move off Moq would reopen the design anyway. Steps 2 and 3 of 4/5/6 are skippable — decide after step 1 lands, not before.
-3. Items 10, 11, 17 DONE in 2.6.1. Item 12 closed as not an issue; items 14 and 16 closed by ruling.
-4. What is left, and none of it is obvious work: item 13's description trim (small, do), item 15's
-   tuple element names, item 8's `For.Parameter`. Items 18, 19 and 20 are postponed for RESTATEMENT,
+3. Items 10, 11, 17 and 13's description DONE in 2.6.1. Item 12 closed as not an issue; items 14 and
+   16 closed by ruling.
+4. What is left: the from-arguments `Returns` rendering no answer (19, shipped broken in 2.6.0),
+   item 15's tuple element names, item 8's `For.Parameter`. Items 18, 19 and 20 are postponed for RESTATEMENT,
    not for scheduling — each needs to be broken up and re-argued before any of it is built.
 
 Lesson from the reverted 4/5/6 attempt (2026-09-10): a mocking change is only as good as the member

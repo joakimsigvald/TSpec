@@ -11,10 +11,13 @@ namespace TSpec.Internal.Document;
 internal static class SubjectDescription
 {
     internal static string? Of(string assemblyName)
-    {
-        var description = Find(assemblyName)?.GetCustomAttribute<AssemblyDescriptionAttribute>()?.Description;
-        return string.IsNullOrWhiteSpace(description) ? null : description.Trim();
-    }
+        => Reflowed(Find(assemblyName)?.GetCustomAttribute<AssemblyDescriptionAttribute>()?.Description);
+
+    /// How the project file lays the Description out — on several lines, indented — is not part of it.
+    internal static string? Reflowed(string? description)
+        => string.IsNullOrWhiteSpace(description)
+            ? null
+            : string.Join(' ', description.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 
     /// <summary>
     /// Already loaded where a test has touched it; loaded by name otherwise, which the spec's
