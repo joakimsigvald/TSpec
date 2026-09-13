@@ -4,11 +4,8 @@ Open work first, in build order. What is finished is listed at the end.
 
 ## 1. The arrange surface
 
-1. **Sequenced setup without the wall.** `Given<IChatCompletion>().First().Returns(…).AndNext()…`,
-   service-wide, no method named. `First()` sits on `IGivenThatContinuation`, reachable only after
-   `.That(expr)`; the service-wide `Returns` rides on Moq's return default, which has no sequence,
-   so this has to enumerate the interface's matching methods and `SetupSequence` each. Naming the
-   method with `Any` arguments — `.That(_ => _.Complete(Any<string>())).First()` — works today.
+1. **Sequenced setup without the wall** — moved to `MOQ-REPLACEMENT-PLAN.md` §5, as it waits for
+   TSpec's own mocking engine.
 
 ## 2. Header and navigation
 
