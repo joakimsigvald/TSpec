@@ -178,7 +178,7 @@ or to the **Input**, the data supplied directly to the execution pipeline.
 #### 2.1.3 Preparing the Pipeline
 The preparation steps are recorded and later applied in the following order:
 
-1. Defaults, constraints, and test data, *in reverse order of declaration*.
+1. Defaults, setups, transforms, and test data, *in reverse order of declaration*.
 1. Mocked behavior, *in order of declaration*.
 
 #### 2.1.4 Creating the Subject Under Test
@@ -256,7 +256,7 @@ e.g. `When(async ValueTask (_) => ...)` or `Until(void (_) => throw ...)`. `Task
 
 ## 3. Using Test Data
 
-TSpec provides helpers for referring to test data that can either be supplied explicitly or automatically generated (optionally with constraints).
+TSpec provides helpers for referring to test data that can either be supplied explicitly or automatically generated (optionally with setups or transforms).
 
 Two complementary mechanisms are provided:
 - Mentions, for quickly referring to generated values by position or quantity
@@ -385,7 +385,7 @@ This chapter assumes familiarity with mocking, and shows how TSpec simplifies th
 
 The subject under test will be created automatically with mocks and default values.
 Remember from Chapter 2 that mocks are configured after test data has been generated, 
-so test data and constraints are available in the mocking stage regardless of where in the test they are provided.
+so test data, setups and transforms are available in the mocking stage regardless of where in the test they are provided.
 
 You can supply your own constructor arguments by calling `Using`, or modify the generated ones by calling `Using` with a setup or transform lambda.
 You can even provide the subject under test itself:
@@ -417,6 +417,14 @@ When the argument does not matter, write `Any<T>()` — in a mock setup or verif
 ```csharp
 => Given<IBookingStore>().That(_ => _.Save(Any<Booking>(), Any<CancellationToken>())).Throws<IOException>()
 ```
+
+To match only the values satisfying a constraint, give it to `Any`:
+
+```csharp
+=> Given<IBookingStore>().That(_ => _.Save(Any<Booking>(b => b.Nights > 7))).Throws<IOException>()
+```
+
+A constraint only has a meaning in a mock setup or verification; anywhere else it throws `SetupFailed`.
 
 To vary mocked behavior based on arguments, supply a lambda with arguments to `Returns`. The lambda signature must match the mocked call.
 Up to five arguments are supported.

@@ -47,6 +47,58 @@ public class WhenMockWithAnyArgument : Spec<MyValueIntService, string>
     }
 
     [Fact]
+    public void ThenSetupMatchesArgumentSatisfyingConstraint()
+    {
+        Given<IMyValueIntRepo>().That(_ => _.Get(Any<int>(i => i == The<MyValueInt>().Primitive))).Returns(A<string>)
+            .When(_ => _.GetValue(A<MyValueInt>()))
+            .Then().Result.Is(The<string>());
+        Specification.Is(
+            """
+            Given IMyValueIntRepo.Get(any int where i == the MyValueInt's Primitive)
+                  returns a string
+            When GetValue(a MyValueInt)
+            Then Result is the string
+            """);
+    }
+
+    [Fact]
+    public void ThenVerifyMatchesArgumentSatisfyingConstraint()
+    {
+        When(_ => _.SetValue(A<MyValueInt>()))
+            .Then<IMyValueIntRepo>(_ => _.Set(Any<int>(i => i == The<MyValueInt>().Primitive)))
+            .And<IMyValueIntRepo>(_ => _.Set(Any<int>(i => i != The<MyValueInt>().Primitive)), Times.Never);
+        Specification.Is(
+            """
+            When SetValue(a MyValueInt)
+            Then IMyValueIntRepo.Set(any int where i == the MyValueInt's Primitive)
+              and IMyValueIntRepo.Set(
+                    any int where i != the MyValueInt's Primitive) was not invoked
+            """);
+    }
+
+    [Fact]
+    public void ThenSetupMatchesArgumentSatisfyingConstraintMethod()
+    {
+        Given<IMyValueIntRepo>().That(_ => _.Get(Any<int>(IsPositive))).Returns(A<string>)
+            .When(_ => _.GetValue(A<MyValueInt>()))
+            .Then().Result.Is(The<string>());
+        Specification.Is(
+            """
+            Given IMyValueIntRepo.Get(any int where IsPositive) returns a string
+            When GetValue(a MyValueInt)
+            Then Result is the string
+            """);
+    }
+
+    private static bool IsPositive(int value) => value > 0;
+
+    [Fact]
+    public void GivenConstraintOutsideMock_ThenThrowSetupFailed()
+        => Xunit.Assert.Throws<SetupFailed>(() => Any<int>(i => i > 0)).Message.Is(
+            "Any<int>(constraint) matches an argument in a mock setup or verification, and means nothing elsewhere. "
+            + "To set up the value instead, write the lambda with braces: Any<int>(value => { ... })");
+
+    [Fact]
     public void ThenItIsAnyRendersAsAny()
     {
         Given<IMyValueIntRepo>().That(_ => _.Get(It.IsAny<int>())).Returns(A<string>)

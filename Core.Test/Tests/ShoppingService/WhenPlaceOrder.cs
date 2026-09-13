@@ -29,13 +29,13 @@ public class WhenPlaceOrder : ShoppingServiceSpec<object>
     {
         Using((A<string>(), ASecond<string>()))
             .Then<ILogger>(_ => _.Information(
-                It.Is<string>(s => s.Contains(A<string>()) && s.Contains(ASecond<string>()))));
+                Any<string>(s => s.Contains(A<string>()) && s.Contains(ASecond<string>()))));
         Specification.Is(
             """
             Using (a string, a second string)
             When PlaceOrder(a ShoppingCart)
             Then ILogger.Information(
-                  It.Is<string>(s.Contains(a string) && s.Contains(a second string)))
+                  any string where s.Contains(a string) && s.Contains(a second string))
             """);
     }
 }

@@ -22,6 +22,8 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
+			ADDED
+			* Any&lt;T&gt;(constraint) matches any argument satisfying the constraint in a mock setup or verification
 			CHANGED
 			* Another is obsolete; use Any
 			FIXED

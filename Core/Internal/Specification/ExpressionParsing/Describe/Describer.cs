@@ -49,10 +49,26 @@ internal abstract class Describer
 
         var typeArgs = m.TypeArgs.CountedBy(m.Verb);
         string head = $"{m.Verb.AsWords()} {typeArgs}";
-        return m.Constraints is { Count: > 0 }
-            ? $"{head}{Braced(m.Constraints)}"
-            : DescribeWithDrilldown(head, expr.Raw, m.Boundary, plural: typeArgs != m.TypeArgs);
+        if (m.Constraints is not { Count: > 0 })
+            return DescribeWithDrilldown(head, expr.Raw, m.Boundary, plural: typeArgs != m.TypeArgs);
+
+        return AsMatchCondition(m) is { } condition
+            ? $"{head}{Wrap.Enter} {Wrap.Point}where {Value.Describe(condition)}{Wrap.Exit}"
+            : $"{head}{Braced(m.Constraints)}";
     }
+
+    /// <summary>
+    /// The condition of <c>Any&lt;T&gt;(constraint)</c>, which matches the values satisfying it: a method
+    /// group, or a lambda's body. A lambda that assigns, copies with <c>with</c>, or has a block body sets
+    /// up its value instead.
+    /// </summary>
+    private static Expr? AsMatchCondition(Mention m) => m switch
+    {
+        { Verb: "Any", Constraints: [Identifier or Member] } => m.Constraints[0],
+        { Verb: "Any", Constraints: [Lambda { Params.Count: 1 } lambda] }
+            when lambda.Body is not (Assign or With) && !lambda.Body.Raw.StartsWith('{') => lambda.Body,
+        _ => null,
+    };
 
     /// <summary>
     /// A member-access drilldown after the mention (<c>The&lt;Cart&gt;().Foo</c>) reads possessively:

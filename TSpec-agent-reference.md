@@ -75,7 +75,7 @@ Given<ICartRepository>().Returns(A<Cart>)
 Given<HttpMessageHandler>().ThatProtected<HttpResponseMessage>("SendAsync").Returns(A<HttpResponseMessage>)
 ```
 
-- Arguments match by value — `The<T>()` matches the value used in the test — except `Any<T>()`, which matches any value.
+- Arguments match by value — `The<T>()` matches the value used in the test — except `Any<T>()`, which matches any value, and `Any<T>(b => b.Nights > 7)`, which matches any value satisfying the constraint. The constraint form throws `SetupFailed` outside a mock setup or verification.
 - Setups are the same whether the member returns `T`, `Task<T>` or `ValueTask<T>`: `Returns(() => 7)` supplies the unwrapped value.
 - Unmocked members return generated defaults.
 

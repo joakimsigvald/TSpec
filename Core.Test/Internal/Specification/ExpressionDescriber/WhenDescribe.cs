@@ -19,6 +19,11 @@ public class WhenDescribe : Spec<string>
     [InlineData("AnyNumberOf<MyModel>()", "any number of MyModels")]
     [InlineData("One<MyModel>()", "one MyModel")]
     [InlineData("() => A<MyModel>(_ => _.Name = A<string>())", "a MyModel { Name = a string }")]
+    // Any with a constraint matches the values satisfying it; Any with a setup still sets up its value
+    [InlineData("Any<string>(s => s.Contains(A<string>()))", "any string where s.Contains(a string)")]
+    [InlineData("Any<int>(IsNegative)", "any int where IsNegative")]
+    [InlineData("Any<int>(Rules.IsNegative)", "any int where Rules.IsNegative")]
+    [InlineData("Any<MyModel>(_ => _.Name = A<string>())", "any MyModel { Name = a string }")]
     [InlineData("One(_theModel)", "one _theModel")]
     [InlineData("(_, i) => _.Name = $\"X{i + 1}\"", "Name = \"X{i + 1}\"")]
     [InlineData("(a, b) => a.Name = $\"X{b + 1}\"", "Name = \"X{b + 1}\"")]
