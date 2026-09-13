@@ -137,7 +137,7 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
         {
             SpecificationContext.Current.ClearSubject();
             SpecificationContext.Current.AddWasInvoked<TService>(timesExpr);
-            var count = Mocked<TService>().Invocations.Count;
+            var count = _context.GetMock<TService>().Invocations.Count;
             if (!times.Validate(count))
                 throw new XunitException(
                     $"Expected {typeof(TService).Alias()} to be invoked {expectation} but was invoked {count} times");
@@ -159,7 +159,7 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
         {
             SpecificationContext.Current.ClearSubject();
             SpecificationContext.Current.AddWasInvoked<TService>(method, timesExpr);
-            var count = Mocked<TService>().Invocations.Count(i => i.Method.Name == method);
+            var count = _context.GetMock<TService>().Invocations.Count(i => i.Method.Name == method);
             if (!times.Validate(count))
                 throw new XunitException(
                     $"Expected {typeof(TService).Alias()}.{method} to be invoked {expectation} but was invoked {count} times");
@@ -252,7 +252,7 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
 @"Tried to use Result, but an action, or func with different return type, was provided as method under test (When). 
 Try providing a function with the Spec's declared return type instead as parameter to When");
 
-    private Mock<TObject> Mocked<TObject>() where TObject : class => _context.GetMock<TObject>();
+    private Mock<TObject> Mocked<TObject>() where TObject : class => (Mock<TObject>)_context.GetMock<TObject>().MoqMock;
 
     private AndVerify<TSUT, TResult> CombineWithErrorOnFail<TService>(Action<Mock<TService>> verify, string expressionExpr, string? timesExpr = null)
         where TService : class

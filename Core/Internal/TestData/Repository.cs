@@ -1,5 +1,4 @@
-﻿using Moq;
-using TSpec.Internal.Pipelines;
+﻿using TSpec.Internal.Pipelines;
 using TSpec.Internal.TestData.Generation;
 using TSpec.Internal.TestData.Generation.Strategies;
 using TSpec.Internal.TestData.Generation.Strategies.Mocking;
@@ -87,9 +86,7 @@ internal class Repository : IRepository
     internal void Register<TTarget, TSource>(Func<TSource, TTarget>? convert, For scope, SequenceHolder sequence)
         => _typeConversionStrategy.Register(convert, scope, sequence);
 
-    internal Mock GetMock(Type type) => _mockingStrategy.GetMock(type);
-
-    internal Mock<TObject> GetMock<TObject>() where TObject : class => _mockingStrategy.GetMock<TObject>();
+    internal MockHandle GetMock<TObject>() where TObject : class => _mockingStrategy.GetMock(typeof(TObject));
 
     internal void SetDefaultException(Type type, Func<Exception> ex)
         => _fluentDefaultProvider.SetDefaultException(type, ex);

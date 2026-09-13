@@ -1,7 +1,7 @@
-﻿using Moq;
-using TSpec.Internal.Specification;
+﻿using TSpec.Internal.Specification;
 using TSpec.Internal.TestData;
 using TSpec.Internal.TestData.Generation.Strategies;
+using TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 namespace TSpec.Internal.Pipelines;
 
@@ -120,7 +120,7 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
 
     internal TClass InstantiateNew<TClass>() => _context.InstantiateNew<TClass>();
 
-    internal Mock<TObject> GetMock<TObject>() where TObject : class
+    internal MockHandle GetMock<TObject>() where TObject : class
         => _context.GetMock<TObject>();
 
     internal void SetupReturnsDefault<TService, TReturns>(TReturns value)

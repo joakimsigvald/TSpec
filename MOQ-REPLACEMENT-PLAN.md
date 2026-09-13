@@ -44,18 +44,54 @@ correct it in place as work lands, and move a finished stage to Done as a line.
 
 ## 4. Release 3.1 — TSpec's own mocking engine
 
-### 4.1 First, a seam (no user-visible change; can start any time)
+### 4.1 First, a seam (no user-visible change)
 
-An internal mock abstraction between the pipeline and Moq, still implemented with Moq, suite green.
-Its surface is what the engine must provide, and it is the precise size of the swap:
-- create a proxy for an interface or an abstract/virtual class, and know the type it mocks
-  (retires `MockCompiler`'s reflection on Moq internals);
-- set up a call named by expression, or by member name for a protected member, and give it an
-  answer — a value, a value computed from the arguments, an exception, a callback;
-- a default-value hook (`FluentDefaultProvider`'s logic, unchanged);
-- the invocation log;
-- verify by expression, by member name, or the whole service, with a count, failing with TSpec's own
-  exception and message.
+An internal mock abstraction between the pipeline and Moq, still implemented with Moq. Its surface is
+what the engine must provide, so it is the precise size of the swap. Five steps, each landing on its
+own with Core.Test (all three frameworks) and both MyHotel suites green and their documents unchanged.
+
+**Why steps, read 2026-09-13.** The code is not large but the Moq coupling is implicit. The setup
+continuations carry Moq's fluent return object as `object` and branch on its runtime type in five
+`is IReturnsThrows<TService, …>` ladders (`GivenThatCommonContinuation`); taps, sequences and
+from-arguments `Returns` depend on Moq's orderings rather than on anything TSpec states. Each of these
+is behaviour the seam has to state as a contract, or the engine will break it silently:
+- Moq reports an invocation to the callback **before** asking what to return — `Computed` in
+  `GivenThatContinuation` relies on it to hold the answer between the two.
+- Moq keeps **one** callback per setup, which is why taps are folded (improvement plan item 22).
+- A later setup of the same call **overrides** an earlier one.
+- An unmatched call asks the default provider, which may answer with the mock itself
+  (`IsReturningSelf`), wrap in `Task`/`ValueTask`, throw a service-wide exception, or refuse an
+  interface inside a task.
+- A service-wide `Returns` is set twice: TSpec's provided default *and* Moq's `SetReturnsDefault`
+  for `T`, `Task<T>` and `ValueTask<T>` (`GivenServiceContinuation`) — one may be redundant.
+
+**Step 1 — the mock handle.** DONE 2026-09-13. `MockHandle` (`…/Strategies/Mocking/`) holds Moq's
+`Mock`: `MockedType`, `Instance`, and `Invocations` as `MockInvocation(Method, Arguments)` records.
+`MockRegistry` creates handles; `Repository`/`Context`/`Fixture` hand them out; `MockingStrategy` and
+by-name/whole-service verification read them. `FluentDefaultProvider` no longer derives from Moq's
+`DefaultValueProvider`: each Moq mock gets a `MoqDefaultValueProvider` that answers for its handle,
+which retired `MockCompiler`'s reflection. The escape hatch is `MockHandle.MoqMock`, reached from
+`Spec.GetMock<T>()` (setups) and `TestResult.Mocked<T>()` (verification by expression).
+
+**Step 2 — default answers.** The default-value hook already answers for the handle (step 1). What
+remains: service-wide provided defaults and exceptions go behind the handle, and whether the
+`SetReturnsDefault` calls in `GivenServiceContinuation` are redundant is found by removing them against
+the suite.
+
+**Step 3 — call setup, the large one.** Set up a call named by expression or by protected
+`MethodInfo`, and give it a single answer: a function from the call's arguments to its unwrapped
+result (or a throw), with the adapter doing the `Task`/`ValueTask` wrapping. One function that both
+reads the call and answers it replaces Moq's callback-then-returns pair, so taps, sequences and
+`Computed` become plain composition and the ladders go. Split if it grows: synchronous and void first,
+then async, then protected (`ProtectedMember`'s refusals stay above the seam; only `Install` moves).
+
+**Step 4 — verification by expression.** `Verify(call, TSpec.Times)` behind the handle; the adapter
+keeps Moq's `Verify`, so the failure stays `MockException` with Moq's wording until the engine, where
+it has to change anyway (§4.4).
+
+**Step 5 — Moq confined.** `using Moq` only in the adapter's folder, `AnyArgument` included (its
+rewrite targets Moq's matchers). The escape hatch goes; Core.Test's `Mock.Get(…).Verify(…)` in
+`AutoDispose.cs` becomes `Then<IDisposableService>(nameof(…), Never)` (DOGFOOD-PLAN item 5).
 
 Nothing Moq-typed crosses the seam. `GivenThat*`, `TestResult`, `AndVerify`, `Fixture`, `Context`,
 `Repository` and `MockingStrategy` depend on the seam only.

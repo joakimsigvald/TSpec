@@ -4,20 +4,17 @@ namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 internal class MockRegistry(FluentDefaultProvider defaultProvider)
 {
-    private readonly ConcurrentDictionary<Type, Mock> _mocks = [];
+    private readonly ConcurrentDictionary<Type, MockHandle> _mocks = [];
 
-    internal Mock GetMock(Type type) => _mocks.GetOrAdd(type, CreateMock);
+    internal MockHandle GetMock(Type type) => _mocks.GetOrAdd(type, CreateMock);
 
     internal bool HasMock(Type type) => _mocks.ContainsKey(type);
 
-    internal Mock<TObject> GetMock<TObject>() where TObject : class
-        => (Mock<TObject>)GetMock(typeof(TObject));
-
-    private Mock CreateMock(Type type)
+    private MockHandle CreateMock(Type type)
     {
-        var mockType = typeof(Mock<>).MakeGenericType(type);
-        var mock = (Mock)Activator.CreateInstance(mockType)!;
-        mock.DefaultValueProvider = defaultProvider;
+        var moqMock = (Mock)Activator.CreateInstance(typeof(Mock<>).MakeGenericType(type))!;
+        var mock = new MockHandle(type, moqMock);
+        moqMock.DefaultValueProvider = new MoqDefaultValueProvider(mock, defaultProvider);
         return mock;
     }
 }

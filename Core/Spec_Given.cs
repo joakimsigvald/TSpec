@@ -96,7 +96,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         });
 
     internal Mock<TService> GetMock<TService>() where TService : class
-        => Pipeline.GetMock<TService>();
+        => (Mock<TService>)Pipeline.GetMock<TService>().MoqMock;
 
     internal void SetupThrows<TService>(Func<Exception> expected)
         => Pipeline.SetupThrows<TService>(expected);

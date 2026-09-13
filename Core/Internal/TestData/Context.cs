@@ -1,7 +1,7 @@
-﻿using Moq;
-using TSpec.Internal.Specification;
+﻿using TSpec.Internal.Specification;
 using TSpec.Internal.Pipelines;
 using TSpec.Internal.TestData.Generation.Strategies;
+using TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 namespace TSpec.Internal.TestData;
 
@@ -168,7 +168,7 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
 
     internal TValue Create<TValue>() => _repository.Create<TValue>(For.Input);
 
-    internal Mock<TObject> GetMock<TObject>() where TObject : class
+    internal MockHandle GetMock<TObject>() where TObject : class
         => _repository.GetMock<TObject>();
 
     internal void Use<TService>(TService service, For scope) => _repository.Use(service, scope);
