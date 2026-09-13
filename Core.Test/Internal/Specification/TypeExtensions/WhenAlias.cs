@@ -17,10 +17,10 @@ public class WhenAlias : Spec<Type, string>
     [Fact] public void Given2DArrayOfInt() => Using(typeof(int[,])).Then().Result.Is("int[,]");
     [Fact] public void GivenListOfInt() => Using(typeof(List<int>)).Then().Result.Is("List<int>");
     [Fact] public void GivenIEnumerableOfInt() => Using(typeof(IEnumerable<int>)).Then().Result.Is("IEnumerable<int>");
-    [Fact] public void GivenGenericClass() => Using(typeof(Moq.Mock<MyModel>)).Then().Result.Is("Mock<MyModel>");
-    [Fact] public void GivenGenericInterface() => Using(typeof(Moq.IMock<MyModel>)).Then().Result.Is("IMock<MyModel>");
+    [Fact] public void GivenGenericClass() => Using(typeof(Tag<MyModel>)).Then().Result.Is("Tag<MyModel>");
+    [Fact] public void GivenGenericInterface() => Using(typeof(IEquatable<MyModel>)).Then().Result.Is("IEquatable<MyModel>");
     [Fact] public void GivenTwoGenericParameters() => Using(typeof(Key<int, long>)).Then().Result.Is("Key<int, long>");
-    [Fact] public void GivenNestedGenericParameters() => Using(typeof(Moq.Mock<Moq.IMock<MyModel>>)).Then().Result.Is("Mock<IMock<MyModel>>");
+    [Fact] public void GivenNestedGenericParameters() => Using(typeof(Tag<IEquatable<MyModel>>)).Then().Result.Is("Tag<IEquatable<MyModel>>");
     [Fact] public void GivenATuple() => Using(typeof((int, string))).Then().Result.Is("(int, string)");
     [Fact] public void GivenATupleInAGeneric() => Using(typeof(List<(int, string)>)).Then().Result.Is("List<(int, string)>");
     /// The compiler nests the eighth element on in a tuple of its own; C# writes them as one.

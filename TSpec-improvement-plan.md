@@ -501,7 +501,7 @@ DONE in 2.6.0. The message names the verb, the expression, and the rewrite: "No 
 ## Suggested order of work
 1. ~~Items 1, 2, 3 (P1)~~ — done in 2.6.0, with 7 and 21.
 2. Remaining P2: item 8's `For.Parameter` half — 8a shipped in 2.6.0. Steps 2 and 3 of 4/5/6 (setup by name in the general case) moved to
-   `MOQ-REPLACEMENT-PLAN.md` §5: they wait for TSpec's own mocking engine.
+   `MOQ-REPLACEMENT-PLAN.md` §3: they wait for TSpec's own mocking engine.
 3. Items 10, 11, 17 and 13's description DONE in 2.6.1. Item 12 closed as not an issue; items 14 and
    16 closed by ruling.
 4. Nothing is left to build. The from-arguments `Returns`, the tap rendering and the tuple names are

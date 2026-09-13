@@ -5,8 +5,7 @@ namespace TSpec.Test.AutoMock;
 
 /// <summary>
 /// Two taps on one call are two observations of it, not a correction of the first: both run, in the
-/// order they were written, and the specification states both. Moq's own Callback keeps only the
-/// last, so composing them is TSpec's to do.
+/// order they were written, and the specification states both.
 /// </summary>
 public class WhenTappingTwice : Spec<MyValueIntService, string>
 {

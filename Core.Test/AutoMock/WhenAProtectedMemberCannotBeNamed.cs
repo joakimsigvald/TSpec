@@ -20,7 +20,7 @@ public class AwkwardService(Awkward awkward)
 }
 
 /// <summary>
-/// Naming a member says nothing about its arguments, and Moq can only intercept what the mock can
+/// Naming a member says nothing about its arguments, and a mock can only intercept what it can
 /// override. Each of these is a member the test named correctly, so none may be reported as one
 /// that does not exist — the failure has to say which limit was met.
 /// </summary>
@@ -68,7 +68,7 @@ public class WhenAProtectedMemberCannotBeNamed : Spec<AwkwardService, string>
         => Refusal(() => Given<Awkward>().ThatProtected<string>("Nonesuch").Returns(() => "x"))
             .Does().Contain("has no member named 'Nonesuch'");
 
-    /// A protected property is a protected member, and Moq reaches one by name too.
+    /// A protected property is a protected member, and is reached by name too.
     [Fact]
     public void GivenAProperty_ThenSetItUp()
     {

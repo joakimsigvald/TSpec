@@ -184,22 +184,22 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
     internal IAndVerify<TResult> Verify<TService>(
         Expression<Action<TService>> expression, string expressionExpr)
         where TService : class
-        => CombineWithErrorOnFail<TService>(mock => mock.Verify(expression), expressionExpr);
+        => VerifyCall<TService>(expression, null, expressionExpr, null);
 
     internal IAndVerify<TResult> Verify<TService>(
         Expression<Action<TService>> expression, Times wasInvoked, string expressionExpr, string? wasInvokedExpr)
         where TService : class
-        => CombineWithErrorOnFail<TService>(mock => mock.Verify(expression, wasInvoked), expressionExpr, wasInvokedExpr);
+        => VerifyCall<TService>(expression, wasInvoked, expressionExpr, wasInvokedExpr);
 
     internal IAndVerify<TResult> Verify<TService, TReturns>(
         Expression<Func<TService, TReturns>> expression, string expressionExpr)
         where TService : class
-        => CombineWithErrorOnFail<TService>(mock => mock.Verify(expression), expressionExpr);
+        => VerifyCall<TService>(expression, null, expressionExpr, null);
 
     internal IAndVerify<TResult> Verify<TService, TReturns>(
         Expression<Func<TService, TReturns>> expression, Times wasInvoked, string expressionExpr, string? wasInvokedExpr)
         where TService : class
-        => CombineWithErrorOnFail<TService>(mock => mock.Verify(expression, wasInvoked), expressionExpr, wasInvokedExpr);
+        => VerifyCall<TService>(expression, wasInvoked, expressionExpr, wasInvokedExpr);
 
     private void AssertError<TError>(TError expected)
         where TError : Exception
@@ -251,14 +251,22 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
 @"Tried to use Result, but an action, or func with different return type, was provided as method under test (When). 
 Try providing a function with the Spec's declared return type instead as parameter to When");
 
-    private AndVerify<TSUT, TResult> CombineWithErrorOnFail<TService>(Action<MockHandle> verify, string expressionExpr, string? timesExpr = null)
+    /// A call named by an expression is counted among the calls the mock received, and fails the way
+    /// a count by name does — at least once unless a count is given.
+    private AndVerify<TSUT, TResult> VerifyCall<TService>(
+        LambdaExpression expression, Times? times, string expressionExpr, string? timesExpr)
         where TService : class
     {
         try
         {
             SpecificationContext.Current.ClearSubject();
             SpecificationContext.Current.AddVerify<TService>(expressionExpr, timesExpr);
-            verify(_context.GetMock<TService>());
+            var matcher = CallMatcher.For(expression);
+            var count = _context.GetMock<TService>().Invocations.Count(matcher.Matches);
+            if (!(times ?? Times.AtLeastOnce).Allows(count))
+                throw new XunitException(
+                    $"Expected {typeof(TService).Alias()}.{expressionExpr.DescribeCall(true)!.StripWrapMarkers()} to be invoked "
+                    + $"{DescribeInvocationTimes(timesExpr)} but was invoked {count} times");
             return new AndVerify<TSUT, TResult>(this);
         }
         catch (Exception ex)

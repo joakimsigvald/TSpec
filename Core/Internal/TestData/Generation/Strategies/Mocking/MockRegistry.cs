@@ -1,5 +1,4 @@
-﻿using Moq;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 internal class MockRegistry(FluentDefaultProvider defaultProvider)
@@ -10,11 +9,5 @@ internal class MockRegistry(FluentDefaultProvider defaultProvider)
 
     internal bool HasMock(Type type) => _mocks.ContainsKey(type);
 
-    private MockHandle CreateMock(Type type)
-    {
-        var moqMock = (Mock)Activator.CreateInstance(typeof(Mock<>).MakeGenericType(type))!;
-        var mock = new MockHandle(type, moqMock);
-        moqMock.DefaultValueProvider = new MoqDefaultValueProvider(mock, defaultProvider);
-        return mock;
-    }
+    private MockHandle CreateMock(Type type) => new(type, defaultProvider);
 }

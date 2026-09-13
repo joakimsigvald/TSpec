@@ -1,4 +1,3 @@
-using Moq;
 using TSpec.Assert;
 
 namespace TSpec.Test.Pipeline;

@@ -1,64 +1,59 @@
-using Moq;
-using Moq.Protected;
+using Castle.DynamicProxy;
 using System.Linq.Expressions;
 using System.Reflection;
+using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 /// <summary>
 /// TSpec's hold on one mock: the type it stands in for, the instance handed to the subject, and the
-/// calls that instance received. What TSpec asks of a mock is asked here, so Moq stays behind it.
+/// calls that instance received. Castle makes the instance; every call it receives is logged, then
+/// answered by the latest setup that matches it, or else by TSpec's defaults.
 /// </summary>
 /// <remarks>
 /// A call is set up with one answer: a function from the call's arguments to what it answers with,
-/// or a throw. Reading the call and answering it are the same function, so nothing above depends on
-/// the order a mocking library would run a callback and a return in. The answer produces a value of
-/// its own answer type; where the call is awaited and that is the value inside the task, the task is
-/// made here.
+/// or a throw. Reading the call and answering it are the same function, so a tap, an outcome and a
+/// sequence step compose without an order to rely on. The answer produces a value of its own answer
+/// type; where the call is awaited and that is the value inside the task, the task is made here.
 /// </remarks>
-internal sealed class MockHandle(Type mockedType, Mock moqMock)
+internal sealed class MockHandle
 {
-    internal Type MockedType => mockedType;
+    private static readonly ProxyGenerator _generator = new();
+    private static readonly ProxyGenerationOptions _options = new(new MockHook());
 
-    internal object Instance => moqMock.Object;
+    private readonly FluentDefaultProvider _defaults;
+    private readonly List<MockInvocation> _invocations = [];
+    private readonly List<CallSetup> _setups = [];
+    private readonly object? _instance;
 
-    internal IReadOnlyList<MockInvocation> Invocations
-        => [.. moqMock.Invocations.Select(invocation => new MockInvocation(invocation.Method, invocation.Arguments))];
-
-    /// <summary>
-    /// Fails unless the call was made — at least once, or as many times as given. The failure is
-    /// Moq's for now, worded by the kind of count it was given.
-    /// </summary>
-    internal void Verify<TService>(Expression<Action<TService>> call, Times? times = null)
-        where TService : class
+    internal MockHandle(Type mockedType, FluentDefaultProvider defaults)
     {
-        var rewritten = AnyArgument.Rewrite(call);
-        if (times is null)
-            Mocked<TService>().Verify(rewritten);
-        else
-            Mocked<TService>().Verify(rewritten, ToMoq(times.Value));
+        MockedType = mockedType;
+        _defaults = defaults;
+        _instance = Create(mockedType);
     }
 
-    internal void Verify<TService, TResult>(Expression<Func<TService, TResult>> call, Times? times = null)
-        where TService : class
+    internal Type MockedType { get; }
+
+    internal object Instance => _instance!;
+
+    internal IReadOnlyList<MockInvocation> Invocations
     {
-        var rewritten = AnyArgument.Rewrite(call);
-        if (times is null)
-            Mocked<TService>().Verify(rewritten);
-        else
-            Mocked<TService>().Verify(rewritten, ToMoq(times.Value));
+        get
+        {
+            lock (_invocations)
+                return [.. _invocations];
+        }
     }
 
     internal void Answer<TService>(Expression<Action<TService>> call, Func<IReadOnlyList<object>, object?> answer)
         where TService : class
-        => Mocked<TService>().Setup(AnyArgument.Rewrite(call))
-            .Callback(new InvocationAction(invocation => answer(invocation.Arguments)));
+        => SetUp(CallMatcher.For(call), typeof(void), answer);
 
     internal void Answer<TService, TResult>(
         Expression<Func<TService, TResult>> call, Type answerType, Func<IReadOnlyList<object>, object?> answer)
         where TService : class
-        => Mocked<TService>().Setup(AnyArgument.Rewrite(call))
-            .Returns(Responding(typeof(TResult), answerType, answer));
+        => SetUp(CallMatcher.For(call), answerType, answer);
 
     /// <summary>
     /// A member no expression can name — a protected method or property. A name states no
@@ -66,74 +61,85 @@ internal sealed class MockHandle(Type mockedType, Mock moqMock)
     /// </summary>
     internal void Answer<TService>(MemberInfo member, Type answerType, Func<IReadOnlyList<object>, object?> answer)
         where TService : class
+        => SetUp(CallMatcher.For(member), answerType, answer);
+
+    private void SetUp(CallMatcher matcher, Type answerType, Func<IReadOnlyList<object>, object?> answer)
     {
-        var (returnType, matchers) = member switch
-        {
-            PropertyInfo property => (property.PropertyType, Array.Empty<object>()),
-            MethodInfo method => (method.ReturnType, method.GetParameters().Select(AnyOf).ToArray()),
-            _ => throw new ArgumentException($"{member.Name} is neither a method nor a property", nameof(member))
-        };
-        var protectedMock = Mocked<TService>().Protected();
-        if (returnType == typeof(void))
-        {
-            protectedMock.Setup(member.Name, exactParameterMatch: true, args: matchers)
-                .Callback(new InvocationAction(invocation => answer(invocation.Arguments)));
-            return;
-        }
-        var setup = Invoke(SetupOf<TService>(returnType), protectedMock, [member.Name, true, matchers]);
-        Invoke(ReturnsOf<TService>(returnType), setup, [Responding(returnType, answerType, answer)]);
+        lock (_setups)
+            _setups.Add(new(
+                matcher, arguments => AsyncAnswer.Respond(matcher.ReturnType, answerType, () => answer(arguments!))));
     }
-
-    private Mock<TService> Mocked<TService>() where TService : class => (Mock<TService>)moqMock;
-
-    private static Moq.Times ToMoq(Times times) => (times.From, times.To) switch
-    {
-        (0, 0) => Moq.Times.Never(),
-        (1, 1) => Moq.Times.Once(),
-        (1, int.MaxValue) => Moq.Times.AtLeastOnce(),
-        (0, 1) => Moq.Times.AtMostOnce(),
-        (var from, int.MaxValue) => Moq.Times.AtLeast(from),
-        (0, var to) => Moq.Times.AtMost(to),
-        var (from, to) when from == to => Moq.Times.Exactly(from),
-        var (from, to) => Moq.Times.Between(from, to, Moq.Range.Inclusive),
-    };
-
-    private static InvocationFunc Responding(
-        Type returnType, Type answerType, Func<IReadOnlyList<object>, object?> answer)
-        => new(invocation => AsyncAnswer.Respond(returnType, answerType, () => answer(invocation.Arguments))!);
 
     /// <summary>
-    /// Moq's protected Setup is generic in the return type, which is known only at run time here, so
-    /// it is reached by reflection. What it throws arrives wrapped in a wrapper that says nothing, so
-    /// the reason inside is what gets raised.
+    /// A call is logged before it is answered, so whatever answers it may read the log. The latest
+    /// setup matching it answers; a call no setup matches is answered by TSpec's defaults, except
+    /// one made while the instance is still being constructed, which has no mock to be answered for
+    /// yet and gets its type's default.
     /// </summary>
-    private static MethodInfo SetupOf<TService>(Type returnType) where TService : class
-        => typeof(IProtectedMock<TService>).GetMethods()
-            .First(candidate => candidate.Name == "Setup"
-                && candidate.IsGenericMethod
-                && candidate.GetParameters().Length == 3)
-            .MakeGenericMethod(returnType);
-
-    private static MethodInfo ReturnsOf<TService>(Type returnType) where TService : class
-        => typeof(Moq.Language.IReturns<,>).MakeGenericType(typeof(TService), returnType)
-            .GetMethod("Returns", [typeof(InvocationFunc)])!;
-
-    private static object Invoke(MethodInfo method, object target, object?[] arguments)
+    private object? Receive(MethodInfo method, object?[] arguments)
     {
-        try
+        lock (_invocations)
+            _invocations.Add(new MockInvocation(method, [.. arguments]));
+        var returnType = method.ReturnType;
+        if (LatestMatching(method, arguments) is { } setup)
         {
-            return method.Invoke(target, arguments)!;
+            setup.Matcher.WriteOutArguments(arguments);
+            return setup.Respond(arguments) ?? DefaultOf(returnType);
         }
-        catch (TargetInvocationException ex) when (ex.InnerException is not null)
+        if (returnType == typeof(void))
+            return null;
+        if (_instance is null)
+            return DefaultOf(returnType);
+        return _defaults.GetDefaultValue(returnType, this) ?? DefaultOf(returnType);
+    }
+
+    private CallSetup? LatestMatching(MethodInfo method, object?[] arguments)
+    {
+        lock (_setups)
+            return _setups.LastOrDefault(setup => setup.Matcher.Matches(method, arguments));
+    }
+
+    private static object? DefaultOf(Type type)
+        => type.IsValueType && type != typeof(void) ? Activator.CreateInstance(type) : null;
+
+    private object Create(Type type)
+        => typeof(Delegate).IsAssignableFrom(type) ? DelegateForwarder.Create(type, Receive)
+        : type.IsInterface ? _generator.CreateClassProxy(typeof(object), [type], _options, new Interceptor(this))
+        : _generator.CreateClassProxy(type, _options, new Interceptor(this));
+
+    private sealed record CallSetup(CallMatcher Matcher, Func<object?[], object?> Respond);
+
+    private sealed class Interceptor(MockHandle mock) : IInterceptor
+    {
+        public void Intercept(IInvocation invocation)
         {
-            throw new SetupFailed(ex.InnerException.Message, ex.InnerException);
+            if (invocation.Method.DeclaringType == typeof(object))
+            {
+                invocation.ReturnValue = mock.MockedType.Alias();
+                return;
+            }
+            invocation.ReturnValue = mock.Receive(invocation.GetConcreteMethod(), invocation.Arguments);
         }
     }
 
-    private static object AnyOf(ParameterInfo parameter)
-        => typeof(ItExpr).GetMethod(nameof(ItExpr.IsAny))!
-            .MakeGenericMethod(parameter.ParameterType)
-            .Invoke(null, null)!;
+    /// <summary>
+    /// Every member the mocked type lets a proxy override is intercepted. Of what every object has,
+    /// only ToString is, so a mock names itself as the specification names it; equality stays the
+    /// instance's own.
+    /// </summary>
+    private sealed class MockHook : IProxyGenerationHook
+    {
+        public void MethodsInspected() { }
+
+        public void NonProxyableMemberNotification(Type type, MemberInfo memberInfo) { }
+
+        public bool ShouldInterceptMethod(Type type, MethodInfo methodInfo)
+            => methodInfo.DeclaringType != typeof(object) || methodInfo.Name == nameof(ToString);
+
+        public override bool Equals(object? obj) => obj is MockHook;
+
+        public override int GetHashCode() => typeof(MockHook).GetHashCode();
+    }
 }
 
 internal sealed record MockInvocation(MethodInfo Method, IReadOnlyList<object?> Arguments);

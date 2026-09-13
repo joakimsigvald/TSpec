@@ -4,11 +4,8 @@ namespace TSpec.Internal.Pipelines;
 /// The answers a mocked call gives, in order.
 /// </summary>
 /// <remarks>
-/// Moq's own SetupSequence would keep the order, but what it hands back is not a setup: it has no
-/// Callback, so a sequence could state what each call answers or what each call was asked, never
-/// both. Owning the sequence puts it behind the call's one answer, where a step can tap the very call
-/// it answers — and where the outcome of a step is described in exactly the terms a single setup
-/// already uses.
+/// The sequence sits behind the call's one answer, where a step can tap the very call it answers —
+/// and where the outcome of a step is described in exactly the terms a single setup already uses.
 /// </remarks>
 internal sealed class MockCallSequence<TReturns>
 {
@@ -20,7 +17,7 @@ internal sealed class MockCallSequence<TReturns>
 
     internal void Append(Func<IReadOnlyList<object>, TReturns?> step) => _steps.Add(step);
 
-    /// Past the end a sequence answers with the type's default, which is what Moq's own does.
+    /// Past the end a sequence answers with the type's default.
     internal TReturns? Next(IReadOnlyList<object> arguments)
         => _next < _steps.Count ? _steps[_next++](arguments) : default;
 }

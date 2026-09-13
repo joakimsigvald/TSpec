@@ -4,7 +4,7 @@ Open work first, in build order. What is finished is listed at the end.
 
 ## 1. The arrange surface
 
-1. **Sequenced setup without the wall** — moved to `MOQ-REPLACEMENT-PLAN.md` §5, as it waits for
+1. **Sequenced setup without the wall** — moved to `MOQ-REPLACEMENT-PLAN.md` §3, as it waits for
    TSpec's own mocking engine.
 
 ## 2. Header and navigation

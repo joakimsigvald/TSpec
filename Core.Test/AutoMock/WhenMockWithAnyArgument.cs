@@ -98,19 +98,14 @@ public class WhenMockWithAnyArgument : Spec<MyValueIntService, string>
             "Any<int>(constraint) matches an argument in a mock setup or verification, and means nothing elsewhere. "
             + "To set up the value instead, write the lambda with braces: Any<int>(value => { ... })");
 
+    /// Moq's matcher is not TSpec's: evaluated as a plain value it would match only the type's default.
     [Fact]
-    public void ThenItIsAnyRendersAsAny()
-    {
-        Given<IMyValueIntRepo>().That(_ => _.Get(It.IsAny<int>())).Returns(A<string>)
-            .When(_ => _.GetValue(A<MyValueInt>()))
-            .Then<IMyValueIntRepo>(_ => _.Get(It.IsAny<int>()))
-            .And(Result).Is(The<string>());
-        Specification.Is(
-            """
-            Given IMyValueIntRepo.Get(any int) returns a string
-            When GetValue(a MyValueInt)
-            Then IMyValueIntRepo.Get(any int)
-              and Result is the string
-            """);
-    }
+    public void GivenMoqsItIsAny_ThenThrowSetupFailed()
+        => Xunit.Assert.Throws<SetupFailed>(() =>
+            Given<IMyValueIntRepo>().That(_ => _.Get(It.IsAny<int>())).Returns(A<string>)
+                .When(_ => _.GetValue(A<MyValueInt>()))
+                .Then<IMyValueIntRepo>(_ => _.Get(It.IsAny<int>())))
+            .Message.Is(
+                "It.IsAny<int>() is Moq's, which TSpec does not use. Write Any<T>() for any value, "
+                + "or Any<T>(constraint) for any value satisfying the constraint");
 }
