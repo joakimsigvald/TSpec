@@ -1,7 +1,6 @@
 ﻿using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using TSpec.Continuations;
-using TSpec.Internal;
 
 namespace TSpec;
 
@@ -56,34 +55,6 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         => Pipeline.ThenWasInvoked<TService>(RequireWasInvoked(wasInvoked).ToMoq(), wasInvokedExpr!);
 
     /// <summary>
-    /// Run the test-pipeline and verify how many times the mocked service was invoked in aggregate — any method,
-    /// property get/set or indexer access.
-    /// </summary>
-    /// <typeparam name="TService">The mocked type to assert invocations on</typeparam>
-    /// <param name="_">Ignore this parameter — it exists only to force the <c>wasInvoked</c> argument to be named</param>
-    /// <param name="wasInvoked">The number of times the service is expected to have been invoked</param>
-    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
-    /// <returns>A continuation for further verification or assertions of the test result</returns>
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> Then<TService>(Ignore _ = default, Moq.Times? wasInvoked = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class
-        => Pipeline.ThenWasInvoked<TService>(RequireWasInvoked(wasInvoked), wasInvokedExpr!);
-
-    /// <summary>
-    /// Run the test-pipeline and verify how many times the mocked service was invoked in aggregate — any method,
-    /// property get/set or indexer access.
-    /// </summary>
-    /// <typeparam name="TService">The mocked type to assert invocations on</typeparam>
-    /// <param name="_">Ignore this parameter — it exists only to force the <c>wasInvoked</c> argument to be named</param>
-    /// <param name="wasInvoked">A function providing the number of times the service is expected to have been invoked</param>
-    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
-    /// <returns>A continuation for further verification or assertions of the test result</returns>
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> Then<TService>(Ignore _ = default, Func<Moq.Times>? wasInvoked = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class
-        => Pipeline.ThenWasInvoked<TService>(RequireWasInvoked(wasInvoked), wasInvokedExpr!);
-
-    /// <summary>
     /// Run the test-pipeline and verify how many times a named method of the mocked service was invoked, ignoring arguments.
     /// </summary>
     /// <remarks>
@@ -104,37 +75,6 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     public IAndVerify<TResult> Then<TService>(string method, Times wasInvoked,
         [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class
         => Pipeline.Then<TService>(method, wasInvoked.ToMoq(), wasInvokedExpr!);
-
-    /// <summary>
-    /// Run the test-pipeline and verify how many times a named method of the mocked service was invoked, ignoring arguments.
-    /// </summary>
-    /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
-    /// <param name="method">The name of the method to count invocations of, e.g. <c>nameof(IEventQueue.MarkFailed)</c></param>
-    /// <param name="wasInvoked">The number of times the method is expected to have been invoked</param>
-    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
-    /// <returns>A continuation for further verification or assertions of the test result</returns>
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> Then<TService>(string method, Moq.Times wasInvoked,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class
-        => Pipeline.Then<TService>(method, wasInvoked, wasInvokedExpr!);
-
-    /// <summary>
-    /// Run the test-pipeline and verify how many times a named method of the mocked service was invoked, ignoring arguments.
-    /// </summary>
-    /// <remarks>
-    /// Matches any invocation of the named method regardless of arguments — ideal for asserting a method was not called
-    /// (<c>Never</c>). Prefer <c>nameof</c> for a refactor-safe name. On an overloaded method the count aggregates across
-    /// all overloads; use the expression form when a specific overload or argument values matter.
-    /// </remarks>
-    /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
-    /// <param name="method">The name of the method to count invocations of, e.g. <c>nameof(IEventQueue.MarkFailed)</c></param>
-    /// <param name="wasInvoked">A function providing the number of times the method is expected to have been invoked</param>
-    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
-    /// <returns>A continuation for further verification or assertions of the test result</returns>
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> Then<TService>(string method, Func<Moq.Times> wasInvoked,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class
-        => Pipeline.Then<TService>(method, wasInvoked, wasInvokedExpr!);
 
     /// <summary>
     /// Run the test-pipeline and verify that the given mock invocation was made.
@@ -171,38 +111,6 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         => Pipeline.Then(expression, wasInvoked.ToMoq(), expressionExpr!, wasInvokedExpr!);
 
     /// <summary>
-    /// Run the test-pipeline and verify that the given mock invocation was made the given number of times.
-    /// </summary>
-    /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
-    /// <param name="expression">An expression specifying the method invocation to verify</param>
-    /// <param name="wasInvoked">The number of times the invocation is expected to have been made</param>
-    /// <param name="expressionExpr">Captured automatically by the compiler — do not provide</param>
-    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
-    /// <returns>A continuation for further verification or assertions of the test result</returns>
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> Then<TService>(
-        Expression<Action<TService>> expression, Moq.Times wasInvoked,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class
-        => Pipeline.Then(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
-
-    /// <summary>
-    /// Run the test-pipeline and verify that the given mock invocation was made the number of times given by a function.
-    /// </summary>
-    /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
-    /// <param name="expression">An expression specifying the method invocation to verify</param>
-    /// <param name="wasInvoked">A function providing the number of times the invocation is expected to have been made</param>
-    /// <param name="expressionExpr">Captured automatically by the compiler — do not provide</param>
-    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
-    /// <returns>A continuation for further verification or assertions of the test result</returns>
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> Then<TService>(
-        Expression<Action<TService>> expression, Func<Moq.Times> wasInvoked,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class
-        => Pipeline.Then(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
-
-    /// <summary>
     /// Run the test-pipeline and verify that the given value-returning mock invocation was made.
     /// </summary>
     /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
@@ -233,42 +141,6 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         => Pipeline.Then(expression, wasInvoked.ToMoq(), expressionExpr!, wasInvokedExpr!);
 
     /// <summary>
-    /// Run the test-pipeline and verify that the given value-returning mock invocation was made the given number of times.
-    /// </summary>
-    /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
-    /// <typeparam name="TReturns">The return type of the mocked invocation</typeparam>
-    /// <param name="expression">An expression specifying the method invocation to verify</param>
-    /// <param name="wasInvoked">The number of times the invocation is expected to have been made</param>
-    /// <param name="expressionExpr">Captured automatically by the compiler — do not provide</param>
-    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
-    /// <returns>A continuation for further verification or assertions of the test result</returns>
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> Then<TService, TReturns>(
-        Expression<Func<TService, TReturns>> expression, Moq.Times wasInvoked,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
-        where TService : class
-        => Pipeline.Then(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
-
-    /// <summary>
-    /// Run the test-pipeline and verify that the given value-returning mock invocation was made the number of times given by a function.
-    /// </summary>
-    /// <typeparam name="TService">The mocked type to verify an invocation on</typeparam>
-    /// <typeparam name="TReturns">The return type of the mocked invocation</typeparam>
-    /// <param name="expression">An expression specifying the method invocation to verify</param>
-    /// <param name="wasInvoked">A function providing the number of times the invocation is expected to have been made</param>
-    /// <param name="expressionExpr">Captured automatically by the compiler — do not provide</param>
-    /// <param name="wasInvokedExpr">Captured automatically by the compiler — do not provide</param>
-    /// <returns>A continuation for further verification or assertions of the test result</returns>
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> Then<TService, TReturns>(
-        Expression<Func<TService, TReturns>> expression, Func<Moq.Times> wasInvoked,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
-        where TService : class
-        => Pipeline.Then(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
-
-    /// <summary>
     /// Contains the returned value after calling method-under-test.
     /// Accessing this property runs the test pipeline if it has not been run yet.
     /// </summary>
@@ -277,11 +149,6 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     private static Times RequireWasInvoked(Times? wasInvoked)
         => wasInvoked ?? throw MissingWasInvoked;
 
-    private static Moq.Times RequireWasInvoked(Moq.Times? wasInvoked)
-        => wasInvoked ?? throw MissingWasInvoked;
-
-    private static Func<Moq.Times> RequireWasInvoked(Func<Moq.Times>? wasInvoked)
-        => wasInvoked ?? throw MissingWasInvoked;
 
     private static SetupFailed MissingWasInvoked
         => new("Then<TService>() requires a 'wasInvoked' argument, e.g. Then<TService>(wasInvoked: Never)");

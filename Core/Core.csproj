@@ -17,24 +17,28 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>2.8.0</PackageVersion>
+		<PackageVersion>3.0.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			ADDED
-			* TSpec.Times counts invocations for wasInvoked: Once, Never, AtLeastOnce, AtMostOnce, Exactly(n), AtLeast(n), AtMost(n), Between(from, to)
+			REMOVED
+			* Given&lt;T&gt;(setup) and Given&lt;T&gt;(transform); use Using&lt;T&gt;
+			* Then().DoesNotThrow(); use Then().Completes()
+			* Another&lt;T&gt;(); use Any&lt;T&gt;()
+			* The wasInvoked overloads taking Moq's Times; use TSpec.Times
 			CHANGED
-			* The wasInvoked overloads taking Moq's Times are obsolete; replace using static Moq.Times with using static TSpec.Times
-			* A file importing both Moq and TSpec must qualify Times, since the name is now ambiguous there
+			* No Moq type remains in TSpec's API. TSpec 3.1 drops its Moq dependency: reference Moq directly if your tests use it
+			* Write Any&lt;T&gt;() and Any&lt;T&gt;(constraint) rather than Moq's It.IsAny and It.Is
+			* Update Nuget packages and moved from xunit 3.x to Xxunit 4.x
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Moq" Version="4.20.72" />
-		<PackageReference Include="xunit.v3.extensibility.core" Version="3.2.2" />
-		<PackageReference Include="xunit.v3.assert" Version="3.2.2" />
+		<PackageReference Include="xunit.v3.extensibility.core" Version="4.0.1" />
+		<PackageReference Include="xunit.v3.assert" Version="4.0.1" />
 		<None Include="..\README.md" Pack="true" PackagePath="\" />
 		<None Include="..\TSpec-agent-reference.md" Pack="true" PackagePath="\" />
 		<None Include="..\icon.png" Pack="true" PackagePath="\" />

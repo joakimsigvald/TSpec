@@ -1,5 +1,4 @@
 ﻿using TSpec.Continuations;
-using TSpec.Internal;
 using TSpec.Internal.Specification;
 using TSpec.Internal.TestData;
 
@@ -310,23 +309,6 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         => throw new SetupFailed(
             $"Any<{typeof(TValue).Alias()}>(constraint) matches an argument in a mock setup or verification, and means nothing elsewhere. "
             + $"To set up the value instead, write the lambda with braces: Any<{typeof(TValue).Alias()}>(value => {{ ... }})");
-
-    /// <summary>
-    /// Yields a value of the given type that cannot be retrieved again.
-    /// </summary>
-    /// <typeparam name="TValue">The type of the value</typeparam>
-    /// <returns>The generated or previously provided value</returns>
-    [Obsolete(Obsoletions.Another)]
-    protected internal TValue Another<TValue>() => Any<TValue>();
-
-    /// <summary>
-    /// Yields a customized value of the given type that cannot be retrieved again
-    /// </summary>
-    /// <typeparam name="TValue">The type of the value</typeparam>
-    /// <param name="setup">An action applied to the value before it is returned</param>
-    /// <returns>The generated and customized value</returns>
-    [Obsolete(Obsoletions.Another)]
-    protected internal TValue Another<TValue>(Action<TValue> setup) => Any(setup);
 
     internal TValue Assign<TValue>(Tag<TValue> tag, TValue value) => Pipeline.Assign(tag, value);
 

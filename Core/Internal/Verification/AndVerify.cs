@@ -20,28 +20,6 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
     }
 
     /// <summary>
-    /// Continuation to verify how many times the mocked service was invoked in aggregate, any method or property access
-    /// </summary>
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> And<TObject>(Ignore _ = default, Moq.Times? wasInvoked = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TObject : class
-    {
-        SpecificationContext.Current.AddThen();
-        return _parent.VerifyInvoked<TObject>(Require(wasInvoked), wasInvokedExpr!);
-    }
-
-    /// <summary>
-    /// Continuation to verify how many times the mocked service was invoked in aggregate, any method or property access
-    /// </summary>
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> And<TObject>(Ignore _ = default, Func<Moq.Times>? wasInvoked = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TObject : class
-    {
-        SpecificationContext.Current.AddThen();
-        return _parent.VerifyInvoked<TObject>(Require(wasInvoked)(), wasInvokedExpr!);
-    }
-
-    /// <summary>
     /// Continuation to verify how many times a named method of the mocked service was invoked, ignoring arguments
     /// </summary>
     public IAndVerify<TResult> And<TObject>(string method, Times wasInvoked,
@@ -49,28 +27,6 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
     {
         SpecificationContext.Current.AddThen();
         return _parent.VerifyInvoked<TObject>(method, wasInvoked.ToMoq(), wasInvokedExpr!);
-    }
-
-    /// <summary>
-    /// Continuation to verify how many times a named method of the mocked service was invoked, ignoring arguments
-    /// </summary>
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> And<TObject>(string method, Moq.Times wasInvoked,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TObject : class
-    {
-        SpecificationContext.Current.AddThen();
-        return _parent.VerifyInvoked<TObject>(method, wasInvoked, wasInvokedExpr!);
-    }
-
-    /// <summary>
-    /// Continuation to verify how many times a named method of the mocked service was invoked, ignoring arguments
-    /// </summary>
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> And<TObject>(string method, Func<Moq.Times> wasInvoked,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TObject : class
-    {
-        SpecificationContext.Current.AddThen();
-        return _parent.VerifyInvoked<TObject>(method, wasInvoked(), wasInvokedExpr!);
     }
 
     /// <summary>
@@ -99,34 +55,6 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
     }
 
     /// <summary>
-    /// Continuation to verify a mock was invoked a number of times
-    /// </summary>
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> And<TObject>(
-        Expression<Action<TObject>> expression, Moq.Times wasInvoked,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
-        where TObject : class
-    {
-        SpecificationContext.Current.AddThen();
-        return _parent.Verify(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
-    }
-
-    /// <summary>
-    /// Continuation to verify a mock was invoked a number of times
-    /// </summary>
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> And<TObject>(
-        Expression<Action<TObject>> expression, Func<Moq.Times> wasInvoked,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
-        where TObject : class
-    {
-        SpecificationContext.Current.AddThen();
-        return _parent.Verify(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
-    }
-
-    /// <summary>
     /// Continuation to verify a mock was invoked and returned a value
     /// </summary>
     public IAndVerify<TResult> And<TObject, TReturns>(
@@ -151,39 +79,8 @@ internal class AndVerify<TSUT, TResult> : AndThen<TSUT, TResult>, IAndVerify<TRe
         return _parent.Verify(expression, wasInvoked.ToMoq(), expressionExpr!, wasInvokedExpr!);
     }
 
-    /// <summary>
-    /// Continuation to verify a mock was invoked and returned a value a number of times
-    /// </summary>
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> And<TObject, TReturns>(
-        Expression<Func<TObject, TReturns>> expression, Moq.Times wasInvoked,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
-        where TObject : class
-    {
-        SpecificationContext.Current.AddThen();
-        return _parent.Verify(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
-    }
-
-    /// <summary>
-    /// Continuation to verify a mock was invoked and returned a value a number of times
-    /// </summary>
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> And<TObject, TReturns>(
-        Expression<Func<TObject, TReturns>> expression, Func<Moq.Times> wasInvoked,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
-        where TObject : class
-    {
-        SpecificationContext.Current.AddThen();
-        return _parent.Verify(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
-    }
-
     private static Times Require(Times? wasInvoked) => wasInvoked ?? throw MissingWasInvoked;
 
-    private static Moq.Times Require(Moq.Times? wasInvoked) => wasInvoked ?? throw MissingWasInvoked;
-
-    private static Func<Moq.Times> Require(Func<Moq.Times>? wasInvoked) => wasInvoked ?? throw MissingWasInvoked;
 
     private static TSpec.SetupFailed MissingWasInvoked
         => new("And<TService>() requires a 'wasInvoked' argument, e.g. And<TService>(wasInvoked: Never)");

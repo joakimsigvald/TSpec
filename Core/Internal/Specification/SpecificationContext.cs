@@ -276,12 +276,6 @@ internal class SpecificationContext : IAssertSpecificationContext
         _assertion.AddAssertThrows(expectedExpr);
     }
 
-    public void AddAssertDoesNotThrow<TError>()
-    {
-        NoteAssertion();
-        _assertion.AddAssertDoesNotThrow<TError>();
-    }
-
     public void AddAssert([CallerMemberName] string? assertName = null)
     {
         NoteAssertion();

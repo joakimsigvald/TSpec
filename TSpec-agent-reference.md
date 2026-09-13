@@ -1,6 +1,6 @@
 # TSpec — Agent Reference
 
-Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 2.8).
+Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 3.0).
 TSpec is a fluent Given–When–Then specification framework for .NET on top of xUnit v3.
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec#readme).
 
@@ -39,7 +39,7 @@ The same mention returns the same value throughout a test; distinct mentions get
 
 - Single values: `A<T>()`, `An<T>()`, `The<T>()`, `AFirst<T>()` and `TheFirst<T>()` all name the **same** value; `ASecond<T>()`/`TheSecond<T>()` … up to `Fifth`. With inline setup: `A<Cart>(_ => _.Id = 3)`.
 - Collections: `Zero<T>()` … `Five<T>()`, `Some<T>()` (≥1), `Many<T>()` (≥2), `AnyNumberOf<T>()`.
-- Throwaway values, never referenced again: `Any<T>()`. In a mock setup or verification, `Any<T>()` means any value.
+- Throwaway values, never referenced again: `Any<T>()`, and `SomeOther<T>(count = 2)` for an array unlike every value already mentioned — after `Three<int>()`, `Some<int>()` returns those three. In a mock setup or verification, `Any<T>()` means any value.
 - Tags name values of one type: `static Tag<string> name = new();` (named after the field), then `Given(name).Is("Ada")`, `The(name)`, or `Using(name, For.Subject)`.
 
 A requested value is the already-mentioned one; otherwise a registered conversion, then a `Using` value or factory, then built-in generation. `Using<T>` setup/transform lambdas are applied last.

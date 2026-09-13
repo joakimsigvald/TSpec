@@ -57,7 +57,7 @@ internal static class Hole
                 [.. clause.Steps.Select(step => step with { Body = resolve(step.Body) })]))]
             : clauses;
 
-    private static bool Marked(string text) => text.IndexOf(Enter) >= 0;
+    private static bool Marked(string text) => text.Contains(Enter);
 
     private static bool IsMarker(char character) => character is Enter or Exit;
 }

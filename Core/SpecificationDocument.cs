@@ -50,17 +50,17 @@ public sealed class SpecificationDocument : IDisposable
             return;
         SpecificationCollector.IsActive = false;
         var missing = SpecificationCollector.Missing(ExpectedRequirements.Of(_specAssembly));
-        if (missing.Count == 0)
+        if (missing.Length == 0)
             _specification.Write(SpecificationCollector.Entries);
         else
             Console.Error.WriteLine(Report(missing));
     }
 
-    private static string Report(IReadOnlyCollection<string> missing)
-        => $"TSpec: {FolderName}/ left unchanged — {missing.Count} requirement(s) did not report a pass, "
+    private static string Report(string[] missing)
+        => $"TSpec: {FolderName}/ left unchanged — {missing.Length} requirement(s) did not report a pass, "
         + "so the specification would be incomplete. Run the whole suite green to regenerate it."
         + string.Concat(missing.Take(10).Select(requirement => $"\n  - {requirement}"))
-        + (missing.Count > 10 ? $"\n  ... and {missing.Count - 10} more" : string.Empty);
+        + (missing.Length > 10 ? $"\n  ... and {missing.Length - 10} more" : string.Empty);
 
     private static string ReadName(Assembly assembly)
         => assembly.GetName().Name

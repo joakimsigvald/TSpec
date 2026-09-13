@@ -34,11 +34,10 @@ internal static class SpecificationCollector
     internal static void Skipped(string identity) => _skipped[identity] = 0;
 
     /// <summary>Requirements that were expected but never reported; empty means the run was complete and green.</summary>
-    internal static IReadOnlyCollection<string> Missing(IReadOnlySet<string> expected)
-        => expected
+    internal static string[] Missing(IReadOnlySet<string> expected)
+        => [.. expected
             .Where(requirement => !_reported.ContainsKey(requirement) && !_skipped.ContainsKey(requirement))
-            .Order(StringComparer.Ordinal)
-            .ToArray();
+            .Order(StringComparer.Ordinal)];
 
     /// <summary>Test-only: the collector is process-wide static state.</summary>
     internal static void Reset()

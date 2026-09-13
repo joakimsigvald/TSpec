@@ -14,7 +14,7 @@ internal static class IndexRenderer
 
     internal static string Render(
         SpecificationSubject subject, string specAssemblyName,
-        IReadOnlyList<Requirement> all, IReadOnlyList<Document> documents)
+        Requirement[] all, IReadOnlyList<Document> documents)
     {
         List<DocumentSegment> segments = [
             new TitleSegment(subject.Name.AsTitle()),

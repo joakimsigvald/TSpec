@@ -13,7 +13,6 @@ internal interface IAssertSpecificationContext
     void AddWasInvoked<TService>(string method, string? wasInvokedExpr);
     void AddAssertThrows<TError>(string? binder = null);
     void AddAssertThrows(string expectedExpr);
-    void AddAssertDoesNotThrow<TError>();
     void AddAssert([CallerMemberName] string? assertName = null);
     void AddAssertConjunction(string conjunction);
     void AddThat();

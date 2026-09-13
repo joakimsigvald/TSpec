@@ -70,11 +70,11 @@ internal sealed record TableSegment(IReadOnlyList<TheoryRow> Rows) : DocumentSeg
         return widths;
     }
 
-    private static string Line(IReadOnlyList<string> row, int[] widths)
+    private static string Line(string[] row, int[] widths)
         => new string(' ', Indentation)
             + "|"
             + string.Concat(widths.Select((width, column) =>
-                $" {Fit(column < row.Count ? row[column] : string.Empty, width).PadRight(width)} |"))
+                $" {Fit(column < row.Length ? row[column] : string.Empty, width).PadRight(width)} |"))
             + "\n";
 
     /// The ellipsis takes the last place, and never leaves the backslash of an escape behind it.

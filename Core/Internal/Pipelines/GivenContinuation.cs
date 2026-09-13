@@ -249,7 +249,7 @@ internal class GivenContinuation<TSUT, TResult> : IGivenContinuation<TSUT, TResu
 
     private IGivenTestPipeline<TSUT, TResult> ApplyAsDefault<TValue>(
         Func<TValue[]> getValues,
-        Ignore ignore = default,
+        Ignore _ = default,
         [CallerMemberName] string? count = null)
         => _spec.ApplyMany<TValue>(() => _spec.Given(getValues(), string.Empty), count);
 }

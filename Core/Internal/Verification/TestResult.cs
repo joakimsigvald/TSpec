@@ -129,29 +129,6 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
         return And();
     }
 
-    /// <summary>
-    /// Assert that the method under test did not throw a specific exception
-    /// </summary>
-    /// <typeparam name="TError"></typeparam>
-    /// <returns></returns>
-    [Obsolete(Obsoletions.DoesNotThrow)]
-    public IAndThen<TResult> DoesNotThrow<TError>()
-    {
-        SpecificationContext.Current.AddAssertDoesNotThrow<TError>();
-        AssertNoError<TError>();
-        return And();
-    }
-
-    /// <summary>
-    /// Assert that the method under test did not throw any exception
-    /// </summary>
-    /// <returns></returns>
-    [Obsolete(Obsoletions.DoesNotThrow)]
-    public IAndThen<TResult> DoesNotThrow() => Completes();
-
-    internal IVerifyService<TResult> VerifyService<TService>() where TService : class
-        => new VerifyService<TSUT, TResult, TService>(this);
-
     internal IAndVerify<TResult> VerifyInvoked<TService>(Moq.Times times, string? timesExpr)
         where TService : class
     {
@@ -215,11 +192,6 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
         where TService : class
         => CombineWithErrorOnFail<TService>(mock => mock.Verify(AnyArgument.Rewrite(expression), wasInvoked), expressionExpr, wasInvokedExpr);
 
-    internal IAndVerify<TResult> Verify<TService>(
-        Expression<Action<TService>> expression, Func<Moq.Times> wasInvoked, string expressionExpr, string? wasInvokedExpr)
-        where TService : class
-        => CombineWithErrorOnFail<TService>(mock => mock.Verify(AnyArgument.Rewrite(expression), wasInvoked), expressionExpr, wasInvokedExpr);
-
     internal IAndVerify<TResult> Verify<TService, TReturns>(
         Expression<Func<TService, TReturns>> expression, string expressionExpr)
         where TService : class
@@ -227,11 +199,6 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
 
     internal IAndVerify<TResult> Verify<TService, TReturns>(
         Expression<Func<TService, TReturns>> expression, Moq.Times wasInvoked, string expressionExpr, string? wasInvokedExpr)
-        where TService : class
-        => CombineWithErrorOnFail<TService>(mock => mock.Verify(AnyArgument.Rewrite(expression), wasInvoked), expressionExpr, wasInvokedExpr);
-
-    internal IAndVerify<TResult> Verify<TService, TReturns>(
-        Expression<Func<TService, TReturns>> expression, Func<Moq.Times> wasInvoked, string expressionExpr, string? wasInvokedExpr)
         where TService : class
         => CombineWithErrorOnFail<TService>(mock => mock.Verify(AnyArgument.Rewrite(expression), wasInvoked), expressionExpr, wasInvokedExpr);
 

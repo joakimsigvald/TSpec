@@ -284,7 +284,9 @@ For collections of generated values:
 
 **Unreferenced values**
 For auto-generated values that are not intended to be referenced again:
-`Any`
+`Any`, and `SomeOther` for an array of them — two by default, unlike every value already mentioned.
+A collection is a mention too, so after `Three<int>()`, `Some<int>()` returns those three, while
+`SomeOther<int>()` returns two other ints.
 
 As an argument in a mock setup or verification, `Any<T>()` means any value of the type (see [4.3](#43-mocking-with-arguments)).
 

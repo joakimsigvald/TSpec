@@ -6,19 +6,20 @@ correct it in place as work lands, and move a finished stage to Done as a line.
 
 | Release | Stage | Breaks |
 |---|---|---|
-| 2.8 | Moq's `Times` leaves the public API, replaced by a TSpec-owned count | nothing (obsoletes) |
-| 3.0 | Obsolete and unreachable surface is deleted | yes |
-| 3.x | TSpec's own mocking engine on Castle.Core; the Moq package goes | see §4.5 |
-| 3.y | A cohesive mocking language, built on the engine | additive |
+| 2.8 | Moq's `Times` leaves the public API, replaced by a TSpec-owned count | done |
+| 3.0 | Obsolete and unreachable surface is deleted | done |
+| 3.1 | TSpec's own mocking engine on Castle.Core; the Moq package goes | announced in 3.0's notes |
+| 3.2+ | A cohesive mocking language, built on the engine | additive |
 
 ## 1. Facts established (2026-09-13)
 
-- **Moq in the public API was `Moq.Times` only**, in 24 signatures: `wasInvoked:` on `Then<TService>`
-  and `And<TService>` — `Spec_Then.cs`, `Continuations/ITestPipeline.cs`, `Continuations/IAndVerify.cs`,
-  8 each: whole service, by name, expression as `Action`, expression as `Func`, each as `Times` and as
-  `Func<Times>` for the method-group form. All 24 are `[Obsolete]` since 2.8 (§2). The unreachable
-  `IVerifyService` carries two more. `Any<T>()` and `Any<T>(constraint)` are rewritten to
-  `It.IsAny`/`It.Is` below the API (`Internal/Pipelines/AnyArgument.cs`).
+- **No Moq type is in the public API since 3.0.** `wasInvoked:` takes `TSpec.Times`; below the public
+  overloads everything still runs on `Moq.Times`, reached through `TSpec.Times.ToMoq()`, which maps to
+  the matching Moq factory so Moq's failure wording is kept. The seam (§4.1) takes `TSpec.Times` and
+  `ToMoq()` goes. `Any<T>()` and `Any<T>(constraint)` are rewritten to `It.IsAny`/`It.Is` below the
+  API (`Internal/Pipelines/AnyArgument.cs`).
+- **Inside any `TSpec.*` namespace a bare `Times` binds to `TSpec.Times`**, ahead of `using Moq;` —
+  TSpec's own code writes Moq's as `Moq.Times`, and so do raw Moq calls in Core.Test (`AutoDispose.cs`).
 - **Moq inside TSpec**: 23 files, about 1,600 lines touch it, through these seams:
   - `MockRegistry` — creates `Mock<T>` by reflection, one per type.
   - `GivenThatCommonContinuation` (365 lines) and the other `GivenThat*` continuations — `Setup`,
@@ -32,56 +33,16 @@ correct it in place as work lands, and move a finished stage to Done as a line.
   - `MockCompiler` — reads Moq's **non-public** `MockedType` property through reflection.
 - **A failed verification throws Moq's `MockException`**, with Moq's message text.
   `WhenVerifyExpressionCountPlaceOrder.ThenExpressionOnceFailsWhenNeverCalled` catches that type.
-- **Rendering of counts** goes through `StringExtensions.NormalizeTimes` and
-  `TestResult.DescribeInvocationTimes`, which accept `Once`, `Times.Once()` and `Times.Once`.
-- **Moq used directly in the repository**: Core.Test, 11 files (`using static Moq.Times` ×4, `Mock.Get`
-  ×1, `It.IsAny` ×2, `MockException` ×1, `typeof(Mock<>)` in rendering tests); MyHotel `Core.Spec`, 3
-  files (`using static Moq.Times`).
+- **Rendering of counts** reads the expression text, through `StringExtensions.NormalizeTimes` and
+  `TestResult.DescribeInvocationTimes`, which accept `Once`, `Times.Once` and Moq's `Times.Once()`.
+- **Moq used directly in the repository**: Core.Test — `Mock.Get(…).Verify(…, Moq.Times.Never())` in
+  `AutoDispose.cs`, `It.IsAny` ×2 in `WhenMockWithAnyArgument.ThenItIsAnyRendersAsAny`, `It.Is` in
+  `Tests/ShoppingService/WhenPlaceOrder.cs`, `MockException` ×1, `typeof(Mock<>)` in rendering tests.
+  MyHotel no longer uses Moq.
 - **Moq features TSpec has no verb for**: raising events, `out`/`ref` arguments, property setters and
   stateful properties, partial mocks that call the base, strict mocks / "no other calls".
 
-## 2. Release 2.8 — a TSpec-owned invocation count
-
-BUILT 2026-09-13, as 2.8.0. `TSpec.Times` (PO's choice of name,
-`Core/Times.cs`): `Once`, `Never`, `AtLeastOnce`, `AtMostOnce` are static properties, `Exactly(n)`,
-`AtLeast(n)`, `AtMost(n)`, `Between(from, to)` (inclusive) methods, so a spec migrates by swapping
-`using static Moq.Times;` for `using static TSpec.Times;`, and the qualified form loses its parentheses
-(`Times.Once`). A negative count, or a lower bound above the upper, throws `SetupFailed` where Moq threw
-`ArgumentOutOfRangeException`. Each of the three files gained four overloads taking it (no `Func<>`
-variant — a property needs none); the 24 Moq-typed ones are `[Obsolete(Obsoletions.MoqTimes)]`.
-Rendering is unchanged: it reads the expression text, and the members keep Moq's names.
-
-What 3.x inherits: below the public overloads everything still runs on `Moq.Times` — the new overloads
-call `TSpec.Times.ToMoq()`, which maps to the same Moq factory so Moq's failure wording is kept. The
-seam (§4.1) takes `TSpec.Times` and `ToMoq()` goes.
-
-Two facts that cost a build to find:
-- Inside any `TSpec.*` namespace a bare `Times` now binds to `TSpec.Times`, ahead of `using Moq;` —
-  so TSpec's own code writes Moq's as `Moq.Times`, and raw Moq calls in Core.Test do too
-  (`AutoDispose.cs`).
-- A user file outside TSpec's namespaces that imports both `Moq` and `TSpec` gets an ambiguous
-  `Times` (CS0104) on the qualified form. The PO accepted this; say it in the 2.8 release notes.
-
-## 3. Release 3.0 — delete what is obsolete or unreachable
-
-Delete, with the tests that only exist to cover them:
-- `Given<TValue>(Action<TValue>)` / `Given<TValue>(Func<TValue, TValue>)` and the matching
-  `IGivenTestPipeline.And` overloads (`Obsoletions.TypeSetup`) — use `Using<TValue>(…)`.
-- `Then().DoesNotThrow()` / `DoesNotThrow<TError>()` (`Obsoletions.DoesNotThrow`).
-- `Another<T>()` / `Another<T>(setup)` (`Obsoletions.Another`) — keep "another" in the renderer only
-  if 3.0 still reads 2.x specs; otherwise drop its word too.
-- The `Times` overloads obsoleted in 2.8.
-- `IVerifyService` — public, but nothing public returns it since the `WasInvoked` continuation went.
-  Make it internal with `VerifyService`, or delete both.
-
-**Decide** (PO): `SomeOther<T>()` and its four setup/transform overloads (`Spec_Values.cs`) — public,
-in neither doc. Document, rename, or delete.
-
-**Announce in the 3.0 release notes** what §4.5 decides about users who use Moq only through TSpec.
-
-**Done when** no `[Obsolete]` remains in `Core`, the docs mention nothing removed, and MyHotel builds.
-
-## 4. Release 3.x — TSpec's own mocking engine
+## 4. Release 3.1 — TSpec's own mocking engine
 
 ### 4.1 First, a seam (no user-visible change; can start any time)
 
@@ -132,10 +93,10 @@ and their new wording is the PO's call — show before/after.
 
 ### 4.5 Decisions before the Moq package goes
 
-- **Semver.** Removing the Moq package breaks code that uses Moq only because TSpec brings it in
-  (`Mock<T>`, `Mock.Get` on a TSpec mock, `It.IsAny`, `MockException`). Either the 3.0 notes declare
-  the transitive reference outside TSpec's contract and 3.x removes it, or the package goes in a major
-  (4.0, or 3.0 waits for the engine).
+- **Semver — decided.** Removing the Moq package breaks code that uses Moq only because TSpec brings it
+  in (`Mock<T>`, `Mock.Get` on a TSpec mock, `It.IsAny`, `MockException`). The 3.0 release notes
+  announce that 3.1 drops the dependency and tell such users to reference Moq themselves, and to write
+  `Any` rather than `It.IsAny`/`It.Is`.
 - **`It.IsAny` and `It.Is` inside TSpec expressions.** Today they work and render as "any T". On the
   new engine a user who still references Moq would have them evaluated as plain values — `default(T)`
   — and matching silently wrong. The engine must recognise calls on `Moq.It` by name and either
@@ -144,7 +105,7 @@ and their new wording is the PO's call — show before/after.
 
 **Done when** `Core.csproj` has no Moq reference, the §4.3 probes pass, and §4.4 holds.
 
-## 5. Release 3.y — the mocking language
+## 5. Release 3.2+ — the mocking language
 
 Build only on the engine; each item needs a real spec that is worse without it, and each lands on its
 own, with the suite green, before the next starts. Candidates, not yet designed:
@@ -170,4 +131,10 @@ Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a 
 
 ## Done
 
-(nothing yet)
+- **2.8.0** — `TSpec.Times` (`Core/Times.cs`, PO's name): `Once`, `Never`, `AtLeastOnce`, `AtMostOnce`
+  as properties, `Exactly`, `AtLeast`, `AtMost`, `Between` (inclusive) as methods; bounds no count can
+  meet throw `SetupFailed`. The 24 `Moq.Times` overloads went obsolete; a file importing both `Moq` and
+  `TSpec` gets an ambiguous qualified `Times`, accepted by the PO. 2026-09-13.
+- **3.0.0** — every obsolete member deleted (`Given<T>(setup/transform)`, `DoesNotThrow`, `Another`, the
+  `Moq.Times` overloads), with `Obsoletions`, the unreachable `IVerifyService`/`VerifyService` and the
+  internals only they used. `SomeOther<T>()` kept and documented. No test needed changing. 2026-09-13.

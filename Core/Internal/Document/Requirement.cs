@@ -28,8 +28,11 @@ internal sealed record Requirement(
         => SpecificationRenderer.Compose(Clauses, Entry.Because).Without(StepFamily.Then.Keyword());
 
     internal int Size
-        => Clauses.Sum(clause => clause.Steps.Sum(step => step.Body.Length))
-            + (Entry.Because?.Length ?? 0);
+        => Clauses.Sum(clause =>
+        {
+            static int selector(SpecificationStep step) => step.Body.Length;
+            return clause.Steps.Sum(selector);
+        }) + (Entry.Because?.Length ?? 0);
 
     /// <summary>
     /// Where a theory filled a hole, the document leaves it open: the value is the row's, not the
@@ -64,7 +67,7 @@ internal sealed record Requirement(
             .Select(step => $"{step.Family}:{step.Body}")
             .Append(entry.Because ?? string.Empty));
 
-    internal static string? SubjectOf(IReadOnlyList<Requirement> requirements)
+    internal static string? SubjectOf(Requirement[] requirements)
     {
         var first = requirements.FirstOrDefault()?.Entry;
         return first?.SubjectUnderTest is not null
@@ -73,7 +76,7 @@ internal sealed record Requirement(
                 : null;
     }
 
-    internal static string? ReturnTypeOf(IReadOnlyList<Requirement> requirements)
+    internal static string? ReturnTypeOf(Requirement[] requirements)
     {
         var first = requirements.FirstOrDefault()?.Entry;
         return first?.SubjectUnderTest is not null

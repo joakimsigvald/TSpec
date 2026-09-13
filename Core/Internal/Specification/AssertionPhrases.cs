@@ -53,9 +53,6 @@ internal class AssertionPhrases(SpecificationRecording recording)
     internal void AddAssertThrows(string expectedExpr)
         => recording.Record(() => AddWord($"throws {expectedExpr.Describe()}"));
 
-    internal void AddAssertDoesNotThrow<TError>()
-        => recording.Record(() => AddWord($"does not throw {typeof(TError).Alias()}"));
-
     internal void AddVerify<TService>(string expressionExpr, string? wasInvokedExpr = null)
         => recording.Record(() =>
         {

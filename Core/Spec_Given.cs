@@ -9,22 +9,6 @@ namespace TSpec;
 
 public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
 {
-    /// <summary>
-    /// Provide any arrangement to the test, which will be applied during test execution in reverse order of where in the test-pipeline it was provided
-    /// </summary>
-    /// <typeparam name="TValue">The type of the value to arrange</typeparam>
-    /// <param name="setup">An action applied to each generated value of the given type</param>
-    /// <param name="setupExpr">Captured automatically by the compiler — do not provide</param>
-    /// <returns>A continuation for providing further arrangement of the test pipeline</returns>
-    [Obsolete(Obsoletions.TypeSetup)]
-    public IGivenTestPipeline<TSUT, TResult> Given<TValue>(
-        Action<TValue> setup,
-        [CallerArgumentExpression(nameof(setup))] string? setupExpr = null)
-        where TValue : class
-    {
-        Pipeline.SetDefault(setup, setupExpr!, For.All);
-        return new GivenTestPipeline<TSUT, TResult>(this);
-    }
 
     internal IGivenTestPipeline<TSUT, TResult> GivenThat(Action customArrangement, string customArrangementExpr)
         => AppendGiven(() =>
@@ -32,22 +16,6 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
             Pipeline.Specification.AddGivenThat(customArrangementExpr);
             customArrangement();
         });
-
-    /// <summary>
-    /// Transform any value and use the transformed value as default
-    /// </summary>
-    /// <typeparam name="TValue">The type of the value to arrange</typeparam>
-    /// <param name="transform">A function transforming the default value of the given type</param>
-    /// <param name="transformExpr">Captured automatically by the compiler — do not provide</param>
-    /// <returns>A continuation for providing further arrangement of the test pipeline</returns>
-    [Obsolete(Obsoletions.TypeSetup)]
-    public IGivenTestPipeline<TSUT, TResult> Given<TValue>(
-        Func<TValue, TValue> transform,
-        [CallerArgumentExpression(nameof(transform))] string? transformExpr = null)
-    {
-        Pipeline.SetDefault(transform, transformExpr!, For.All);
-        return new GivenTestPipeline<TSUT, TResult>(this);
-    }
 
     /// <summary>
     /// Provide a tag to setup some expectation, such as associating it with a value.

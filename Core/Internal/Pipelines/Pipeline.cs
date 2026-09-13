@@ -41,20 +41,11 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         return subject;
     }
 
-    internal IVerifyService<TResult> Then<TService>() where TService : class
-        => Claim.VerifyService<TService>();
-
     internal IAndVerify<TResult> ThenWasInvoked<TService>(Moq.Times wasInvoked, string wasInvokedExpr) where TService : class
         => Claim.VerifyInvoked<TService>(wasInvoked, wasInvokedExpr);
 
-    internal IAndVerify<TResult> ThenWasInvoked<TService>(Func<Moq.Times> wasInvoked, string wasInvokedExpr) where TService : class
-        => Claim.VerifyInvoked<TService>(wasInvoked(), wasInvokedExpr);
-
     internal IAndVerify<TResult> Then<TService>(string method, Moq.Times wasInvoked, string wasInvokedExpr) where TService : class
         => Claim.VerifyInvoked<TService>(method, wasInvoked, wasInvokedExpr);
-
-    internal IAndVerify<TResult> Then<TService>(string method, Func<Moq.Times> wasInvoked, string wasInvokedExpr) where TService : class
-        => Claim.VerifyInvoked<TService>(method, wasInvoked(), wasInvokedExpr);
 
     internal IAndVerify<TResult> Then<TService>(
         Expression<Action<TService>> expression, string expressionExpr)
@@ -65,21 +56,12 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         Expression<Action<TService>> expression, Moq.Times wasInvoked, string expressionExpr, string wasInvokedExpr) where TService : class
         => Claim.Verify(expression, wasInvoked, expressionExpr, wasInvokedExpr);
 
-    internal IAndVerify<TResult> Then<TService>(
-        Expression<Action<TService>> expression, Func<Moq.Times> wasInvoked, string expressionExpr, string wasInvokedExpr) where TService : class
-        => Claim.Verify(expression, wasInvoked, expressionExpr, wasInvokedExpr);
-
     internal IAndVerify<TResult> Then<TService, TReturns>(
         Expression<Func<TService, TReturns>> expression, string expressionExpr) where TService : class
         => Claim.Verify(expression, expressionExpr);
 
     internal IAndVerify<TResult> Then<TService, TReturns>(
         Expression<Func<TService, TReturns>> expression, Moq.Times wasInvoked, string expressionExpr, string wasInvokedExpr)
-        where TService : class
-        => Claim.Verify(expression, wasInvoked, expressionExpr, wasInvokedExpr);
-
-    internal IAndVerify<TResult> Then<TService, TReturns>(
-        Expression<Func<TService, TReturns>> expression, Func<Moq.Times> wasInvoked, string expressionExpr, string wasInvokedExpr)
         where TService : class
         => Claim.Verify(expression, wasInvoked, expressionExpr, wasInvokedExpr);
 

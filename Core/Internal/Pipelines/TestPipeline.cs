@@ -109,18 +109,6 @@ internal abstract class TestPipeline<TSUT, TResult, TParent>(TParent parent) whe
         Ignore _ = default)
         => _parent.Until(tearDown, tearDownExpr!);
 
-    [Obsolete(Obsoletions.TypeSetup)]
-    public IGivenTestPipeline<TSUT, TResult> Given<TValue>(
-        Action<TValue> setup,
-        [CallerArgumentExpression(nameof(setup))] string? setupExpr = null) where TValue : class
-        => _parent.Given(setup, setupExpr!);
-
-    [Obsolete(Obsoletions.TypeSetup)]
-    public IGivenTestPipeline<TSUT, TResult> Given<TValue>(
-        Func<TValue, TValue> transform,
-        [CallerArgumentExpression(nameof(transform))] string? transformExpr = null)
-        => _parent.Given(transform, transformExpr!);
-
     public IGivenServiceContinuation<TSUT, TResult, TService> Given<TService>() where TService : class
         => _parent.Given<TService>();
 
@@ -174,27 +162,7 @@ internal abstract class TestPipeline<TSUT, TResult, TParent>(TParent parent) whe
         [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class
         => _parent.Then<TService>(_, wasInvoked, wasInvokedExpr!);
 
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> Then<TService>(Ignore _ = default, Moq.Times? wasInvoked = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class
-        => _parent.Then<TService>(_, wasInvoked, wasInvokedExpr!);
-
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> Then<TService>(Ignore _ = default, Func<Moq.Times>? wasInvoked = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class
-        => _parent.Then<TService>(_, wasInvoked, wasInvokedExpr!);
-
     public IAndVerify<TResult> Then<TService>(string method, Times wasInvoked,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class
-        => _parent.Then<TService>(method, wasInvoked, wasInvokedExpr!);
-
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> Then<TService>(string method, Moq.Times wasInvoked,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class
-        => _parent.Then<TService>(method, wasInvoked, wasInvokedExpr!);
-
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> Then<TService>(string method, Func<Moq.Times> wasInvoked,
         [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class
         => _parent.Then<TService>(method, wasInvoked, wasInvokedExpr!);
 
@@ -211,22 +179,6 @@ internal abstract class TestPipeline<TSUT, TResult, TParent>(TParent parent) whe
         where TService : class
         => _parent.Then(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
 
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> Then<TService>(
-        Expression<Action<TService>> expression, Moq.Times wasInvoked,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
-        where TService : class
-        => _parent.Then(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
-
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> Then<TService>(
-        Expression<Action<TService>> expression, Func<Moq.Times> wasInvoked,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
-        where TService : class
-        => _parent.Then(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
-
     public IAndVerify<TResult> Then<TService, TReturns>(
         Expression<Func<TService, TReturns>> expression,
         [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null)
@@ -235,22 +187,6 @@ internal abstract class TestPipeline<TSUT, TResult, TParent>(TParent parent) whe
 
     public IAndVerify<TResult> Then<TService, TReturns>(
         Expression<Func<TService, TReturns>> expression, Times wasInvoked,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
-        where TService : class
-        => _parent.Then(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
-
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> Then<TService, TReturns>(
-        Expression<Func<TService, TReturns>> expression, Moq.Times wasInvoked,
-        [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
-        [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
-        where TService : class
-        => _parent.Then(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
-
-    [Obsolete(Obsoletions.MoqTimes)]
-    public IAndVerify<TResult> Then<TService, TReturns>(
-        Expression<Func<TService, TReturns>> expression, Func<Moq.Times> wasInvoked,
         [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
         [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
         where TService : class
