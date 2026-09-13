@@ -19,7 +19,7 @@ internal class GivenThatContinuation<TSUT, TResult, TService, TReturns, TActualR
         Spec<TSUT, TResult> spec,
         Expression<Func<TService, TActualReturns>> call,
         string callExpr)
-        : base(spec, AnswerCall(AnyArgument.Rewrite(call)), callExpr) { }
+        : base(spec, AnswerCall(call), callExpr) { }
 
     /// A member named because no expression can name it; the name is what the specification states.
     internal GivenThatContinuation(Spec<TSUT, TResult> spec, string member)

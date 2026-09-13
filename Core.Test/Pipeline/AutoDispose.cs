@@ -1,5 +1,5 @@
-using Moq;
 using TSpec.Assert;
+using static TSpec.Times;
 
 namespace TSpec.Test.Pipeline;
 
@@ -154,10 +154,9 @@ public class AutoDispose
     public void GivenMockedDisposableService_ThenDoNotDisposeMock()
     {
         var spec = new MockedServiceSutSpec();
-        var sut = spec.When(_ => _.GetValue()).Then().SubjectUnderTest;
-        spec.Then().Completes();
+        spec.When(_ => _.GetValue()).Then().Completes();
         spec.Dispose();
-        Mock.Get(sut.Service).Verify(_ => _.Dispose(), Moq.Times.Never());
+        spec.Then<IDisposableService>(nameof(IDisposableService.Dispose), Never);
     }
 
     [Fact]

@@ -17,7 +17,7 @@ internal class GivenThatVoidContinuation<TSUT, TResult, TService>
         Spec<TSUT, TResult> spec,
         Expression<Action<TService>> call,
         string callExpr)
-        : base(spec, AnswerCall(AnyArgument.Rewrite(call)), callExpr) { }
+        : base(spec, AnswerCall(call), callExpr) { }
 
     /// A member named because no expression can name it; the name is what the specification states.
     internal GivenThatVoidContinuation(Spec<TSUT, TResult> spec, string member)

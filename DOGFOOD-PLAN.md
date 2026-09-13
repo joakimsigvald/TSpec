@@ -313,7 +313,7 @@ Whether that is worth public API is a PO call; G1 may make it unnecessary.
 | 2 | ✅ **done 2026-08-16** — filed as D1–D7 in `SPECIFICATION-IMPROVEMENT-PLAN.md` §4 | — | 1 |
 | 3 | Answer the F2 question in §7 | — | 1 |
 | 4 | ✅ done — `Xunit.Assert.Equal/True/False` → `TSpec.Assert` (14 sites) | `Pipeline/AutoDispose.cs` | — |
-| 5 | `Mock.Get(…).Verify(…)` → `Then<IDisposableService>(nameof(…), Never)` (1 site) | `Pipeline/AutoDispose.cs` | — |
+| 5 | ✅ done 2026-09-13 — `Mock.Get(…).Verify(…)` → `Then<IDisposableService>(nameof(…), Never)` (1 site) | `Pipeline/AutoDispose.cs` | — |
 | 6 | ✅ done — `Xunit.Assert.Equal(-1, …)` → `.Is(-1)` (1 site) | `Pipeline/HavingWhenUntil.cs` | — |
 | 7 | `Xunit.Assert.Contains` → `.Does().Contain(…)` (1 site) | `Internal/Document/WhenResolveSubject.cs` | — |
 | 8 | `Xunit.Assert.StartsWith` → `.Does().StartWith(…)` (1 site) | `AutoFixture/WhenGivenTwo.cs` | — |

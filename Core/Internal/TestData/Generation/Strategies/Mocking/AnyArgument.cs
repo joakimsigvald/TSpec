@@ -2,7 +2,7 @@ using Moq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace TSpec.Internal.Pipelines;
+namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 /// <summary>
 /// In a mock setup or verification, <c>Any&lt;T&gt;()</c> means any T and <c>Any&lt;T&gt;(constraint)</c>

@@ -16,30 +16,27 @@ correct it in place as work lands, and move a finished stage to Done as a line.
 - **No Moq type is in the public API since 3.0.** `wasInvoked:` takes `TSpec.Times`, and since step 4
   so does everything below it: counts are checked with `Times.Allows`, and only `MockHandle.ToMoq`
   maps to the matching Moq factory, so Moq's failure wording is kept for verification by expression.
-  `Any<T>()` and `Any<T>(constraint)` are rewritten to `It.IsAny`/`It.Is` below the API
-  (`Internal/Pipelines/AnyArgument.cs`).
+  `Any<T>()` and `Any<T>(constraint)` are rewritten to `It.IsAny`/`It.Is` inside the adapter
+  (`AnyArgument`).
 - **Inside any `TSpec.*` namespace a bare `Times` binds to `TSpec.Times`**, ahead of `using Moq;` —
-  TSpec's own code writes Moq's as `Moq.Times`, and so do raw Moq calls in Core.Test (`AutoDispose.cs`).
-- **Moq inside TSpec**: 23 files, about 1,600 lines touch it, through these seams. After steps 1–4
-  (§4.1) it is only in `MockHandle`, `MockRegistry`, `MoqDefaultValueProvider` and `AnyArgument`:
-  - `MockRegistry` — creates `Mock<T>` by reflection, one per type.
-  - `GivenThatCommonContinuation` (365 lines) and the other `GivenThat*` continuations — `Setup`,
-    `Returns`/`ReturnsAsync`, `Throws`/`ThrowsAsync`, `Callback`, largely as `is ICallback<TService,
-    Task<TReturns?>>` ladders over Moq's fluent interfaces. A sequence is already a TSpec queue behind
-    one Moq `Setup` (improvement plan item 7).
-  - `ProtectedMember` (165 lines) — `mock.Protected()`, `ItExpr.IsAny`.
-  - `TestResult`/`AndVerify` — `mock.Verify(expr, times)`; by-name and whole-service counts read
-    `mock.Invocations`.
-  - `FluentDefaultProvider` — TSpec's own default-value logic behind Moq's `DefaultValueProvider`.
-  - `MockCompiler` — reads Moq's **non-public** `MockedType` property through reflection.
+  TSpec's own code writes Moq's as `Moq.Times`.
+- **Moq inside TSpec, since step 5**: only the adapter folder `Internal/TestData/Generation/Strategies/
+  Mocking/` uses it, in four files, about 250 lines — this is what the engine replaces:
+  - `MockRegistry` — creates a `Mock<T>` by reflection, one per type, and wraps it in a handle.
+  - `MockHandle` — the instance and its invocation log; `Answer` (setup by expression or protected
+    member, with Moq's `Setup`, `Callback(InvocationAction)`, `Returns(InvocationFunc)`,
+    `Protected()`, `ItExpr.IsAny`); `Verify` (Moq's `Verify`, with `ToMoq` for counts).
+  - `MoqDefaultValueProvider` — hands an unmatched call to TSpec's `FluentDefaultProvider`.
+  - `AnyArgument` — rewrites `Any` to Moq's matchers.
+  Engine-independent and staying: `AsyncAnswer`, `FluentDefaultProvider`, `MockingStrategy`,
+  `MockInvocation`.
 - **A failed verification throws Moq's `MockException`**, with Moq's message text.
   `WhenVerifyExpressionCountPlaceOrder.ThenExpressionOnceFailsWhenNeverCalled` catches that type.
 - **Rendering of counts** reads the expression text, through `StringExtensions.NormalizeTimes` and
   `TestResult.DescribeInvocationTimes`, which accept `Once`, `Times.Once` and Moq's `Times.Once()`.
-- **Moq used directly in the repository**: Core.Test — `Mock.Get(…).Verify(…, Moq.Times.Never())` in
-  `AutoDispose.cs`, `It.IsAny` ×2 in `WhenMockWithAnyArgument.ThenItIsAnyRendersAsAny`, `It.Is` in
-  `Tests/ShoppingService/WhenPlaceOrder.cs`, `MockException` ×1, `typeof(Mock<>)` in rendering tests.
-  MyHotel no longer uses Moq.
+- **Moq used directly in the repository**: Core.Test — `It.IsAny` ×2 in
+  `WhenMockWithAnyArgument.ThenItIsAnyRendersAsAny`, `It.Is` in `Tests/ShoppingService/WhenPlaceOrder.cs`,
+  `MockException` ×1, `typeof(Mock<>)` in rendering tests. MyHotel no longer uses Moq.
 - **Moq features TSpec has no verb for**: raising events, `out`/`ref` arguments, property setters and
   stateful properties, partial mocks that call the base, strict mocks / "no other calls".
 
@@ -105,14 +102,16 @@ anyway (§4.4). `Times.ToMoq()` became `MockHandle.ToMoq`; whole-service and by-
 `Times.Allows`. `Pipeline`, `TestResult`, `AndVerify` and `Spec_Then` carry `TSpec.Times` only, and
 the escape hatch `MockHandle.MoqMock` is gone.
 
-**Step 5 — Moq confined.** `using Moq` only in the adapter's folder (`…/Strategies/Mocking/`): move
-`AnyArgument` there (its rewrite targets Moq's matchers) and call its `Rewrite` inside
-`MockHandle.Answer`, as `Verify` already does, rather than in the `GivenThat*` continuations.
-Core.Test's `Mock.Get(…).Verify(…)` in `AutoDispose.cs` becomes `Then<IDisposableService>(nameof(…),
-Never)` (DOGFOOD-PLAN item 5).
+**Step 5 — Moq confined.** DONE 2026-09-13; no behaviour change. `AnyArgument` moved into the adapter
+folder, and `MockHandle.Answer` rewrites `Any` itself, as `Verify` does. `using Moq` appears nowhere
+in Core outside that folder (§1). Core.Test's `Mock.Get(…).Verify(…)` in `AutoDispose.cs` is
+`spec.Then<IDisposableService>(nameof(IDisposableService.Dispose), Never)` (DOGFOOD-PLAN item 5),
+checked to fail when the count is wrong.
 
-Nothing Moq-typed crosses the seam. `GivenThat*`, `TestResult`, `AndVerify`, `Fixture`, `Context`,
-`Repository` and `MockingStrategy` depend on the seam only.
+**The seam is complete.** Nothing Moq-typed crosses it: `GivenThat*`, `ProtectedMember`,
+`TestResult`, `AndVerify`, `Pipeline`, `Fixture`, `Context`, `Repository` and `MockingStrategy`
+depend on `MockHandle` only. Next is the engine (§4.2): a Castle-based `MockHandle`, `MockRegistry`
+and matcher in place of the four Moq files.
 
 ### 4.2 The engine on Castle.Core
 

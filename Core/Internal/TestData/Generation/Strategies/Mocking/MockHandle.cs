@@ -2,7 +2,6 @@ using Moq;
 using Moq.Protected;
 using System.Linq.Expressions;
 using System.Reflection;
-using TSpec.Internal.Pipelines;
 
 namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
@@ -52,13 +51,13 @@ internal sealed class MockHandle(Type mockedType, Mock moqMock)
 
     internal void Answer<TService>(Expression<Action<TService>> call, Func<IReadOnlyList<object>, object?> answer)
         where TService : class
-        => Mocked<TService>().Setup(call)
+        => Mocked<TService>().Setup(AnyArgument.Rewrite(call))
             .Callback(new InvocationAction(invocation => answer(invocation.Arguments)));
 
     internal void Answer<TService, TResult>(
         Expression<Func<TService, TResult>> call, Type answerType, Func<IReadOnlyList<object>, object?> answer)
         where TService : class
-        => Mocked<TService>().Setup(call)
+        => Mocked<TService>().Setup(AnyArgument.Rewrite(call))
             .Returns(Responding(typeof(TResult), answerType, answer));
 
     /// <summary>
