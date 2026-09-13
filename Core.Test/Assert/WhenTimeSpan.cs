@@ -18,11 +18,11 @@ public class WhenTimeSpan : Spec<TimeSpan>
     [Fact]
     public void IsNot()
     {
-        When(_ => A(_)).Then().Result.Is().Not(Another<TimeSpan>());
+        When(_ => A(_)).Then().Result.Is().Not(ASecond<TimeSpan>());
         Specification.Is(
             """
             When a _
-            Then Result is not another TimeSpan
+            Then Result is not a second TimeSpan
             """);
     }
 

@@ -1,7 +1,7 @@
 # TSpec — Fluent, specification-style unit testing for .NET
 
 TSpec is a fluent, specification-oriented testing framework for .NET that builds on xUnit.
-It follows the Given–When–Then pattern and integrates seamlessly with Moq.
+It follows the Given–When–Then pattern, with built-in auto-mocking and test data generation.
 Tests run on the standard xUnit runner and can live side by side with existing xUnit tests.
 
 Whether you are new to unit testing or an experienced practitioner, TSpec helps you express test intent clearly by removing boilerplate, enforcing structure, and generating readable failure descriptions.
@@ -89,9 +89,9 @@ The lambda takes the subject under test as argument and invokes the behavior to 
 
 The subject under test is automatically created based on the arrangement, unless it is static or explicitly provided.
 
-As with arrangement, the order in which `Given`, `Having`, `Until`, and `When`
-are declared does not matter. Because execution is deferred until assertion, TSpec can deterministically reorder the pipeline before running it.
-So the execution order of the steps is always: `Given` -> `Having` -> `When` -> `Until`.
+The order in which `Given`, `Having`, `Until`, and `When` are declared does not matter.
+Because execution is deferred until assertion, TSpec always runs the steps in the same order:
+`Given` -> `Having` -> `When` -> `Until`.
 
 Each specification defines exactly one action under test and therefore contains a single `When` stage.
 
@@ -122,7 +122,7 @@ Example:
 ```csharp
 Expected Result to have count 4 but found 3...
 ---- 
-Given three MyModel
+Given three MyModels
   and IMyRepository.List() returns a MyModel[]
 When List()
 Then Result has count 4
@@ -136,7 +136,7 @@ The remainder of this README is a complete, practical guide to structuring speci
 ## 2. The Test Pipeline
 
 At the core of TSpec are *deferred execution* and *lazy evaluation*: no production code is executed until the first assertion is made.
-A test runs through four conceptual stages: preparation, execution, assertion, and teardown.
+A test runs through four stages: preparation, execution, assertion, and teardown.
 
 The stages are visible in the shape of a specification: `Having` and `Until` compose fluently in chain form,
 with the action at the center and each clause extending outward in time.
@@ -155,9 +155,8 @@ public class WhenSendReport : Spec<EmailService, SendResult>
 }
 ```
 
-The chain reads as one sentence — and the specification states the order the clauses run in, since
-setups run outward from the action: *having signed in, after configuring SmtpSettings, when sending a
-Report, until the outbox is flushed, before disconnecting.*
+Setups run outward from the action, so `Configure` runs before `SignIn`;
+teardowns run in the order they are written, so `FlushOutbox` runs before `Disconnect`.
 
 ### 2.1 Preparation
 
@@ -165,18 +164,16 @@ Before the first assertion, the pipeline is configured with test data, mocks, an
 using the arrangement methods introduced in Section 1.1.
 
 #### 2.1.1 Creating the Pipeline
-You typically create the pipeline by subclassing `Spec` with two generic arguments. The first is the type of the *subject under test* and the second is the return type of the *method under test*.
-Other overloads exist for cases without a subject under test or return value.
+You create the pipeline by subclassing `Spec<TSUT, TResult>`, where `TSUT` is the type of the *subject under test* and `TResult` the return type of the *method under test*.
+`Spec<T>` is short for `Spec<T, T>` and also fits when the result is not asserted; the non-generic `Spec` has neither subject nor result.
 
 #### 2.1.2 Scope of Arrangement
-When preparing the pipeline, values are provided either for the **Subject** or for the **Input**. 
-* **Subject**: The subject under test or any of its components, provided as constructor arguments, properties, or through type cast.
-* **Input**: Data supplied directly to the execution pipeline.
+Arrangements apply to the **Subject** — the subject under test or any of its components, provided as constructor arguments, properties, or through type cast —
+or to the **Input**, the data supplied directly to the execution pipeline.
 
-Arrangements are categorized into three types, using specific verbs to dictate their scope:
-* **Values**: Configured using the verb **`Given`** and apply *only* to the **Input**.
-* **Types**: Configured using the verb **`Using`**. An optional scope indicates whether they apply to the **Input**, the **Subject**, or both (the default).
-* **Mocks**: Configured using the verb **`Given`** and apply to *both* **Input** and **Subject**.
+* **Values** are provided with **`Given`** and apply *only* to the Input.
+* **Types** are configured with **`Using`**, with an optional scope: `For.Input`, `For.Subject`, or `For.All` (the default).
+* **Mocks** are provided with **`Given`** and apply to *both* Input and Subject.
 
 #### 2.1.3 Preparing the Pipeline
 The preparation steps are recorded and later applied in the following order:
@@ -190,7 +187,7 @@ If you haven't mocked a certain interface or method that the subject uses, a def
 
 ### 2.2 Execution
 
-Execution is triggered by the first assertion (technically when `Result` is referenced or `Then()` is called). 
+Execution is triggered by the first assertion — when `Result` is referenced or `Then()` is called. 
 The pipeline then runs and captures the outcome.
 
 #### 2.2.1 Running Setup
@@ -200,23 +197,13 @@ Setup is executed in reverse order of declaration, right after the subject under
 Example:
 `When(A).Having(B).Having(C)` will result in the execution order: C -> B -> A.
 
-The specification says so too. Clauses are listed in the order they were declared, and consecutive
-setups are joined by **after** rather than "and" — so `Having B after C` states the order they ran in,
-where "and" would leave a reader to remember the rule or, worse, to assume the wrong one. `Until`
-clauses run in declaration order and are joined by **before** for the same reason.
-
 #### 2.2.2 Executing the Behavior Under Test
 The lambda provided with `When()` will be executed right after setup.
 
 #### 2.2.3 Collecting the outcome
 The outcome of a pipeline execution is either a return value or a thrown exception.
-If a value is returned, it must match the declared return type and is exposed for assertion through the `Result` property.
-If an exception is thrown, it becomes the captured outcome and can be asserted using the `Then().Throws` overloads.
-`Throws<TError>()` asserts by type and `Throws<TError>(condition)` by content, while `Throws(expected)`
-compares by reference — pass a mention (e.g. `The<TimeoutException>`) to verify that the exact
-exception instance configured in the arrangement was propagated.
-
-Accessing `Result` will implicitly execute the pipeline if it has not already been executed.
+A returned value must match the declared return type and is exposed for assertion through the `Result` property.
+A thrown exception becomes the captured outcome and is asserted with `Then().Throws` (see [5.7](#57-asserting-exceptions)).
 
 ### 2.3 Assertion
 
@@ -232,9 +219,9 @@ Teardown is executed in order of declaration when the test class and pipeline ar
 Example:
 `When(A).Until(B).Until(C)` will result in the execution order: A -> B -> C.
 
-After all `Until`-steps have run, TSpec disposes any disposable objects it created for the
-subject-under-test graph: the subject itself and any concrete dependencies TSpec constructed
-and injected into it, in reverse order of creation (subject first). This applies to both
+After all `Until`-steps have run, TSpec disposes the disposable objects it created for the
+subject-under-test graph — the subject itself and the concrete dependencies it constructed
+and injected — in reverse order of creation (subject first), supporting both
 `IDisposable` and `IAsyncDisposable`. Objects you provide with `Using` (as value, factory, or tag),
 mocks, and generated input data are never disposed by TSpec — so to manage the subject's
 lifetime yourself, provide your own instance with `Using`.
@@ -255,7 +242,6 @@ public abstract class ApiSpec<TResult> : Spec<MyApiClient, TResult>
 
 The factory is invoked at most once per test (each test builds its own pipeline),
 and the created client is disposed when the test is torn down.
-Ownership is reflected in the generated specification: `Using owned CreateClient`.
 
 ### 2.5 Sync vs. Async Execution
 
@@ -263,11 +249,10 @@ TSpec supports testing synchronous and asynchronous code using the same test pip
 
 When the behavior under test is asynchronous (returns `Task`, `Task<T>`, `ValueTask` or `ValueTask<T>`), TSpec waits for completion and captures the outcome in the same way as for synchronous code.
 The only difference is the lambda signature provided to `When`, `Having`, `Until`, and mock setup methods.
-Test methods themselves do not need to be `async`, but they may be — the test pipeline and
-specification follow the test's async flow, so it is safe to await other work before asserting.
+Test methods themselves do not need to be `async`, but they may be — for instance to await other work before asserting.
 
-A lambda that needs its own `async` body — or consists of a `throw` — may have to state its return type to be unambigous.
-`Task` is resolved before `ValueTask`.
+A lambda that needs its own `async` body — or consists of a `throw` — may have to state its return type to be unambiguous,
+e.g. `When(async ValueTask (_) => ...)` or `Until(void (_) => throw ...)`. `Task` is resolved before `ValueTask`.
 
 ## 3. Using Test Data
 
@@ -283,7 +268,7 @@ Mentions are helper methods for generating and referring to up to five numbered 
 Mentions are resolved per type and per test and always refer to the same value within a specification.
 
 **Single values**
-For a single generated value:
+For a single generated value — all of these refer to the same one:
 `A`, `An`, `The`, `AFirst`, `TheFirst`
 
 For additional values of the same type:
@@ -297,38 +282,29 @@ For collections of generated values:
 `Zero`, `One`, `Two`, `Three`, `Four`, `Five`
 `Some` (at least one), `Many` (at least two), `AnyNumberOf`
 
-All of these but `One` name the type as a plural in the specification, so `Two<Room>()` reads
-"two Rooms" and `Many<Query>()` reads "many Queries". The spelling is the regular one, so a noun
-with an irregular plural is written as though it were regular — `Two<Child>()` reads "two Childs".
-
 **Unreferenced values**
 For auto-generated values that are not intended to be referenced again:
-`Any`, `Another`
+`Any`
 
 As an argument in a mock setup or verification, `Any<T>()` means any value of the type (see [4.3](#43-mocking-with-arguments)).
 
 **Variation**
-Distinct mentions get distinct values where the type has room for them, deterministically. Small value spaces may repeat
+Distinct mentions get distinct values where the type has room for them, deterministically. Small value spaces may repeat.
 
 ### 3.2 Tags
 
 Tags complement mentions by allowing values to be referred to by name rather than position.
 They are primarily useful when working with multiple values of the same type.
 
-A tag is an instance of `Tag<TValue>`.
-Each tag represents exactly one value of the given type.
+A tag is an instance of `Tag<TValue>` and represents exactly one value of the given type.
+A tag assigned to a field takes the field's name, which shows in diagnostic output;
+a tag declared anywhere else is given its name: `new("name")`.
 
 Example:
 ```csharp
-protected static Tag<string> name = new(nameof(name));
-protected static Tag<int> age = new(nameof(age)), shoeSize = new(nameof(shoeSize));
+protected static Tag<string> name = new();
+protected static Tag<int> age = new(), shoeSize = new();
 ```
-Providing a name for the tag improves diagnostic output.
-The parameterless constructor `new()` may also be used — the tag takes the name of the field it is
-assigned to.
-
-In a specification a tag reads as "the Name", and a member access after it reads possessively:
-`The(room).RoomNumber` renders "the Room's RoomNumber".
 
 #### 3.2.1 Set and reference tagged values
 Tags can be used to set or reference values during pipeline configuration and execution.
@@ -362,7 +338,7 @@ TSpec supplies test data through an internal generation pipeline. When a value i
    * a registered type conversion or value source (see [3.4](#34-type-registration-and-conversion))
    * an explicitly provided value or factory, e.g. `Using(42)` or `Using(() => new MyModel())`
    * the built-in generation strategy for the type (see below)
-3. **Customize**: any setup or transform lambdas provided for the type are applied, most recently provided first.
+3. **Customize**: any setup or transform lambdas provided for the type with `Using` are applied, most recently provided first.
 
 Built-in generation covers most types out of the box:
 * **Primitives**: standard primitives like `int`, `string`, `Guid`, `DateTime`, `Uri`, and `TimeSpan`.
@@ -374,17 +350,16 @@ Built-in generation covers most types out of the box:
 
 ### 3.4 Type Registration and Conversion
 
-If a specific custom mapping is required during data creation, you can override default generation by using the fluent type conversion pipeline.
+To override how values of a type are generated, register a conversion with `Using<TTarget>()`.
 
-* **Fluent Registration:** Configure the generator pipeline via `Using<TTarget>().From<TSource>()` — use values of the target type from the set described by the source type.
-* **Smart Casting:** Once mapped, TSpec automatically probes the requested type for compatibility. It attempts to construct the target by finding implicit cast operators, single-parameter constructors, or matching static factory methods (e.g., `Create()`).
-* **Conversion:** For explicit control, inject a conversion delegate directly, such as `Using<int>().From((byte b) => b + 1)` — the source type is inferred from the lambda parameter.
-* **Chaining:** Register several conversions fluently with `And`, e.g. `Using<int>().From<byte>().And<long>().From<short>()`.
-* **Scoping:** Like the value-level overloads, `Using<TTarget>()` accepts an optional `For` scope, e.g. `Using<int>(For.Input).From<byte>()` applies the conversion only when generating ambient test data, leaving subject construction unaffected. The default is `For.All`. Registrations for the same target type must have disjoint scopes: one for `Input` and another for `Subject` can coexist, but overlapping scopes throw `SetupFailed`.
-* **Sequences:** For numeric and temporal source types (`DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, `TimeSpan`), constrain the generated source values with `StartingAt` and `Spaced`, e.g. `Using<int>().From<int>().StartingAt(10).Spaced(5)`. `Spaced` accepts a fixed spacing (negative for descending) or a step function, e.g. `Spaced(i => i * 2)`. Generated values are guaranteed unique: a sequence that would repeat a value or leave the type's range throws `ValuesExhausted`.
-* **Generator functions:** For arbitrary value spaces — non-numeric types or stateful series — pass a generator to `From`, e.g. `Using<Guid>().From(Guid.NewGuid)` or `Using<int>().From(NextFibonacci)` with a method or closure holding the state. Generated values are converted to the target type if necessary and used exactly as produced: the user defines the value space, so duplicates are allowed (1, 1, 2, 3, 5, ...).
-* **Value lists:** To use exactly the given values, pass an explicit list to `From`, e.g. `Using<int>().From([10, 20, 30])`. The values are used in declaration order, duplicates allowed, and requesting more values than the list contains throws `ValuesExhausted`.
-* **Safe Failures:** If incompatible types are relayed and no conversion path exists, generation throws `InvalidTypeConversion`.
+* **From a source type:** `Using<TTarget>().From<TSource>()` generates source values and converts them to the target, through an implicit cast operator, a single-parameter constructor, or a matching static factory method (e.g., `Create()`).
+* **Conversion lambda:** `Using<int>().From((byte b) => b + 1)` — the source type is inferred from the lambda parameter.
+* **Chaining:** register several conversions with `And`, e.g. `Using<int>().From<byte>().And<long>().From<short>()`.
+* **Scoping:** `Using<int>(For.Input).From<byte>()` applies the conversion only to input data, leaving subject construction unaffected. The default is `For.All`. Registrations for the same target type must have disjoint scopes — one for `Input` and another for `Subject` can coexist, but overlapping scopes throw `SetupFailed`.
+* **Sequences:** for numeric and temporal source types (`DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, `TimeSpan`), constrain the values with `StartingAt` and `Spaced`, e.g. `Using<int>().From<int>().StartingAt(10).Spaced(5)`. `Spaced` accepts a fixed spacing (negative for descending) or a step function, e.g. `Spaced(i => i * 2)`. Values are unique: a sequence that would repeat a value or leave the type's range throws `ValuesExhausted`.
+* **Generator functions:** for arbitrary value spaces, pass a generator, e.g. `Using<Guid>().From(Guid.NewGuid)` or `Using<int>().From(NextFibonacci)` with a method or closure holding the state. Values are converted to the target type if needed and used as produced, so duplicates are allowed (1, 1, 2, 3, 5, ...).
+* **Value lists:** `Using<int>().From([10, 20, 30])` uses exactly the given values, in order; requesting more values than the list contains throws `ValuesExhausted`.
+* **No conversion path:** generation throws `InvalidTypeConversion`.
 
 ```csharp
 // Generates an Email instance automatically by creating a primitive source and looking for constructors or static factories
@@ -404,7 +379,7 @@ public class WhenRelayIntToByteWithConverter : Spec<int>
 
 ## 4. Mocking & Auto-Mocking
 
-This chapter assumes familiarity with Moq or a similar mocking framework, and shows how TSpec simplifies the mocking experience.
+This chapter assumes familiarity with mocking, and shows how TSpec simplifies the mocking experience.
 
 ### 4.1 Auto-Mocking subject under test
 
@@ -412,16 +387,15 @@ The subject under test will be created automatically with mocks and default valu
 Remember from Chapter 2 that mocks are configured after test data has been generated, 
 so test data and constraints are available in the mocking stage regardless of where in the test they are provided.
 
-You can supply your own constructor arguments by calling `Using`, or modify the generated ones by calling `Given` with a setup or transform lambda.
+You can supply your own constructor arguments by calling `Using`, or modify the generated ones by calling `Using` with a setup or transform lambda.
 You can even provide the subject under test itself:
 `Using(new MyClass(42, "Thursday"))`
 
-**Subject's Constructor defaults are honoured.** A parameter that declares a default gets what the test arranged — a value from `Using`, a registered conversion, or a mock the test has already set up — and keeps its default otherwise.
+**Constructor defaults are honoured.** A parameter that declares a default gets what the test arranged — a value from `Using`, a registered conversion, or a mock the test has already set up — and keeps its default otherwise.
 
 ### 4.2 Mocking
 
 To mock the behavior of a dependency, call `Given<[TheService]>().That(_ => _.[TheMethod](...)).Returns/Throws(...)`. 
-`That` accepts any lambda you would normally supply to `Setup` when creating a mock with Moq. 
 You do not need to create and manage mocks manually, but can supply mocked behavior directly to the pipeline.
 This allows most mocking scenarios to be expressed inline, close to the behavior under test.
 
@@ -438,14 +412,11 @@ A **protected** member can only be mocked by name:
 ### 4.3 Mocking with arguments
 
 Arguments in the mocked call match by value, so `The<int>()` matches the value the test passes.
-When the argument does not matter, write `Any<T>()` — in a mock setup or verification it means any value of the type, like Moq's `It.IsAny<T>()`, and renders as "any T":
+When the argument does not matter, write `Any<T>()` — in a mock setup or verification it means any value of the type:
 
 ```csharp
 => Given<IBookingStore>().That(_ => _.Save(Any<Booking>(), Any<CancellationToken>())).Throws<IOException>()
-// Given IBookingStore.Save(any Booking, any CancellationToken) throws IOException
 ```
-
-`It.IsAny<T>()` still works and renders the same way.
 
 To vary mocked behavior based on arguments, supply a lambda with arguments to `Returns`. The lambda signature must match the mocked call.
 Up to five arguments are supported.
@@ -500,8 +471,6 @@ List<int> _asked = [];
 
 To verify a call to a mocked dependency, call `Then<[TheService]>([SomeLambdaExpression])`. 
 
-Both mocking and verification are based on the Moq framework.
- 
 Example:
 ```csharp
 namespace MyProject.Spec.ShoppingService;
@@ -523,49 +492,23 @@ public class WhenPlaceOrder : Spec<MyProject.ShoppingService>
 #### 4.6.1 Invocation counts — `wasInvoked:`
 
 To assert *how many times* something was invoked, add `wasInvoked:` — a `Moq.Times`. The same
-argument closes all three scopes, so they read identically; only the *selector* in the parentheses
-changes: a full expression (matches arguments), a method name (any arguments), or nothing (the whole
-service):
+argument closes all three forms; only the *selector* in the parentheses changes:
 
 ```csharp
-using static Moq.Times;   // enables the paren-free method-group form
+using static Moq.Times;   // enables the paren-free Once, Never, ...
 
 Then<IEventQueue>(q => q.MarkRejected(42, Any<string>(), Any<CancellationToken>()), Once)
     .And<IEventQueue>(nameof(IEventQueue.MarkFailed), Never)   // named method, any args
     .And<IEntityWriter>(wasInvoked: Never);                    // whole service, any interaction
 ```
 
-`wasInvoked:` is optional to name on the first two forms (positional works: `…, Once`); it is
-required on the whole-service form to keep it readable. `wasInvoked: Never` is the concise way to
-assert a collaborator was **not** used, and every form renders the count into the specification —
-e.g. `IEventQueue.MarkFailed was not invoked`.
+* **Expression** — matches arguments. Without `wasInvoked:`, `Then<TService>(expr)` verifies the call was made at least once.
+* **Named method** — matches any invocation of the method regardless of arguments; `nameof` keeps it refactor-safe.
+  On an overloaded method the count aggregates across all overloads, so use the expression form when a specific overload matters.
+* **Whole service** — counts every interaction, including property gets/sets and indexer access,
+  so `wasInvoked: Never` asserts the service was not touched at all. Here `wasInvoked:` must be named.
 
-**Whole service** — counts *every* interaction recorded by Moq (method calls **and** property
-gets/sets and indexer access), so a property read counts; `wasInvoked: Never` asserts the service was
-untouched in any way:
-
-```csharp
-Then<IOrderService>(wasInvoked: Once)      // exactly one interaction
-    .And<IEmailSender>(wasInvoked: Never); // never touched
-```
-
-**Named method** — `nameof(IEventQueue.MarkFailed)` keeps the name refactor-safe (a plain
-`"MarkFailed"` string also works) and needs no expression at all. It
-matches **any** invocation of that method regardless of arguments; on an **overloaded** method the
-count aggregates across all overloads (ideal for `Never` — when a specific overload or argument values
-matter, use the expression form).
-
-**Expression** — without `wasInvoked:`, `Then<TService>(expr)` verifies the call was made at least
-once (the common case); add `wasInvoked:` to assert a specific count.
-
-The `using static Moq.Times;` idiom lets you write `Once`/`Never` paren-free (they bind as method
-groups); without it, use `wasInvoked: Times.Once()`.
-
-> **Deprecated:** the older `Then<TService>().WasInvoked(Times)` / `And<TService>().WasInvoked(Times)`
-> continuation still works but is deprecated in favour of `Then<TService>(wasInvoked: Times)`.
-
-The built-in mocking capabilities of TSpec cover almost all scenarios that Moq covers. 
-Should you need a feature that TSpec does not provide, create the mock explicitly with Moq and supply it to the pipeline using `Using(myMock.Object)`.
+Without `using static Moq.Times;`, write `wasInvoked: Times.Once()`.
 
 ## 5. Asserting Results
 
@@ -612,7 +555,7 @@ Values of any type can be verified with the extension methods `Is` and `Has`
 | | `Result.Is().EquivalentTo(new MyObject {Id = 3})` |
 | Not equal | `Result.Is().Not(3)` |
 | Null | `Result.Is().Null()` |
-| A / An — assert the type and expose the value, strongly typed, through `that` (subtypes accepted; `A`/`An` are synonyms — pick the article that reads best) | `var enc = one.Is().A<EncounterComposition>().that;` |
+| A / An — asserts the type (subtypes accepted) and exposes the value, strongly typed, through `that` | `var enc = one.Is().A<EncounterComposition>().that;` |
 | | `var order = one.Is().An<Order>().that;` |
 | Greater / less than | `3.Is().GreaterThan(2)` |
 | | `2.Is().LessThan(3)` |
@@ -627,7 +570,6 @@ Values of any type can be verified with the extension methods `Is` and `Has`
 | Assertion | Example |
 |---|---|
 | Condition | `Result.Has(_ => _.Id == 3)` |
-| Type — **deprecated**, use `Is().A<T>()` instead (asserts the type *and* exposes the value through `that`) | `Result.Has().Type<MyModel>()` |
 
 ### 5.3 Strings
 
@@ -652,8 +594,6 @@ Values of any type can be verified with the extension methods `Is` and `Has`
 | Match — regular expression (string pattern or `Regex` for custom options) | `"abc123".Does().Match(@"[a-c]+\d+")` |
 | | `"abc".Does().Match(new Regex("^ABC$", RegexOptions.IgnoreCase))` |
 
-The comparison renders in the specification, e.g. "contains "bc" ignoring case".
-
 #### 5.3.3 Has
 
 | Assertion | Example |
@@ -664,7 +604,7 @@ The comparison renders in the specification, e.g. "contains "bc" ignoring case".
 | | `"ABC".Has().Length().InRange(2, 4)` |
 
 `Has()` on a string also offers the char-collection assertions (`Count`, `All`, ...) from
-[section 5.5.3](#553-has); failure messages state the actual length before the string.
+[section 5.5.3](#553-has).
 
 ### 5.4 Time
 
@@ -679,14 +619,9 @@ The comparison renders in the specification, e.g. "contains "bc" ignoring case".
 
 ### 5.5 Collections
 
-Deferred sequences (e.g. LINQ queries) are lazily cached during assertion: each element is
-produced at most once, so chained assertions and failure descriptions all see the same elements,
-and short-circuiting assertions (such as `Does().Contain`) work even on infinite sequences.
-Already-materialized collections are asserted as-is.
-
-Failure descriptions stay readable regardless of collection size: the actual count is stated,
-at most five elements are listed (then an ellipsis), and each element is rendered by its
-`ToString` capped at 50 characters — so records and tuples read naturally.
+Deferred sequences (e.g. LINQ queries) are cached as they are asserted: each element is
+produced at most once, so chained assertions see the same elements, and short-circuiting
+assertions (such as `Does().Contain`) work even on infinite sequences.
 
 #### 5.5.1 Is
 
@@ -716,9 +651,8 @@ at most five elements are listed (then an ellipsis), and each element is rendere
 | | `list.Has().Count().InRange(2, 4)` |
 | Count with condition — counts only matching items | `list.Has().Count(it => it > 3).At(2)` |
 | | `list.Has().Count(it => it > 3).AtLeast(2)` |
-| Order — ascending or descending; `Order()` requires comparable items, `Order(by)` accepts any comparable key (int, string, DateTime, ...) and works on non-comparable items | `list.Has().Order().Ascending()` |
-| | `list.Has().Order(it => it.Age).Descending()` |
-| | `patients.Has().Order(p => p.Name).Ascending()` |
+| Order — ascending or descending; `Order()` for comparable items, `Order(by)` for any comparable key | `list.Has().Order().Ascending()` |
+| | `patients.Has().Order(p => p.Name).Descending()` |
 | [One/Two/Three/Four/Five]Items — asserts the count and returns the items as an n-tuple | `numbers.Has().OneItem().that.Is(3)` |
 | | `patients.Has().OneItem().that.Age.Is(3)` |
 | | `patients.Has().OneItem(it => it.Age == 3).that.Gender.Is('F')` |
@@ -728,8 +662,8 @@ at most five elements are listed (then an ellipsis), and each element is rendere
 | Some — at least one item matches | `list.Has().Some(it => it.Age > 3)` |
 | None — no item matches | `list.Has().None(it => it.Age > 3)` |
 
-Note: accessing `that` after an inverted assertion (e.g. `not.OneItem().that`) throws `SetupFailed` —
-there is no meaningful item to expose when the assertion states its absence.
+Accessing `that` after an inverted assertion (e.g. `not.OneItem().that`) throws `SetupFailed` —
+there is no item to expose when the assertion states its absence.
 
 #### 5.5.4 Dictionaries
 
@@ -744,11 +678,9 @@ Dictionary assertions bind to `IReadOnlyDictionary<TKey, TValue>` (covers `Dicti
 | | `dict.Has().no.Value(3)` |
 | Has(key) — asserts the key exists and exposes its value through `that` | `dict.Has("a").that.Is(3)` |
 
-Failure messages list the dictionary's key-value pairs (capped at five elements). Notes:
-
-- The enumerable-of-pairs assertions (`Count`, `OneItem`, `All`, ...) remain available, and chaining
+- The collection assertions (`Count`, `OneItem`, `All`, ...) remain available, and chaining
   through one of them keeps the dictionary vocabulary: `dict.Has().Count(2).and.Key("a")`.
-- Variables *declared* as `IDictionary<TKey, TValue>` bind to the enumerable-of-pairs assertions only.
+- Variables *declared* as `IDictionary<TKey, TValue>` get only the collection assertions.
 
 ### 5.6 Justifying assertions with because
 
@@ -760,26 +692,18 @@ is the correct outcome, provide a rationale with the named argument `because` in
     => Then(because: "the world is round").Result.Is().Around(Math.PI * 6, 0.001);
 ```
 
-The reason is included in the generated specification, appended after the assertion
-in natural reading order:
+The reason is appended after the assertion in the generated specification:
 
 ```csharp
 When Circumference
 Then Result is around 18.8496, because the world is round
 ```
 
-Phrase the reason so it reads naturally after the word "because".
-It should justify the expectation rather than restate it — the test name already says *what*
-is expected; `because` explains *why*. The reason can only be provided once per test method,
-in line with one logical assertion per test method, and covers all technical assertions
-chained after it (with `and`, `either`/`or` etc.).
+Phrase the reason so it reads naturally after the word "because", and let it justify the expectation
+rather than restate it — the test name already says *what* is expected; `because` explains *why*.
+A reason can be provided once per test method and covers every assertion chained after it.
 
-`Because(reason)` is syntactic sugar for `Then(because: reason)`:
-
-```csharp
-[Fact] public void ThenCircumferenceIsAroundSixPi()
-    => Because("the world is round").Result.Is().Around(Math.PI * 6, 0.001);
-```
+`Because("the world is round")` is shorthand for `Then(because: "the world is round")`.
 
 ### 5.7 Asserting exceptions
 
@@ -800,16 +724,10 @@ When the behavior under test is expected to throw, assert the thrown exception t
     => Then().Throws<InvalidOperationException>();
 ```
 
-```csharp
-When Checkout(an empty Cart)
-Then throws InvalidOperationException
-```
-
 #### Asserting on the thrown exception with `that`
 
 `Then().Throws<TError>()` (and the untyped `Then().Throws()`) expose the caught exception through
-`that`, so the full assertion vocabulary — including everything in this chapter — applies to it, its
-`Message`, or any other property:
+`that`, so the full assertion vocabulary applies to it, its `Message`, or any other property:
 
 ```csharp
 Then().Throws<ArgumentException>().that.Message.Is("Invalid cart");
@@ -817,29 +735,20 @@ Then().Throws<ArgumentException>().that.Message.Does().Match(@"cart \d+");
 Then().Throws<ArgumentException>().that.ParamName.Is("cartId");
 ```
 
-This reads naturally in the generated specification:
-
-```csharp
-When Create(an invalid Cart)
-Then throws ArgumentException that Message is "Invalid cart"
-```
-
-`that` is the idiomatic replacement for the older predicate form `Throws<TError>(e => e.Message.Contains(...))`,
-which records the raw lambda into the specification and hides the actual message on failure.
-The predicate and inline-assertion overloads remain available for conditions that don't decompose
-into a single property.
+Prefer `that` to the predicate form `Throws<TError>(e => e.Message.Contains(...))`: a failure shows the
+actual message, and the specification reads as prose rather than as a lambda. The predicate and
+inline-assertion overloads remain for conditions that don't decompose into a single property.
 
 ## 6. Tests as specification
 
-Every TSpec test carries a readable specification of what it claims. 
-A `_specification/` folder of markdown files is generated per test-project (opt-in),
-rendering what the tests claim faithfully in a maximally readable form.
-The specification is regenerated by running all tests (per project).
+Every TSpec test carries a readable specification of what it claims, shown when the test fails.
+Opt in, and a `_specification/` folder of markdown files is generated per test project from those claims,
+regenerated by running all its tests.
 
 ### 6.1 Recommended test structure
 
-This is an opinionated recommendation for structuring your tests, based on how xUnit and TSpec work and on experience from real projects.
-The goal of these conventions is to keep specifications readable, navigable, and aligned with production structure as test suites grow.
+This opinionated structure keeps specifications readable, navigable, and aligned with production code as test suites grow —
+and since the generated specification follows it, the names become its headings.
 
 1. Mimic the folder structure of your production code, with one test project per production project, called *[ProductionProject].Spec*
 1. Create one folder per class under test, called *[NameOfClass]*
@@ -896,37 +805,28 @@ Add one line to the spec project:
 ```
 
 A `_specification/` folder is then written to the spec project root when the run ends. Without that
-line nothing is collected and nothing changes.
-
-The project root is found from the files the spec classes are written in, as the build's debug
-information records them, so where the build puts the binaries does not matter — an artifacts path
-outside the tree works, and so does one nested under another project. A build that writes no debug
-information, or maps its source paths away, falls back to the folder the binaries are in; when
-neither answers, nothing is written and the reason is printed.
-
-The folder holds one markdown file per top-level folder of the spec project, named as the folder —
-`Rooms.md`, `Bookings.md` — plus one named as the project under test for the classes tested directly
-at its root (`MyHotel.md` for `MyHotel.Spec`, `Core.md` for `MyHotel.Core.Spec`). Each file is titled
-by its name and reads as its own document: what every requirement in it declares or arranges is
-stated once at the top, and the headings below follow the test structure. A full green run replaces
-the folder's contents, so a file for a folder that was renamed or removed does not linger.
-
-A `README.md` in the folder is the entry point, which GitHub renders as the folder's landing page.
-It carries the project's title, the `<Description>` of its project file when it has one, what holds
-throughout the specification, and a table with one row
-per file: the file as a link and how many `When`, `Given` and
-`Then` it holds, with an *All* row at the bottom. In a review, its diff says in one line per file where
-a change landed.
+line nothing is collected and nothing changes. The root is found through the build's debug information,
+wherever the binaries are written; a build without debug information falls back to the binaries' folder.
 
 **The spec project must be named after the project it describes** — `MyHotel.Spec` describes
 `MyHotel` — and must reference that project **directly**; a transitive reference is not enough. Any
 suffix works, `.Spec` preferred and `.Test` fine. This is checked before the first test runs, so a
 project that fails it throws `SetupFailed` immediately rather than after the suite has finished.
 
-A `[Fact]` renders as a bullet point with the method name in words, followed by the assertion in a code block.
+The folder holds one markdown file per top-level folder of the spec project, named as the folder —
+`Rooms.md`, `Bookings.md` — plus one named as the project under test for the classes tested directly
+at its root (`MyHotel.md` for `MyHotel.Spec`, `Core.md` for `MyHotel.Core.Spec`). A top-level folder
+named `README` or as the project under test therefore throws `SetupFailed`.
 
-A `[Theory]` fed by `[InlineData]` renders as a table of its rows, headed by
-the parameter names. A theory of more than **eight** parameters cannot be tabled and fails generation.
+Each file reads as its own document: what every requirement in it declares or arranges is stated once
+at the top, and the headings below follow the test structure. A `[Fact]` renders as a bullet point with
+the method name in words, followed by the assertion in a code block. A `[Theory]` fed by `[InlineData]`
+renders as a table of its rows, headed by the parameter names; a theory of more than **eight**
+parameters cannot be tabled and fails generation.
+
+A `README.md` in the folder is the entry point: the project's title, the `<Description>` of its project
+file when it has one, what holds throughout the specification, and a table linking each file with how
+many `When`, `Given` and `Then` it holds.
 
 **The specification is written only when every non-skipped test in the assembly passed.** A filtered or failed run
 leaves the existing files untouched and the gaps are named:
@@ -937,11 +837,12 @@ would be incomplete. Run the whole suite green to regenerate it.
   - MyHotel.Spec.WhenGetVersion.ThenReturnTheApplicationVersion
 ```
 
+A full green run replaces the folder's contents, so a file for a folder that was renamed or removed does not linger.
+
 #### Keeping it fresh
 
-The files are deterministic — sorted and deduplicated — so the same source produces the same files on
-every machine, and a stale one shows up as a diff. Each is rewritten with the line endings it already
-has, so regenerating on a CRLF checkout leaves `git status` quiet. Let the build catch a stale file:
+The files are deterministic — sorted and deduplicated — so a stale one shows up as a diff.
+Let the build catch it:
 
 ```bash
 dotnet test && git diff --exit-code -- "**/_specification/*.md"

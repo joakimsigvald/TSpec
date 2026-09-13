@@ -17,17 +17,15 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>2.6.2</PackageVersion>
+		<PackageVersion>2.7.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
+			CHANGED
+			* Another is obsolete; use Any
 			FIXED
-			* A project Description written on several indented lines heads the specification as one line
-			* Returns computed from two to five arguments renders as "returns (a, b) => body" instead of rendering no answer
-			* A lambda with typed parameters no longer makes the claim in the same chain render as raw source
-			* A tap is described like the rest of its Given instead of written as its source
-			* A tuple in the subject and return type header is written as C# writes it, with the element names the spec declared
+			* Improved documentation
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

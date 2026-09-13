@@ -19,11 +19,11 @@ public class WhenDateTime : Spec<DateTime>
     [Fact]
     public void IsNot()
     {
-        When(_ => A(_)).Then().Result.Is().Not(Another<DateTime>());
+        When(_ => A(_)).Then().Result.Is().Not(ASecond<DateTime>());
         Specification.Is(
             """
             When a _
-            Then Result is not another DateTime
+            Then Result is not a second DateTime
             """);
     }
 

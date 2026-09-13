@@ -1,4 +1,5 @@
 ﻿using TSpec.Continuations;
+using TSpec.Internal;
 using TSpec.Internal.TestData;
 
 namespace TSpec;
@@ -283,8 +284,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
 
     /// <summary>
     /// Yields a value of the given type that cannot be retrieved again.
-    /// Using `Any` is synonymous to `Another` — pick the alias that reads best.
-    /// As an argument in a mock setup or verification it means any value of the type, like `It.IsAny`.
+    /// As an argument in a mock setup or verification it means any value of the type.
     /// </summary>
     /// <typeparam name="TValue">The type of the value</typeparam>
     /// <returns>The generated or previously provided value</returns>
@@ -300,11 +300,11 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
 
     /// <summary>
     /// Yields a value of the given type that cannot be retrieved again.
-    /// Using `Another` is synonymous to `Any` — pick the alias that reads best.
     /// </summary>
     /// <typeparam name="TValue">The type of the value</typeparam>
     /// <returns>The generated or previously provided value</returns>
-    protected internal TValue Another<TValue>() => Pipeline.Mention<TValue>((int?)null);
+    [Obsolete(Obsoletions.Another)]
+    protected internal TValue Another<TValue>() => Any<TValue>();
 
     /// <summary>
     /// Yields a customized value of the given type that cannot be retrieved again
@@ -312,7 +312,8 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <typeparam name="TValue">The type of the value</typeparam>
     /// <param name="setup">An action applied to the value before it is returned</param>
     /// <returns>The generated and customized value</returns>
-    protected internal TValue Another<TValue>(Action<TValue> setup) => Pipeline.Create(setup);
+    [Obsolete(Obsoletions.Another)]
+    protected internal TValue Another<TValue>(Action<TValue> setup) => Any(setup);
 
     internal TValue Assign<TValue>(Tag<TValue> tag, TValue value) => Pipeline.Assign(tag, value);
 

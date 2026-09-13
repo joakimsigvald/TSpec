@@ -18,25 +18,14 @@ Then Result is the MyModel");
     }
 
     [Fact]
-    public void Another_Value_Is_Not_Same_As_A_Value()
+    public void Any_Value_Mentioned_Twice_Are_Different_Values()
     {
-        Given<IMyRepository>().That(_ => _.Get(Another<int>())).Returns(ASecond<MyModel>)
-            .Then().Result.Is().Not(TheSecond<MyModel>());
+        Given<IMyRepository>().That(_ => _.Get(The<int>())).Returns(Any<MyModel>)
+            .Then().Result.Is().Not(Any<MyModel>());
         Specification.Is(
-@"Given IMyRepository.Get(another int) returns a second MyModel
+@"Given IMyRepository.Get(the int) returns any MyModel
 When Get(an int)
-Then Result is not the second MyModel");
-    }
-
-    [Fact]
-    public void Another_Value_Mentioned_Twice_Are_Different_Values()
-    {
-        Given<IMyRepository>().That(_ => _.Get(The<int>())).Returns(Another<MyModel>)
-            .Then().Result.Is().Not(Another<MyModel>());
-        Specification.Is(
-@"Given IMyRepository.Get(the int) returns another MyModel
-When Get(an int)
-Then Result is not another MyModel");
+Then Result is not any MyModel");
     }
 
     [Fact]
@@ -61,11 +50,11 @@ Then Result is the MyModel");
     }
 
     [Fact]
-    public void A_Value_Is_Same_As_Another_Value_If_Using()
+    public void A_Value_Is_Same_As_Any_Value_If_Using()
     {
-        Using(Another<MyModel>()).Then().Result.Is(The<MyModel>());
+        Using(Any<MyModel>()).Then().Result.Is(The<MyModel>());
         Specification.Is(
-@"Using another MyModel
+@"Using any MyModel
 When Get(an int)
 Then Result is the MyModel");
     }

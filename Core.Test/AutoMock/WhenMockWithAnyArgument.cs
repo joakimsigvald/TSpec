@@ -24,12 +24,12 @@ public class WhenMockWithAnyArgument : Spec<MyValueIntService, string>
     public void ThenSetupMatchesAnyArguments()
     {
         Given<IMyValueIntRepo>().That(_ => _.Get2(Any<int>(), Any<int>())).Returns(A<string>)
-            .When(_ => _.GetValue2(A<MyValueInt>(), Another<MyValueInt>()))
+            .When(_ => _.GetValue2(A<MyValueInt>(), ASecond<MyValueInt>()))
             .Then().Result.Is(The<string>());
         Specification.Is(
             """
             Given IMyValueIntRepo.Get2(any int, any int) returns a string
-            When GetValue2(a MyValueInt, another MyValueInt)
+            When GetValue2(a MyValueInt, a second MyValueInt)
             Then Result is the string
             """);
     }

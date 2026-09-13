@@ -20,4 +20,12 @@ internal static class Obsoletions
     internal const string DoesNotThrow =
         "An act either completes or throws — use Completes() to state that it ran to the end. "
         + "If it throws, state what it throws with Throws<TError>().";
+
+    /// <summary>
+    /// Another yields the same throwaway value as Any, except in a mock setup or verification,
+    /// where it matches no call the test can make.
+    /// </summary>
+    internal const string Another =
+        "Another is a synonym of Any — use Any<TValue>() instead. "
+        + "For a value distinct from one already mentioned, use ASecond<TValue>().";
 }

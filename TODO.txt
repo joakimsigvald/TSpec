@@ -2,6 +2,9 @@ Four items moved to SPECIFICATION-IMPROVEMENT-PLAN.md section 6, where they are 
 specification rather than for the API: assert-nothing detection, raw string literals, nested new(...)
 in an argument list, and Nothing as an explicit type argument.
 
+* Any<T>(constraint) in a mock setup or verification, replacing It.Is<T>(constraint). Clashes with
+  the existing Any<T>(Action<T> setup): u => u.Active = true binds to a Func<T, bool> overload, so a
+  setup would silently become a constraint. Needs another name/signature or dropping the setup form.
 * Scratch project for the generator's xunit facts: fixture wiring, TestState at Dispose, and
   end-of-assembly ordering cannot be self-tested from inside the same assembly. Today only
   MyHotel.Spec passing verifies them, which will not catch a regression precisely.

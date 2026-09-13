@@ -164,13 +164,13 @@ public class WhenGivenSetupModelWithDefault : Spec<MyService, MyModel>
     public void GivenModel_ReferencedAsInputTwice_AndWithDefaultSetup_ThenUseDefaultSetup()
     {
         When(_ => MyService.Echo(A<MyModel>()))
-            .Given<IMyRepository>().That(_ => _.SetModel(The<MyModel>())).Returns(() => Another<MyModel>())
+            .Given<IMyRepository>().That(_ => _.SetModel(The<MyModel>())).Returns(() => ASecond<MyModel>())
             .Using<MyModel>(_ => _.Id = 123)
             .Then().Result.Id.Is(123);
         Specification.Is(
             """
             Using MyModel with Id = 123
-            Given IMyRepository.SetModel(the MyModel) returns another MyModel
+            Given IMyRepository.SetModel(the MyModel) returns a second MyModel
             When MyService.Echo(a MyModel)
             Then Result.Id is 123
             """);
