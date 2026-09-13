@@ -30,7 +30,7 @@
 			CHANGED
 			* No Moq type remains in TSpec's API. TSpec 3.1 drops its Moq dependency: reference Moq directly if your tests use it
 			* Write Any&lt;T&gt;() and Any&lt;T&gt;(constraint) rather than Moq's It.IsAny and It.Is
-			* Update Nuget packages and moved from xunit 3.x to Xxunit 4.x
+			* Requires xUnit v3 4.x: installing TSpec 3.0 upgrades a test project's xunit.v3 to 4.0.1 or later, with xUnit 4's own breaking changes
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
