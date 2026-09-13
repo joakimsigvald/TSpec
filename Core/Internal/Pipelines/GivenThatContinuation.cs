@@ -1,7 +1,7 @@
-﻿using Moq;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using TSpec.Continuations;
+using TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 namespace TSpec.Internal.Pipelines;
 
@@ -19,17 +19,22 @@ internal class GivenThatContinuation<TSUT, TResult, TService, TReturns, TActualR
         Spec<TSUT, TResult> spec,
         Expression<Func<TService, TActualReturns>> call,
         string callExpr)
-        : base(spec, GetSetup(AnyArgument.Rewrite(call)), callExpr) { }
+        : base(spec, AnswerCall(AnyArgument.Rewrite(call)), callExpr) { }
 
     /// A member named because no expression can name it; the name is what the specification states.
     internal GivenThatContinuation(Spec<TSUT, TResult> spec, string member)
-        : base(spec, mock => ProtectedMember.Setup(mock, member, Answering), member) { }
+        : base(
+            spec,
+            (mock, answer) => mock.Answer<TService>(
+                ProtectedMember.Resolve<TService>(member, Answering), typeof(TReturns), answer),
+            member) { }
 
     private static Type[] Answering =>
         [typeof(TReturns), typeof(Task<TReturns>), typeof(ValueTask<TReturns>)];
 
-    private static Func<Mock<TService>, object> GetSetup(Expression<Func<TService, TActualReturns>> call)
-        => mock => mock.Setup(call);
+    private static Action<MockHandle, Func<IReadOnlyList<object>, object?>> AnswerCall(
+        Expression<Func<TService, TActualReturns>> call)
+        => (mock, answer) => mock.Answer(call, typeof(TReturns), answer);
 
     public IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Returns<TArg>(
         Func<TArg, TReturns> returns,
@@ -69,8 +74,7 @@ internal class GivenThatContinuation<TSUT, TResult, TService, TReturns, TActualR
             returnsExpr);
 
     /// <summary>
-    /// The answer is computed as the call arrives and held until the call is answered — the one
-    /// order Moq gives, since it reports an invocation before it asks what to return.
+    /// The answer is computed by a tap and held for the outcome, which the call's answer runs next.
     /// </summary>
     private IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Computed(
         Delegate returns, Func<IReadOnlyList<object>, TReturns> answer, string? returnsExpr)

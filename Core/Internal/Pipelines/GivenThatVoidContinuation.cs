@@ -1,6 +1,6 @@
-﻿using Moq;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using TSpec.Continuations;
+using TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 namespace TSpec.Internal.Pipelines;
 
@@ -17,14 +17,19 @@ internal class GivenThatVoidContinuation<TSUT, TResult, TService>
         Spec<TSUT, TResult> spec,
         Expression<Action<TService>> call,
         string callExpr)
-        : base(spec, GetSetup(AnyArgument.Rewrite(call)), callExpr) { }
+        : base(spec, AnswerCall(AnyArgument.Rewrite(call)), callExpr) { }
 
     /// A member named because no expression can name it; the name is what the specification states.
     internal GivenThatVoidContinuation(Spec<TSUT, TResult> spec, string member)
-        : base(spec, mock => ProtectedMember.Setup(mock, member, Answering), member) { }
+        : base(
+            spec,
+            (mock, answer) => mock.Answer<TService>(
+                ProtectedMember.Resolve<TService>(member, Answering), typeof(Continuations.Void), answer),
+            member) { }
 
     private static Type[] Answering => [typeof(void), typeof(Task), typeof(ValueTask)];
 
-    private static Func<Mock<TService>, object> GetSetup(Expression<Action<TService>> call)
-        => mock => mock.Setup(call);
+    private static Action<MockHandle, Func<IReadOnlyList<object>, object?>> AnswerCall(
+        Expression<Action<TService>> call)
+        => (mock, answer) => mock.Answer(call, answer);
 }

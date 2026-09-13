@@ -20,7 +20,9 @@ correct it in place as work lands, and move a finished stage to Done as a line.
   API (`Internal/Pipelines/AnyArgument.cs`).
 - **Inside any `TSpec.*` namespace a bare `Times` binds to `TSpec.Times`**, ahead of `using Moq;` —
   TSpec's own code writes Moq's as `Moq.Times`, and so do raw Moq calls in Core.Test (`AutoDispose.cs`).
-- **Moq inside TSpec**: 23 files, about 1,600 lines touch it, through these seams:
+- **Moq inside TSpec**: 23 files, about 1,600 lines touch it, through these seams. After steps 1–3
+  (§4.1) it is in `MockHandle`, `MockRegistry`, `MoqDefaultValueProvider`, `AnyArgument`, and
+  verification by expression (`TestResult`, `Pipeline`):
   - `MockRegistry` — creates `Mock<T>` by reflection, one per type.
   - `GivenThatCommonContinuation` (365 lines) and the other `GivenThat*` continuations — `Setup`,
     `Returns`/`ReturnsAsync`, `Throws`/`ThrowsAsync`, `Callback`, largely as `is ICallback<TService,
@@ -55,9 +57,8 @@ continuations carry Moq's fluent return object as `object` and branch on its run
 `is IReturnsThrows<TService, …>` ladders (`GivenThatCommonContinuation`); taps, sequences and
 from-arguments `Returns` depend on Moq's orderings rather than on anything TSpec states. Each of these
 is behaviour the seam has to state as a contract, or the engine will break it silently:
-- Moq reports an invocation to the callback **before** asking what to return — `Computed` in
-  `GivenThatContinuation` relies on it to hold the answer between the two.
-- Moq keeps **one** callback per setup, which is why taps are folded (improvement plan item 22).
+- ~~Moq reports an invocation to the callback before asking what to return; Moq keeps one callback
+  per setup~~ — no longer relied on since step 3: a call has one answer, and the taps run first in it.
 - A later setup of the same call **overrides** an earlier one.
 - An unmatched call asks the default provider, which answers in this order: a service-wide `Returns`
   value (or a `Task`/`ValueTask` of it), the service-wide exception, a `Using` value, the mock itself
@@ -79,12 +80,24 @@ the provided default, and a task of it, first; tests in `WhenReturnsDefaultValue
 `WhenMockReturnsSelf` and `WhenValueTaskOfInterface` pin each case. The storage stays in the provider,
 keyed by service: it was never Moq's, so moving it onto the handle gains the swap nothing.
 
-**Step 3 — call setup, the large one.** Set up a call named by expression or by protected
-`MethodInfo`, and give it a single answer: a function from the call's arguments to its unwrapped
-result (or a throw), with the adapter doing the `Task`/`ValueTask` wrapping. One function that both
-reads the call and answers it replaces Moq's callback-then-returns pair, so taps, sequences and
-`Computed` become plain composition and the ladders go. Split if it grows: synchronous and void first,
-then async, then protected (`ProtectedMember`'s refusals stay above the seam; only `Install` moves).
+**Step 3 — call setup.** DONE 2026-09-13, in one piece. `MockHandle.Answer` takes a call (a void or
+valued expression, or a protected `MemberInfo`), the answer type, and one function from the call's
+arguments to the answer or a throw. `AsyncAnswer.Respond` makes the task where the call is awaited.
+In `GivenThatCommonContinuation`, a tap, the outcome and a sequence step are now plain composition:
+the ladders, `Capturing`, the lazy Moq continuation and `MockCallSequence.Capture` are gone, and
+`Spec.GetMock<T>()` with them. `ProtectedMember.Resolve` keeps the refusals and returns the member;
+the Moq install moved into the handle. Probed before and after, over 23 setup shapes. What changed
+is decided in §4.5, pinned in `WhenAMockedAsyncCallThrows` and `WhenReturnsDefaultInt`, and belongs in
+3.1's release notes:
+- A throw on an awaited call (`Task`, `Task<T>`, `ValueTask`, `ValueTask<T>`) comes back as a faulted
+  task, whatever the setup route. Before, it was thrown at the caller except for `Throws(func)` on
+  `Task<T>` and `Throws` on `ValueTask<T>`.
+- `Throws<E>()` on a `Task<T>` call, named or protected, threw `ArgumentNullException` instead of `E`.
+- `Throws` on a protected member returning `Task` or `ValueTask` failed setup with "unhandled mock
+  continuation".
+- `ReturnsDefault()` on a `Task` call answered with a null task; now a completed one.
+- `Returns()` on a call that answers with a value still refuses, but names the type instead of a Moq
+  class.
 
 **Step 4 — verification by expression.** `Verify(call, TSpec.Times)` behind the handle; the adapter
 keeps Moq's `Verify`, so the failure stays `MockException` with Moq's wording until the engine, where
@@ -139,6 +152,8 @@ and their new wording is the PO's call — show before/after.
   — and matching silently wrong. The engine must recognise calls on `Moq.It` by name and either
   translate them or refuse with a `SetupFailed` pointing at `Any`. Refusing is simpler.
 - **The failure exception.** `MockException` becomes an xUnit failure; one Core.Test test catches it.
+- **A throw on an awaited call faults the task — decided 2026-09-13** (PO), as a real async method
+  does, whichever way the throw was set up. Implemented in step 3 (`AsyncAnswer`).
 
 **Done when** `Core.csproj` has no Moq reference, the §4.3 probes pass, and §4.4 holds.
 
@@ -149,6 +164,11 @@ as C# never writes it: the interface-in-a-task refusal says `Task<IEnumerable`1>
 `Returns(A<IEnumerable`1>)` for a `Task<IEnumerable<MyModel>>`, and `MostSpecific` would list
 `ICollection`1`. Use `Alias()`, as the rest of TSpec's messages do. Test first: extend
 `WhenMockReturnTaskOfInterface` with a generic value type.
+
+**A tap before `First()` is dropped**, from both the call and the specification:
+`That(…).Tap(a).First().Returns(…)` never runs `a` and does not state it. Found probing step 3, which
+kept the behaviour (`InSequence` passes neither the taps nor their text). Decide whether such a tap
+fires on every call of the sequence, or is refused; test first either way.
 
 ## 5. Release 3.2+ — the mocking language
 

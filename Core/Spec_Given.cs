@@ -1,9 +1,6 @@
-﻿using Moq;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using TSpec.Continuations;
-using TSpec.Internal;
 using TSpec.Internal.Pipelines;
-using TSpec.Internal.Specification;
 
 namespace TSpec;
 
@@ -94,9 +91,6 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
             Pipeline.Specification.AddGivenCount<TValue>(count!);
             setup();
         });
-
-    internal Mock<TService> GetMock<TService>() where TService : class
-        => (Mock<TService>)Pipeline.GetMock<TService>().MoqMock;
 
     internal void SetupThrows<TService>(Func<Exception> expected)
         => Pipeline.SetupThrows<TService>(expected);

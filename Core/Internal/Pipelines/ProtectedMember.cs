@@ -1,19 +1,15 @@
-﻿using Moq;
-using Moq.Protected;
-using System.Reflection;
+﻿using System.Reflection;
 using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.Pipelines;
 
 /// <summary>
-/// Sets up a member a test cannot write a lambda for, by naming it.
+/// Finds a member a test cannot write a lambda for, by its name.
 /// </summary>
 /// <remarks>
 /// A protected member is not accessible to the expression a setup is normally written as, so it is
-/// named instead — which is how Moq reaches one too. Everything Moq-specific about that route lives
-/// here: what comes back is an ordinary setup, so the outcome vocabulary above knows nothing about
-/// how the call was named. A name states no arguments, so every parameter takes whatever it is
-/// passed.
+/// named instead. What comes back is the member itself, answered like any other call, so the outcome
+/// vocabulary above knows nothing about how the call was named.
 /// </remarks>
 internal static class ProtectedMember
 {
@@ -21,11 +17,11 @@ internal static class ProtectedMember
         BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
     /// <summary>
-    /// The Moq setup for the named protected member. Refuses, rather than guesses, wherever naming
-    /// alone cannot identify one member or Moq cannot intercept it — each refusal saying which of
-    /// those it is, since "no such member" would be read as a misspelling.
+    /// The named protected method or property. Refuses, rather than guesses, wherever naming alone
+    /// cannot identify one member or a mock cannot intercept it — each refusal saying which of those
+    /// it is, since "no such member" would be read as a misspelling.
     /// </summary>
-    internal static object Setup<TService>(Mock<TService> mock, string member, Type[] returnTypes)
+    internal static MemberInfo Resolve<TService>(string member, Type[] returnTypes)
         where TService : class
     {
         var methods = Inheritance(typeof(TService))
@@ -33,7 +29,7 @@ internal static class ProtectedMember
             .Where(candidate => candidate.Name == member)
             .ToArray();
         if (methods.Length == 0)
-            return SetupProperty(mock, member, returnTypes);
+            return Property<TService>(member, returnTypes);
 
         // Before selecting by return type, since a generic member's return type is its own type
         // parameter and would otherwise be reported as simply the wrong one.
@@ -45,7 +41,7 @@ internal static class ProtectedMember
 
         var method = Sole(named, member, returnTypes, typeof(TService));
         Verify(method, member, typeof(TService));
-        return Install(mock, method);
+        return method;
     }
 
     private static IEnumerable<Type> Inheritance(Type? type)
@@ -80,7 +76,7 @@ internal static class ProtectedMember
     }
 
     /// <summary>
-    /// What a name cannot carry, and what Moq cannot reach. Each is a real member the test named
+    /// What a name cannot carry, and what a mock cannot reach. Each is a real member the test named
     /// correctly, so none of them may be reported as a missing one.
     /// </summary>
     private static void Verify(MethodInfo method, string member, Type service)
@@ -100,18 +96,8 @@ internal static class ProtectedMember
                 + "it. Only a member the mock can override may be set up");
     }
 
-    private static object Install<TService>(Mock<TService> mock, MethodInfo method)
-        where TService : class
-    {
-        var matchers = method.GetParameters().Select(AnyOf).ToArray();
-        return method.ReturnType == typeof(void)
-            ? mock.Protected().Setup(method.Name, exactParameterMatch: true, args: matchers)
-            : Invoke(SetupOf<TService>(method.ReturnType), mock.Protected(), [method.Name, true, matchers]);
-    }
-
-    /// A protected property is named the same way; it takes no arguments, so it states no matchers.
-    private static object SetupProperty<TService>(
-        Mock<TService> mock, string member, Type[] returnTypes)
+    /// A protected property is named the same way.
+    private static PropertyInfo Property<TService>(string member, Type[] returnTypes)
         where TService : class
     {
         var property = Inheritance(typeof(TService))
@@ -126,39 +112,8 @@ internal static class ProtectedMember
                 $"{typeof(TService).Alias()}.{member} is a {property.PropertyType.Alias()}, not "
                 + $"{Either(returnTypes)}. Name the type exactly: a base type or interface it "
                 + "happens to satisfy will not match");
-
-        return Invoke(
-            SetupOf<TService>(property.PropertyType), mock.Protected(), [member, true, Array.Empty<object>()]);
+        return property;
     }
-
-    /// <summary>
-    /// Moq's Setup is generic in the return type, which is known only at run time here, so it is
-    /// reached by reflection. What it throws arrives wrapped in a wrapper that says nothing, so the
-    /// reason inside is what gets raised.
-    /// </summary>
-    private static MethodInfo SetupOf<TService>(Type returnType) where TService : class
-        => typeof(IProtectedMock<TService>).GetMethods()
-            .First(candidate => candidate.Name == "Setup"
-                && candidate.IsGenericMethod
-                && candidate.GetParameters().Length == 3)
-            .MakeGenericMethod(returnType);
-
-    private static object Invoke(MethodInfo setup, object target, object?[] arguments)
-    {
-        try
-        {
-            return setup.Invoke(target, arguments)!;
-        }
-        catch (TargetInvocationException ex) when (ex.InnerException is not null)
-        {
-            throw new SetupFailed(ex.InnerException.Message, ex.InnerException);
-        }
-    }
-
-    private static object AnyOf(ParameterInfo parameter)
-        => typeof(ItExpr).GetMethod(nameof(ItExpr.IsAny))!
-            .MakeGenericMethod(parameter.ParameterType)
-            .Invoke(null, null)!;
 
     private static string Either(IEnumerable<Type> types)
         => string.Join(" or ", types.Select(type => type.Alias()).Distinct());

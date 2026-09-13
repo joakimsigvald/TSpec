@@ -1,52 +1,49 @@
-﻿using Moq;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using TSpec.Continuations;
 using TSpec.Internal.Specification;
+using TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 namespace TSpec.Internal.Pipelines;
 
 /// <summary>
-/// What a mocked call does, whichever way the call was named. One ordinary Moq setup stands behind
-/// every form: a lone outcome installs itself on that setup, and a sequence queues its steps behind
-/// it. So the outcome vocabulary — Returns, Throws, Tap — is stated once here and reads the same
-/// before First as after it.
+/// What a mocked call does, whichever way the call was named. One answer stands behind every form:
+/// a lone outcome is that answer, and a sequence queues its steps behind it. So the outcome
+/// vocabulary — Returns, Throws, Tap — is stated once here and reads the same before First as after
+/// it.
 /// </summary>
 internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TReturns>
     : IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns>
     where TService : class
 {
     private readonly Spec<TSUT, TResult> _spec;
-    private readonly Lazy<object> _lazyContinuation;
-    private readonly Func<object> _setup;
+    private readonly Action<Func<IReadOnlyList<object>, object?>> _answerCall;
     private readonly string _callExpr;
     private readonly IReadOnlyList<string> _tapExprs;
-    private readonly Action<IReadOnlyList<object>>? _stepTap;
+    private readonly Action<IReadOnlyList<object>>? _tap;
     internal readonly MockCallSequence<TReturns>? _sequence;
 
     protected GivenThatCommonContinuation(
         Spec<TSUT, TResult> spec,
-        Func<Mock<TService>, object> setup,
+        Action<MockHandle, Func<IReadOnlyList<object>, object?>> answerCall,
         string callExpr)
-        : this(spec, () => setup(spec.GetMock<TService>()), callExpr)
+        : this(spec, answer => answerCall(spec.Pipeline.GetMock<TService>(), answer), callExpr)
     {
     }
 
     protected GivenThatCommonContinuation(
         Spec<TSUT, TResult> spec,
-        Func<object> setup,
+        Action<Func<IReadOnlyList<object>, object?>> answerCall,
         string callExpr,
         IReadOnlyList<string>? tapExprs = null,
-        Lazy<object>? lazyContinuation = null,
         MockCallSequence<TReturns>? sequence = null,
-        Action<IReadOnlyList<object>>? stepTap = null)
+        Action<IReadOnlyList<object>>? tap = null)
     {
         _spec = spec;
-        _setup = setup;
+        _answerCall = answerCall;
         _callExpr = callExpr;
         _tapExprs = tapExprs ?? [];
-        _lazyContinuation = lazyContinuation ?? new Lazy<object>(DoSetup);
         _sequence = sequence;
-        _stepTap = stepTap;
+        _tap = tap;
     }
 
     public IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Returns()
@@ -68,10 +65,11 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
 
     /// <summary>
     /// The default of nothing is nothing: where the call answers with no value there is no default
-    /// to hand back, and asking Moq for one finds no Returns to ask.
+    /// to hand back. Where it answers with a task, the default is one that has completed, since a
+    /// null task is not something an awaiting caller can be handed.
     /// </summary>
     public IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> ReturnsDefault()
-        => typeof(TReturns) == typeof(Continuations.Void) ? Returns() : Returns(() => default);
+        => typeof(TReturns) == typeof(Continuations.Void) ? Returns() : Returns(Nothing, "() => default");
 
     public IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Throws<TException>()
         where TException : Exception, new()
@@ -127,22 +125,14 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
             callbackExpr!);
 
     /// <summary>
-    /// Opens a sequence over the setup already in hand, rather than a setup of its own: the steps
-    /// are TSpec's, so the call keeps the one Moq setup that a tap and an outcome both need.
+    /// Opens a sequence over the call already in hand, rather than a call of its own: the steps are
+    /// TSpec's, so the call keeps the one answer that a tap and an outcome both need.
     /// </summary>
     public IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> First()
         => InSequence(_callExpr + " first", new MockCallSequence<TReturns>());
 
     internal GivenThatNextContinuation<TSUT, TResult, TService, TReturns> AndNext()
         => InSequence("next", _sequence!);
-
-    protected GivenThatNextContinuation<TSUT, TResult, TService, TReturns> ContinueWith(
-        Func<object> callback,
-        IReadOnlyList<string>? tapExprs = null,
-        Action<IReadOnlyList<object>>? stepTap = null)
-        => new(_spec, callback, _callExpr, tapExprs, sequence: _sequence, stepTap: stepTap ?? _stepTap);
-
-    protected object Continuation => _lazyContinuation.Value;
 
     /// A tap the specification does not state, for a step that reads the call to answer it.
     protected IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> Observing(
@@ -158,19 +148,17 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
     /// A tap inside a sequence belongs to the step it precedes, so it fires on the call that step
     /// answers and no other; outside one it fires on every call. Either way it is folded into the
     /// taps already in hand rather than replacing them, since a second tap is a second observation
-    /// of the call and not a correction of the first — and Moq keeps only one callback per setup,
-    /// so what reaches it has to be the fold.
+    /// of the call and not a correction of the first.
     /// </summary>
     private IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> Tapping(
         Action<IReadOnlyList<object>> tap, string? tapExpr)
-    {
-        var observed = Then(_stepTap, tap);
-        var stated = tapExpr is null ? _tapExprs : [.. _tapExprs, tapExpr];
-        return _sequence is null
-            ? ContinueWith(() => Capturing(observed), stated, observed)
-            : new GivenThatNextContinuation<TSUT, TResult, TService, TReturns>(
-                _spec, _setup, _callExpr, stated, _lazyContinuation, _sequence, observed);
-    }
+        => new GivenThatNextContinuation<TSUT, TResult, TService, TReturns>(
+            _spec,
+            _answerCall,
+            _callExpr,
+            tapExpr is null ? _tapExprs : [.. _tapExprs, tapExpr],
+            _sequence,
+            Then(_tap, tap));
 
     private static Action<IReadOnlyList<object>> Then(
         Action<IReadOnlyList<object>>? first, Action<IReadOnlyList<object>> next)
@@ -178,89 +166,50 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
 
     private GivenThatNextContinuation<TSUT, TResult, TService, TReturns> InSequence(
         string callExpr, MockCallSequence<TReturns> sequence)
-        => new(_spec, _setup, callExpr, lazyContinuation: _lazyContinuation, sequence: sequence);
-
-    private object DoSetup() => _setup();
+        => new(_spec, _answerCall, callExpr, sequence: sequence);
 
     /// <summary>
-    /// Queues the step and, where it is the first, installs the sequence on the setup: the call
-    /// reports its arguments as it arrives and answers with whatever the queue says next.
+    /// The outcome, preceded by the taps in hand. Outside a sequence it answers the call; inside one
+    /// it is queued as a step, and the first step points the call at the queue.
     /// </summary>
-    private void AppendStep(Func<IReadOnlyList<object>, TReturns?> answer)
+    private void Answer(Func<IReadOnlyList<object>, TReturns?> outcome)
     {
-        var tap = _stepTap;
-        var opens = _sequence!.IsEmpty;
-        _sequence.Append(args =>
+        var tap = _tap;
+        Func<IReadOnlyList<object>, TReturns?> step = tap is null
+            ? outcome
+            : args =>
+            {
+                tap(args);
+                return outcome(args);
+            };
+        if (_sequence is null)
         {
-            tap?.Invoke(args);
-            return answer(args);
-        });
-        if (opens)
-            OpenSequence();
-    }
-
-    /// <summary>
-    /// Points the setup at the queue, in whichever way its return type is answered. A call that
-    /// answers with nothing has no Returns to ask, so there the queue is driven by the callback
-    /// that reports the invocation — the step still runs, it just has nothing to hand back.
-    /// </summary>
-    private void OpenSequence()
-    {
-        var sequence = _sequence!;
-        Capturing(sequence.Capture);
-        switch (Continuation)
-        {
-            case Moq.Language.Flow.IReturnsThrows<TService, TReturns?> sync:
-                sync.Returns(sequence.Next);
-                break;
-            case Moq.Language.Flow.IReturnsThrows<TService, Task<TReturns?>> async:
-                async.ReturnsAsync(sequence.Next);
-                break;
-            case Moq.Language.Flow.IReturnsThrows<TService, ValueTask<TReturns?>> asyncValue:
-                asyncValue.ReturnsAsync(sequence.Next);
-                break;
-            case Moq.Language.Flow.IReturnsThrows<TService, Task> task:
-                task.Returns(() => { sequence.Next(); return Task.CompletedTask; });
-                break;
-            case Moq.Language.Flow.IReturnsThrows<TService, ValueTask> valueTask:
-                valueTask.Returns(() => { sequence.Next(); return default(ValueTask); });
-                break;
-            case Moq.Language.ICallback plain:
-                plain.Callback(new InvocationAction(_ => sequence.Next()));
-                break;
-            default:
-                throw UnsupportedContinuation("First");
+            _answerCall(args => step(args));
+            return;
         }
-    }
 
-    /// <summary>
-    /// Reports every invocation of the setup to the given action, arguments and all. One
-    /// registration covers any signature, which is what lets a step of any arity read its call.
-    /// </summary>
-    private object Capturing(Action<IReadOnlyList<object>> observe)
-    {
-        var action = new InvocationAction(invocation => observe(invocation.Arguments));
-        return Continuation switch
-        {
-            Moq.Language.ICallback<TService, TReturns?> sync => sync.Callback(action),
-            Moq.Language.ICallback<TService, Task<TReturns?>> async => async.Callback(action),
-            Moq.Language.ICallback<TService, ValueTask<TReturns?>> asyncValue => asyncValue.Callback(action),
-            Moq.Language.ICallback<TService, Task> asyncVoid => asyncVoid.Callback(action),
-            Moq.Language.ICallback<TService, ValueTask> asyncValueVoid => asyncValueVoid.Callback(action),
-            Moq.Language.ICallback plain => plain.Callback(action),
-            _ => throw UnsupportedContinuation("Tap"),
-        };
+        var sequence = _sequence;
+        var opens = sequence.IsEmpty;
+        sequence.Append(step);
+        if (opens)
+            _answerCall(args => sequence.Next(args));
     }
 
     private void SetupReturns()
     {
         SpecifyMock();
         _spec.Pipeline.Specification.AddMockReturns();
-        if (_sequence is not null)
-            AppendStep(_ => Nothing());
-        else
-            InstallReturnsNothing();
+        if (_sequence is null && !AnswersNothing)
+            throw new SetupFailed(
+                $"Cannot apply Returns to '{_callExpr}': it answers with {typeof(TReturns).Alias()}, "
+                + "so state what it returns");
+        Answer(_ => Nothing());
     }
+
+    private static bool AnswersNothing
+        => typeof(TReturns) == typeof(Continuations.Void)
+        || typeof(TReturns) == typeof(Task)
+        || typeof(TReturns) == typeof(ValueTask);
 
     /// <summary>
     /// What a step answers when it was told to return nothing. Where the call is awaited, nothing
@@ -276,10 +225,9 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
     {
         SpecifyMock();
         _spec.Pipeline.Specification.AddMockReturns(returnsExpr);
-        if (_sequence is not null)
-            AppendStep(_ => returns());
-        else
-            InstallReturns(returns);
+        if (_sequence is null && typeof(TReturns) == typeof(Continuations.Void))
+            throw new SetupFailed($"Cannot apply Returns to '{_callExpr}': it answers with nothing");
+        Answer(_ => returns());
     }
 
     private void SetupThrows<TException>()
@@ -287,73 +235,23 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
     {
         SpecifyMock();
         _spec.Pipeline.Specification.AddMockThrows<TException>();
-        if (_sequence is not null)
-            AppendStep(_ => throw new TException());
-        else
-            InstallThrows<TException>();
+        Answer(_ => throw new TException());
     }
 
+    /// A lone outcome throws the exception made as it is set up; each step of a sequence makes its own.
     private void SetupThrows(Func<Exception> expected, string expectedExpr)
     {
         SpecifyMock();
         _spec.Pipeline.Specification.AddMockThrows(expectedExpr);
         if (_sequence is not null)
-            AppendStep(_ => throw expected());
-        else
-            InstallThrows(expected);
-    }
+        {
+            Answer(_ => throw expected());
+            return;
+        }
 
-    private void InstallReturnsNothing()
-    {
-        if (Continuation is Moq.Language.Flow.IReturnsThrows<TService, Task> taskContinuation)
-            taskContinuation.Returns(Task.CompletedTask);
-        else if (Continuation is Moq.Language.Flow.IReturnsThrows<TService, ValueTask> valueTaskContinuation)
-            valueTaskContinuation.Returns(default(ValueTask));
-        else if (Continuation is Moq.Language.Flow.ISetup<TService> voidContinuation)
-            voidContinuation.Verifiable();
-        else throw UnsupportedContinuation("Returns");
+        var exception = expected();
+        Answer(_ => throw exception);
     }
-
-    private void InstallReturns(Func<TReturns?> returns)
-    {
-        if (Continuation is Moq.Language.Flow.IReturnsThrows<TService, TReturns?> syncContinuation)
-            syncContinuation.Returns(returns);
-        else if (Continuation is Moq.Language.Flow.IReturnsThrows<TService, Task<TReturns?>> asyncContinuation)
-            asyncContinuation.ReturnsAsync(returns);
-        else if (Continuation is Moq.Language.Flow.IReturnsThrows<TService, ValueTask<TReturns?>> asyncValueContinuation)
-            asyncValueContinuation.ReturnsAsync(returns);
-        else throw UnsupportedContinuation("Returns");
-    }
-
-    private void InstallThrows<TException>()
-        where TException : Exception, new()
-    {
-        if (Continuation is Moq.Language.Flow.IReturnsThrows<TService, TReturns> syncContinuation)
-            syncContinuation.Throws<TException>();
-        else if (Continuation is Moq.Language.Flow.IReturnsThrows<TService, Task<TReturns>> asyncContinuation)
-            asyncContinuation.ThrowsAsync(It.IsAny<TException>());
-        else if (Continuation is Moq.Language.Flow.IReturnsThrows<TService, ValueTask<TReturns>> asyncValueContinuation)
-            asyncValueContinuation.ThrowsAsync(new TException());
-        else if (Continuation is Moq.Language.Flow.ISetup<TService> setupContinuation)
-            setupContinuation.Throws<TException>();
-        else throw UnsupportedContinuation("Throws");
-    }
-
-    private void InstallThrows(Func<Exception> expected)
-    {
-        if (Continuation is Moq.Language.Flow.IReturnsThrows<TService, TReturns> returnsThrows)
-            returnsThrows.Throws(expected());
-        else if (Continuation is Moq.Language.Flow.IReturnsThrows<TService, Task<TReturns>> asyncReturnsThrows)
-            asyncReturnsThrows.ThrowsAsync(expected());
-        else if (Continuation is Moq.Language.Flow.IReturnsThrows<TService, ValueTask<TReturns>> asyncValueReturnsThrows)
-            asyncValueReturnsThrows.ThrowsAsync(expected());
-        else if (Continuation is Moq.Language.Flow.ISetup<TService> setupContinuation)
-            setupContinuation.Throws(expected());
-        else throw UnsupportedContinuation("Throws");
-    }
-
-    private SetupFailed UnsupportedContinuation(string setup)
-        => new($"Cannot apply {setup} to '{_callExpr}': unhandled mock continuation {Continuation.GetType().Name}");
 
     private void SpecifyMock()
     {

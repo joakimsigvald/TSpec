@@ -17,6 +17,13 @@ public class WhenReturnsDefaultInt : Spec<MyDefaultService, int>
             Then Result is 0
             """);
     }
+
+    [Fact]
+    public void GivenReturnsWithoutAValue_ThenSetupFails()
+        => Xunit.Assert.Throws<SetupFailed>(() =>
+            Given<IDefaultRetriever>().That(_ => _.GetInt()).Returns()
+                .When(_ => _.GetInt()).Then())
+            .Message.Is("Cannot apply Returns to '_ => _.GetInt()': it answers with int, so state what it returns");
 }
 
 public class WhenReturnsDefaultModel : Spec<MyDefaultService, MyModel>
