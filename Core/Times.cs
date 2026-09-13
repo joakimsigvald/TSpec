@@ -64,16 +64,9 @@ public readonly struct Times
     /// <param name="to">The most invocations allowed</param>
     public static Times Between(int from, int to) => new(from, to);
 
-    /// Moq checks an expression's count itself, and words its failure by the kind of count it was given.
-    internal Moq.Times ToMoq() => (_from, _to) switch
-    {
-        (0, 0) => Moq.Times.Never(),
-        (1, 1) => Moq.Times.Once(),
-        (1, int.MaxValue) => Moq.Times.AtLeastOnce(),
-        (0, 1) => Moq.Times.AtMostOnce(),
-        (_, int.MaxValue) => Moq.Times.AtLeast(_from),
-        (0, _) => Moq.Times.AtMost(_to),
-        _ when _from == _to => Moq.Times.Exactly(_from),
-        _ => Moq.Times.Between(_from, _to, Moq.Range.Inclusive),
-    };
+    internal int From => _from;
+
+    internal int To => _to;
+
+    internal bool Allows(int count) => count >= _from && count <= _to;
 }

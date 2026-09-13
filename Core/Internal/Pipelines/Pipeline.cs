@@ -1,5 +1,4 @@
-﻿using Moq;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using TSpec.Continuations;
 using TSpec.Internal.Specification;
 using TSpec.Internal.TestData;
@@ -41,10 +40,10 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         return subject;
     }
 
-    internal IAndVerify<TResult> ThenWasInvoked<TService>(Moq.Times wasInvoked, string wasInvokedExpr) where TService : class
+    internal IAndVerify<TResult> ThenWasInvoked<TService>(Times wasInvoked, string wasInvokedExpr) where TService : class
         => Claim.VerifyInvoked<TService>(wasInvoked, wasInvokedExpr);
 
-    internal IAndVerify<TResult> Then<TService>(string method, Moq.Times wasInvoked, string wasInvokedExpr) where TService : class
+    internal IAndVerify<TResult> Then<TService>(string method, Times wasInvoked, string wasInvokedExpr) where TService : class
         => Claim.VerifyInvoked<TService>(method, wasInvoked, wasInvokedExpr);
 
     internal IAndVerify<TResult> Then<TService>(
@@ -53,7 +52,7 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         => Claim.Verify(expression, expressionExpr);
 
     internal IAndVerify<TResult> Then<TService>(
-        Expression<Action<TService>> expression, Moq.Times wasInvoked, string expressionExpr, string wasInvokedExpr) where TService : class
+        Expression<Action<TService>> expression, Times wasInvoked, string expressionExpr, string wasInvokedExpr) where TService : class
         => Claim.Verify(expression, wasInvoked, expressionExpr, wasInvokedExpr);
 
     internal IAndVerify<TResult> Then<TService, TReturns>(
@@ -61,7 +60,7 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         => Claim.Verify(expression, expressionExpr);
 
     internal IAndVerify<TResult> Then<TService, TReturns>(
-        Expression<Func<TService, TReturns>> expression, Moq.Times wasInvoked, string expressionExpr, string wasInvokedExpr)
+        Expression<Func<TService, TReturns>> expression, Times wasInvoked, string expressionExpr, string wasInvokedExpr)
         where TService : class
         => Claim.Verify(expression, wasInvoked, expressionExpr, wasInvokedExpr);
 

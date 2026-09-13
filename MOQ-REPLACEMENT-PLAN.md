@@ -13,16 +13,15 @@ correct it in place as work lands, and move a finished stage to Done as a line.
 
 ## 1. Facts established (2026-09-13)
 
-- **No Moq type is in the public API since 3.0.** `wasInvoked:` takes `TSpec.Times`; below the public
-  overloads everything still runs on `Moq.Times`, reached through `TSpec.Times.ToMoq()`, which maps to
-  the matching Moq factory so Moq's failure wording is kept. The seam (§4.1) takes `TSpec.Times` and
-  `ToMoq()` goes. `Any<T>()` and `Any<T>(constraint)` are rewritten to `It.IsAny`/`It.Is` below the
-  API (`Internal/Pipelines/AnyArgument.cs`).
+- **No Moq type is in the public API since 3.0.** `wasInvoked:` takes `TSpec.Times`, and since step 4
+  so does everything below it: counts are checked with `Times.Allows`, and only `MockHandle.ToMoq`
+  maps to the matching Moq factory, so Moq's failure wording is kept for verification by expression.
+  `Any<T>()` and `Any<T>(constraint)` are rewritten to `It.IsAny`/`It.Is` below the API
+  (`Internal/Pipelines/AnyArgument.cs`).
 - **Inside any `TSpec.*` namespace a bare `Times` binds to `TSpec.Times`**, ahead of `using Moq;` —
   TSpec's own code writes Moq's as `Moq.Times`, and so do raw Moq calls in Core.Test (`AutoDispose.cs`).
-- **Moq inside TSpec**: 23 files, about 1,600 lines touch it, through these seams. After steps 1–3
-  (§4.1) it is in `MockHandle`, `MockRegistry`, `MoqDefaultValueProvider`, `AnyArgument`, and
-  verification by expression (`TestResult`, `Pipeline`):
+- **Moq inside TSpec**: 23 files, about 1,600 lines touch it, through these seams. After steps 1–4
+  (§4.1) it is only in `MockHandle`, `MockRegistry`, `MoqDefaultValueProvider` and `AnyArgument`:
   - `MockRegistry` — creates `Mock<T>` by reflection, one per type.
   - `GivenThatCommonContinuation` (365 lines) and the other `GivenThat*` continuations — `Setup`,
     `Returns`/`ReturnsAsync`, `Throws`/`ThrowsAsync`, `Callback`, largely as `is ICallback<TService,
@@ -99,13 +98,18 @@ is decided in §4.5, pinned in `WhenAMockedAsyncCallThrows` and `WhenReturnsDefa
 - `Returns()` on a call that answers with a value still refuses, but names the type instead of a Moq
   class.
 
-**Step 4 — verification by expression.** `Verify(call, TSpec.Times)` behind the handle; the adapter
-keeps Moq's `Verify`, so the failure stays `MockException` with Moq's wording until the engine, where
-it has to change anyway (§4.4).
+**Step 4 — verification by expression.** DONE 2026-09-13; no behaviour change. `MockHandle.Verify`
+takes the expression and an optional `TSpec.Times`, rewrites `Any` itself, and calls Moq's `Verify`,
+so the failure stays `MockException` with Moq's wording until the engine, where it has to change
+anyway (§4.4). `Times.ToMoq()` became `MockHandle.ToMoq`; whole-service and by-name counts use
+`Times.Allows`. `Pipeline`, `TestResult`, `AndVerify` and `Spec_Then` carry `TSpec.Times` only, and
+the escape hatch `MockHandle.MoqMock` is gone.
 
-**Step 5 — Moq confined.** `using Moq` only in the adapter's folder, `AnyArgument` included (its
-rewrite targets Moq's matchers). The escape hatch goes; Core.Test's `Mock.Get(…).Verify(…)` in
-`AutoDispose.cs` becomes `Then<IDisposableService>(nameof(…), Never)` (DOGFOOD-PLAN item 5).
+**Step 5 — Moq confined.** `using Moq` only in the adapter's folder (`…/Strategies/Mocking/`): move
+`AnyArgument` there (its rewrite targets Moq's matchers) and call its `Rewrite` inside
+`MockHandle.Answer`, as `Verify` already does, rather than in the `GivenThat*` continuations.
+Core.Test's `Mock.Get(…).Verify(…)` in `AutoDispose.cs` becomes `Then<IDisposableService>(nameof(…),
+Never)` (DOGFOOD-PLAN item 5).
 
 Nothing Moq-typed crosses the seam. `GivenThat*`, `TestResult`, `AndVerify`, `Fixture`, `Context`,
 `Repository` and `MockingStrategy` depend on the seam only.

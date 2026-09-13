@@ -2,6 +2,7 @@ using Moq;
 using Moq.Protected;
 using System.Linq.Expressions;
 using System.Reflection;
+using TSpec.Internal.Pipelines;
 
 namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
@@ -25,8 +26,29 @@ internal sealed class MockHandle(Type mockedType, Mock moqMock)
     internal IReadOnlyList<MockInvocation> Invocations
         => [.. moqMock.Invocations.Select(invocation => new MockInvocation(invocation.Method, invocation.Arguments))];
 
-    /// The Moq mock itself, for what has not moved behind the handle yet: verification by expression.
-    internal Mock MoqMock => moqMock;
+    /// <summary>
+    /// Fails unless the call was made — at least once, or as many times as given. The failure is
+    /// Moq's for now, worded by the kind of count it was given.
+    /// </summary>
+    internal void Verify<TService>(Expression<Action<TService>> call, Times? times = null)
+        where TService : class
+    {
+        var rewritten = AnyArgument.Rewrite(call);
+        if (times is null)
+            Mocked<TService>().Verify(rewritten);
+        else
+            Mocked<TService>().Verify(rewritten, ToMoq(times.Value));
+    }
+
+    internal void Verify<TService, TResult>(Expression<Func<TService, TResult>> call, Times? times = null)
+        where TService : class
+    {
+        var rewritten = AnyArgument.Rewrite(call);
+        if (times is null)
+            Mocked<TService>().Verify(rewritten);
+        else
+            Mocked<TService>().Verify(rewritten, ToMoq(times.Value));
+    }
 
     internal void Answer<TService>(Expression<Action<TService>> call, Func<IReadOnlyList<object>, object?> answer)
         where TService : class
@@ -64,6 +86,18 @@ internal sealed class MockHandle(Type mockedType, Mock moqMock)
     }
 
     private Mock<TService> Mocked<TService>() where TService : class => (Mock<TService>)moqMock;
+
+    private static Moq.Times ToMoq(Times times) => (times.From, times.To) switch
+    {
+        (0, 0) => Moq.Times.Never(),
+        (1, 1) => Moq.Times.Once(),
+        (1, int.MaxValue) => Moq.Times.AtLeastOnce(),
+        (0, 1) => Moq.Times.AtMostOnce(),
+        (var from, int.MaxValue) => Moq.Times.AtLeast(from),
+        (0, var to) => Moq.Times.AtMost(to),
+        var (from, to) when from == to => Moq.Times.Exactly(from),
+        var (from, to) => Moq.Times.Between(from, to, Moq.Range.Inclusive),
+    };
 
     private static InvocationFunc Responding(
         Type returnType, Type answerType, Func<IReadOnlyList<object>, object?> answer)

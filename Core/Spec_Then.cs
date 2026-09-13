@@ -52,7 +52,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// </example>
     public IAndVerify<TResult> Then<TService>(Ignore _ = default, Times? wasInvoked = null,
         [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class
-        => Pipeline.ThenWasInvoked<TService>(RequireWasInvoked(wasInvoked).ToMoq(), wasInvokedExpr!);
+        => Pipeline.ThenWasInvoked<TService>(RequireWasInvoked(wasInvoked), wasInvokedExpr!);
 
     /// <summary>
     /// Run the test-pipeline and verify how many times a named method of the mocked service was invoked, ignoring arguments.
@@ -74,7 +74,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// </example>
     public IAndVerify<TResult> Then<TService>(string method, Times wasInvoked,
         [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class
-        => Pipeline.Then<TService>(method, wasInvoked.ToMoq(), wasInvokedExpr!);
+        => Pipeline.Then<TService>(method, wasInvoked, wasInvokedExpr!);
 
     /// <summary>
     /// Run the test-pipeline and verify that the given mock invocation was made.
@@ -108,7 +108,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         Expression<Action<TService>> expression, Times wasInvoked,
         [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
         [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null) where TService : class
-        => Pipeline.Then(expression, wasInvoked.ToMoq(), expressionExpr!, wasInvokedExpr!);
+        => Pipeline.Then(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
 
     /// <summary>
     /// Run the test-pipeline and verify that the given value-returning mock invocation was made.
@@ -138,7 +138,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         [CallerArgumentExpression(nameof(expression))] string? expressionExpr = null,
         [CallerArgumentExpression(nameof(wasInvoked))] string? wasInvokedExpr = null)
         where TService : class
-        => Pipeline.Then(expression, wasInvoked.ToMoq(), expressionExpr!, wasInvokedExpr!);
+        => Pipeline.Then(expression, wasInvoked, expressionExpr!, wasInvokedExpr!);
 
     /// <summary>
     /// Contains the returned value after calling method-under-test.
