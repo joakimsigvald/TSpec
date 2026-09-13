@@ -499,11 +499,11 @@ public class WhenPlaceOrder : Spec<MyProject.ShoppingService>
 
 #### 4.6.1 Invocation counts — `wasInvoked:`
 
-To assert *how many times* something was invoked, add `wasInvoked:` — a `Moq.Times`. The same
-argument closes all three forms; only the *selector* in the parentheses changes:
+To assert *how many times* something was invoked, add `wasInvoked:` — a `Times`: `Once`, `Never`,
+`AtLeastOnce`, `AtMostOnce`, `Exactly(n)`, `AtLeast(n)`, `AtMost(n)` or `Between(from, to)`, both bounds included.
 
 ```csharp
-using static Moq.Times;   // enables the paren-free Once, Never, ...
+using static TSpec.Times;
 
 Then<IEventQueue>(q => q.MarkRejected(42, Any<string>(), Any<CancellationToken>()), Once)
     .And<IEventQueue>(nameof(IEventQueue.MarkFailed), Never)   // named method, any args
@@ -516,7 +516,7 @@ Then<IEventQueue>(q => q.MarkRejected(42, Any<string>(), Any<CancellationToken>(
 * **Whole service** — counts every interaction, including property gets/sets and indexer access,
   so `wasInvoked: Never` asserts the service was not touched at all. Here `wasInvoked:` must be named.
 
-Without `using static Moq.Times;`, write `wasInvoked: Times.Once()`.
+Without `using static TSpec.Times;`, write `wasInvoked: Times.Once`.
 
 ## 5. Asserting Results
 

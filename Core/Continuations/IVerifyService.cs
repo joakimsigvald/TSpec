@@ -29,7 +29,7 @@ public interface IVerifyService<TResult>
     /// </code>
     /// </example>
     IAndVerify<TResult> WasInvoked(
-        Times times, [CallerArgumentExpression(nameof(times))] string? timesExpr = null);
+        Moq.Times times, [CallerArgumentExpression(nameof(times))] string? timesExpr = null);
 
     /// <summary>
     /// Assert that the service was invoked (any method, property get/set or indexer) the number of times given by a function.
@@ -39,5 +39,5 @@ public interface IVerifyService<TResult>
     /// <param name="timesExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation to apply additional assertions on the test result</returns>
     IAndVerify<TResult> WasInvoked(
-        Func<Times> times, [CallerArgumentExpression(nameof(times))] string? timesExpr = null);
+        Func<Moq.Times> times, [CallerArgumentExpression(nameof(times))] string? timesExpr = null);
 }

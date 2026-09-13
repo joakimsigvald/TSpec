@@ -1,5 +1,5 @@
 using Moq;
-using static Moq.Times;
+using static TSpec.Times;
 using TSpec.Test.Subjects;
 
 namespace TSpec.Test.Tests.ShoppingService;

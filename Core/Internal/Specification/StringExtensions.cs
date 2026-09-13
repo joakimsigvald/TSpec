@@ -142,7 +142,7 @@ internal static class StringExtensions
             : str.NormalizeLineEndings();
 
     /// Reduce a captured Times expression to its bare factory name, so that both the
-    /// `using static Moq.Times;` form (`Once`) and the qualified form (`Times.Once()`)
+    /// `using static TSpec.Times;` form (`Once`) and the qualified forms (`Times.Once`, and Moq's `Times.Once()`)
     /// render alike: "Once", "Never", "Exactly(2)".
     internal static string NormalizeTimes(this string? expr)
     {

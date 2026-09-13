@@ -17,17 +17,16 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>2.7.0</PackageVersion>
+		<PackageVersion>2.8.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			ADDED
-			* Any&lt;T&gt;(constraint) matches any argument satisfying the constraint in a mock setup or verification
+			* TSpec.Times counts invocations for wasInvoked: Once, Never, AtLeastOnce, AtMostOnce, Exactly(n), AtLeast(n), AtMost(n), Between(from, to)
 			CHANGED
-			* Another is obsolete; use Any
-			FIXED
-			* Improved documentation
+			* The wasInvoked overloads taking Moq's Times are obsolete; replace using static Moq.Times with using static TSpec.Times
+			* A file importing both Moq and TSpec must qualify Times, since the name is now ambiguous there
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

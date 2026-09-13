@@ -1,4 +1,4 @@
-﻿using static Moq.Times;
+﻿using static TSpec.Times;
 
 namespace MyHotel.Core.Spec.Bookings.BookingService;
 

@@ -1,4 +1,4 @@
-using static Moq.Times;
+using static TSpec.Times;
 using TSpec.Assert;
 using TSpec.Test.Subjects;
 using Xunit.Sdk;

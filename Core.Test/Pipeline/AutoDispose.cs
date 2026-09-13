@@ -157,7 +157,7 @@ public class AutoDispose
         var sut = spec.When(_ => _.GetValue()).Then().SubjectUnderTest;
         spec.Then().Completes();
         spec.Dispose();
-        Mock.Get(sut.Service).Verify(_ => _.Dispose(), Times.Never());
+        Mock.Get(sut.Service).Verify(_ => _.Dispose(), Moq.Times.Never());
     }
 
     [Fact]

@@ -1,6 +1,6 @@
 # TSpec — Agent Reference
 
-Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 2.7).
+Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 2.8).
 TSpec is a fluent Given–When–Then specification framework for .NET on top of xUnit v3.
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec#readme).
 
@@ -82,7 +82,7 @@ Given<HttpMessageHandler>().ThatProtected<HttpResponseMessage>("SendAsync").Retu
 ## Verification
 
 ```csharp
-using static Moq.Times;
+using static TSpec.Times;
 
 Then<IOrderService>(_ => _.CreateOrder(The<Cart>()))                    // called at least once
 Then<IEventQueue>(q => q.MarkRejected(42, Any<string>()), Once)          // count, arguments matched
@@ -90,7 +90,7 @@ Then<IEventQueue>(q => q.MarkRejected(42, Any<string>()), Once)          // coun
     .And<IEntityWriter>(wasInvoked: Never);                              // any member, property access included
 ```
 
-`wasInvoked:` must be named on the whole-service form. Without `using static Moq.Times;`, write `Times.Once()`.
+`wasInvoked:` must be named on the whole-service form. Counts: `Once`, `Never`, `AtLeastOnce`, `AtMostOnce`, `Exactly(n)`, `AtLeast(n)`, `AtMost(n)`, `Between(from, to)` (inclusive).
 
 ## Assertions (`TSpec.Assert`)
 

@@ -100,7 +100,7 @@ public class WhenNothingIsAsserted
     public void GivenMockVerification_ThenDoNotComplain()
     {
         var spec = new MyServiceSpec();
-        spec.When(_ => _.Get()).Then<IMyService>(wasInvoked: Times.Once());
+        spec.When(_ => _.Get()).Then<IMyService>(wasInvoked: Times.Once);
         spec.Dispose();
     }
 

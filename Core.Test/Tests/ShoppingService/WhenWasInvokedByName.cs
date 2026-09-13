@@ -1,4 +1,4 @@
-using static Moq.Times;
+using static TSpec.Times;
 using TSpec.Assert;
 using TSpec.Test.Subjects;
 using Xunit.Sdk;
@@ -58,14 +58,14 @@ public class WhenPlaceOrderInvocationsByName : ShoppingServiceSpec<object>
     }
 
     [Fact]
-    public void ThenTimesFactoryFormIsSupported()
-        => Then<IOrderService>(nameof(IOrderService.CreateOrder), Once());
+    public void ThenQualifiedCountIsSupported()
+        => Then<IOrderService>(nameof(IOrderService.CreateOrder), Times.Once);
 
     [Fact]
     public void ThenNeverFails()
     {
         var ex = Xunit.Assert.Throws<XunitException>(
-            () => Then<IOrderService>(nameof(IOrderService.CreateOrder), Never()));
+            () => Then<IOrderService>(nameof(IOrderService.CreateOrder), Never));
         ex.Message.Is("Expected IOrderService.CreateOrder to be invoked never but was invoked 1 times");
     }
 }

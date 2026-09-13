@@ -8,11 +8,11 @@ internal class VerifyService<TSUT, TResult, TService>(TestResult<TSUT, TResult> 
     where TService : class
 {
     public IAndVerify<TResult> WasInvoked()
-        => parent.VerifyInvoked<TService>(Times.AtLeastOnce(), null);
+        => parent.VerifyInvoked<TService>(Moq.Times.AtLeastOnce(), null);
 
-    public IAndVerify<TResult> WasInvoked(Times times, string? timesExpr)
+    public IAndVerify<TResult> WasInvoked(Moq.Times times, string? timesExpr)
         => parent.VerifyInvoked<TService>(times, timesExpr);
 
-    public IAndVerify<TResult> WasInvoked(Func<Times> times, string? timesExpr)
+    public IAndVerify<TResult> WasInvoked(Func<Moq.Times> times, string? timesExpr)
         => parent.VerifyInvoked<TService>(times(), timesExpr);
 }

@@ -28,4 +28,11 @@ internal static class Obsoletions
     internal const string Another =
         "Another is a synonym of Any — use Any<TValue>() instead. "
         + "For a value distinct from one already mentioned, use ASecond<TValue>().";
+
+    /// <summary>
+    /// Moq's Times is the last Moq type in TSpec's public API, and TSpec means to leave Moq.
+    /// </summary>
+    internal const string MoqTimes =
+        "Moq's Times is replaced by TSpec.Times — replace 'using static Moq.Times;' with 'using static TSpec.Times;', "
+        + "and write Times.Once rather than Times.Once().";
 }

@@ -1,4 +1,4 @@
-using static Moq.Times;
+using static TSpec.Times;
 using TSpec.Assert;
 using TSpec.Test.Subjects;
 using Xunit.Sdk;
@@ -43,6 +43,36 @@ public class WhenPlaceOrderInvocations : ShoppingServiceSpec<object>
               and IOrderService was invoked AtMost(2)
             """);
     }
+
+    [Fact]
+    public void ThenOrderServiceWasInvokedAtMostOnceAndBetween()
+    {
+        Then<IOrderService>(wasInvoked: AtMostOnce)
+            .And<IOrderService>(wasInvoked: Between(1, 2));
+        Specification.Is(
+            """
+            When PlaceOrder(a ShoppingCart)
+            Then IOrderService was invoked AtMostOnce
+              and IOrderService was invoked Between(1, 2)
+            """);
+    }
+
+    [Fact]
+    public void ThenQualifiedCountReadsAsTheBareOne()
+    {
+        Then<IOrderService>(wasInvoked: Exactly(1));
+        Specification.Is(
+            """
+            When PlaceOrder(a ShoppingCart)
+            Then IOrderService was invoked Exactly(1)
+            """);
+    }
+
+    [Theory]
+    [InlineData(-1, 1, "An invocation count cannot be negative, but -1 was given")]
+    [InlineData(2, 1, "No invocation count is at least 2 and at most 1")]
+    public void GivenBoundsNoCountCanMeet_ThenThrowSetupFailed(int from, int to, string error)
+        => Xunit.Assert.Throws<SetupFailed>(() => Between(from, to)).Message.Is(error);
 
     [Fact]
     public void ThenWasInvokedComposesWithSpecificVerification()

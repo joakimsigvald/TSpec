@@ -13,11 +13,12 @@ correct it in place as work lands, and move a finished stage to Done as a line.
 
 ## 1. Facts established (2026-09-13)
 
-- **Moq in the public API is `Moq.Times` only**, in 12 signatures: `wasInvoked:` on `Then<TService>`
-  and `And<TService>` — `Spec_Then.cs` (4), `Continuations/ITestPipeline.cs` (4),
-  `Continuations/IAndVerify.cs` (4), each as `Times` and as `Func<Times>` for the method-group form.
-  `Any<T>()` and `Any<T>(constraint)` are rewritten to `It.IsAny`/`It.Is` below the API
-  (`Internal/Pipelines/AnyArgument.cs`).
+- **Moq in the public API was `Moq.Times` only**, in 24 signatures: `wasInvoked:` on `Then<TService>`
+  and `And<TService>` — `Spec_Then.cs`, `Continuations/ITestPipeline.cs`, `Continuations/IAndVerify.cs`,
+  8 each: whole service, by name, expression as `Action`, expression as `Func`, each as `Times` and as
+  `Func<Times>` for the method-group form. All 24 are `[Obsolete]` since 2.8 (§2). The unreachable
+  `IVerifyService` carries two more. `Any<T>()` and `Any<T>(constraint)` are rewritten to
+  `It.IsAny`/`It.Is` below the API (`Internal/Pipelines/AnyArgument.cs`).
 - **Moq inside TSpec**: 23 files, about 1,600 lines touch it, through these seams:
   - `MockRegistry` — creates `Mock<T>` by reflection, one per type.
   - `GivenThatCommonContinuation` (365 lines) and the other `GivenThat*` continuations — `Setup`,
@@ -41,23 +42,25 @@ correct it in place as work lands, and move a finished stage to Done as a line.
 
 ## 2. Release 2.8 — a TSpec-owned invocation count
 
-**Problem.** `wasInvoked:` takes `Moq.Times`, so every spec that counts invocations writes
-`using static Moq.Times;` and TSpec cannot drop Moq without breaking them.
+BUILT 2026-09-13, as 2.8.0. `TSpec.Times` (PO's choice of name,
+`Core/Times.cs`): `Once`, `Never`, `AtLeastOnce`, `AtMostOnce` are static properties, `Exactly(n)`,
+`AtLeast(n)`, `AtMost(n)`, `Between(from, to)` (inclusive) methods, so a spec migrates by swapping
+`using static Moq.Times;` for `using static TSpec.Times;`, and the qualified form loses its parentheses
+(`Times.Once`). A negative count, or a lower bound above the upper, throws `SetupFailed` where Moq threw
+`ArgumentOutOfRangeException`. Each of the three files gained four overloads taking it (no `Func<>`
+variant — a property needs none); the 24 Moq-typed ones are `[Obsolete(Obsoletions.MoqTimes)]`.
+Rendering is unchanged: it reads the expression text, and the members keep Moq's names.
 
-**Proposal.** A TSpec type with the same members, so a spec migrates by changing its `using` line:
-`Then<IQueue>(q => q.Send(Any<Msg>()), Once)` reads as it does today. Add overloads for it beside the
-`Times` ones in all 12 places, and mark the `Times` overloads `[Obsolete]` through `Obsoletions`.
-Rendering must read identically for the new type in both the `using static` and the qualified form.
+What 3.x inherits: below the public overloads everything still runs on `Moq.Times` — the new overloads
+call `TSpec.Times.ToMoq()`, which maps to the same Moq factory so Moq's failure wording is kept. The
+seam (§4.1) takes `TSpec.Times` and `ToMoq()` goes.
 
-**Decide** (PO): the type's name — it is written in every `using static` line and in the qualified
-form (`wasInvoked: X.Once`). Members: `Once`, `Never`, `AtLeastOnce`, `AtMostOnce`, `Exactly(n)`,
-`AtLeast(n)`, `AtMost(n)`, `Between(a, b)` — confirm whether all of Moq's range is wanted.
-
-**Watch.** A spec that imports both `using static Moq.Times` and the new type gets an ambiguous
-`Once`; the obsolete message should say to replace the `using`, not add one.
-
-**Done when** Core.Test and MyHotel use the new type, no spec in the repository imports `Moq.Times`,
-both docs show only the new form, and the suite is green on net8.0/net9.0/net10.0.
+Two facts that cost a build to find:
+- Inside any `TSpec.*` namespace a bare `Times` now binds to `TSpec.Times`, ahead of `using Moq;` —
+  so TSpec's own code writes Moq's as `Moq.Times`, and raw Moq calls in Core.Test do too
+  (`AutoDispose.cs`).
+- A user file outside TSpec's namespaces that imports both `Moq` and `TSpec` gets an ambiguous
+  `Times` (CS0104) on the qualified form. The PO accepted this; say it in the 2.8 release notes.
 
 ## 3. Release 3.0 — delete what is obsolete or unreachable
 
