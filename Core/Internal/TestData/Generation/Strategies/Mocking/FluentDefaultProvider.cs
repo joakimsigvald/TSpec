@@ -9,6 +9,10 @@ internal class FluentDefaultProvider(IRepository repository)
 
     internal object GetDefaultValue(Type type, MockHandle mock)
     {
+        if (TryGetProvidedDefault(type, mock, out var provided))
+            return provided!;
+        if (TryGetProvidedAsyncResult(type, mock, out var providedAsync))
+            return providedAsync!;
         var ex = GetDefaultException(mock.MockedType);
         if (ex is not null)
             throw ex;
@@ -17,7 +21,6 @@ internal class FluentDefaultProvider(IRepository repository)
             : IsReturningSelf(type, mock) ? mock.Instance
             : IsTask(type) ? GetTask(type, mock)
             : IsValueTask(type) ? GetValueTask(type, mock)
-            : TryGetProvidedDefault(type, mock, out var provided) ? provided!
             : repository.Create(type, For.Subject);
     }
 
@@ -43,6 +46,19 @@ internal class FluentDefaultProvider(IRepository repository)
         if (candidates.Length == 0)
             return false;
         value = provided[candidates.Length == 1 ? candidates[0] : MostSpecific(candidates, type, service)];
+        return true;
+    }
+
+    private bool TryGetProvidedAsyncResult(Type type, MockHandle mock, out object? result)
+    {
+        result = null;
+        if (!IsTask(type) && !IsValueTask(type) || type.GenericTypeArguments is not [var valueType])
+            return false;
+        if (!TryGetProvidedDefault(valueType, mock, out var provided))
+            return false;
+        result = IsTask(type)
+            ? TaskCompiler.GetFromResultMethod(valueType)(provided!)
+            : ValueTaskCompiler.GetFromResultMethod(valueType)(provided!);
         return true;
     }
 

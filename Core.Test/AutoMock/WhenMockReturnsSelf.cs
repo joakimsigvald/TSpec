@@ -16,4 +16,9 @@ public class WhenMockReturnsSelf : Spec<MyValueIntService, IMyValueIntRepo>
             Then Result.GetObject().GetType() is typeof object
             """);
     }
+
+    [Fact]
+    public void GivenServiceReturnsValueOfItsOwnType_ThenReturnTheValue()
+        => Given<IMyValueIntRepo>().Returns(() => (IMyValueIntRepo?)null)
+            .Then().Result.Is().Null();
 }

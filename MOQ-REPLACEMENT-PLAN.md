@@ -59,11 +59,10 @@ is behaviour the seam has to state as a contract, or the engine will break it si
   `GivenThatContinuation` relies on it to hold the answer between the two.
 - Moq keeps **one** callback per setup, which is why taps are folded (improvement plan item 22).
 - A later setup of the same call **overrides** an earlier one.
-- An unmatched call asks the default provider, which may answer with the mock itself
-  (`IsReturningSelf`), wrap in `Task`/`ValueTask`, throw a service-wide exception, or refuse an
-  interface inside a task.
-- A service-wide `Returns` is set twice: TSpec's provided default *and* Moq's `SetReturnsDefault`
-  for `T`, `Task<T>` and `ValueTask<T>` (`GivenServiceContinuation`) — one may be redundant.
+- An unmatched call asks the default provider, which answers in this order: a service-wide `Returns`
+  value (or a `Task`/`ValueTask` of it), the service-wide exception, a `Using` value, the mock itself
+  (`IsReturningSelf`), a wrapped `Task`/`ValueTask` — refusing an interface inside one — and finally a
+  generated value.
 
 **Step 1 — the mock handle.** DONE 2026-09-13. `MockHandle` (`…/Strategies/Mocking/`) holds Moq's
 `Mock`: `MockedType`, `Instance`, and `Invocations` as `MockInvocation(Method, Arguments)` records.
@@ -73,10 +72,12 @@ by-name/whole-service verification read them. `FluentDefaultProvider` no longer 
 which retired `MockCompiler`'s reflection. The escape hatch is `MockHandle.MoqMock`, reached from
 `Spec.GetMock<T>()` (setups) and `TestResult.Mocked<T>()` (verification by expression).
 
-**Step 2 — default answers.** The default-value hook already answers for the handle (step 1). What
-remains: service-wide provided defaults and exceptions go behind the handle, and whether the
-`SetReturnsDefault` calls in `GivenServiceContinuation` are redundant is found by removing them against
-the suite.
+**Step 2 — default answers.** DONE 2026-09-13. Moq's `SetReturnsDefault` calls are gone; they were
+not redundant. They made a service-wide `Returns` win over a `Using` value, the mock returning itself,
+the service's `Throws`, and the interface-inside-a-task refusal. `FluentDefaultProvider` now checks
+the provided default, and a task of it, first; tests in `WhenReturnsDefaultValue`,
+`WhenMockReturnsSelf` and `WhenValueTaskOfInterface` pin each case. The storage stays in the provider,
+keyed by service: it was never Moq's, so moving it onto the handle gains the swap nothing.
 
 **Step 3 — call setup, the large one.** Set up a call named by expression or by protected
 `MethodInfo`, and give it a single answer: a function from the call's arguments to its unwrapped
@@ -140,6 +141,14 @@ and their new wording is the PO's call — show before/after.
 - **The failure exception.** `MockException` becomes an xUnit failure; one Core.Test test catches it.
 
 **Done when** `Core.csproj` has no Moq reference, the §4.3 probes pass, and §4.4 holds.
+
+### 4.6 Last, unrelated to Moq
+
+`FluentDefaultProvider`'s `SetupFailed` messages name types with `Type.Name`, so a generic type reads
+as C# never writes it: the interface-in-a-task refusal says `Task<IEnumerable`1>` and suggests
+`Returns(A<IEnumerable`1>)` for a `Task<IEnumerable<MyModel>>`, and `MostSpecific` would list
+`ICollection`1`. Use `Alias()`, as the rest of TSpec's messages do. Test first: extend
+`WhenMockReturnTaskOfInterface` with a generic value type.
 
 ## 5. Release 3.2+ — the mocking language
 

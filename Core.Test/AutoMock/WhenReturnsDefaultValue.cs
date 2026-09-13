@@ -37,6 +37,27 @@ public class WhenReturnsDefaultValue : Spec<MyValueIntService, string>
     }
 
     [Fact]
+    public void GivenUsedValueOfSameType_ThenUseDefaultValue()
+        => When(_ => _.GetValue(A<MyValueInt>()))
+            .Given<IMyValueIntRepo>().Returns(A<string>)
+            .Using("used", For.Subject)
+            .Then().Result.Is(The<string>());
+
+    [Fact]
+    public void GivenServiceAlsoThrows_ThenUseDefaultValue()
+        => When(_ => _.GetValue(A<MyValueInt>()))
+            .Given<IMyValueIntRepo>().Returns(A<string>)
+            .And<IMyValueIntRepo>().Throws<ArgumentException>()
+            .Then().Result.Is(The<string>());
+
+    [Fact]
+    public void GivenServiceAlsoThrows_ThenUseDefaultValueForTask()
+        => When(_ => _.GetValueAsync(A<MyValueInt>()))
+            .Given<IMyValueIntRepo>().Returns(A<string>)
+            .And<IMyValueIntRepo>().Throws<ArgumentException>()
+            .Then().Result.Is(The<string>());
+
+    [Fact]
     public void GivenMethodReturnsTaskOfValue_ThenUseDefaultValue()
     {
         When(_ => _.GetValueAsync(A<MyValueInt>()))

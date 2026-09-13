@@ -173,4 +173,12 @@ public class WhenValueTaskOfInterface : Spec<CounterService, int>
         Given<ICounterStore>().That(_ => _.GetCart(1)).Returns(() => new ShoppingCart { Id = 5 });
         Then().Result.Is(5);
     }
+
+    [Fact]
+    public void GivenTheStoreReturnsACartAndThrows_ThenTheCartIsReturned()
+    {
+        Given<ICounterStore>().Returns(() => new ShoppingCart { Id = 5 })
+            .And<ICounterStore>().Throws<ArgumentException>();
+        Then().Result.Is(5);
+    }
 }
