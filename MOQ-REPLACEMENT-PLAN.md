@@ -52,12 +52,6 @@ correct it in place as work lands, and move a finished stage to Done as a line.
 **Not verified here: M5's `Core.Spec`/`Integration.Spec`.** They were part of 3.1's acceptance, but
 are not in this repository. Run them against 3.1.0 before publishing.
 
-**Generic type names in `FluentDefaultProvider`'s messages.** Its `SetupFailed` messages name types
-with `Type.Name`, so a generic type reads as C# never writes it: the interface-in-a-task refusal says
-`Task<IEnumerable`1>` and suggests `Returns(A<IEnumerable`1>)` for a `Task<IEnumerable<MyModel>>`, and
-`MostSpecific` would list `ICollection`1`. Use `Alias()`, as the rest of TSpec's messages do. Test
-first: extend `WhenMockReturnTaskOfInterface` with a generic value type.
-
 **A tap before `First()` is dropped**, from both the call and the specification:
 `That(…).Tap(a).First().Returns(…)` never runs `a` and does not state it (`InSequence` passes neither
 the taps nor their text). Decide whether such a tap fires on every call of the sequence, or is
@@ -106,3 +100,6 @@ Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a 
   referenced directly. PO decisions: `It.IsAny`/`It.Is` are refused; a mock and a failed verification
   render in line with TSpec's other text, not perfected. Release notes and the agent reference
   updated. 2026-09-13.
+- **3.1.0, generic type names** — `FluentDefaultProvider`'s refusals (interface inside a task, no most
+  specific provided default) name types with `Alias()`, pinned in `WhenMockReturnTaskOfGenericInterface`
+  and `WhenReturnsAssignableValue`. 2026-09-13.

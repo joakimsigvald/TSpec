@@ -38,7 +38,12 @@ public class WhenReturnsAssignableValue : Spec<MyValueIntService, ICollection<in
             When(_ => _.GetNumbers())
                 .Given<IMyValueIntRepo>().Returns(Two<int>)
                 .And<IMyValueIntRepo>().Returns(A<List<int>>)
-                .Then().Completes());
+                .Then().Completes())
+            .Message.Is(
+                """
+                IMyValueIntRepo returns ICollection<int>, and no provided default is more specific than the others: int[], List<int>.
+                Provide a value for ICollection<int> itself to say which one applies.
+                """);
 }
 
 public class WhenReturnsMostSpecificValue : Spec<MyValueIntService, IEnumerable<int>>

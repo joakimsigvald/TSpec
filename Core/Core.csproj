@@ -34,6 +34,7 @@
 			* Throws on a protected member returning Task or ValueTask failed setup
 			* ReturnsDefault() on a Task call answered with a null task; it now answers with a completed one
 			* Returns() on a call that answers with a value names the value's type in its refusal, not a Moq class
+			* Setup failures about a mock's default answers name generic types as C# writes them, e.g. Task&lt;IEnumerable&lt;MyModel&gt;&gt; rather than Task&lt;IEnumerable`1&gt;
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

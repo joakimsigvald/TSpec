@@ -1,4 +1,5 @@
-﻿using TSpec.Internal.TestData.Generation.Strategies.IlCompilation;
+﻿using TSpec.Internal.Specification;
+using TSpec.Internal.TestData.Generation.Strategies.IlCompilation;
 
 namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
@@ -65,9 +66,9 @@ internal class FluentDefaultProvider(IRepository repository)
     private static Type MostSpecific(Type[] candidates, Type returnType, Type service)
         => candidates.FirstOrDefault(candidate => candidates.All(candidate.IsAssignableTo))
         ?? throw new SetupFailed(
-            @$"{service.Name} returns {returnType.Name}, and no provided default is more specific than the others: {
-                string.Join(", ", candidates.Select(_ => _.Name))}.
-Provide a value for {returnType.Name} itself to say which one applies.");
+            @$"{service.Alias()} returns {returnType.Alias()}, and no provided default is more specific than the others: {
+                string.Join(", ", candidates.Select(_ => _.Alias()))}.
+Provide a value for {returnType.Alias()} itself to say which one applies.");
 
     private static bool IsReturningSelf(Type type, MockHandle mock)
         => !type.IsAssignableFrom(typeof(object)) && type.IsAssignableFrom(mock.Instance.GetType());
@@ -95,10 +96,10 @@ Provide a value for {returnType.Name} itself to say which one applies.");
         var value = GetDefaultValue(valueType, mock);
         if (value is null || value.GetType() == valueType)
             return value!;
-        var mockName = mock.MockedType.Name;
+        var mockName = mock.MockedType.Alias();
         throw new SetupFailed(
-            @$"{mockName} returns a {asyncType}<{valueType.Name}>.
+            @$"{mockName} returns a {asyncType}<{valueType.Alias()}>.
 Interface types returned as task must be provided explicitly in the test setup.
-You can provide a default interface instance with 'Given<{mockName}>().Returns(A<{valueType.Name}>)'.");
+You can provide a default interface instance with 'Given<{mockName}>().Returns(A<{valueType.Alias()}>)'.");
     }
 }
