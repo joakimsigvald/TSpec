@@ -23,7 +23,8 @@ correct it in place as work lands, and move a finished stage to Done as a line.
     by content), `Any<T>()`, `Any<T>(constraint)`; out arguments match anything and get the setup's
     value. Refuses a non-virtual member and Moq's `It.*` with `SetupFailed`.
   - `CallChain` — `_ => _.Child.Get(1)` is set up as `Child` answering with the `IChild` mock, and
-    `Get(1)` on that mock; verification counts `Get(1)` there. A receiver TSpec does not mock is not a chain.
+    `Get(1)` on that mock; verification counts `Get(1)` there. A receiver TSpec does not mock is
+    refused naming the member that returns it ("IParent.Name returns a string, which TSpec does not mock, …").
   - `AsyncAnswer` — a throw on an awaited call faults the task; a value inside a task is wrapped.
   - `MockRegistry` — one handle per type; `MockingStrategy` — which types are mocked.
 - **Verification by expression** counts `CallMatcher` matches in the log (`TestResult.VerifyCall`) and

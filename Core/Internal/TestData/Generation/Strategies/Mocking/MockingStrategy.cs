@@ -8,7 +8,7 @@ internal class MockingStrategy(FluentDefaultProvider fluentDefaultProvider) : IG
 
     public bool TryGenerate(GenerationRequest request, ref object? result)
     {
-        if (request.WithDefaultFallback && IsMockingResponsibility(request))
+        if (request.WithDefaultFallback && IsMockable(request))
         {
             result = _registry.GetMock(request.Type).Instance;
             return true;
@@ -18,17 +18,17 @@ internal class MockingStrategy(FluentDefaultProvider fluentDefaultProvider) : IG
 
     internal bool TryUseArrangedMock(GenerationRequest request, ref object? result)
     {
-        if (!IsMockingResponsibility(request) || !_registry.HasMock(request.Type))
+        if (!IsMockable(request) || !_registry.HasMock(request.Type))
             return false;
 
         result = _registry.GetMock(request.Type).Instance;
         return true;
     }
 
-    internal static bool IsMocked(Type type)
+    internal static bool IsMockable(Type type)
         => type.IsInterface
         || type.IsAbstract
         || typeof(Delegate).IsAssignableFrom(type);
 
-    private static bool IsMockingResponsibility(GenerationRequest request) => IsMocked(request.Type);
+    private static bool IsMockable(GenerationRequest request) => IsMockable(request.Type);
 }

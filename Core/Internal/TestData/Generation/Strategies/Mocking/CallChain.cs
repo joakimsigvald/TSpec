@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
@@ -17,14 +18,33 @@ internal static class CallChain
         if (receiver is null || CallMatcher.Unwrap(receiver) == service)
             return false;
 
-        if (!IsReachedFrom(receiver, service) || !MockingStrategy.IsMocked(receiver.Type))
+        if (!IsReachedFrom(receiver, service))
             return false;
+
+        if (!MockingStrategy.IsMockable(receiver.Type))
+            throw NotMockable(receiver, body);
 
         var child = Expression.Parameter(receiver.Type, "_");
         link = Expression.Lambda(receiver, service);
         last = Expression.Lambda(WithReceiver(body, child), child);
         return true;
     }
+
+    private static SetupFailed NotMockable(Expression receiver, Expression call)
+    {
+        var returning = CallMatcher.Unwrap(receiver);
+        return new SetupFailed(
+            $"{ReceiverOf(returning)!.Type.Alias()}.{MemberName(returning)} returns {receiver.Type.Alias().WithArticle()}, "
+            + $"which TSpec does not mock, so {MemberName(call)} cannot be set up or verified through it");
+    }
+
+    private static string MemberName(Expression call)
+        => call switch
+        {
+            MethodCallExpression methodCall => methodCall.Method.Name,
+            MemberExpression member => member.Member.Name,
+            _ => nameof(Action.Invoke)
+        };
 
     private static Expression? ReceiverOf(Expression call)
         => call switch

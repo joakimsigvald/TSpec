@@ -6,6 +6,7 @@ public interface IParent
 {
     IChild Child { get; }
     IChild GetChild(int id);
+    string Name { get; }
 }
 
 public interface IChild
@@ -52,6 +53,26 @@ public class WhenAChainedCallIsSetUp : Spec<ParentService, string>
         => When(_ => _.GetFromChild(1))
             .Given<IParent>().That(_ => _.Child.Get(1)).Returns(() => "chained")
             .Then<IChild>(_ => _.Get(1));
+
+    [Fact]
+    public void GivenAReceiverTSpecDoesNotMock_ThenThrowSetupFailed()
+        => Xunit.Assert.Throws<SetupFailed>(() =>
+            When(_ => _.GetFromChild(1))
+                .Given<IParent>().That(_ => _.Name.Length).Returns(() => 3)
+                .Then().Result.Is("chained"))
+            .Message.Is(
+                "IParent.Name returns a string, which TSpec does not mock, "
+                + "so Length cannot be set up or verified through it");
+
+    [Fact]
+    public void GivenAReceiverTSpecDoesNotMockFurtherDown_ThenThrowSetupFailedNamingIt()
+        => Xunit.Assert.Throws<SetupFailed>(() =>
+            When(_ => _.GetFromChild(1))
+                .Given<IParent>().That(_ => _.GetChild(2).Get(1).Trim()).Returns(() => "trimmed")
+                .Then().Result.Is("chained"))
+            .Message.Is(
+                "IChild.Get returns a string, which TSpec does not mock, "
+                + "so Trim cannot be set up or verified through it");
 }
 
 public class WhenAChainedCallIsVerified : Spec<ParentService, string>
@@ -63,4 +84,12 @@ public class WhenAChainedCallIsVerified : Spec<ParentService, string>
     [Fact]
     public void GivenAnotherCallWasMade_ThenItIsNotCounted()
         => When(_ => _.GetFromChild(2)).Then<IParent>(_ => _.Child.Get(1), Times.Never);
+
+    [Fact]
+    public void GivenAReceiverTSpecDoesNotMock_ThenThrowSetupFailed()
+        => Xunit.Assert.Throws<SetupFailed>(() =>
+            When(_ => _.GetFromChild(1)).Then<IParent>(_ => _.Name.Trim()))
+            .Message.Is(
+                "IParent.Name returns a string, which TSpec does not mock, "
+                + "so Trim cannot be set up or verified through it");
 }
