@@ -28,6 +28,6 @@ public class WhenCreateCartInvocations : Spec<Subjects.ShoppingService, Shopping
     public void ThenWasInvokedOnceFailsWhenNeverCalled()
     {
         var ex = Xunit.Assert.Throws<XunitException>(() => Then<IOrderService>(wasInvoked: Once));
-        ex.Message.Is("Expected IOrderService to be invoked once but was invoked 0 times");
+        ex.Message.Is("Expected IOrderService to be invoked once but was never invoked");
     }
 }

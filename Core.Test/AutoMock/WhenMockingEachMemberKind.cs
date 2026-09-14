@@ -55,6 +55,13 @@ public class MemberKindsService(
     public string TryGet(int id) => $"{kinds.TryGet(id, out var value)}:{value}";
     public string GetByKey(string key) => kinds.Get(key);
     public string GetById(int id) => kinds.Get(id);
+
+    public string NameThenGet(string name)
+    {
+        kinds.Name = name;
+        return kinds.Get(name);
+    }
+
     public string CallVirtual() => partlyVirtual.Virtual();
     public string CallNonVirtual() => partlyVirtual.NonVirtual();
     public string Lookup(int id) => lookup(id);

@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using TSpec.Continuations;
 using TSpec.Internal.Specification;
 using TSpec.Internal.TestData;
+using TSpec.Internal.TestData.Generation.Strategies.Mocking;
 using Xunit.Sdk;
 
 namespace TSpec.Internal.Verification;
@@ -135,11 +136,14 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
         {
             SpecificationContext.Current.ClearSubject();
             SpecificationContext.Current.AddWasInvoked<TService>(timesExpr);
-            var count = _context.GetMock<TService>().Invocations.Count;
-            if (!times.Allows(count))
-                throw new XunitException(
-                    $"Expected {typeof(TService).Alias()} to be invoked {expectation} but was invoked {count} times");
-            return new AndVerify<TSUT, TResult>(this);
+            var mock = _context.GetMock<TService>();
+            var count = mock.Invocations.Count;
+            if (times.Allows(count))
+                return new AndVerify<TSUT, TResult>(this);
+
+            var failure = CountNotMet(typeof(TService).Alias(), expectation, count);
+            // A count of every call the mock received already says, at 0, that there were none
+            throw count == 0 ? new XunitException(failure) : WithReceivedCalls(failure, mock);
         }
         catch (Exception ex)
         {
@@ -157,10 +161,10 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
         {
             SpecificationContext.Current.ClearSubject();
             SpecificationContext.Current.AddWasInvoked<TService>(method, timesExpr);
-            var count = _context.GetMock<TService>().Invocations.Count(i => i.Method.Name == method);
+            var mock = _context.GetMock<TService>();
+            var count = mock.Invocations.Count(i => i.Method.Name == method);
             if (!times.Allows(count))
-                throw new XunitException(
-                    $"Expected {typeof(TService).Alias()}.{method} to be invoked {expectation} but was invoked {count} times");
+                throw WithReceivedCalls(CountNotMet($"{typeof(TService).Alias()}.{method}", expectation, count), mock);
             return new AndVerify<TSUT, TResult>(this);
         }
         catch (Exception ex)
@@ -178,6 +182,20 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
             "Never" => "never",
             "Once" => "once",
             var normalized => normalized,
+        };
+
+    private static string CountNotMet(string call, string expectation, int count)
+        => $"Expected {call} to be invoked {expectation} but {DescribeCount(count)}";
+
+    private static XunitException WithReceivedCalls(string failure, MockHandle mock)
+        => new($"{failure}{Environment.NewLine}{ReceivedCalls.Of(mock)}");
+
+    private static string DescribeCount(int count)
+        => count switch
+        {
+            0 => "was never invoked",
+            1 => "was invoked once",
+            _ => $"was invoked {count} times"
         };
 
     internal IAndVerify<TResult> Verify<TService>(
@@ -260,11 +278,15 @@ Try providing a function with the Spec's declared return type instead as paramet
         {
             SpecificationContext.Current.ClearSubject();
             SpecificationContext.Current.AddVerify<TService>(expressionExpr, timesExpr);
-            var count = _context.GetMock<TService>().CountCalls(expression);
+            var mock = _context.GetMock<TService>();
+            var count = mock.CountCalls(expression);
             if (!(times ?? Times.AtLeastOnce).Allows(count))
-                throw new XunitException(
-                    $"Expected {typeof(TService).Alias()}.{expressionExpr.DescribeMockCall().StripWrapMarkers()} to be invoked "
-                    + $"{DescribeInvocationTimes(timesExpr)} but was invoked {count} times");
+                throw WithReceivedCalls(
+                    CountNotMet(
+                        $"{typeof(TService).Alias()}.{expressionExpr.DescribeMockCall().StripWrapMarkers()}",
+                        DescribeInvocationTimes(timesExpr),
+                        count),
+                    mock);
             return new AndVerify<TSUT, TResult>(this);
         }
         catch (Exception ex)

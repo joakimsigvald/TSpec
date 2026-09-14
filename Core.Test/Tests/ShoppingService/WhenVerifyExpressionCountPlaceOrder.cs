@@ -1,4 +1,5 @@
 using TSpec.Assert;
+using TSpec.Internal.Specification;
 using Xunit.Sdk;
 using static TSpec.Times;
 using TSpec.Test.Subjects;
@@ -51,5 +52,9 @@ public class WhenVerifyExpressionCountCreateCart : Spec<Subjects.ShoppingService
     public void ThenExpressionOnceFailsWhenNeverCalled()
         => Xunit.Assert.Throws<XunitException>(
             () => Then<IOrderService>(_ => _.CreateOrder(The<ShoppingCart>()), Once))
-            .Message.Is("Expected IOrderService.CreateOrder(the ShoppingCart) to be invoked once but was invoked 0 times");
+            .Message.NormalizeLineEndings().Is(
+                """
+                Expected IOrderService.CreateOrder(the ShoppingCart) to be invoked once but was never invoked
+                IOrderService received no calls
+                """.NormalizeLineEndings());
 }

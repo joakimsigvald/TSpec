@@ -1,5 +1,6 @@
 using static TSpec.Times;
 using TSpec.Assert;
+using TSpec.Internal.Specification;
 using TSpec.Test.Subjects;
 using Xunit.Sdk;
 
@@ -66,7 +67,12 @@ public class WhenPlaceOrderInvocationsByName : ShoppingServiceSpec<object>
     {
         var ex = Xunit.Assert.Throws<XunitException>(
             () => Then<IOrderService>(nameof(IOrderService.CreateOrder), Never));
-        ex.Message.Is("Expected IOrderService.CreateOrder to be invoked never but was invoked 1 times");
+        ex.Message.NormalizeLineEndings().Is(
+            $"""
+            Expected IOrderService.CreateOrder to be invoked never but was invoked once
+            IOrderService received:
+              IOrderService.CreateOrder({The<ShoppingCart>()})
+            """.NormalizeLineEndings());
     }
 }
 
@@ -90,6 +96,10 @@ public class WhenCreateCartInvocationsByName : Spec<Subjects.ShoppingService, Sh
     {
         var ex = Xunit.Assert.Throws<XunitException>(
             () => Then<IOrderService>(nameof(IOrderService.CreateOrder), Once));
-        ex.Message.Is("Expected IOrderService.CreateOrder to be invoked once but was invoked 0 times");
+        ex.Message.NormalizeLineEndings().Is(
+            """
+            Expected IOrderService.CreateOrder to be invoked once but was never invoked
+            IOrderService received no calls
+            """.NormalizeLineEndings());
     }
 }

@@ -32,7 +32,7 @@ correct it in place as work lands, and move a finished stage to Done as a line.
 - **Verification by expression** counts `CallMatcher` matches in the log (`TestResult.VerifyCall`); a
   logged call keeps what it answered with, so a chain is counted on the mocks its first step actually
   answered with, each once. It fails like a count by name: "Expected IOrderService.CreateOrder(the ShoppingCart) to be invoked
-  once but was invoked 0 times".
+  once but was never invoked", then the calls the mock received (`ReceivedCalls`).
 - **Behaviour pinned, so an engine change cannot drop it silently**:
   - unmatched calls, in order: a service-wide `Returns` value (or a task of it), the service-wide
     exception, a `Using` value, the mock itself, a wrapped task, a generated value
@@ -56,9 +56,9 @@ means observed on the Castle engine; how Moq behaved is inferred where marked, o
 cached Moq 4.20.72 package.
 
 **Next session** (PO, 2026-09-14): finish the items that are worse than 3.0 — marked **[worse]** —
-simplest and most severe first, in this order: the verification listing (§2.2), the nested `Any<T>()`
-and the abstract class's raw error (§2.3), the tap before `First()` (§2.4). Work test first, stop after
-each item to report and evaluate, and propose any new user-facing wording before pinning it.
+simplest and most severe first, in this order: the nested `Any<T>()` and the abstract class's raw error
+(§2.3), the tap before `First()` (§2.4). Work test first, stop after each item to report and evaluate,
+and propose any new user-facing wording before pinning it.
 
 ### 2.1 Before publishing
 
@@ -71,9 +71,7 @@ each item to report and evaluate, and propose any new user-facing wording before
 
 ### 2.2 Could break a 3.0 user's test (regressions against Moq)
 
-- **[worse] A failed verification no longer lists the calls that were made.** Moq's `MockException` listed
-  the mock's performed invocations and setups, which is the main clue when a verification fails.
-  Overlaps §3 item 4.
+None open.
 
 ### 2.3 Edges: probed or read, likely harmless
 
@@ -134,8 +132,9 @@ or async (PO, 2026-09-14), as the rest of TSpec does. Candidates, not yet design
    - setting a `ref` argument's value on the way out;
    - matching any type argument of a generic method (`It.IsAnyType`);
    - mocking an abstract class through a constructor that takes arguments.
-4. **Verification messages that read like TSpec's assertion failures**, with the invocations that
-   were made. The 3.1 wording is a first cut, to be tweaked (PO, 2026-09-13).
+4. **Verification messages that read like TSpec's assertion failures.** The 3.1 wording is a first
+   cut, to be tweaked (PO, 2026-09-13). Its listing shows only the verified mock's own calls, so a
+   chain's later steps, received by the child's mock, are missing from it.
 
 Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a sequence step
 (improvement plan item 7, dropped 2026-09-11).
@@ -184,3 +183,10 @@ Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a 
   from the expression tree would make it exact). Deliberately unlike Moq 4.20.72 (probed): a child per
   `Any` address, and setups at one address combine. A call left of a dot renders as a call, not a
   phrase. Pinned in `WhenMockingAChainedCall`. 2026-09-14.
+- **3.1.0, the verification listing** — every failed count (whole mock, by name, by expression) is
+  followed by the calls the mock received, in order ("IOrderService received:" and one call per line,
+  or "IOrderService received no calls", which a count of the whole mock leaves out at 0, as the count
+  already says it); arguments by `FormatValue`, a property as `.Name` /
+  `.Name = "x"`, a generic method with its type arguments, a delegate by its alias; setups not listed.
+  PO wording: a count of 0 reads "was never invoked", of 1 "was invoked once". Pinned in
+  `WhenAVerificationFails` and the ShoppingService count specs. 2026-09-14.

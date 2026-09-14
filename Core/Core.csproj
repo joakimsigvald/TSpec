@@ -25,7 +25,9 @@
 			CHANGED
 			* TSpec mocks with its own engine on Castle.Core and no longer depends on Moq: reference Moq directly if your tests use it. A TSpec mock is not a Moq mock, so Mock.Get on one throws
 			* A throw on an awaited mocked call (Task, Task&lt;T&gt;, ValueTask, ValueTask&lt;T&gt;) comes back as a faulted task, however the throw was set up
-			* A failed verification by expression fails like a count by name, e.g. "Expected IOrderService.CreateOrder(the ShoppingCart) to be invoked once but was invoked 0 times", instead of throwing Moq's MockException
+			* A failed verification by expression fails like a count by name, e.g. "Expected IOrderService.CreateOrder(the ShoppingCart) to be invoked once but was never invoked", instead of throwing Moq's MockException
+			* A failed verification lists the calls the mock received, in order, each with its arguments
+			* A count not met reads "was never invoked" or "was invoked once" instead of "was invoked 0 times" or "1 times"
 			* A mock renders as the type it mocks, e.g. IOrderService, instead of Mock&lt;IOrderService:1&gt;.Object
 			* Setting up or verifying a non-virtual member throws SetupFailed saying why
 			* Moq's It.IsAny or It.Is inside a TSpec setup or verification throws SetupFailed; write Any&lt;T&gt;() or Any&lt;T&gt;(constraint)
