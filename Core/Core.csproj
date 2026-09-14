@@ -31,13 +31,14 @@
 			* Moq's It.IsAny or It.Is inside a TSpec setup or verification throws SetupFailed; write Any&lt;T&gt;() or Any&lt;T&gt;(constraint)
 			* A call set up or verified through a chain, e.g. _.Orders(2).Find(1), reaches a mock per step and arguments; a call on it the chain did not set up answers as Given&lt;IOrderStore&gt;() set it up
 			* A chain through an awaited member, e.g. _.GetCustomerAsync(1).Result.Name, reads without .Result in the specification
+			* An unset member returning Task&lt;T&gt; or ValueTask&lt;T&gt; of an interface answers as a member returning T does, instead of throwing "Interface types returned as task must be provided explicitly"
 			FIXED
 			* A mocked call chained through a method with arguments reads as written, e.g. IParent.GetChild(2).Get(1), instead of "get child 2"
 			* Throws&lt;E&gt;() on a Task&lt;T&gt; call threw ArgumentNullException instead of E
 			* Throws on a protected member returning Task or ValueTask failed setup
 			* ReturnsDefault() on a Task call answered with a null task; it now answers with a completed one
 			* Returns() on a call that answers with a value names the value's type in its refusal, not a Moq class
-			* Setup failures about a mock's default answers name generic types as C# writes them, e.g. Task&lt;IEnumerable&lt;MyModel&gt;&gt; rather than Task&lt;IEnumerable`1&gt;
+			* Setup failures about a mock's default answers name generic types as C# writes them, e.g. ICollection&lt;int&gt; rather than ICollection`1
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

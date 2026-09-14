@@ -83,23 +83,11 @@ Provide a value for {returnType.Alias()} itself to say which one applies.");
         => type == typeof(Task) ? Task.CompletedTask : GetTaskOf(type.GenericTypeArguments.Single(), mock);
 
     private Task GetTaskOf(Type valueType, MockHandle mock)
-        => TaskCompiler.GetFromResultMethod(valueType)(GetAsyncResult(valueType, mock, nameof(Task)));
+        => TaskCompiler.GetFromResultMethod(valueType)(GetDefaultValue(valueType, mock));
 
     private object GetValueTask(Type type, MockHandle mock)
         => type == typeof(ValueTask) ? default(ValueTask) : GetValueTaskOf(type.GenericTypeArguments.Single(), mock);
 
     private object GetValueTaskOf(Type valueType, MockHandle mock)
-        => ValueTaskCompiler.GetFromResultMethod(valueType)(GetAsyncResult(valueType, mock, nameof(ValueTask)));
-
-    private object GetAsyncResult(Type valueType, MockHandle mock, string asyncType)
-    {
-        var value = GetDefaultValue(valueType, mock);
-        if (value is null || value.GetType() == valueType)
-            return value!;
-        var mockName = mock.MockedType.Alias();
-        throw new SetupFailed(
-            @$"{mockName} returns a {asyncType}<{valueType.Alias()}>.
-Interface types returned as task must be provided explicitly in the test setup.
-You can provide a default interface instance with 'Given<{mockName}>().Returns(A<{valueType.Alias()}>)'.");
-    }
+        => ValueTaskCompiler.GetFromResultMethod(valueType)(GetDefaultValue(valueType, mock));
 }

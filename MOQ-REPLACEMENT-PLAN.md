@@ -65,27 +65,6 @@ engine on 2026-09-13; Moq is gone, so how Moq behaved is inferred where marked.
 
 ### 2.2 Could break a 3.0 user's test (regressions against Moq)
 
-- **Chained calls: a child per address** (PO, 2026-09-14). A child is reached at an address — the
-  member and the actual arguments; it exists only where a chained setup's first step matches, and
-  otherwise the call gets the shared mock of its type. A child answers its chained setups, then
-  `Given<IChild>()`'s, then defaults; its calls are logged on the shared mock too. Steps, each
-  reported before the next: 1 children by address — done; 2 fallback to the shared mock's setups — done;
-  3 verification per address — done; 4 deeper chains, a plain setup after a chained one, an async
-  last call, and chains on the type meeting children — done; 5 async steps — done: a task's `.Result`
-  is read as awaiting it (`CallMatcher.Unwrap`, not in arguments), a first step answers with a completed
-  task of the child, verification reads inside completed tasks only, and the specification leaves
-  `.Result` out of a mocked call (PO); the text renderer cannot see types, so a mocked member really
-  named `Result` right after a call is left out too (kept simple; a flag carried from the expression
-  tree with the call text would make it exact); 6 docs — done: README §4.2 and the agent reference
-  (chains, `.Result`, `AndThat`), release notes; 7 revisit "Interface types returned as task
-  must be provided explicitly" — likely a leftover from Moq (PO): an unset `Task<IChild>` member throws
-  where a sync one answers the shared mock, so a chain through a task meets it at any address no
-  chained setup matches. Evaluate before changing; it has its own pinned specs. `MockChildren` holds chained setups and children.
-  Moq 4.20.72, probed 2026-09-14: a child per setup step, reused for an equal step (`GetChild(1)`
-  twice); `GetChild(Any)` gives one child for every address it answers; a specific step's child does
-  not see an `Any` step's setups; an unset address answers null. `.Result` steps through a task in a
-  setup and a verification (`GetChildAsync(2).Result.Get(1)`, `GetNameAsync().Result`) — so step 5
-  closes a regression and belongs in 3.1.
 - **A failed verification no longer lists the calls that were made.** Moq's `MockException` listed
   the mock's performed invocations and setups, which is the main clue when a verification fails.
   Overlaps §3 item 4.
@@ -171,9 +150,13 @@ Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a 
   referenced directly. PO decisions: `It.IsAny`/`It.Is` are refused; a mock and a failed verification
   render in line with TSpec's other text, not perfected. Release notes and the agent reference
   updated. 2026-09-13.
-- **3.1.0, generic type names** — `FluentDefaultProvider`'s refusals (interface inside a task, no most
-  specific provided default) name types with `Alias()`, pinned in `WhenMockReturnTaskOfGenericInterface`
-  and `WhenReturnsAssignableValue`. 2026-09-13.
+- **3.1.0, generic type names** — `FluentDefaultProvider`'s refusal when no provided default is most
+  specific names types with `Alias()`, pinned in `WhenReturnsAssignableValue`. 2026-09-13.
+- **3.1.0, tasks of interfaces** — the refusal "Interface types returned as task must be provided
+  explicitly" is gone: it arrived with the Xspec merge, uncommented, and guarded nothing on the new
+  engine nor on 3.0's Moq 4.20.72 (only its own specs failed without it). An unset `Task<T>`/`ValueTask<T>`
+  member answers as a `T` member does; pinned in `WhenMockReturnTaskOfInterface`,
+  `WhenGivenArrayOfModelsAsync` and `WhenAChainGoesThroughATask`. 2026-09-14.
 - **3.1.0, delegate out parameters** — `DelegateForwarder` writes by-ref arguments back after the
   call, so a delegate mock sets its out values as an interface mock does; pinned in
   `WhenADelegateIsMocked`. 2026-09-14.
@@ -182,6 +165,11 @@ Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a 
 - **3.1.0, `Any<T>()` across a conversion** — refused with `SetupFailed` when the parameter's type
   cannot hold a `T` (`Any<MyValueInt>()` on `Get(int)`), as Moq refused it ("Matcher … is
   unmatchable"); it had silently matched nothing. Pinned in `WhenMockWithAnyArgument`. 2026-09-14.
-- **3.1.0, chained calls** — set up and verified through a chain of mocked members; pinned in
-  `WhenMockingAChainedCall`. A call left of a dot renders as a call, not a phrase
-  (`IParent.GetChild(2).Get(1)`, was "get child 2"); `Describer.Path`. 2026-09-14.
+- **3.1.0, chained calls** (PO design) — a child per address, the member and the actual arguments,
+  made only where a chained setup's first step matches; elsewhere the shared mock of the type. A child
+  answers its chained setups, then the type's, then defaults; a chain is counted on the mocks its first
+  step answered with. `.Result` steps through a task and is left out of the specification; the renderer
+  sees text, not types, so a mocked member really named `Result` after a call is left out too (a flag
+  from the expression tree would make it exact). Deliberately unlike Moq 4.20.72 (probed): a child per
+  `Any` address, and setups at one address combine. A call left of a dot renders as a call, not a
+  phrase. Pinned in `WhenMockingAChainedCall`. 2026-09-14.

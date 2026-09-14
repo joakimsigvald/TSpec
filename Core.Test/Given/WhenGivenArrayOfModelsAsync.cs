@@ -24,4 +24,18 @@ public abstract class WhenGivenArrayOfModelsAsync : Spec<MyService, MyModel[]>
             """);
         }
     }
+
+    public class GivenThreeModels : WhenGivenArrayOfModelsAsync
+    {
+        public GivenThreeModels() => Given().Three<MyModel>();
+
+        [Fact]
+        public void ThenTheTaskHoldsThem() => Result.Is().EqualTo(Three<MyModel>());
+    }
+
+    public class GivenNoEnumerableProvided : WhenGivenArrayOfModelsAsync
+    {
+        [Fact]
+        public void ThenTheTaskHoldsAGeneratedOne() => Result.Is().not.Null();
+    }
 }

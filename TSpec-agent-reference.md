@@ -131,7 +131,6 @@ Works standalone in plain xUnit tests too.
 | `Because can only be provided once per test method` | One logical assertion, one `because`, per test method. |
 | `ValuesExhausted` | A `From` sequence or list ran out; widen it. |
 | `InvalidTypeConversion` | No conversion path; register `Using<TTarget>().From(lambda)`. |
-| `... Interface types returned as task must be provided explicitly` | Set up the call: `Given<TService>().That(...).Returns(A<TInterface>)`. |
 | `X.Member returns a T, which TSpec does not mock, so Next cannot be set up or verified through it` | A chain passes through a type that is not an interface, abstract class or delegate. Set up `X.Member` itself. |
 
 ## Recommended structure

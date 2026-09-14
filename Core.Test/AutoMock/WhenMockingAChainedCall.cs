@@ -65,6 +65,13 @@ public class WhenAChainGoesThroughATask : Spec<ParentService, string>
     }
 
     [Fact]
+    public void GivenNoChainedSetupMatchesTheAddress_ThenTheTaskHoldsTheSharedMock()
+        => Given<IParent>().That(_ => _.GetChildAsync(2).Result.Get(1)).Returns(() => "awaited")
+            .And<IChild>().That(_ => _.Get(1)).Returns(() => "shared")
+            .When(_ => _.GetFromAwaitedChildOf(7, 1))
+            .Then().Result.Is("shared");
+
+    [Fact]
     public void GivenAValueTaskInTheChain_ThenTheCallAnswers()
         => Given<IParent>().That(_ => _.GetChildValueAsync(2).Result.Get(1)).Returns(() => "awaited")
             .When(_ => _.GetFromValueAwaitedChildOf(2, 1))
