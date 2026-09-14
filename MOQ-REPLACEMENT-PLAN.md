@@ -66,9 +66,18 @@ engine on 2026-09-13; Moq is gone, so how Moq behaved is inferred where marked.
   member and the actual arguments; it exists only where a chained setup's first step matches, and
   otherwise the call gets the shared mock of its type. A child answers its chained setups, then
   `Given<IChild>()`'s, then defaults; its calls are logged on the shared mock too. Steps, each
-  reported before the next: 1 children by address — done; 2 fallback to the shared mock's setups;
-  3 verification per address; 4 deeper chains, and a plain setup after a chained one; 5 async steps
-  (sync/async alike, as elsewhere in TSpec); 6 docs.
+  reported before the next: 1 children by address — done; 2 fallback to the shared mock's setups — done;
+  3 verification per address — done; 4 deeper chains, and a plain setup after a chained one — with two
+  gaps where a chain on the type (`Given<IChild>()`/`Then<IChild>` through `GrandChild`) misses the
+  grandchildren that children at addresses made: a child's own grandchild does not take the type's
+  chained setups, and `Then<IChild>(_ => _.GrandChild.Get(1))` counts 0 for a call through
+  `parent.Child.GrandChild` once a chained setup made that child (probed); 5 async steps
+  (sync/async alike, as elsewhere in TSpec); 6 docs. `MockChildren` holds chained setups and children.
+  Moq 4.20.72, probed 2026-09-14: a child per setup step, reused for an equal step (`GetChild(1)`
+  twice); `GetChild(Any)` gives one child for every address it answers; a specific step's child does
+  not see an `Any` step's setups; an unset address answers null. `.Result` steps through a task in a
+  setup and a verification (`GetChildAsync(2).Result.Get(1)`, `GetNameAsync().Result`) — so step 5
+  closes a regression and belongs in 3.1.
 - **A failed verification no longer lists the calls that were made.** Moq's `MockException` listed
   the mock's performed invocations and setups, which is the main clue when a verification fails.
   Overlaps §3 item 4.
@@ -100,6 +109,8 @@ engine on 2026-09-13; Moq is gone, so how Moq behaved is inferred where marked.
 - **Mocking an internal type** needs `[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]` in
   the test project. Moq users knew it from Moq's docs; TSpec's README and agent reference do not say
   it. Decide whether a reader needs it.
+- **`AndThat` is undocumented**: a second setup on the same mock (`.AndThat(_ => …)`) is in neither
+  the README nor the agent reference. Add it with the chained-calls docs (step 6).
 - **Housekeeping**: the package tags still include `moq`; `Generic.cs` still renders `It.IsAny<T>()`
   and `NormalizeTimes` still accepts Moq's `Times.Once()` — both now unreachable in practice.
 

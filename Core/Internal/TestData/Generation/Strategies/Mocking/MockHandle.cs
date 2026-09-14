@@ -69,13 +69,33 @@ internal sealed class MockHandle
         where TService : class
         => SetUp(CallMatcher.For(member), answerType, answer);
 
-    internal int CountCalls(LambdaExpression call)
+    internal int CountCalls(LambdaExpression call) => CountCalls(call, Invocations);
+
+    private IReadOnlyList<MockInvocation> OwnInvocations => [.. Invocations.Where(call => call.Receiver == this)];
+
+    private int CountOwnCalls(LambdaExpression call) => CountCalls(call, OwnInvocations);
+
+    private int CountCalls(LambdaExpression call, IReadOnlyList<MockInvocation> invocations)
     {
-        if (CallChain.TrySplit(call, out _, out var rest))
-            return _mocks.GetMock(rest.Parameters[0].Type).CountCalls(rest);
+        if (CallChain.TrySplit(call, out var firstStep, out var rest))
+            return CountThrough(firstStep, rest);
 
         var matcher = CallMatcher.For(call);
-        return Invocations.Count(matcher.Matches);
+        return invocations.Count(matcher.Matches);
+    }
+
+    /// <summary>
+    /// A chained call is counted on the children at the addresses its first step matches. A matching
+    /// call that reached no child got the shared mock, which cannot tell the addresses apart, so the
+    /// rest is counted there too. It is counted there either way, which also checks the rest of the chain.
+    /// </summary>
+    private int CountThrough(LambdaExpression firstStep, LambdaExpression rest)
+    {
+        var step = CallMatcher.For(firstStep);
+        var onChildren = _children.Matching(step).Sum(child => child.CountOwnCalls(rest));
+        var onShared = _mocks.GetMock(firstStep.Body.Type).CountOwnCalls(rest);
+        var reachedShared = OwnInvocations.Any(call => step.Matches(call) && !_children.IsReached(call));
+        return reachedShared ? onChildren + onShared : onChildren;
     }
 
     /// <summary>
@@ -118,7 +138,7 @@ internal sealed class MockHandle
     /// </summary>
     private object? Receive(MethodInfo method, object?[] arguments)
     {
-        Log(new MockInvocation(method, [.. arguments]));
+        Log(new MockInvocation(method, [.. arguments], this));
         var returnType = method.ReturnType;
         if (LatestMatching(method, arguments) is { } setup)
         {
@@ -140,7 +160,11 @@ internal sealed class MockHandle
         _shared?.Log(invocation);
     }
 
+    /// A child's own setups come first; a call they leave unanswered goes to the shared mock's setups.
     private CallSetup? LatestMatching(MethodInfo method, object?[] arguments)
+        => OwnLatestMatching(method, arguments) ?? _shared?.LatestMatching(method, arguments);
+
+    private CallSetup? OwnLatestMatching(MethodInfo method, object?[] arguments)
     {
         lock (_setups)
             return _setups.LastOrDefault(setup => setup.Matcher.Matches(method, arguments));
@@ -189,4 +213,4 @@ internal sealed class MockHandle
     }
 }
 
-internal sealed record MockInvocation(MethodInfo Method, IReadOnlyList<object?> Arguments);
+internal sealed record MockInvocation(MethodInfo Method, IReadOnlyList<object?> Arguments, MockHandle Receiver);

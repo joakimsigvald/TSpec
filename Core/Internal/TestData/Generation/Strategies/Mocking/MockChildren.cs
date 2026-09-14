@@ -26,11 +26,23 @@ internal sealed class MockChildren(FluentDefaultProvider defaults, MockRegistry 
                 return reached.Mock;
 
             var mock = new MockHandle(childType, defaults, mocks, mocks.GetMock(childType));
-            _children.Add(new(CallMatcher.Exactly(method, arguments), mock));
+            _children.Add(new(method, arguments, CallMatcher.Exactly(method, arguments), mock));
             foreach (var chain in ChainsMatching(method, arguments))
                 chain.SetUpChild(mock);
             return mock;
         }
+    }
+
+    internal MockHandle[] Matching(CallMatcher step)
+    {
+        lock (_children)
+            return [.. _children.Where(child => step.Matches(child.Method, child.Arguments)).Select(child => child.Mock)];
+    }
+
+    internal bool IsReached(MockInvocation call)
+    {
+        lock (_children)
+            return _children.Any(child => child.Address.Matches(call));
     }
 
     private ChainedSetup[] ChainsMatching(MethodInfo method, IReadOnlyList<object> arguments)
@@ -41,5 +53,6 @@ internal sealed class MockChildren(FluentDefaultProvider defaults, MockRegistry 
 
     private sealed record ChainedSetup(CallMatcher FirstStep, Action<MockHandle> SetUpChild);
 
-    private sealed record Child(CallMatcher Address, MockHandle Mock);
+    private sealed record Child(
+        MethodInfo Method, IReadOnlyList<object> Arguments, CallMatcher Address, MockHandle Mock);
 }

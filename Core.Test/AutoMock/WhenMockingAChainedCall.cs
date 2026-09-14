@@ -13,6 +13,7 @@ public interface IChild
 {
     IGrandChild GrandChild { get; }
     string Get(int id);
+    IChild WithName(string name);
 }
 
 public interface IGrandChild
@@ -28,6 +29,31 @@ public class ParentService(IParent parent)
     public string GetFromChildrenOf(int firstId, int secondId, int id)
         => $"{parent.GetChild(firstId).Get(id)},{parent.GetChild(secondId).Get(id)}";
     public IChild ChildOf(int id) => parent.GetChild(id);
+    public string GetFromNamedChildOf(int childId, int id) => parent.GetChild(childId).WithName("named").Get(id);
+}
+
+/// A child answers its chained setups first, then the setups of the shared mock of its type, then defaults.
+public class WhenAChildHasNoChainedSetupForACall : Spec<ParentService, string>
+{
+    [Fact]
+    public void GivenTheSharedMockIsSetUpForIt_ThenTheChildAnswersWithThat()
+        => Given<IChild>().That(_ => _.Get(1)).Returns(() => "shared")
+            .And<IParent>().That(_ => _.GetChild(2).Get(5)).Returns(() => "chained")
+            .When(_ => _.GetFromChildOf(2, 1))
+            .Then().Result.Is("shared");
+
+    [Fact]
+    public void GivenTheSharedMockIsSetUpForTheSameCallLater_ThenTheChainedSetupStillWins()
+        => Given<IParent>().That(_ => _.GetChild(2).Get(1)).Returns(() => "chained")
+            .And<IChild>().That(_ => _.Get(1)).Returns(() => "shared")
+            .When(_ => _.GetFromChildOf(2, 1))
+            .Then().Result.Is("chained");
+
+    [Fact]
+    public void GivenAMemberReturningItsOwnType_ThenTheDefaultIsTheChild()
+        => Given<IParent>().That(_ => _.GetChild(2).Get(1)).Returns(() => "chained")
+            .When(_ => _.GetFromNamedChildOf(2, 1))
+            .Then().Result.Is("chained");
 }
 
 /// A child is reached at an address — the member and the arguments it is called with — and answers
@@ -37,7 +63,7 @@ public class WhenChainedCallsReachDifferentAddresses : Spec<ParentService, strin
     [Fact]
     public void GivenASetupForEachAddress_ThenEachChildAnswersItsOwn()
         => Given<IParent>().That(_ => _.GetChild(1).Get(1)).Returns(() => "one")
-            .And<IParent>().That(_ => _.GetChild(2).Get(1)).Returns(() => "two")
+            .AndThat(_ => _.GetChild(2).Get(1)).Returns(() => "two")
             .When(_ => _.GetFromChildrenOf(1, 2, 1))
             .Then().Result.Is("one,two");
 
@@ -50,21 +76,21 @@ public class WhenChainedCallsReachDifferentAddresses : Spec<ParentService, strin
     [Fact]
     public void GivenASetupForAnyAddress_ThenItAnswersWhereNoSpecificSetupDoes()
         => Given<IParent>().That(_ => _.GetChild(Any<int>()).Get(1)).Returns(() => "any")
-            .And<IParent>().That(_ => _.GetChild(2).Get(1)).Returns(() => "two")
+            .AndThat(_ => _.GetChild(2).Get(1)).Returns(() => "two")
             .When(_ => _.GetFromChildrenOf(2, 7, 1))
             .Then().Result.Is("two,any");
 
     [Fact]
     public void GivenASetupForAnyAddressLast_ThenItAnswersEveryAddress()
         => Given<IParent>().That(_ => _.GetChild(2).Get(1)).Returns(() => "two")
-            .And<IParent>().That(_ => _.GetChild(Any<int>()).Get(1)).Returns(() => "any")
+            .AndThat(_ => _.GetChild(Any<int>()).Get(1)).Returns(() => "any")
             .When(_ => _.GetFromChildrenOf(2, 7, 1))
             .Then().Result.Is("any,any");
 
     [Fact]
     public void GivenTwoSetupsThroughTheSameAddress_ThenBothApply()
         => Given<IParent>().That(_ => _.GetChild(1).Get(1)).Returns(() => "first")
-            .And<IParent>().That(_ => _.GetChild(1).Get(2)).Returns(() => "second")
+            .AndThat(_ => _.GetChild(1).Get(2)).Returns(() => "second")
             .When(_ => _.GetFromChildOf(1, 1))
             .Then().Result.Is("first");
 }
@@ -160,6 +186,36 @@ public class WhenAChainedCallIsVerified : Spec<ParentService, string>
     [Fact]
     public void GivenAnotherCallWasMade_ThenItIsNotCounted()
         => When(_ => _.GetFromChild(2)).Then<IParent>(_ => _.Child.Get(1), Times.Never);
+
+    [Fact]
+    public void GivenCallsOnTwoChildren_ThenOnlyTheVerifiedAddressIsCounted()
+        => Given<IParent>().That(_ => _.GetChild(1).Get(9)).Returns(() => "nine")
+            .AndThat(_ => _.GetChild(2).Get(9)).Returns(() => "nine")
+            .When(_ => _.GetFromChildrenOf(1, 2, 1))
+            .Then<IParent>(_ => _.GetChild(2).Get(1), Times.Once);
+
+    [Fact]
+    public void GivenAConstraintInTheChain_ThenItFiltersTheAddresses()
+        => Given<IParent>().That(_ => _.GetChild(Any<int>()).Get(9)).Returns(() => "nine")
+            .When(_ => _.GetFromChildrenOf(1, 2, 1))
+            .Then<IParent>(_ => _.GetChild(Any<int>(id => id > 1)).Get(1), Times.Once);
+
+    [Fact]
+    public void GivenAnAddressWithoutAChild_ThenItsCallsOnTheSharedMockAreCounted()
+        => Given<IParent>().That(_ => _.GetChild(2).Get(9)).Returns(() => "nine")
+            .When(_ => _.GetFromChildrenOf(2, 3, 1))
+            .Then<IParent>(_ => _.GetChild(Any<int>()).Get(1), Times.Exactly(2));
+
+    [Fact]
+    public void GivenTheFirstStepWasNotCalled_ThenNothingIsCounted()
+        => When(_ => _.GetFromChild(1)).Then<IParent>(_ => _.GetChild(2).Get(1), Times.Never);
+
+    [Fact]
+    public void GivenCallsOnChildren_ThenTheirTypeCountsThemAll()
+        => Given<IParent>().That(_ => _.GetChild(1).Get(9)).Returns(() => "nine")
+            .AndThat(_ => _.GetChild(2).Get(9)).Returns(() => "nine")
+            .When(_ => _.GetFromChildrenOf(1, 2, 1))
+            .Then<IChild>(_ => _.Get(1), Times.Exactly(2));
 
     [Fact]
     public void GivenAReceiverTSpecDoesNotMock_ThenThrowSetupFailed()
