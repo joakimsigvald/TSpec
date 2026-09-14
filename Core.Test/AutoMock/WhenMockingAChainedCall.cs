@@ -12,7 +12,9 @@ public interface IParent
 public interface IChild
 {
     IGrandChild GrandChild { get; }
+    IGrandChild GetGrandChild(int id);
     string Get(int id);
+    Task<string> GetAsync(int id);
     IChild WithName(string name);
 }
 
@@ -30,6 +32,66 @@ public class ParentService(IParent parent)
         => $"{parent.GetChild(firstId).Get(id)},{parent.GetChild(secondId).Get(id)}";
     public IChild ChildOf(int id) => parent.GetChild(id);
     public string GetFromNamedChildOf(int childId, int id) => parent.GetChild(childId).WithName("named").Get(id);
+    public string GetFromGrandChildOf(int childId, int id) => parent.GetChild(childId).GrandChild.Get(id);
+    public string GetFromGrandChildren(int[] childIds, int[] grandChildIds)
+        => string.Join(",", childIds.Zip(grandChildIds, (childId, grandChildId)
+            => parent.GetChild(childId).GetGrandChild(grandChildId).Get(0)));
+    public async Task<string> GetAsyncFromChildOf(int childId, int id) => await parent.GetChild(childId).GetAsync(id);
+}
+
+public class WhenAChainGoesDeeper : Spec<ParentService, string>
+{
+    [Fact]
+    public void GivenAddressesAtTwoLevels_ThenEachGrandChildAnswersItsOwn()
+        => Given<IParent>().That(_ => _.GetChild(1).GetGrandChild(1).Get(0)).Returns(() => "1.1")
+            .AndThat(_ => _.GetChild(1).GetGrandChild(2).Get(0)).Returns(() => "1.2")
+            .AndThat(_ => _.GetChild(2).GetGrandChild(1).Get(0)).Returns(() => "2.1")
+            .When(_ => _.GetFromGrandChildren(new[] { 1, 1, 2 }, new[] { 1, 2, 1 }))
+            .Then().Result.Is("1.1,1.2,2.1");
+
+    [Fact]
+    public void GivenAddressesAtTwoLevels_ThenVerificationCountsPerAddress()
+        => Given<IParent>().That(_ => _.GetChild(1).GetGrandChild(1).Get(0)).Returns(() => "1.1")
+            .AndThat(_ => _.GetChild(1).GetGrandChild(2).Get(0)).Returns(() => "1.2")
+            .AndThat(_ => _.GetChild(2).GetGrandChild(1).Get(0)).Returns(() => "2.1")
+            .When(_ => _.GetFromGrandChildren(new[] { 1, 1, 2 }, new[] { 1, 2, 1 }))
+            .Then<IParent>(_ => _.GetChild(1).GetGrandChild(Any<int>()).Get(0), Times.Exactly(2));
+
+    [Fact]
+    public void GivenAChainOnTheTypeThroughTheSameMember_ThenAChildsGrandChildTakesItToo()
+        => Given<IChild>().That(_ => _.GrandChild.Get(1)).Returns(() => "type")
+            .And<IParent>().That(_ => _.GetChild(2).GrandChild.Get(5)).Returns(() => "chained")
+            .When(_ => _.GetFromGrandChildOf(2, 1))
+            .Then().Result.Is("type");
+
+    [Fact]
+    public void GivenAChainOnTheType_ThenItsVerificationCountsTheGrandChildrenOfChildren()
+        => Given<IParent>().That(_ => _.Child.GrandChild.Get(9)).Returns(() => "nine")
+            .When(_ => _.GetFromGrandChild(1))
+            .Then<IChild>(_ => _.GrandChild.Get(1), Times.Once);
+
+    [Fact]
+    public void GivenAChildFallsBackToAChainOnTheType_ThenVerificationFollowsItThere()
+        => Given<IChild>().That(_ => _.GrandChild.Get(9)).Returns(() => "nine")
+            .And<IParent>().That(_ => _.GetChild(2).Get(5)).Returns(() => "five")
+            .When(_ => _.GetFromGrandChildOf(2, 1))
+            .Then<IParent>(_ => _.GetChild(2).GrandChild.Get(1), Times.Once);
+}
+
+public class WhenAChainedCallMeetsOtherSetups : Spec<ParentService, string>
+{
+    [Fact]
+    public void GivenAPlainSetupOfTheFirstStepLater_ThenItAnswersInstead()
+        => Given<IParent>().That(_ => _.GetChild(2).Get(1)).Returns(() => "chained")
+            .AndThat(_ => _.GetChild(2)).Returns(() => The<IChild>())
+            .When(_ => _.GetFromChildOf(2, 1))
+            .Then().Result.Is().Not("chained");
+
+    [Fact]
+    public void GivenTheLastCallIsAsync_ThenTheSetupAnswersThroughTheTask()
+        => Given<IParent>().That(_ => _.GetChild(2).GetAsync(1)).Returns(() => "async")
+            .When(_ => _.GetAsyncFromChildOf(2, 1))
+            .Then().Result.Is("async");
 }
 
 /// A child answers its chained setups first, then the setups of the shared mock of its type, then defaults.

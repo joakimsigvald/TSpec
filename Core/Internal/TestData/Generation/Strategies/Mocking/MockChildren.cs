@@ -7,7 +7,7 @@ namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 /// the arguments it was called with — and is made the first time its address is reached, with every
 /// chained setup whose first step matches it.
 /// </summary>
-internal sealed class MockChildren(FluentDefaultProvider defaults, MockRegistry mocks)
+internal sealed class MockChildren(FluentDefaultProvider defaults, MockRegistry mocks, MockChildren? sharedChildren)
 {
     private readonly List<ChainedSetup> _chains = [];
     private readonly List<Child> _children = [];
@@ -26,24 +26,16 @@ internal sealed class MockChildren(FluentDefaultProvider defaults, MockRegistry 
                 return reached.Mock;
 
             var mock = new MockHandle(childType, defaults, mocks, mocks.GetMock(childType));
-            _children.Add(new(method, arguments, CallMatcher.Exactly(method, arguments), mock));
-            foreach (var chain in ChainsMatching(method, arguments))
+            _children.Add(new(CallMatcher.Exactly(method, arguments), mock));
+            foreach (var chain in ChainsFor(method, arguments))
                 chain.SetUpChild(mock);
             return mock;
         }
     }
 
-    internal MockHandle[] Matching(CallMatcher step)
-    {
-        lock (_children)
-            return [.. _children.Where(child => step.Matches(child.Method, child.Arguments)).Select(child => child.Mock)];
-    }
-
-    internal bool IsReached(MockInvocation call)
-    {
-        lock (_children)
-            return _children.Any(child => child.Address.Matches(call));
-    }
+    /// The chained setups made on the type come first, so those made on this mock win.
+    private IEnumerable<ChainedSetup> ChainsFor(MethodInfo method, IReadOnlyList<object> arguments)
+        => (sharedChildren?.ChainsMatching(method, arguments) ?? []).Concat(ChainsMatching(method, arguments));
 
     private ChainedSetup[] ChainsMatching(MethodInfo method, IReadOnlyList<object> arguments)
     {
@@ -53,6 +45,5 @@ internal sealed class MockChildren(FluentDefaultProvider defaults, MockRegistry 
 
     private sealed record ChainedSetup(CallMatcher FirstStep, Action<MockHandle> SetUpChild);
 
-    private sealed record Child(
-        MethodInfo Method, IReadOnlyList<object> Arguments, CallMatcher Address, MockHandle Mock);
+    private sealed record Child(CallMatcher Address, MockHandle Mock);
 }

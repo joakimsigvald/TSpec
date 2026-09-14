@@ -1,6 +1,7 @@
 using Castle.DynamicProxy;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
@@ -20,6 +21,7 @@ internal sealed class MockHandle
 {
     private static readonly ProxyGenerator _generator = new();
     private static readonly ProxyGenerationOptions _options = new(new MockHook());
+    private static readonly ConditionalWeakTable<object, MockHandle> _handles = [];
 
     private readonly FluentDefaultProvider _defaults;
     private readonly MockRegistry _mocks;
@@ -35,8 +37,9 @@ internal sealed class MockHandle
         _defaults = defaults;
         _mocks = mocks;
         _shared = shared;
-        _children = new(defaults, mocks);
+        _children = new(defaults, mocks, shared?._children);
         _instance = Create(mockedType);
+        _handles.Add(_instance, this);
     }
 
     internal Type MockedType { get; }
@@ -69,34 +72,35 @@ internal sealed class MockHandle
         where TService : class
         => SetUp(CallMatcher.For(member), answerType, answer);
 
-    internal int CountCalls(LambdaExpression call) => CountCalls(call, Invocations);
+    internal int CountCalls(LambdaExpression call) => Counting(call)(Invocations);
 
     private IReadOnlyList<MockInvocation> OwnInvocations => [.. Invocations.Where(call => call.Receiver == this)];
 
-    private int CountOwnCalls(LambdaExpression call) => CountCalls(call, OwnInvocations);
-
-    private int CountCalls(LambdaExpression call, IReadOnlyList<MockInvocation> invocations)
-    {
-        if (CallChain.TrySplit(call, out var firstStep, out var rest))
-            return CountThrough(firstStep, rest);
-
-        var matcher = CallMatcher.For(call);
-        return invocations.Count(matcher.Matches);
-    }
-
     /// <summary>
-    /// A chained call is counted on the children at the addresses its first step matches. A matching
-    /// call that reached no child got the shared mock, which cannot tell the addresses apart, so the
-    /// rest is counted there too. It is counted there either way, which also checks the rest of the chain.
+    /// A count made ready to take over a mock's calls; every step of a chain is read now. The rest of a
+    /// chain is counted on each mock its first step answered with, once, among the calls that mock
+    /// received itself.
     /// </summary>
-    private int CountThrough(LambdaExpression firstStep, LambdaExpression rest)
+    private static Func<IEnumerable<MockInvocation>, int> Counting(LambdaExpression call)
     {
+        if (!CallChain.TrySplit(call, out var firstStep, out var rest))
+        {
+            var matcher = CallMatcher.For(call);
+            return calls => calls.Count(matcher.Matches);
+        }
+
         var step = CallMatcher.For(firstStep);
-        var onChildren = _children.Matching(step).Sum(child => child.CountOwnCalls(rest));
-        var onShared = _mocks.GetMock(firstStep.Body.Type).CountOwnCalls(rest);
-        var reachedShared = OwnInvocations.Any(call => step.Matches(call) && !_children.IsReached(call));
-        return reachedShared ? onChildren + onShared : onChildren;
+        var countRest = Counting(rest);
+        return calls => calls
+            .Where(step.Matches)
+            .Select(reached => HandleOf(reached.Answer))
+            .OfType<MockHandle>()
+            .Distinct()
+            .Sum(mock => countRest(mock.OwnInvocations));
     }
+
+    private static MockHandle? HandleOf(object? answer)
+        => answer is not null && _handles.TryGetValue(answer, out var mock) ? mock : null;
 
     /// <summary>
     /// A setup made ready to apply to a mock. Every step of a chain is read now, as the setup is made,
@@ -130,15 +134,23 @@ internal sealed class MockHandle
                 matcher, arguments => AsyncAnswer.Respond(matcher.ReturnType, answerType, () => answer(arguments!))));
     }
 
-    /// <summary>
-    /// A call is logged before it is answered, so whatever answers it may read the log. The latest
-    /// setup matching it answers; a call no setup matches is answered by TSpec's defaults, except
-    /// one made while the instance is still being constructed, which has no mock to be answered for
-    /// yet and gets its type's default.
-    /// </summary>
+    /// A call is logged before it is answered, so whatever answers it may read the log; what it answered
+    /// with is logged after.
     private object? Receive(MethodInfo method, object?[] arguments)
     {
-        Log(new MockInvocation(method, [.. arguments], this));
+        var invocation = new MockInvocation(method, [.. arguments], this);
+        Log(invocation);
+        invocation.Answer = Respond(method, arguments);
+        return invocation.Answer;
+    }
+
+    /// <summary>
+    /// The latest setup matching a call answers it; a call no setup matches is answered by TSpec's
+    /// defaults, except one made while the instance is still being constructed, which has no mock to be
+    /// answered for yet and gets its type's default.
+    /// </summary>
+    private object? Respond(MethodInfo method, object?[] arguments)
+    {
         var returnType = method.ReturnType;
         if (LatestMatching(method, arguments) is { } setup)
         {
@@ -213,4 +225,7 @@ internal sealed class MockHandle
     }
 }
 
-internal sealed record MockInvocation(MethodInfo Method, IReadOnlyList<object?> Arguments, MockHandle Receiver);
+internal sealed record MockInvocation(MethodInfo Method, IReadOnlyList<object?> Arguments, MockHandle Receiver)
+{
+    internal object? Answer { get; set; }
+}

@@ -22,13 +22,16 @@ correct it in place as work lands, and move a finished stage to Done as a line.
     generic type arguments), property getter or delegate invocation; arguments by value (collections
     by content), `Any<T>()`, `Any<T>(constraint)`; out arguments match anything and get the setup's
     value. Refuses a non-virtual member and Moq's `It.*` with `SetupFailed`.
-  - `CallChain` — `_ => _.Child.Get(1)` is set up as `Child` answering with the `IChild` mock, and
-    `Get(1)` on that mock; verification counts `Get(1)` there. A receiver TSpec does not mock is
-    refused naming the member that returns it ("IParent.Name returns a string, which TSpec does not mock, …").
+  - `CallChain` — splits `_ => _.GetChild(2).Get(1)` into its first step and the rest. A receiver
+    TSpec does not mock is refused naming the member that returns it ("IParent.Name returns a
+    string, which TSpec does not mock, …").
+  - `MockChildren` — a mock's chained setups and its children by address; a new child takes the
+    matching chained setups of its parent's type, then its parent's own.
   - `AsyncAnswer` — a throw on an awaited call faults the task; a value inside a task is wrapped.
   - `MockRegistry` — one handle per type; `MockingStrategy` — which types are mocked.
-- **Verification by expression** counts `CallMatcher` matches in the log (`TestResult.VerifyCall`) and
-  fails like a count by name: "Expected IOrderService.CreateOrder(the ShoppingCart) to be invoked
+- **Verification by expression** counts `CallMatcher` matches in the log (`TestResult.VerifyCall`); a
+  logged call keeps what it answered with, so a chain is counted on the mocks its first step actually
+  answered with, each once. It fails like a count by name: "Expected IOrderService.CreateOrder(the ShoppingCart) to be invoked
   once but was invoked 0 times".
 - **Behaviour pinned, so an engine change cannot drop it silently**:
   - unmatched calls, in order: a service-wide `Returns` value (or a task of it), the service-wide
@@ -67,11 +70,8 @@ engine on 2026-09-13; Moq is gone, so how Moq behaved is inferred where marked.
   otherwise the call gets the shared mock of its type. A child answers its chained setups, then
   `Given<IChild>()`'s, then defaults; its calls are logged on the shared mock too. Steps, each
   reported before the next: 1 children by address — done; 2 fallback to the shared mock's setups — done;
-  3 verification per address — done; 4 deeper chains, and a plain setup after a chained one — with two
-  gaps where a chain on the type (`Given<IChild>()`/`Then<IChild>` through `GrandChild`) misses the
-  grandchildren that children at addresses made: a child's own grandchild does not take the type's
-  chained setups, and `Then<IChild>(_ => _.GrandChild.Get(1))` counts 0 for a call through
-  `parent.Child.GrandChild` once a chained setup made that child (probed); 5 async steps
+  3 verification per address — done; 4 deeper chains, a plain setup after a chained one, an async
+  last call, and chains on the type meeting children — done; 5 async steps
   (sync/async alike, as elsewhere in TSpec); 6 docs. `MockChildren` holds chained setups and children.
   Moq 4.20.72, probed 2026-09-14: a child per setup step, reused for an equal step (`GetChild(1)`
   twice); `GetChild(Any)` gives one child for every address it answers; a specific step's child does
