@@ -62,6 +62,13 @@ engine on 2026-09-13; Moq is gone, so how Moq behaved is inferred where marked.
 
 ### 2.2 Could break a 3.0 user's test (regressions against Moq)
 
+- **Chained calls: a child per address** (PO, 2026-09-14). A child is reached at an address — the
+  member and the actual arguments; it exists only where a chained setup's first step matches, and
+  otherwise the call gets the shared mock of its type. A child answers its chained setups, then
+  `Given<IChild>()`'s, then defaults; its calls are logged on the shared mock too. Steps, each
+  reported before the next: 1 children by address — done; 2 fallback to the shared mock's setups;
+  3 verification per address; 4 deeper chains, and a plain setup after a chained one; 5 async steps
+  (sync/async alike, as elsewhere in TSpec); 6 docs.
 - **A failed verification no longer lists the calls that were made.** Moq's `MockException` listed
   the mock's performed invocations and setups, which is the main clue when a verification fails.
   Overlaps §3 item 4.
@@ -158,7 +165,6 @@ Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a 
 - **3.1.0, `Any<T>()` across a conversion** — refused with `SetupFailed` when the parameter's type
   cannot hold a `T` (`Any<MyValueInt>()` on `Get(int)`), as Moq refused it ("Matcher … is
   unmatchable"); it had silently matched nothing. Pinned in `WhenMockWithAnyArgument`. 2026-09-14.
-- **3.1.0, chained calls** — set up and verified through the mock of each receiver's type, one per
-  type, not a mock per chain as Moq made (PO, option A — being reweighed against a mock per link).
-  Pinned in `WhenMockingAChainedCall`. A call left of a dot renders as a call, not a phrase
+- **3.1.0, chained calls** — set up and verified through a chain of mocked members; pinned in
+  `WhenMockingAChainedCall`. A call left of a dot renders as a call, not a phrase
   (`IParent.GetChild(2).Get(1)`, was "get child 2"); `Describer.Path`. 2026-09-14.

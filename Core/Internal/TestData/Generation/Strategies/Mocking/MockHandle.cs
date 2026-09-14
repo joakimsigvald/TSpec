@@ -23,15 +23,19 @@ internal sealed class MockHandle
 
     private readonly FluentDefaultProvider _defaults;
     private readonly MockRegistry _mocks;
+    private readonly MockHandle? _shared;
     private readonly List<MockInvocation> _invocations = [];
     private readonly List<CallSetup> _setups = [];
+    private readonly MockChildren _children;
     private readonly object? _instance;
 
-    internal MockHandle(Type mockedType, FluentDefaultProvider defaults, MockRegistry mocks)
+    internal MockHandle(Type mockedType, FluentDefaultProvider defaults, MockRegistry mocks, MockHandle? shared = null)
     {
         MockedType = mockedType;
         _defaults = defaults;
         _mocks = mocks;
+        _shared = shared;
+        _children = new(defaults, mocks);
         _instance = Create(mockedType);
     }
 
@@ -50,12 +54,12 @@ internal sealed class MockHandle
 
     internal void Answer<TService>(Expression<Action<TService>> call, Func<IReadOnlyList<object>, object?> answer)
         where TService : class
-        => SetUp(call, typeof(void), answer);
+        => Prepare(call, typeof(void), answer)(this);
 
     internal void Answer<TService, TResult>(
         Expression<Func<TService, TResult>> call, Type answerType, Func<IReadOnlyList<object>, object?> answer)
         where TService : class
-        => SetUp(call, answerType, answer);
+        => Prepare(call, answerType, answer)(this);
 
     /// <summary>
     /// A member no expression can name — a protected method or property. A name states no
@@ -67,30 +71,37 @@ internal sealed class MockHandle
 
     internal int CountCalls(LambdaExpression call)
     {
-        if (CallChain.TrySplit(call, out _, out var last))
-            return MockOf(last).CountCalls(last);
+        if (CallChain.TrySplit(call, out _, out var rest))
+            return _mocks.GetMock(rest.Parameters[0].Type).CountCalls(rest);
 
         var matcher = CallMatcher.For(call);
         return Invocations.Count(matcher.Matches);
     }
 
-    private void SetUp(LambdaExpression call, Type answerType, Func<IReadOnlyList<object>, object?> answer)
+    /// <summary>
+    /// A setup made ready to apply to a mock. Every step of a chain is read now, as the setup is made,
+    /// though the rest of it applies only to the children reached at an address its first step matches.
+    /// </summary>
+    private static Action<MockHandle> Prepare(
+        LambdaExpression call, Type answerType, Func<IReadOnlyList<object>, object?> answer)
     {
-        if (CallChain.TrySplit(call, out var link, out var last))
-            SetUpChain(link, last, answerType, answer);
-        else
-            SetUp(CallMatcher.For(call), answerType, answer);
+        if (!CallChain.TrySplit(call, out var firstStep, out var rest))
+        {
+            var matcher = CallMatcher.For(call);
+            return mock => mock.SetUp(matcher, answerType, answer);
+        }
+
+        var step = CallMatcher.For(firstStep);
+        var childType = firstStep.Body.Type;
+        var setUpChild = Prepare(rest, answerType, answer);
+        return mock => mock.SetUpChain(step, childType, setUpChild);
     }
 
-    private void SetUpChain(
-        LambdaExpression link, LambdaExpression last, Type answerType, Func<IReadOnlyList<object>, object?> answer)
+    private void SetUpChain(CallMatcher firstStep, Type childType, Action<MockHandle> setUpChild)
     {
-        var child = MockOf(last);
-        SetUp(link, child.MockedType, _ => child.Instance);
-        child.SetUp(last, answerType, answer);
+        _children.Add(firstStep, setUpChild);
+        SetUp(firstStep, childType, arguments => _children.At(firstStep.Method, childType, arguments).Instance);
     }
-
-    private MockHandle MockOf(LambdaExpression call) => _mocks.GetMock(call.Parameters[0].Type);
 
     private void SetUp(CallMatcher matcher, Type answerType, Func<IReadOnlyList<object>, object?> answer)
     {
@@ -107,8 +118,7 @@ internal sealed class MockHandle
     /// </summary>
     private object? Receive(MethodInfo method, object?[] arguments)
     {
-        lock (_invocations)
-            _invocations.Add(new MockInvocation(method, [.. arguments]));
+        Log(new MockInvocation(method, [.. arguments]));
         var returnType = method.ReturnType;
         if (LatestMatching(method, arguments) is { } setup)
         {
@@ -120,6 +130,14 @@ internal sealed class MockHandle
         if (_instance is null)
             return DefaultOf(returnType);
         return _defaults.GetDefaultValue(returnType, this) ?? DefaultOf(returnType);
+    }
+
+    /// A child's call is logged on the shared mock of its type too, which so counts every call to the type.
+    private void Log(MockInvocation invocation)
+    {
+        lock (_invocations)
+            _invocations.Add(invocation);
+        _shared?.Log(invocation);
     }
 
     private CallSetup? LatestMatching(MethodInfo method, object?[] arguments)

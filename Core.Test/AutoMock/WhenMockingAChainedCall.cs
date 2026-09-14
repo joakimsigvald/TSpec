@@ -25,6 +25,63 @@ public class ParentService(IParent parent)
     public string GetFromChild(int id) => parent.Child.Get(id);
     public string GetFromChildOf(int childId, int id) => parent.GetChild(childId).Get(id);
     public string GetFromGrandChild(int id) => parent.Child.GrandChild.Get(id);
+    public string GetFromChildrenOf(int firstId, int secondId, int id)
+        => $"{parent.GetChild(firstId).Get(id)},{parent.GetChild(secondId).Get(id)}";
+    public IChild ChildOf(int id) => parent.GetChild(id);
+}
+
+/// A child is reached at an address — the member and the arguments it is called with — and answers
+/// the chained setups that match that address.
+public class WhenChainedCallsReachDifferentAddresses : Spec<ParentService, string>
+{
+    [Fact]
+    public void GivenASetupForEachAddress_ThenEachChildAnswersItsOwn()
+        => Given<IParent>().That(_ => _.GetChild(1).Get(1)).Returns(() => "one")
+            .And<IParent>().That(_ => _.GetChild(2).Get(1)).Returns(() => "two")
+            .When(_ => _.GetFromChildrenOf(1, 2, 1))
+            .Then().Result.Is("one,two");
+
+    [Fact]
+    public void GivenASetupForOneAddress_ThenAnotherAddressDoesNotAnswerIt()
+        => Given<IParent>().That(_ => _.GetChild(2).Get(1)).Returns(() => "two")
+            .When(_ => _.GetFromChildOf(7, 1))
+            .Then().Result.Is().Not("two");
+
+    [Fact]
+    public void GivenASetupForAnyAddress_ThenItAnswersWhereNoSpecificSetupDoes()
+        => Given<IParent>().That(_ => _.GetChild(Any<int>()).Get(1)).Returns(() => "any")
+            .And<IParent>().That(_ => _.GetChild(2).Get(1)).Returns(() => "two")
+            .When(_ => _.GetFromChildrenOf(2, 7, 1))
+            .Then().Result.Is("two,any");
+
+    [Fact]
+    public void GivenASetupForAnyAddressLast_ThenItAnswersEveryAddress()
+        => Given<IParent>().That(_ => _.GetChild(2).Get(1)).Returns(() => "two")
+            .And<IParent>().That(_ => _.GetChild(Any<int>()).Get(1)).Returns(() => "any")
+            .When(_ => _.GetFromChildrenOf(2, 7, 1))
+            .Then().Result.Is("any,any");
+
+    [Fact]
+    public void GivenTwoSetupsThroughTheSameAddress_ThenBothApply()
+        => Given<IParent>().That(_ => _.GetChild(1).Get(1)).Returns(() => "first")
+            .And<IParent>().That(_ => _.GetChild(1).Get(2)).Returns(() => "second")
+            .When(_ => _.GetFromChildOf(1, 1))
+            .Then().Result.Is("first");
+}
+
+public class WhenAChildIsReturned : Spec<ParentService, IChild>
+{
+    [Fact]
+    public void GivenAChainedSetupMatchesItsAddress_ThenItIsNotTheSharedMock()
+        => Given<IParent>().That(_ => _.GetChild(2).Get(1)).Returns(() => "two")
+            .When(_ => _.ChildOf(2))
+            .Then().Result.Is().Not(The<IChild>());
+
+    [Fact]
+    public void GivenNoChainedSetupMatchesItsAddress_ThenItIsTheSharedMock()
+        => Given<IParent>().That(_ => _.GetChild(2).Get(1)).Returns(() => "two")
+            .When(_ => _.ChildOf(7))
+            .Then().Result.Is(The<IChild>());
 }
 
 /// A call reached through a member of the mocked service is a call on the mock of that member's type.

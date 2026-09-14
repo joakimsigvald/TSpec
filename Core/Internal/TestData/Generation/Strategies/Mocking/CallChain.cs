@@ -4,14 +4,15 @@ using TSpec.Internal.Specification;
 namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 /// <summary>
-/// A call reached through members of the mocked service, such as <c>_ => _.Child.Get(1)</c>: the
-/// last call is made on the mock of its receiver's type, which the rest of the chain answers with.
+/// A call reached through members of the mocked service, such as <c>_ => _.GetChild(2).Get(1)</c>: its
+/// first step, <c>_.GetChild(2)</c>, is a call on the service answering with a child, and the rest,
+/// <c>_ => _.Get(1)</c>, is a call on that child.
 /// </summary>
 internal static class CallChain
 {
-    internal static bool TrySplit(LambdaExpression call, out LambdaExpression link, out LambdaExpression last)
+    internal static bool TrySplit(LambdaExpression call, out LambdaExpression firstStep, out LambdaExpression rest)
     {
-        link = last = null!;
+        firstStep = rest = null!;
         var service = call.Parameters[0];
         var body = CallMatcher.Unwrap(call.Body);
         var receiver = ReceiverOf(body);
@@ -21,13 +22,26 @@ internal static class CallChain
         if (!IsReachedFrom(receiver, service))
             return false;
 
-        if (!MockingStrategy.IsMockable(receiver.Type))
-            throw NotMockable(receiver, body);
+        var (step, calledOnStep) = FirstStepOf(body, service);
+        if (!MockingStrategy.IsMockable(step.Type))
+            throw NotMockable(step, calledOnStep);
 
-        var child = Expression.Parameter(receiver.Type, "_");
-        link = Expression.Lambda(receiver, service);
-        last = Expression.Lambda(WithReceiver(body, child), child);
+        var child = Expression.Parameter(step.Type, "_");
+        firstStep = Expression.Lambda(step, service);
+        rest = Expression.Lambda(Replace(body, step, child), child);
         return true;
+    }
+
+    private static (Expression Step, Expression CalledOnStep) FirstStepOf(Expression body, ParameterExpression service)
+    {
+        var calledOnStep = body;
+        var step = ReceiverOf(body)!;
+        while (CallMatcher.Unwrap(ReceiverOf(CallMatcher.Unwrap(step))!) != service)
+        {
+            calledOnStep = CallMatcher.Unwrap(step);
+            step = ReceiverOf(calledOnStep)!;
+        }
+        return (step, calledOnStep);
     }
 
     private static SetupFailed NotMockable(Expression receiver, Expression call)
@@ -60,7 +74,17 @@ internal static class CallChain
         && (CallMatcher.Unwrap(expression) == service
             || IsReachedFrom(ReceiverOf(CallMatcher.Unwrap(expression)), service));
 
-    private static Expression WithReceiver(Expression call, ParameterExpression receiver)
+    private static Expression Replace(Expression node, Expression step, ParameterExpression child)
+    {
+        if (node == step)
+            return child;
+
+        return node is UnaryExpression { NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked } convert
+            ? convert.Update(Replace(convert.Operand, step, child))
+            : WithReceiver(node, Replace(ReceiverOf(node)!, step, child));
+    }
+
+    private static Expression WithReceiver(Expression call, Expression receiver)
         => call switch
         {
             MethodCallExpression methodCall => methodCall.Update(receiver, methodCall.Arguments),

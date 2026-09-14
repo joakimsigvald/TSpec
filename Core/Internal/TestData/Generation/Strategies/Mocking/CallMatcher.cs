@@ -24,11 +24,16 @@ internal sealed class CallMatcher
         _outValues = outValues;
     }
 
+    internal MethodInfo Method => _method;
+
     internal Type ReturnType => _method.ReturnType;
 
     /// A member named because no expression can name it; a name states no arguments, so any match.
     internal static CallMatcher For(MemberInfo member)
         => new(member is PropertyInfo property ? property.GetMethod! : (MethodInfo)member, null, []);
+
+    internal static CallMatcher Exactly(MethodInfo method, IReadOnlyList<object?> arguments)
+        => new(method, [.. arguments.Select(expected => (Func<object?, bool>)(actual => AreEqual(expected, actual)))], []);
 
     internal static CallMatcher For(LambdaExpression call)
     {
