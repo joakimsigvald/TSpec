@@ -263,7 +263,7 @@ Try providing a function with the Spec's declared return type instead as paramet
             var count = _context.GetMock<TService>().CountCalls(expression);
             if (!(times ?? Times.AtLeastOnce).Allows(count))
                 throw new XunitException(
-                    $"Expected {typeof(TService).Alias()}.{expressionExpr.DescribeCall(true)!.StripWrapMarkers()} to be invoked "
+                    $"Expected {typeof(TService).Alias()}.{expressionExpr.DescribeMockCall().StripWrapMarkers()} to be invoked "
                     + $"{DescribeInvocationTimes(timesExpr)} but was invoked {count} times");
             return new AndVerify<TSUT, TResult>(this);
         }

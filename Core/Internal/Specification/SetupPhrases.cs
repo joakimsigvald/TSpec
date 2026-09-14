@@ -52,7 +52,7 @@ internal class SetupPhrases(SpecificationRecording recording)
 
     internal void AddMockSetup<TService>(string callExpr)
         => recording.Record(() => Mock<TService>(
-            StepLayout.SentenceOrPhrase, callExpr.DescribeCall(true) ?? string.Empty, '.'));
+            StepLayout.SentenceOrPhrase, callExpr.DescribeMockCall(), '.'));
 
     internal void AddMockReturnsDefault<TService>(string returnsExpr)
         => recording.Record(() => Mock<TService>(

@@ -23,6 +23,12 @@ internal static class ExpressionDescriber
         : string.IsNullOrWhiteSpace(expr) ? string.Empty
         : new CallDescriber(skipSubjectRef).Describe(Parser.Parse(expr.ToSingleLine()));
 
+    /// A call on a mock, named by the caller, as the specification states it: without the Result that
+    /// chains it through a task.
+    public static string DescribeMockCall(this string expr)
+        => string.IsNullOrWhiteSpace(expr) ? string.Empty
+        : new CallDescriber(skipSubjectRef: true, leavesOutResult: true).Describe(Parser.Parse(expr.ToSingleLine()));
+
     public static string DescribeActual(this string? expr, string? subject = null)
         => string.IsNullOrWhiteSpace(expr) ? string.Empty
         : new ActualDescriber(subject).Describe(Parser.Parse(expr.ToSingleLine()));

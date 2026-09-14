@@ -10,13 +10,14 @@ namespace TSpec.Internal.Specification.ExpressionParsing.Describe;
 /// drops the leading <c>_.</c> when the caller (e.g. mock setup) prepends
 /// the receiver name itself.
 /// </summary>
-internal sealed class CallDescriber(bool skipSubjectRef) : Describer
+internal sealed class CallDescriber(bool skipSubjectRef, bool leavesOutResult = false) : Describer
 {
     private readonly bool _skipSubjectRef = skipSubjectRef;
 
     protected override string Render(Expr expr)
         => expr switch
         {
+            Lambda l when leavesOutResult => DescribeLambda(l with { Body = WithoutResult(l.Body) }),
             Lambda l => DescribeLambda(l),
             New n => DescribeNew(n),
             Call c => $"{Path(c.Target)}{ArgList(c.Args)}",
@@ -45,6 +46,24 @@ internal sealed class CallDescriber(bool skipSubjectRef) : Describer
         return Value.Describe(
             _skipSubjectRef ? SubjectElision.Elide(l.Body, l.Params[0]) : l.Body);
     }
+
+    /// <summary>
+    /// A mocked call chained through a task is written with Result, since no expression can await. The
+    /// specification leaves it out of the chain, so the chain reads as the awaited call it stands for;
+    /// arguments are left as written.
+    /// </summary>
+    private static Expr WithoutResult(Expr chain)
+        => chain switch
+        {
+            Member { Name: "Result", Target: Call awaited } => WithoutResult(awaited),
+            Member member => Retext(member with { Target = WithoutResult(member.Target) }),
+            Call call => Retext(call with { Target = WithoutResult(call.Target) }),
+            _ => chain,
+        };
+
+    private static Member Retext(Member member) => member with { Raw = member.ToSource() };
+
+    private static Call Retext(Call call) => call with { Raw = call.ToSource() };
 
     /// <summary>
     /// Drops the receiver only where it is the lambda's own parameter. <c>AsParamRefCall</c> accepts

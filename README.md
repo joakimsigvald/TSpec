@@ -403,6 +403,24 @@ This allows most mocking scenarios to be expressed inline, close to the behavior
 
 Naming no method, `Given<[TheService]>().Returns(...)` sets a default that applies to every method of the interface returning a type assignable from that type.
 
+To set up another call on the same service, continue with `AndThat`; `And<[TheOtherService]>()` moves on to the next service:
+
+```csharp
+=> Given<IRoomStore>().That(_ => _.Find(The<int>())).Returns(A<Room>)
+   .AndThat(_ => _.IsBooked(The<int>())).Returns(() => false)
+   .And<IClock>().That(_ => _.Today).Returns(() => The<DateOnly>())
+```
+
+A call can be set up, or verified, through the members that lead to it. An awaited member is written with `.Result`, since an expression cannot `await`:
+
+```csharp
+=> Given<IUnitOfWork>().That(_ => _.Orders(The<int>()).Find(Any<int>())).Returns(A<Order>)
+   .AndThat(_ => _.GetCustomerAsync(The<int>()).Result.Name).Returns(() => "Ada")
+```
+
+Each step of a chain reaches a mock of its own for the arguments it is called with: `Orders(1)` and `Orders(2)` are set up and counted apart, while calling `Orders(1)` twice reaches the same mock.
+A call on that mock which no chain set up is answered as `Given<IOrderStore>()` set it up, and a step no chain matches returns the shared `IOrderStore` mock itself.
+
 A **protected** member can only be mocked by name:
 
 ```csharp

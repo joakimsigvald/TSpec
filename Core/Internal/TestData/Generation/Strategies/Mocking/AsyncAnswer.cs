@@ -31,12 +31,28 @@ internal static class AsyncAnswer
         }
     }
 
+    /// What a task that has already completed holds, without waiting for one that has not; any other
+    /// answer is its own value.
+    internal static object? ValueOf(object? answer)
+    {
+        if (answer is null || !IsAsyncOfValue(answer.GetType()))
+            return answer;
+
+        var type = answer.GetType();
+        return type.GetProperty(nameof(Task.IsCompletedSuccessfully))!.GetValue(answer) is true
+            ? type.GetProperty(nameof(Task<object>.Result))!.GetValue(answer)
+            : null;
+    }
+
+    internal static bool IsAsyncOfValue(Type type)
+        => type.IsGenericType && IsAsyncOfValueDefinition(type.GetGenericTypeDefinition());
+
     private static bool IsAsync(Type type)
         => type == typeof(Task)
         || type == typeof(ValueTask)
-        || type.IsGenericType && IsAsyncOfValue(type.GetGenericTypeDefinition());
+        || IsAsyncOfValue(type);
 
-    private static bool IsAsyncOfValue(Type definition)
+    private static bool IsAsyncOfValueDefinition(Type definition)
         => definition == typeof(Task<>) || definition == typeof(ValueTask<>);
 
     private static object Completed(Type type, object? value)

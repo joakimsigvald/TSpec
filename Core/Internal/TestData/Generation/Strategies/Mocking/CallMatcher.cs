@@ -88,9 +88,20 @@ internal sealed class CallMatcher
     private static bool IsService(Expression? target, ParameterExpression service)
         => target is not null && Unwrap(target) == service;
 
+    /// A call reads the same converted, or awaited by its task's Result, which no expression can await.
     internal static Expression Unwrap(Expression expression)
+        => expression switch
+        {
+            UnaryExpression { NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked } convert
+                => Unwrap(convert.Operand),
+            MemberExpression { Member.Name: "Result", Expression: { } task } when AsyncAnswer.IsAsyncOfValue(task.Type)
+                => Unwrap(task),
+            _ => expression
+        };
+
+    private static Expression UnwrapConversion(Expression expression)
         => expression is UnaryExpression { NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked } convert
-            ? Unwrap(convert.Operand)
+            ? UnwrapConversion(convert.Operand)
             : expression;
 
     private static void AssertInterceptable(MethodInfo method, Type service)
@@ -106,7 +117,7 @@ internal sealed class CallMatcher
 
     private static Func<object?, bool> ArgumentMatcher(Expression argument)
     {
-        if (Unwrap(argument) is MethodCallExpression call)
+        if (UnwrapConversion(argument) is MethodCallExpression call)
         {
             if (IsAny(call.Method) && !argument.Type.IsAssignableFrom(call.Type))
                 throw ConvertedAnyNeverMatches(call, argument.Type);

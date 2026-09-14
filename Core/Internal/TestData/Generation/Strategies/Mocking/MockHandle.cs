@@ -100,7 +100,7 @@ internal sealed class MockHandle
     }
 
     private static MockHandle? HandleOf(object? answer)
-        => answer is not null && _handles.TryGetValue(answer, out var mock) ? mock : null;
+        => AsyncAnswer.ValueOf(answer) is { } value && _handles.TryGetValue(value, out var mock) ? mock : null;
 
     /// <summary>
     /// A setup made ready to apply to a mock. Every step of a chain is read now, as the setup is made,

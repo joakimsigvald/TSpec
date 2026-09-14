@@ -6,7 +6,10 @@ public interface IParent
 {
     IChild Child { get; }
     IChild GetChild(int id);
+    Task<IChild> GetChildAsync(int id);
+    ValueTask<IChild> GetChildValueAsync(int id);
     string Name { get; }
+    Task<string> GetNameAsync();
 }
 
 public interface IChild
@@ -37,6 +40,73 @@ public class ParentService(IParent parent)
         => string.Join(",", childIds.Zip(grandChildIds, (childId, grandChildId)
             => parent.GetChild(childId).GetGrandChild(grandChildId).Get(0)));
     public async Task<string> GetAsyncFromChildOf(int childId, int id) => await parent.GetChild(childId).GetAsync(id);
+    public async Task<string> GetFromAwaitedChildOf(int childId, int id) => (await parent.GetChildAsync(childId)).Get(id);
+    public async Task<string> GetFromValueAwaitedChildOf(int childId, int id)
+        => (await parent.GetChildValueAsync(childId)).Get(id);
+    public async Task<string> GetAwaitedName() => await parent.GetNameAsync();
+}
+
+/// An awaited step is written with Result, which the specification leaves out: the task is TSpec's, and
+/// the chain goes on from the value it holds.
+public class WhenAChainGoesThroughATask : Spec<ParentService, string>
+{
+    [Fact]
+    public void GivenATaskInTheChain_ThenTheCallAnswers()
+    {
+        Given<IParent>().That(_ => _.GetChildAsync(2).Result.Get(1)).Returns(() => "awaited")
+            .When(_ => _.GetFromAwaitedChildOf(2, 1))
+            .Then().Result.Is("awaited");
+        Specification.Is(
+            """
+            Given IParent.GetChildAsync(2).Get(1) returns "awaited"
+            When GetFromAwaitedChildOf(2, 1)
+            Then Result is "awaited"
+            """);
+    }
+
+    [Fact]
+    public void GivenAValueTaskInTheChain_ThenTheCallAnswers()
+        => Given<IParent>().That(_ => _.GetChildValueAsync(2).Result.Get(1)).Returns(() => "awaited")
+            .When(_ => _.GetFromValueAwaitedChildOf(2, 1))
+            .Then().Result.Is("awaited");
+
+    [Fact]
+    public void GivenATaskInTheChain_ThenTheCallIsCounted()
+    {
+        Given<IParent>().That(_ => _.GetChildAsync(2).Result.Get(9)).Returns(() => "nine")
+            .When(_ => _.GetFromAwaitedChildOf(2, 1))
+            .Then<IParent>(_ => _.GetChildAsync(2).Result.Get(1), Times.Once);
+        Specification.Is(
+            """
+            Given IParent.GetChildAsync(2).Get(9) returns "nine"
+            When GetFromAwaitedChildOf(2, 1)
+            Then IParent.GetChildAsync(2).Get(1) was invoked once
+            """);
+    }
+
+    [Fact]
+    public void GivenTheResultOfATaskIsSetUp_ThenItReadsAsTheCall()
+    {
+        Given<IParent>().That(_ => _.GetNameAsync().Result).Returns(() => "name")
+            .When(_ => _.GetAwaitedName())
+            .Then().Result.Is("name");
+        Specification.Is(
+            """
+            Given IParent.GetNameAsync() returns "name"
+            When GetAwaitedName()
+            Then Result is "name"
+            """);
+    }
+
+    [Fact]
+    public void GivenATaskHoldingAValueTSpecDoesNotMock_ThenThrowSetupFailedNamingTheValue()
+        => Xunit.Assert.Throws<SetupFailed>(() =>
+            Given<IParent>().That(_ => _.GetNameAsync().Result.Length).Returns(() => 4)
+                .When(_ => _.GetAwaitedName())
+                .Then().Result.Is("name"))
+            .Message.Is(
+                "IParent.GetNameAsync returns a string, which TSpec does not mock, "
+                + "so Length cannot be set up or verified through it");
 }
 
 public class WhenAChainGoesDeeper : Spec<ParentService, string>

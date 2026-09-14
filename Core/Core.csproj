@@ -29,7 +29,10 @@
 			* A mock renders as the type it mocks, e.g. IOrderService, instead of Mock&lt;IOrderService:1&gt;.Object
 			* Setting up or verifying a non-virtual member throws SetupFailed saying why
 			* Moq's It.IsAny or It.Is inside a TSpec setup or verification throws SetupFailed; write Any&lt;T&gt;() or Any&lt;T&gt;(constraint)
+			* A call set up or verified through a chain, e.g. _.Orders(2).Find(1), reaches a mock per step and arguments; a call on it the chain did not set up answers as Given&lt;IOrderStore&gt;() set it up
+			* A chain through an awaited member, e.g. _.GetCustomerAsync(1).Result.Name, reads without .Result in the specification
 			FIXED
+			* A mocked call chained through a method with arguments reads as written, e.g. IParent.GetChild(2).Get(1), instead of "get child 2"
 			* Throws&lt;E&gt;() on a Task&lt;T&gt; call threw ArgumentNullException instead of E
 			* Throws on a protected member returning Task or ValueTask failed setup
 			* ReturnsDefault() on a Task call answered with a null task; it now answers with a completed one

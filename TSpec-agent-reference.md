@@ -60,6 +60,12 @@ A requested value is the already-mentioned one; otherwise a registered conversio
 Given<ICartRepository>().That(_ => _.GetCart(The<int>())).Returns(A<Cart>)
 // Compute from call arguments (up to 5, signature must match the call)
 Given<ICalculator>().That(_ => _.Add(TheFirst<int>(), TheSecond<int>())).Returns((a, b) => a + b)
+// Another call on the same service, then the next service
+Given<IRoomStore>().That(_ => _.Find(The<int>())).Returns(A<Room>)
+    .AndThat(_ => _.IsBooked(The<int>())).Returns(() => false)
+    .And<IClock>().That(_ => _.Today).Returns(() => The<DateOnly>())
+// Through a chain of members; an awaited member is written with .Result
+Given<IUnitOfWork>().That(_ => _.Orders(2).Find(Any<int>())).Returns(A<Order>)
 // Throw
 Given<IService>().That(_ => _.Get()).Throws<TimeoutException>()
 // Different behavior per successive call
@@ -78,6 +84,7 @@ Given<HttpMessageHandler>().ThatProtected<HttpResponseMessage>("SendAsync").Retu
 - Arguments match by value — `The<T>()` matches the value used in the test — except `Any<T>()`, which matches any value, and `Any<T>(b => b.Nights > 7)`, which matches any value satisfying the constraint. The constraint form throws `SetupFailed` outside a mock setup or verification.
 - Setups are the same whether the member returns `T`, `Task<T>` or `ValueTask<T>`: `Returns(() => 7)` supplies the unwrapped value.
 - Unmocked members return generated defaults.
+- A chain gets a mock per step and argument values: `Orders(1)` and `Orders(2)` are set up and verified apart, `Orders(1)` twice is the same mock. Calls the chain did not set up answer as `Given<IOrderStore>()` set them up; a step no chain matches returns the shared `IOrderStore` mock.
 
 ## Verification
 
@@ -125,6 +132,7 @@ Works standalone in plain xUnit tests too.
 | `ValuesExhausted` | A `From` sequence or list ran out; widen it. |
 | `InvalidTypeConversion` | No conversion path; register `Using<TTarget>().From(lambda)`. |
 | `... Interface types returned as task must be provided explicitly` | Set up the call: `Given<TService>().That(...).Returns(A<TInterface>)`. |
+| `X.Member returns a T, which TSpec does not mock, so Next cannot be set up or verified through it` | A chain passes through a type that is not an interface, abstract class or delegate. Set up `X.Member` itself. |
 
 ## Recommended structure
 
