@@ -22,14 +22,16 @@ internal sealed class MockHandle
     private static readonly ProxyGenerationOptions _options = new(new MockHook());
 
     private readonly FluentDefaultProvider _defaults;
+    private readonly MockRegistry _mocks;
     private readonly List<MockInvocation> _invocations = [];
     private readonly List<CallSetup> _setups = [];
     private readonly object? _instance;
 
-    internal MockHandle(Type mockedType, FluentDefaultProvider defaults)
+    internal MockHandle(Type mockedType, FluentDefaultProvider defaults, MockRegistry mocks)
     {
         MockedType = mockedType;
         _defaults = defaults;
+        _mocks = mocks;
         _instance = Create(mockedType);
     }
 
@@ -48,12 +50,12 @@ internal sealed class MockHandle
 
     internal void Answer<TService>(Expression<Action<TService>> call, Func<IReadOnlyList<object>, object?> answer)
         where TService : class
-        => SetUp(CallMatcher.For(call), typeof(void), answer);
+        => SetUp(call, typeof(void), answer);
 
     internal void Answer<TService, TResult>(
         Expression<Func<TService, TResult>> call, Type answerType, Func<IReadOnlyList<object>, object?> answer)
         where TService : class
-        => SetUp(CallMatcher.For(call), answerType, answer);
+        => SetUp(call, answerType, answer);
 
     /// <summary>
     /// A member no expression can name — a protected method or property. A name states no
@@ -62,6 +64,33 @@ internal sealed class MockHandle
     internal void Answer<TService>(MemberInfo member, Type answerType, Func<IReadOnlyList<object>, object?> answer)
         where TService : class
         => SetUp(CallMatcher.For(member), answerType, answer);
+
+    internal int CountCalls(LambdaExpression call)
+    {
+        if (CallChain.TrySplit(call, out _, out var last))
+            return MockOf(last).CountCalls(last);
+
+        var matcher = CallMatcher.For(call);
+        return Invocations.Count(matcher.Matches);
+    }
+
+    private void SetUp(LambdaExpression call, Type answerType, Func<IReadOnlyList<object>, object?> answer)
+    {
+        if (CallChain.TrySplit(call, out var link, out var last))
+            SetUpChain(link, last, answerType, answer);
+        else
+            SetUp(CallMatcher.For(call), answerType, answer);
+    }
+
+    private void SetUpChain(
+        LambdaExpression link, LambdaExpression last, Type answerType, Func<IReadOnlyList<object>, object?> answer)
+    {
+        var child = MockOf(last);
+        SetUp(link, child.MockedType, _ => child.Instance);
+        child.SetUp(last, answerType, answer);
+    }
+
+    private MockHandle MockOf(LambdaExpression call) => _mocks.GetMock(call.Parameters[0].Type);
 
     private void SetUp(CallMatcher matcher, Type answerType, Func<IReadOnlyList<object>, object?> answer)
     {

@@ -22,6 +22,8 @@ correct it in place as work lands, and move a finished stage to Done as a line.
     generic type arguments), property getter or delegate invocation; arguments by value (collections
     by content), `Any<T>()`, `Any<T>(constraint)`; out arguments match anything and get the setup's
     value. Refuses a non-virtual member and Moq's `It.*` with `SetupFailed`.
+  - `CallChain` — `_ => _.Child.Get(1)` is set up as `Child` answering with the `IChild` mock, and
+    `Get(1)` on that mock; verification counts `Get(1)` there. A receiver TSpec does not mock is not a chain.
   - `AsyncAnswer` — a throw on an awaited call faults the task; a value inside a task is wrapped.
   - `MockRegistry` — one handle per type; `MockingStrategy` — which types are mocked.
 - **Verification by expression** counts `CallMatcher` matches in the log (`TestResult.VerifyCall`) and
@@ -59,10 +61,6 @@ engine on 2026-09-13; Moq is gone, so how Moq behaved is inferred where marked.
 
 ### 2.2 Could break a 3.0 user's test (regressions against Moq)
 
-- **A chained setup is refused.** `Given<IParent>().That(_ => _.Child.Get())` throws `SetupFailed`
-  ("does not call a member of the mocked IParent"). Moq set such calls up recursively, so it most
-  likely worked on 3.0. Probed. Options: support it (set up `Child` to return a mock and answer on
-  that), or keep refusing with a message that says to set up the child's service instead.
 - **A failed verification no longer lists the calls that were made.** Moq's `MockException` listed
   the mock's performed invocations and setups, which is the main clue when a verification fails.
   Overlaps §3 item 4.
@@ -94,6 +92,8 @@ engine on 2026-09-13; Moq is gone, so how Moq behaved is inferred where marked.
 - **Mocking an internal type** needs `[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]` in
   the test project. Moq users knew it from Moq's docs; TSpec's README and agent reference do not say
   it. Decide whether a reader needs it.
+- **A method with arguments inside a chain renders as words**: `_ => _.GetChild(2).Get(1)` reads
+  "Given IParent.get child 2.Get(1) returns …"; a property chain reads as written. PO to decide.
 - **Housekeeping**: the package tags still include `moq`; `Generic.cs` still renders `It.IsAny<T>()`
   and `NormalizeTimes` still accepts Moq's `Times.Once()` — both now unreachable in practice.
 
@@ -159,3 +159,5 @@ Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a 
 - **3.1.0, `Any<T>()` across a conversion** — refused with `SetupFailed` when the parameter's type
   cannot hold a `T` (`Any<MyValueInt>()` on `Get(int)`), as Moq refused it ("Matcher … is
   unmatchable"); it had silently matched nothing. Pinned in `WhenMockWithAnyArgument`. 2026-09-14.
+- **3.1.0, chained calls** — set up and verified through the mock of each receiver's type, one per
+  type, not a mock per chain as Moq made (PO, option A). Pinned in `WhenMockingAChainedCall`. 2026-09-14.

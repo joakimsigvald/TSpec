@@ -25,8 +25,10 @@ internal class MockingStrategy(FluentDefaultProvider fluentDefaultProvider) : IG
         return true;
     }
 
-    private static bool IsMockingResponsibility(GenerationRequest request)
-        => request.Type.IsInterface
-        || request.Type.IsAbstract
-        || typeof(Delegate).IsAssignableFrom(request.Type);
+    internal static bool IsMocked(Type type)
+        => type.IsInterface
+        || type.IsAbstract
+        || typeof(Delegate).IsAssignableFrom(type);
+
+    private static bool IsMockingResponsibility(GenerationRequest request) => IsMocked(request.Type);
 }

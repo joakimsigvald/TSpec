@@ -83,7 +83,7 @@ internal sealed class CallMatcher
     private static bool IsService(Expression? target, ParameterExpression service)
         => target is not null && Unwrap(target) == service;
 
-    private static Expression Unwrap(Expression expression)
+    internal static Expression Unwrap(Expression expression)
         => expression is UnaryExpression { NodeType: ExpressionType.Convert or ExpressionType.ConvertChecked } convert
             ? Unwrap(convert.Operand)
             : expression;

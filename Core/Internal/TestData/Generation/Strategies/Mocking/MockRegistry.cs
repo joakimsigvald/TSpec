@@ -9,5 +9,5 @@ internal class MockRegistry(FluentDefaultProvider defaultProvider)
 
     internal bool HasMock(Type type) => _mocks.ContainsKey(type);
 
-    private MockHandle CreateMock(Type type) => new(type, defaultProvider);
+    private MockHandle CreateMock(Type type) => new(type, defaultProvider, this);
 }

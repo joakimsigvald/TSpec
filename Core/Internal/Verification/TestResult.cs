@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using TSpec.Continuations;
 using TSpec.Internal.Specification;
 using TSpec.Internal.TestData;
-using TSpec.Internal.TestData.Generation.Strategies.Mocking;
 using Xunit.Sdk;
 
 namespace TSpec.Internal.Verification;
@@ -261,8 +260,7 @@ Try providing a function with the Spec's declared return type instead as paramet
         {
             SpecificationContext.Current.ClearSubject();
             SpecificationContext.Current.AddVerify<TService>(expressionExpr, timesExpr);
-            var matcher = CallMatcher.For(expression);
-            var count = _context.GetMock<TService>().Invocations.Count(matcher.Matches);
+            var count = _context.GetMock<TService>().CountCalls(expression);
             if (!(times ?? Times.AtLeastOnce).Allows(count))
                 throw new XunitException(
                     $"Expected {typeof(TService).Alias()}.{expressionExpr.DescribeCall(true)!.StripWrapMarkers()} to be invoked "
