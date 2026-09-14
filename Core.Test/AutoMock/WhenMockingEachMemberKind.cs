@@ -28,7 +28,10 @@ public abstract class PartlyVirtual
     public string NonVirtual() => "real";
 }
 
-public class MemberKindsService(IMemberKinds kinds, PartlyVirtual partlyVirtual, Func<int, string> lookup)
+public delegate bool TryLookup(int id, out string value);
+
+public class MemberKindsService(
+    IMemberKinds kinds, PartlyVirtual partlyVirtual, Func<int, string> lookup, TryLookup tryLookup)
 {
     public string TouchObjectMembers()
     {
@@ -55,6 +58,7 @@ public class MemberKindsService(IMemberKinds kinds, PartlyVirtual partlyVirtual,
     public string CallVirtual() => partlyVirtual.Virtual();
     public string CallNonVirtual() => partlyVirtual.NonVirtual();
     public string Lookup(int id) => lookup(id);
+    public string TryLookup(int id) => $"{tryLookup(id, out var value)}:{value}";
 
     private static void OnChanged(object? sender, EventArgs e) { }
 }
@@ -163,11 +167,19 @@ public class WhenAnAbstractClassIsMocked : Spec<MemberKindsService, string>
 
 public class WhenADelegateIsMocked : Spec<MemberKindsService, string>
 {
+    private string _found = "found";
+
     [Fact]
     public void ThenItsInvocationCanBeSetUp()
         => When(_ => _.Lookup(1))
             .Given<Func<int, string>>().That(_ => _(1)).Returns(() => "one")
             .Then().Result.Is("one");
+
+    [Fact]
+    public void GivenAnOutParameter_ThenTheSetupAnswersAndSetsIt()
+        => When(_ => _.TryLookup(1))
+            .Given<TryLookup>().That(_ => _(1, out _found)).Returns(() => true)
+            .Then().Result.Is("True:found");
 }
 
 /// An internal interface is mocked once its assembly lets the proxies see it.

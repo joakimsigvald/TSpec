@@ -67,9 +67,10 @@ engine on 2026-09-13; Moq is gone, so how Moq behaved is inferred where marked.
   on `Get(int)` silently answers nothing: `CallMatcher` checks that the int argument is a
   `MyValueInt`. Probed; Moq's behaviour unknown. Options: match any value of the parameter's type,
   apply the conversion, or refuse.
-- **A delegate mock's out parameter is not written back.** `Given<TryLookup>().That(_ => _(1, out
-  found)).Returns(() => true)` answers `true` but leaves the out value empty; the interface form
-  works (`WhenMockingEachMemberKind`). `DelegateForwarder` passes by-ref arguments by value. Probed.
+- **`Mock.Get` on a TSpec mock throws**, even for a user who references Moq directly: a TSpec mock
+  is no longer Moq's. On 3.0 it was the way to raise events, set up properties or
+  `VerifyNoOtherCalls` (TSpec's own `AutoDispose.cs` used it). The 3.1 release note's "reference
+  Moq directly" does not cover it. Read.
 - **A failed verification no longer lists the calls that were made.** Moq's `MockException` listed
   the mock's performed invocations and setups, which is the main clue when a verification fails.
   Overlaps §3 item 4.
@@ -158,3 +159,6 @@ Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a 
 - **3.1.0, generic type names** — `FluentDefaultProvider`'s refusals (interface inside a task, no most
   specific provided default) name types with `Alias()`, pinned in `WhenMockReturnTaskOfGenericInterface`
   and `WhenReturnsAssignableValue`. 2026-09-13.
+- **3.1.0, delegate out parameters** — `DelegateForwarder` writes by-ref arguments back after the
+  call, so a delegate mock sets its out values as an interface mock does; pinned in
+  `WhenADelegateIsMocked`. 2026-09-14.
