@@ -93,8 +93,6 @@ engine on 2026-09-13; Moq is gone, so how Moq behaved is inferred where marked.
 - **Mocking an internal type** needs `[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]` in
   the test project. Moq users knew it from Moq's docs; TSpec's README and agent reference do not say
   it. Decide whether a reader needs it.
-- **A method with arguments inside a chain renders as words**: `_ => _.GetChild(2).Get(1)` reads
-  "Given IParent.get child 2.Get(1) returns …"; a property chain reads as written. PO to decide.
 - **Housekeeping**: the package tags still include `moq`; `Generic.cs` still renders `It.IsAny<T>()`
   and `NormalizeTimes` still accepts Moq's `Times.Once()` — both now unreachable in practice.
 
@@ -161,4 +159,6 @@ Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a 
   cannot hold a `T` (`Any<MyValueInt>()` on `Get(int)`), as Moq refused it ("Matcher … is
   unmatchable"); it had silently matched nothing. Pinned in `WhenMockWithAnyArgument`. 2026-09-14.
 - **3.1.0, chained calls** — set up and verified through the mock of each receiver's type, one per
-  type, not a mock per chain as Moq made (PO, option A). Pinned in `WhenMockingAChainedCall`. 2026-09-14.
+  type, not a mock per chain as Moq made (PO, option A — being reweighed against a mock per link).
+  Pinned in `WhenMockingAChainedCall`. A call left of a dot renders as a call, not a phrase
+  (`IParent.GetChild(2).Get(1)`, was "get child 2"); `Describer.Path`. 2026-09-14.

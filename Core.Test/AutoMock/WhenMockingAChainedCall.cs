@@ -38,9 +38,17 @@ public class WhenAChainedCallIsSetUp : Spec<ParentService, string>
 
     [Fact]
     public void GivenAMethodInTheChain_ThenTheCallAnswers()
-        => When(_ => _.GetFromChildOf(2, 1))
-            .Given<IParent>().That(_ => _.GetChild(2).Get(1)).Returns(() => "chained")
+    {
+        Given<IParent>().That(_ => _.GetChild(2).Get(1)).Returns(() => "chained")
+            .When(_ => _.GetFromChildOf(2, 1))
             .Then().Result.Is("chained");
+        Specification.Is(
+            """
+            Given IParent.GetChild(2).Get(1) returns "chained"
+            When GetFromChildOf(2, 1)
+            Then Result is "chained"
+            """);
+    }
 
     [Fact]
     public void GivenALongerChain_ThenTheCallAnswers()
@@ -80,6 +88,17 @@ public class WhenAChainedCallIsVerified : Spec<ParentService, string>
     [Fact]
     public void GivenTheCallWasMade_ThenItIsCounted()
         => When(_ => _.GetFromChild(1)).Then<IParent>(_ => _.Child.Get(1));
+
+    [Fact]
+    public void GivenAMethodInTheChain_ThenTheCallIsCounted()
+    {
+        When(_ => _.GetFromChildOf(2, 1)).Then<IParent>(_ => _.GetChild(2).Get(1));
+        Specification.Is(
+            """
+            When GetFromChildOf(2, 1)
+            Then IParent.GetChild(2).Get(1)
+            """);
+    }
 
     [Fact]
     public void GivenAnotherCallWasMade_ThenItIsNotCounted()

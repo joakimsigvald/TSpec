@@ -32,13 +32,19 @@ internal abstract class Describer
 
     /// <summary>
     /// A dotted path — with a break point at each joint where the dot connects two calls, never at
-    /// the dots of a plain path. The call left of such a joint is a value like any other, so it is
-    /// described rather than quoted: its arguments read as prose.
+    /// the dots of a plain path. The call left of such a joint is described, so its arguments read
+    /// as values, but as a link in a call chain it keeps the shape of a call and never reads as a
+    /// phrase.
     /// </summary>
     protected static string Path(Expr expr)
         => expr.WithoutNoise() is Member m && m.Target.WithoutNoise() is Call chained
-            ? $"{Value.Describe(chained)}{Wrap.Point}.{m.Name}"
+            ? $"{Link(chained)}{Wrap.Point}.{m.Name}"
             : expr.AsPath();
+
+    private static string Link(Call call)
+        => call.AsNaturalLanguageCall() is not null && call.AsTagReference() is null
+            ? $"{Path(call.Target)}{ArgList(call.Args)}"
+            : Value.Describe(call);
 
     /// Render TSpec's <c>A&lt;T&gt;</c> / <c>An&lt;T&gt;</c> / <c>The&lt;T&gt;</c>
     /// factory shapes, or null if <paramref name="expr"/> is no mention.
