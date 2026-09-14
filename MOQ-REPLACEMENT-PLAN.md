@@ -63,14 +63,6 @@ engine on 2026-09-13; Moq is gone, so how Moq behaved is inferred where marked.
   ("does not call a member of the mocked IParent"). Moq set such calls up recursively, so it most
   likely worked on 3.0. Probed. Options: support it (set up `Child` to return a mock and answer on
   that), or keep refusing with a message that says to set up the child's service instead.
-- **`Any<T>()` across an implicit conversion never matches.** `That(_ => _.Get(Any<MyValueInt>()))`
-  on `Get(int)` silently answers nothing: `CallMatcher` checks that the int argument is a
-  `MyValueInt`. Probed; Moq's behaviour unknown. Options: match any value of the parameter's type,
-  apply the conversion, or refuse.
-- **`Mock.Get` on a TSpec mock throws**, even for a user who references Moq directly: a TSpec mock
-  is no longer Moq's. On 3.0 it was the way to raise events, set up properties or
-  `VerifyNoOtherCalls` (TSpec's own `AutoDispose.cs` used it). The 3.1 release note's "reference
-  Moq directly" does not cover it. Read.
 - **A failed verification no longer lists the calls that were made.** Moq's `MockException` listed
   the mock's performed invocations and setups, which is the main clue when a verification fails.
   Overlaps §3 item 4.
@@ -162,3 +154,8 @@ Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a 
 - **3.1.0, delegate out parameters** — `DelegateForwarder` writes by-ref arguments back after the
   call, so a delegate mock sets its out values as an interface mock does; pinned in
   `WhenADelegateIsMocked`. 2026-09-14.
+- **3.1.0, `Mock.Get`** — the release notes say a TSpec mock is not a Moq mock, so `Mock.Get` on one
+  throws; referencing Moq directly does not bring that back. 2026-09-14.
+- **3.1.0, `Any<T>()` across a conversion** — refused with `SetupFailed` when the parameter's type
+  cannot hold a `T` (`Any<MyValueInt>()` on `Get(int)`), as Moq refused it ("Matcher … is
+  unmatchable"); it had silently matched nothing. Pinned in `WhenMockWithAnyArgument`. 2026-09-14.

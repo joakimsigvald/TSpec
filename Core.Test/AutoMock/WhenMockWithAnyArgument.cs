@@ -98,6 +98,25 @@ public class WhenMockWithAnyArgument : Spec<MyValueIntService, string>
             "Any<int>(constraint) matches an argument in a mock setup or verification, and means nothing elsewhere. "
             + "To set up the value instead, write the lambda with braces: Any<int>(value => { ... })");
 
+    [Fact]
+    public void GivenAnyConvertedToTheParameterType_ThenThrowSetupFailed()
+        => Xunit.Assert.Throws<SetupFailed>(() =>
+            Given<IMyValueIntRepo>().That(_ => _.Get(Any<MyValueInt>())).Returns(A<string>)
+                .When(_ => _.GetValue(A<MyValueInt>()))
+                .Then().Result.Is(The<string>()))
+            .Message.Is(
+                "Any<MyValueInt>() is converted to int, so it can never match: "
+                + "the call receives an int, not a MyValueInt. Write Any<int>() instead");
+
+    [Fact]
+    public void GivenConstrainedAnyConvertedToTheParameterTypeInVerification_ThenThrowSetupFailed()
+        => Xunit.Assert.Throws<SetupFailed>(() =>
+            When(_ => _.SetValue(A<MyValueInt>()))
+                .Then<IMyValueIntRepo>(_ => _.Set(Any<MyValueInt>(v => v.Primitive > 0))))
+            .Message.Is(
+                "Any<MyValueInt>(...) is converted to int, so it can never match: "
+                + "the call receives an int, not a MyValueInt. Write Any<int>(...) instead");
+
     /// Moq's matcher is not TSpec's: evaluated as a plain value it would match only the type's default.
     [Fact]
     public void GivenMoqsItIsAny_ThenThrowSetupFailed()

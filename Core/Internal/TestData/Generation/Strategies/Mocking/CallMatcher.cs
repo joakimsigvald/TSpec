@@ -103,6 +103,8 @@ internal sealed class CallMatcher
     {
         if (Unwrap(argument) is MethodCallExpression call)
         {
+            if (IsAny(call.Method) && !argument.Type.IsAssignableFrom(call.Type))
+                throw ConvertedAnyNeverMatches(call, argument.Type);
             if (IsAny(call.Method) && call.Arguments.Count == 0)
                 return AnyOf(call.Type);
             if (IsAny(call.Method) && IsConstraint(call.Method))
@@ -115,6 +117,17 @@ internal sealed class CallMatcher
         }
         var expected = Evaluate(argument);
         return actual => AreEqual(expected, actual);
+    }
+
+    private static SetupFailed ConvertedAnyNeverMatches(MethodCallExpression any, Type parameterType)
+    {
+        var arguments = any.Arguments.Count == 0 ? "" : "...";
+        var anyType = any.Type.Alias();
+        var received = parameterType.Alias();
+        return new SetupFailed(
+            $"Any<{anyType}>({arguments}) is converted to {received}, so it can never match: "
+            + $"the call receives {received.WithArticle()}, not {anyType.WithArticle()}. "
+            + $"Write Any<{received}>({arguments}) instead");
     }
 
     private static Func<object?, bool> AnyOf(Type type)

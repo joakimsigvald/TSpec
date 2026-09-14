@@ -23,7 +23,7 @@
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			CHANGED
-			* TSpec mocks with its own engine on Castle.Core and no longer depends on Moq: reference Moq directly if your tests use it
+			* TSpec mocks with its own engine on Castle.Core and no longer depends on Moq: reference Moq directly if your tests use it. A TSpec mock is not a Moq mock, so Mock.Get on one throws
 			* A throw on an awaited mocked call (Task, Task&lt;T&gt;, ValueTask, ValueTask&lt;T&gt;) comes back as a faulted task, however the throw was set up
 			* A failed verification by expression fails like a count by name, e.g. "Expected IOrderService.CreateOrder(the ShoppingCart) to be invoked once but was invoked 0 times", instead of throwing Moq's MockException
 			* A mock renders as the type it mocks, e.g. IOrderService, instead of Mock&lt;IOrderService:1&gt;.Object

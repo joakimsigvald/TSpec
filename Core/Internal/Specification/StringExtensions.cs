@@ -32,6 +32,9 @@ internal static class StringExtensions
     internal static string CountedBy(this string typeName, string factory)
         => _pluralFactories.Contains(factory) ? typeName.Pluralize() : typeName;
 
+    internal static string WithArticle(this string noun)
+        => IsVowel(noun[0]) ? $"an {noun}" : $"a {noun}";
+
     private static readonly HashSet<string> _pluralFactories =
         ["Zero", "Two", "Three", "Four", "Five", "Some", "Many", "AnyNumberOf"];
 
