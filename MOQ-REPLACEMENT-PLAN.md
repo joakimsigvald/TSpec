@@ -11,7 +11,7 @@ correct it in place as work lands, and move a finished stage to Done as a line.
 | 3.1 | TSpec's own mocking engine on Castle.Core; the Moq package goes | engine done; 3.1.0 prepared, not published — §2 to triage |
 | 3.2+ | A cohesive mocking language, built on the engine | additive |
 
-## 1. The engine as it stands (2026-09-13)
+## 1. The engine as it stands (2026-09-14)
 
 - **Where it lives**: `Core/Internal/TestData/Generation/Strategies/Mocking/`.
   - `MockHandle` — one mock. Castle makes the instance: a class proxy of `object` implementing an
@@ -51,12 +51,18 @@ correct it in place as work lands, and move a finished stage to Done as a line.
 
 ## 2. Remaining — to triage: fold into 3.1.0, or a later release
 
-3.1.0 is prepared (version, release notes, agent reference) but not packed or published. Everything
-below is open; the PO decides next session what 3.1.0 takes. "Probed" means observed on the Castle
-engine on 2026-09-13; Moq is gone, so how Moq behaved is inferred where marked.
+3.1.0 is prepared (version, release notes, agent reference) but not packed or published. "Probed"
+means observed on the Castle engine; how Moq behaved is inferred where marked, or probed against the
+cached Moq 4.20.72 package.
+
+**Next session** (PO, 2026-09-14): finish the items that are worse than 3.0 — marked **[worse]** —
+simplest and most severe first, in this order: the verification listing (§2.2), the nested `Any<T>()`
+and the abstract class's raw error (§2.3), the tap before `First()` (§2.4). Work test first, stop after
+each item to report and evaluate, and propose any new user-facing wording before pinning it.
 
 ### 2.1 Before publishing
 
+- **Suite run on net10.0 only** since the fixes of 2026-09-14; run net8.0 and net9.0 too.
 - **M5's `Core.Spec`/`Integration.Spec` not run.** Part of 3.1's acceptance, but not in this
   repository. Run them against 3.1.0.
 - **Castle.Core 5.1.1 → 5.2.1** (asked by the PO). A minor version in the same major line; a user who
@@ -65,34 +71,38 @@ engine on 2026-09-13; Moq is gone, so how Moq behaved is inferred where marked.
 
 ### 2.2 Could break a 3.0 user's test (regressions against Moq)
 
-- **A failed verification no longer lists the calls that were made.** Moq's `MockException` listed
+- **[worse] A failed verification no longer lists the calls that were made.** Moq's `MockException` listed
   the mock's performed invocations and setups, which is the main clue when a verification fails.
   Overlaps §3 item 4.
 
 ### 2.3 Edges: probed or read, likely harmless
 
-- **An abstract class needing constructor arguments** fails with Castle's raw "Can not instantiate
+- **[worse] An abstract class needing constructor arguments** fails with Castle's raw "Can not instantiate
   proxy of class … Constructor … not found" (wrapped in an `AggregateException`). Moq could not mock
   it either, with its own message. Could refuse with a `SetupFailed` that says to supply one with
   `Using`. Probed.
 - **Rendering**: a delegate mock renders as its full type name (`TSpec.Test.….TryLookup`), not its
-  alias; an abstract class that overrides `ToString` answers with a generated string. Probed/read.
+  alias; an abstract class that overrides `ToString` answers with a generated string. Probed/read. A
+  delegate setup reads with the lambda's parameter, "Given TryLookup._(1, out _found) returns true".
 - **An unmatched default interface member** answers with TSpec's default instead of running its
   body. Probed; Moq without `CallBase` most likely did the same. Unpinned.
 - **A `ref` argument** matches by value and is not written back. Probed; most likely as Moq. Unpinned.
 - **An indexer setup** (`That(_ => _[1])`) works. Probed; unpinned.
-- **`Any<T>()` nested inside an argument** (`new Filter { Id = Any<int>() }`) is read as a generated
-  value, so it matches only that value; on 3.0 it became `It.IsAny`, evaluated as `default`. Read.
+- **[worse] `Any<T>()` nested inside an argument** (`new Filter { Id = Any<int>() }`) is read as a generated
+  value, so it matches only that value; on 3.0 it became `It.IsAny`, evaluated as `default`. Wrong on
+  both, but a test that passed because the subject sent the default now fails. Read.
 - **An argument that refers to the setup's own parameter** (`_ => _.Get(_.Id)`) fails with a raw
   `InvalidOperationException` from compiling the value, rather than `SetupFailed`. Read.
 - **A sequence on a `Task`-returning call, past its last step**, answers a null task (kept from 3.0).
 
 ### 2.4 Decisions and docs
 
-- **A tap before `First()` is dropped**, from both the call and the specification:
+- **[worse?] A tap before `First()` is dropped**, from both the call and the specification:
   `That(…).Tap(a).First().Returns(…)` never runs `a` and does not state it (`InSequence` passes
-  neither the taps nor their text). Decide whether such a tap fires on every call of the sequence, or
-  is refused; test first either way.
+  neither the taps nor their text). On 3.0 the tap was installed as a Moq callback that the sequence
+  then built on, so it may have fired; only running 3.0 would tell (`git archive 2a9a985` into the
+  scratchpad builds it). Decide whether such a tap fires on every call of the sequence, or is
+  refused; test first either way.
 - **Mocking an internal type** needs `[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]` in
   the test project. Moq users knew it from Moq's docs; TSpec's README and agent reference do not say
   it. Decide whether a reader needs it.
@@ -102,7 +112,8 @@ engine on 2026-09-13; Moq is gone, so how Moq behaved is inferred where marked.
 ## 3. Release 3.2+ — the mocking language
 
 Build only on the engine; each item needs a real spec that is worse without it, and each lands on its
-own, with the suite green, before the next starts. Candidates, not yet designed:
+own, with the suite green, before the next starts. A setup reads the same whether the member is sync
+or async (PO, 2026-09-14), as the rest of TSpec does. Candidates, not yet designed:
 
 1. **Set up a call by name, in the general case.** `Given<IChat>().That(nameof(IChat.Complete)).Returns(…)`
    for public members, not only protected ones. Carries over from the improvement plan, already
