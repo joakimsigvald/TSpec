@@ -17,16 +17,16 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>3.0.0</PackageVersion>
+		<PackageVersion>3.0.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			TSpec now mocks with its own engine instead of Moq
-			* Moq is no longer a dependency: reference it directly if your tests use it
-			* Write Any&lt;T&gt;() instead of Moq's It.IsAny and It.Is
-			* Members obsolete in 2.8 are removed
-			* Requires xUnit v3 4.x
+			* Replace using static Moq.Times with using static TSpec.Times
+			* On the .NET 10 SDK, dotnet test needs "test": { "runner": "Microsoft.Testing.Platform" } in global.json, and MTP extensions such as TrxReport need 2.x
+			* A mock set up only with Given&lt;T&gt;().Returns or Throws is now given to a constructor parameter that has a default
+			* Then(value) throws SetupFailed for a value type handed over before the pipeline runs
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

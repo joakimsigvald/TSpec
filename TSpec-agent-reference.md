@@ -82,9 +82,11 @@ Given<HttpMessageHandler>().ThatProtected<HttpResponseMessage>("SendAsync").Retu
 ```
 
 - Arguments match by value — `The<T>()` matches the value used in the test — except `Any<T>()`, which matches any value, and `Any<T>(b => b.Nights > 7)`, which matches any value satisfying the constraint. The constraint form throws `SetupFailed` outside a mock setup or verification.
-- Setups are the same whether the member returns `T`, `Task<T>` or `ValueTask<T>`: `Returns(() => 7)` supplies the unwrapped value.
+- Setups are the same whether the member returns `T`, `Task<T>` or `ValueTask<T>`: `Returns(() => 7)` supplies the unwrapped value. For a task that completes later, state the task as the return type: `That<Task<int>>(_ => _.GetAsync()).Returns(() => _pending.Task)`.
 - Unmocked members return generated defaults.
 - A chain gets a mock per step and argument values: `Orders(1)` and `Orders(2)` are set up and verified apart, `Orders(1)` twice is the same mock. Calls the chain did not set up answer as `Given<IOrderStore>()` set them up; a step no chain matches returns the shared `IOrderStore` mock.
+- `Then<IOrderStore>(…)` counts calls on every `IOrderStore` mock, including those reached through a chain; verify through the chain to count one.
+- A delegate starts a chain too, so a factory gives a mock per argument: `Given<Func<int, IOrderStore>>().That(_ => _(2).Find(Any<int>()))`.
 
 ## Verification
 

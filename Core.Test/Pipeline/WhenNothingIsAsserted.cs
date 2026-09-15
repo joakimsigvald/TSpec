@@ -54,7 +54,7 @@ public class WhenNothingIsAsserted
     public void GivenThenWithSubjectButNoAssertion_ThenThrowSetupFailed()
     {
         var spec = new MySpec();
-        var other = 2;
+        var other = "other";
         spec.When(_ => 1).Then(other);
         Xunit.Assert.Throws<SetupFailed>(spec.Dispose).Message.Is(
             "Then(other) hands over a subject to be asserted on, but no assertion follows it");
@@ -82,8 +82,8 @@ public class WhenNothingIsAsserted
     public void GivenAssertionOnSubject_ThenDoNotComplain()
     {
         var spec = new MySpec();
-        var other = 2;
-        spec.When(_ => 1).Then(other).Is(2);
+        var other = "other";
+        spec.When(_ => 1).Then(other).Is("other");
         spec.Dispose();
     }
 

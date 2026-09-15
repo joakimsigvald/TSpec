@@ -35,6 +35,7 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
     {
         subjectExpr.AssertNoTrainwreck();
         HandedOverSubject.AssertIsNotALambda(subject, subjectExpr);
+        HandedOverSubject.AssertIsNotACopyTakenBeforeTheRun<TSubject>(_result is not null, subjectExpr);
         Specification.SetSubject(subjectExpr);
         _ = Claim;
         return subject;

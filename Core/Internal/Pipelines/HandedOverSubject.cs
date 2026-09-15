@@ -20,4 +20,17 @@ internal static class HandedOverSubject
                 $"{verb}({subjectExpr}) hands over a lambda, which running the pipeline does not affect "
                 + "and which has nothing to assert on. Hand over the value it would produce instead");
     }
+
+    /// <summary>
+    /// A value type is copied when it is passed, so one handed over before the pipeline runs was read
+    /// before the act.
+    /// </summary>
+    internal static void AssertIsNotACopyTakenBeforeTheRun<TSubject>(
+        bool hasRun, string? subjectExpr, [CallerMemberName] string? verb = null)
+    {
+        if (!hasRun && typeof(TSubject).IsValueType)
+            throw new SetupFailed(
+                $"{verb}({subjectExpr}) hands over a copy of {subjectExpr} taken before the pipeline runs, "
+                + $"so it cannot see what the pipeline changes. Call Then() first, then assert on {subjectExpr}");
+    }
 }

@@ -46,8 +46,8 @@ public class WhenALambdaIsHandedOverAsSubject
     {
         using var spec = new MySpec();
         spec.When(() => 1);
-        spec.Then(Answer()).Is(42);
+        spec.Then(Answer()).Is("42");
     }
 
-    private static int Answer() => 42;
+    private static string Answer() => "42";
 }

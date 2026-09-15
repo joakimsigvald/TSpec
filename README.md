@@ -403,6 +403,12 @@ This allows most mocking scenarios to be expressed inline, close to the behavior
 
 Naming no method, `Given<[TheService]>().Returns(...)` sets a default that applies to every method of the interface returning a type assignable from that type.
 
+An awaited call is set up with the value inside its task. To answer with a task that completes later, state the task as the call's return type:
+
+```csharp
+=> Given<IQuoteService>().That<Task<Quote>>(_ => _.GetAsync(The<int>())).Returns(() => _pending.Task)
+```
+
 To set up another call on the same service, continue with `AndThat`; `And<[TheOtherService]>()` moves on to the next service:
 
 ```csharp
@@ -420,6 +426,13 @@ A call can be set up, or verified, through the members that lead to it. An await
 
 Each step of a chain reaches a mock of its own for the arguments it is called with: `Orders(1)` and `Orders(2)` are set up and counted apart, while calling `Orders(1)` twice reaches the same mock.
 A call on that mock which no chain set up is answered as `Given<IOrderStore>()` set it up, and a step no chain matches returns the shared `IOrderStore` mock itself.
+Verifying on the type, `Then<IOrderStore>(…)`, counts the calls on every `IOrderStore` mock, including those reached through a chain; verify through the chain to count the calls on one.
+
+A delegate starts a chain as a member does, so a factory the subject depends on hands it a mock per argument:
+
+```csharp
+=> Given<Func<int, IOrderStore>>().That(_ => _(2).Find(Any<int>())).Returns(A<Order>)
+```
 
 A **protected** member can only be mocked by name:
 

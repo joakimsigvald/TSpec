@@ -46,6 +46,31 @@ public class ParentService(IParent parent)
     public async Task<string> GetAwaitedName() => await parent.GetNameAsync();
 }
 
+public class ChildFactoryService(Func<int, IChild> childOf)
+{
+    public string GetFromChildrenOf(int firstId, int secondId, int id)
+        => $"{childOf(firstId).Get(id)},{childOf(secondId).Get(id)}";
+}
+
+/// A delegate that returns a mock, such as a factory, starts a chain as a member does, so a mock of one
+/// type can be arranged and verified per argument.
+public class WhenAChainStartsWithADelegate : Spec<ChildFactoryService, string>
+{
+    public WhenAChainStartsWithADelegate()
+        => Given<Func<int, IChild>>().That(_ => _(1).Get(9)).Returns(() => "one")
+            .AndThat(_ => _(2).Get(9)).Returns(() => "two")
+            .When(_ => _.GetFromChildrenOf(1, 2, 9));
+
+    [Fact]
+    public void ThenEachArgumentReachesItsOwnMock() => Then().Result.Is("one,two");
+
+    [Fact]
+    public void ThenOnlyTheVerifiedArgumentIsCounted() => Then<Func<int, IChild>>(_ => _(2).Get(9), Times.Once);
+
+    [Fact]
+    public void ThenTheTypeCountsBothMocks() => Then<IChild>(_ => _.Get(9), Times.Exactly(2));
+}
+
 /// An awaited step is written with Result, which the specification leaves out: the task is TSpec's, and
 /// the chain goes on from the value it holds.
 public class WhenAChainGoesThroughATask : Spec<ParentService, string>

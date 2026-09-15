@@ -51,6 +51,16 @@ public class WhenAnOptionalDependencyIsArranged : Spec<ServiceWithDefaults>
     public void ThenTheMockIsInjected()
         => Given<IOptionalDep>().That(_ => _.Speak()).Returns(() => "hello")
             .Then().Result.Extra!.Speak().Is("hello");
+
+    [Fact]
+    public void ThenAMockAnsweringByDefaultIsInjected()
+        => Given<IOptionalDep>().Returns(() => "hello")
+            .Then().Result.Extra!.Speak().Is("hello");
+
+    [Fact]
+    public void ThenAMockThrowingByDefaultIsInjected()
+        => Given<IOptionalDep>().Throws<InvalidOperationException>()
+            .Then().Result.Extra.Is().not.Null();
 }
 
 public class WhenASetupCoversAParameterWithADefault : Spec<ServiceWithDefaults>

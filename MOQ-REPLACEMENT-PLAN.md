@@ -88,10 +88,38 @@ The PO now upgrades production projects to 3.0.0; what they find is fixed in 3.0
   refused (exit code 5), so CI steps need MTP equivalents. Reproduced and fixed the same way in this
   repository.
 
-3.0.1 release notes, so far:
-- Replace `using static Moq.Times` with `using static TSpec.Times` (PO, 2026-09-15).
-- On the .NET 10 SDK, `dotnet test` needs `"test": { "runner": "Microsoft.Testing.Platform" }` in
-  `global.json` (PO, 2026-09-15).
+**3.0.1** — version bumped, release notes in `Core/Core.csproj` (only what is new: `TSpec.Times`
+for `Moq.Times`; `global.json` and TrxReport 2.x on the .NET 10 SDK). From the Cdr agent's report,
+triaged with the PO, in order — work test first, report after each:
+
+1. **Done: a service-wide setup counts as arranging the mock.** `Given<T>().Returns(…)` and
+   `.Throws(…)` only stored default answers, so a constructor parameter with a default kept it — the
+   production fallback ran and nothing failed, though README §4.1 promised "a mock the test has
+   already set up". `MockingStrategy.IsArranged` now also asks `FluentDefaultProvider.IsSetUp`.
+   Pinned in `WhenAnOptionalDependencyIsArranged`. Suite green on all three (1948), MyHotel green.
+2. **Done: `Then(x)` refuses a value type before the pipeline runs** (PO: refuse, not document). A
+   copy taken before the act is stale or meaningless, as the refused lambda is. PO wording: "Then(tapped)
+   hands over a copy of tapped taken before the pipeline runs, so it cannot see what the pipeline
+   changes. Call Then() first, then assert on tapped". `HandedOverSubject`, pinned in
+   `WhenAValueIsHandedOverBeforeThePipelineRuns`; three tests that handed over a placeholder `int`
+   now hand over a string. Refused wrongly: a struct holding a reference the pipeline changes —
+   accepted as rare. Suite green on all three (1950), MyHotel green.
+3. **Done: a plain-type verification counts every mock of the type**, chain mocks included (a child
+   logs to the shared mock too); verifying through the chain counts one. Already pinned in
+   `GivenCallsOnChildren_ThenTheirTypeCountsThemAll`. A chain starting with a delegate — a factory,
+   the way to several mocks of one type — worked but was unpinned; now `WhenAChainStartsWithADelegate`.
+   One sentence and the factory example in README §4.2 and the agent reference's Mocking bullets; no
+   release note, since nothing changed.
+4. **Done: a task that completes later** — `That<Task<X>>(…).Returns(() => tcs.Task)` binds the
+   plain overload, so `Returns` takes the task itself. Worked; now pinned in
+   `WhenAMockedTaskCompletesLater` (a race the completed call wins). One line in README §4.2 and the
+   agent reference's Mocking bullets; `ValueTask<T>` the same way is likely but unpinned.
+
+3.0.1 is ready to release once the PO has run it against Cdr, if wanted.
+
+To §3 when 3.0.1 is out: refuse verifying a mock the subject never received (after item 1 the
+remaining silent case; may break existing tests), and a pipeline timeout (Cdr hand-rolls `Patience`
+constants — check xUnit's `[Fact(Timeout)]` on synchronous test methods first).
 
 ### 2.2 Could break a 2.8 user's test (regressions against Moq)
 

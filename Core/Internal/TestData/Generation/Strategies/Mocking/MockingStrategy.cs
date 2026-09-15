@@ -2,6 +2,7 @@
 
 internal class MockingStrategy(FluentDefaultProvider fluentDefaultProvider) : IGenerationStrategy
 {
+    private readonly FluentDefaultProvider _defaults = fluentDefaultProvider;
     private readonly MockRegistry _registry = new(fluentDefaultProvider);
 
     internal MockHandle GetMock(Type type) => _registry.GetMock(type);
@@ -18,12 +19,14 @@ internal class MockingStrategy(FluentDefaultProvider fluentDefaultProvider) : IG
 
     internal bool TryUseArrangedMock(GenerationRequest request, ref object? result)
     {
-        if (!IsMockable(request) || !_registry.HasMock(request.Type))
+        if (!IsMockable(request) || !IsArranged(request.Type))
             return false;
 
         result = _registry.GetMock(request.Type).Instance;
         return true;
     }
+
+    private bool IsArranged(Type type) => _registry.HasMock(type) || _defaults.IsSetUp(type);
 
     internal static bool IsMockable(Type type)
         => type.IsInterface

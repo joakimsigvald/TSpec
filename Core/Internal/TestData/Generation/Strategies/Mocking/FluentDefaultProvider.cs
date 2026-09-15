@@ -31,6 +31,9 @@ internal class FluentDefaultProvider(IRepository repository)
     internal void SetDefaultException(Type type, Func<Exception> ex)
         => _defaultExceptions[type] = ex;
 
+    internal bool IsSetUp(Type service)
+        => _providedDefaults.ContainsKey(service) || _defaultExceptions.ContainsKey(service);
+
     internal void SetProvidedDefault(Type service, Type providedType, object? value)
         => GetProvidedDefaults(service)[providedType] = value;
 
