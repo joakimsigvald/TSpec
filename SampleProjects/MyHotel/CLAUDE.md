@@ -85,23 +85,14 @@ change is caught where it matters: in the committed files' diff.
 ## Mechanics
 
 - net10.0 only. `TreatWarningsAsErrors` everywhere — fix warnings, don't suppress them.
-- `dotnet test` swallows xunit v3 output. Build, then run the exe — one per Spec project (filter with
-  `-class MyHotel.Spec.WhenGetVersion`):
+- Run each Spec project with `dotnet test` (filter with `--filter-class MyHotel.Spec.WhenGetVersion`):
 
   ```bash
-  dotnet build SampleProjects/MyHotel/MyHotel.Spec -f net10.0
+  dotnet test SampleProjects/MyHotel/MyHotel.Spec
   ```
 
   ```bash
-  SampleProjects/MyHotel/MyHotel.Spec/bin/Debug/net10.0/MyHotel.Spec.exe
-  ```
-
-  ```bash
-  dotnet build SampleProjects/MyHotel/Core.Spec -f net10.0
-  ```
-
-  ```bash
-  SampleProjects/MyHotel/Core.Spec/bin/Debug/net10.0/MyHotel.Core.Spec.exe
+  dotnet test SampleProjects/MyHotel/Core.Spec
   ```
 
 - **`Microsoft.OpenApi` stays on the 2.x line.** `Microsoft.AspNetCore.OpenApi`'s source generator

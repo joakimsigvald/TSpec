@@ -77,8 +77,21 @@ cut to five lines by the PO: the engine replaces Moq, reference Moq directly, `A
 obsolete members removed, xUnit 4. The local `v3.0.0` tag still points at `d6ec7de`, the Moq build —
 the PO moves it, if wanted.
 
-The PO now runs M5's `Core.Spec`/`Integration.Spec` against 3.0.0 (not run before, PO's choice);
-what they find is fixed in 3.0.1.
+The PO now upgrades production projects to 3.0.0; what they find is fixed in 3.0.1.
+
+- **M5** (2026-09-15): all 1276 unit tests green. The most common break was `using static Moq.Times;`,
+  which no longer compiles without Moq and has to be deleted.
+- **Cdr** (and PvqDemo): in progress — many Moq references and non-TSpec tests. `dotnet test` failed
+  on the .NET 10 SDK: xunit.v3 4.x brings Microsoft.Testing.Platform 2.x, which refuses the VSTest
+  mode of `dotnet test` there ("Testing with VSTest target is no longer supported…"). Fixed by
+  opting in to the SDK's MTP mode in `global.json`; VSTest options such as `--logger trx` are then
+  refused (exit code 5), so CI steps need MTP equivalents. Reproduced and fixed the same way in this
+  repository.
+
+3.0.1 release notes, so far:
+- Replace `using static Moq.Times` with `using static TSpec.Times` (PO, 2026-09-15).
+- On the .NET 10 SDK, `dotnet test` needs `"test": { "runner": "Microsoft.Testing.Platform" }` in
+  `global.json` (PO, 2026-09-15).
 
 ### 2.2 Could break a 2.8 user's test (regressions against Moq)
 

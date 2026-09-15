@@ -15,9 +15,10 @@ Update `PackageVersion` and `PackageReleaseNotes` in `Core/Core.csproj` when pre
 
 ## Build and test
 
-- Test project uses xunit v3 with an exe runner; `dotnet test` swallows output. Instead:
-  `dotnet build Core.Test -f net10.0`, then run `Core.Test/bin/Debug/net10.0/TSpec.Test.exe`
-  (filter with `-class Namespace.ClassName`).
+- `dotnet test Core.Test` builds and runs the suite on net8.0, net9.0 and net10.0; narrow it with
+  `-f net10.0` and `--filter-class Namespace.ClassName`. It runs on Microsoft.Testing.Platform, opted
+  in by `global.json` — without it, xunit.v3 4.x refuses `dotnet test` on the .NET 10 SDK. VSTest
+  options such as `--logger` are refused.
 - The library multi-targets net8.0/net9.0/net10.0 — run the full suite on all three before a release.
 
 ## Releasing
