@@ -126,10 +126,11 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
 
     /// <summary>
     /// Opens a sequence over the call already in hand, rather than a call of its own: the steps are
-    /// TSpec's, so the call keeps the one answer that a tap and an outcome both need.
+    /// TSpec's, so the call keeps the one answer that a tap and an outcome both need. The taps in
+    /// hand go to the sequence, which taps every call with them.
     /// </summary>
     public IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> First()
-        => InSequence(_callExpr + " first", new MockCallSequence<TReturns>());
+        => InSequence(_callExpr, new MockCallSequence<TReturns>(_tap, _tapExprs));
 
     internal GivenThatNextContinuation<TSUT, TResult, TService, TReturns> AndNext()
         => InSequence("next", _sequence!);
@@ -253,10 +254,17 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
         Answer(_ => throw exception);
     }
 
+    /// The step that opens a sequence states the sequence's own taps, then that it comes first.
     private void SpecifyMock()
     {
         if (_callExpr is not null)
             _spec.Pipeline.Specification.AddMockSetup<TService>(_callExpr);
+        if (_sequence is { IsEmpty: true })
+        {
+            foreach (var tapExpr in _sequence.TapExprs)
+                _spec.Pipeline.Specification.AddTap(tapExpr);
+            _spec.Pipeline.Specification.AddMockFirst();
+        }
         foreach (var tapExpr in _tapExprs)
             _spec.Pipeline.Specification.AddTap(tapExpr);
     }

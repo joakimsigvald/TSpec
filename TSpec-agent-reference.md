@@ -73,7 +73,7 @@ Given<IMyService>().That(_ => _.GetValueAsync())
     .First().Returns(() => 1)
     .AndNext().Throws(An<ArgumentException>)
     .AndNext().Returns();
-// Observe arguments without changing behavior; in a sequence a tap belongs to the step it precedes
+// Observe arguments without changing behavior; after First or AndNext a tap belongs to that step, before First it taps every call
 Given<IMyInterface>().That(_ => _.Get(An<int>())).Tap<int>(i => _captured = i).Returns(() => 42)
 // Default for every method returning a type Cart fits
 Given<ICartRepository>().Returns(A<Cart>)

@@ -37,6 +37,8 @@
 			* An unset member returning Task&lt;T&gt; or ValueTask&lt;T&gt; of an interface answers as a member returning T does, instead of throwing "Interface types returned as task must be provided explicitly"
 			FIXED
 			* A mocked call chained through a method with arguments reads as written, e.g. IParent.GetChild(2).Get(1), instead of "get child 2"
+			* A tap before First() taps every call of the sequence and is stated in the specification; it was dropped from both
+			* A sequence on a call with Any&lt;T&gt;() reads "Get(any int) first" in the specification instead of "Get(Any&lt;int&gt;()) first"
 			* Throws&lt;E&gt;() on a Task&lt;T&gt; call threw ArgumentNullException instead of E
 			* Throws on a protected member returning Task or ValueTask failed setup
 			* ReturnsDefault() on a Task call answered with a null task; it now answers with a completed one

@@ -56,8 +56,8 @@ means observed on the Castle engine; how Moq behaved is inferred where marked, o
 cached Moq 4.20.72 package.
 
 **Next session** (PO, 2026-09-14): finish the items that are worse than 3.0 — marked **[worse]** —
-simplest and most severe first, in this order: the abstract class's raw error (§2.3), the tap before
-`First()` (§2.4). Work test first, stop after each item to report and evaluate,
+simplest and most severe first. None remain: the abstract class needing constructor arguments and
+the tap before `First()` were on this list until probing showed 3.0 behaved the same. Work test first, stop after each item to report and evaluate,
 and propose any new user-facing wording before pinning it.
 
 ### 2.1 Before publishing
@@ -75,10 +75,12 @@ None open.
 
 ### 2.3 Edges: probed or read, likely harmless
 
-- **[worse] An abstract class needing constructor arguments** fails with Castle's raw "Can not instantiate
-  proxy of class … Constructor … not found" (wrapped in an `AggregateException`). Moq could not mock
-  it either, with its own message. Could refuse with a `SetupFailed` that says to supply one with
-  `Using`. Probed.
+- **An abstract class with no parameterless constructor** throws Castle's `ArgumentException` "Can not
+  instantiate proxy of class: X. Could not find a parameterless constructor. (Parameter
+  'constructorArguments')", whether the subject depends on it, it is set up, or asked for with `A<X>()`.
+  3.0 threw the very same exception: Moq let Castle's through (probed against Moq 4.20.72), so this is
+  not worse than 3.0. `Using<X>(instance)` of a hand-written subclass works. Probed. Kept as is for
+  3.1; supporting it is §3 item 6.
 - **Rendering**: a delegate mock renders as its full type name (`TSpec.Test.….TryLookup`), not its
   alias; an abstract class that overrides `ToString` answers with a generated string. Probed/read. A
   delegate setup reads with the lambda's parameter, "Given TryLookup._(1, out _found) returns true".
@@ -92,12 +94,6 @@ None open.
 
 ### 2.4 Decisions and docs
 
-- **[worse?] A tap before `First()` is dropped**, from both the call and the specification:
-  `That(…).Tap(a).First().Returns(…)` never runs `a` and does not state it (`InSequence` passes
-  neither the taps nor their text). On 3.0 the tap was installed as a Moq callback that the sequence
-  then built on, so it may have fired; only running 3.0 would tell (`git archive 2a9a985` into the
-  scratchpad builds it). Decide whether such a tap fires on every call of the sequence, or is
-  refused; test first either way.
 - **Mocking an internal type** needs `[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]` in
   the test project. Moq users knew it from Moq's docs; TSpec's README and agent reference do not say
   it. Decide whether a reader needs it.
@@ -127,8 +123,7 @@ or async (PO, 2026-09-14), as the rest of TSpec does. Candidates, not yet design
    - strict mocks / "no other calls" (`VerifyNoOtherCalls`);
    - a mock implementing further interfaces (`As<TInterface>()`);
    - setting a `ref` argument's value on the way out;
-   - matching any type argument of a generic method (`It.IsAnyType`);
-   - mocking an abstract class through a constructor that takes arguments.
+   - matching any type argument of a generic method (`It.IsAnyType`).
 4. **Verification messages that read like TSpec's assertion failures.** The 3.1 wording is a first
    cut, to be tweaked (PO, 2026-09-13). Its listing shows only the verified mock's own calls, so a
    chain's later steps, received by the child's mock, are missing from it.
@@ -138,6 +133,11 @@ or async (PO, 2026-09-14), as the rest of TSpec does. Candidates, not yet design
    3.1 refuses it (see Done). To decide first: whether members the initializer leaves out take part,
    positional records (a constructor argument is not named by a member), and nesting inside a
    constraint's own lambda, which the refusal does not look into.
+6. **Mock an abstract class that has no parameterless constructor** (PO, 2026-09-15: support it, in a
+   later version). As an input object is made: its constructor with the most parameters, arguments
+   generated, handed to Castle's `CreateClassProxy`. No new API. To settle: protected constructors
+   (`ConstructorCompiler` looks at public ones only), and a base constructor that rejects generated
+   arguments.
 
 Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a sequence step
 (improvement plan item 7, dropped 2026-09-11).
@@ -202,3 +202,11 @@ Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a 
   ignored, and a failed Moq verification crashed formatting its message. `Any<T>(setup)` yields a
   value and is not refused. Pinned in `WhenAnyIsNestedInsideAnArgument` and
   `WhenAnyIsNestedInsideAVerifiedArgument`. Supporting it is §3 item 5. 2026-09-15.
+- **3.1.0, a tap before `First()`** (PO: fires on every call) — `That(…).Tap(a).First()…` had dropped
+  `a` from the call and the specification, exactly as 3.0 did (probed on a build of `2a9a985`: its
+  sequence's Moq callback replaced the tap's). `First()` now hands the taps in hand to
+  `MockCallSequence`, which runs them before every step, past the last one too; the opening step
+  states them, then "first" as a word of its own: "Given IMyValueIntRepo.Get(any int) tap(_asked.Add)
+  first returns "a"". With "first" no longer appended to the call's source, a sequence on a call
+  with `Any<int>()` reads "any int" instead of the raw `Any<int>()` it showed on 3.0 and 3.1. README
+  §4.5 and the agent reference say it. Pinned in `WhenTapASequence`. 2026-09-15.

@@ -169,6 +169,8 @@ internal class SpecificationContext : IAssertSpecificationContext
 
     internal void AddMockSetup<TService>(string callExpr) => _setup.AddMockSetup<TService>(callExpr);
 
+    internal void AddMockFirst() => _setup.AddMockFirst();
+
     internal void AddMockReturns(string? returnsExpr = null) => _setup.AddMockReturns(returnsExpr);
 
     internal void AddMockThrowsDefault<TService, TError>()

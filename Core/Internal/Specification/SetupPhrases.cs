@@ -54,6 +54,9 @@ internal class SetupPhrases(SpecificationRecording recording)
         => recording.Record(() => Mock<TService>(
             StepLayout.SentenceOrPhrase, callExpr.DescribeMockCall(), '.'));
 
+    internal void AddMockFirst()
+        => recording.Record(() => Add(StepLayout.Word, StepFamily.None, "first"));
+
     internal void AddMockReturnsDefault<TService>(string returnsExpr)
         => recording.Record(() => Mock<TService>(
             StepLayout.SentenceOrPhrase, $"returns {returnsExpr.Describe()}"));

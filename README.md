@@ -484,7 +484,7 @@ int _tappedValue = -1;
    .Returns(() => _retVal)
 ```
 
-A sequence can be tapped too:
+A sequence can be tapped too. A tap after `First` or `AndNext` taps the call of that step:
 
 ```csharp
 List<int> _asked = [];
@@ -493,6 +493,16 @@ List<int> _asked = [];
    .That(_ => _.Get(Any<int>()))
    .First().Tap<int>(_asked.Add).Returns(() => 1)
    .AndNext().Tap<int>(_asked.Add).Returns(() => 2)
+```
+
+A tap before `First` taps every call:
+
+```csharp
+=> Given<IMyInterface>()
+   .That(_ => _.Get(Any<int>()))
+   .Tap<int>(_asked.Add)
+   .First().Returns(() => 1)
+   .AndNext().Returns(() => 2)
 ```
 
 ### 4.6 Verification
