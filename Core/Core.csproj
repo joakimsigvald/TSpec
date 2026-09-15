@@ -22,37 +22,11 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			REMOVED
-			* Given&lt;T&gt;(setup) and Given&lt;T&gt;(transform); use Using&lt;T&gt;
-			* Then().DoesNotThrow(); use Then().Completes()
-			* Another&lt;T&gt;(); use Any&lt;T&gt;()
-			* The wasInvoked overloads taking Moq's Times; use TSpec.Times
-			CHANGED
-			* Requires xUnit v3 4.x: installing TSpec 3.0 upgrades a test project's xunit.v3 to 4.0.1 or later, with xUnit 4's own breaking changes
-			* TSpec mocks with its own engine on Castle.Core and no longer depends on Moq: reference Moq directly if your tests use it. A TSpec mock is not a Moq mock, so Mock.Get on one throws; a mock made with Moq can be handed to the subject with Using
-			* A throw on an awaited mocked call (Task, Task&lt;T&gt;, ValueTask, ValueTask&lt;T&gt;) comes back as a faulted task, however the throw was set up
-			* A failed verification by expression fails like a count by name, e.g. "Expected IOrderService.CreateOrder(the ShoppingCart) to be invoked once but was never invoked", instead of throwing Moq's MockException
-			* A failed verification lists the calls the mock received, in order, each with its arguments
-			* A count not met reads "was never invoked" or "was invoked once" instead of "was invoked 0 times" or "1 times"
-			* A mock renders as the type it mocks, e.g. IOrderService, instead of Mock&lt;IOrderService:1&gt;.Object
-			* Setting up or verifying a non-virtual member throws SetupFailed saying why
-			* Moq's It.IsAny or It.Is inside a TSpec setup or verification throws SetupFailed; write Any&lt;T&gt;() or Any&lt;T&gt;(constraint)
-			* Any&lt;T&gt;() or Any&lt;T&gt;(constraint) inside an argument rather than as one, e.g. new Filter { Id = Any&lt;int&gt;() }, throws SetupFailed. It never meant any value: on 2.8 it matched only the type's default
-			* An argument that reads the mock itself, e.g. _ =&gt; _.Get(_.Id), throws SetupFailed saying what to write instead, rather than an InvalidOperationException
-			* A call set up or verified through a chain, e.g. _.Orders(2).Find(1), reaches a mock per step and arguments; a call on it the chain did not set up answers as Given&lt;IOrderStore&gt;() set it up
-			* A chain through an awaited member, e.g. _.GetCustomerAsync(1).Result.Name, reads without .Result in the specification
-			* An unset member returning Task&lt;T&gt; or ValueTask&lt;T&gt; of an interface answers as a member returning T does, instead of throwing "Interface types returned as task must be provided explicitly"
-			FIXED
-			* A mocked call chained through a method with arguments reads as written, e.g. IParent.GetChild(2).Get(1), instead of "get child 2"
-			* A call to a mocked delegate reads as the delegate invoked, e.g. "Given TryLookup(1, out _found) returns true" and "Then Func&lt;int, string&gt;(1)", instead of "TryLookup._(1, out _found)" and "Func&lt;int, string&gt;. 1"
-			* A tap before First() taps every call of the sequence and is stated in the specification; it was dropped from both
-			* A sequence on a call with Any&lt;T&gt;() reads "Get(any int) first" in the specification instead of "Get(Any&lt;int&gt;()) first"
-			* Throws&lt;E&gt;() on a Task&lt;T&gt; call threw ArgumentNullException instead of E
-			* Throws on a protected member returning Task or ValueTask failed setup
-			* ReturnsDefault() on a Task call answered with a null task; it now answers with a completed one
-			* A Task call past the last step of its sequence answered with a null task; it now answers with a completed one
-			* Returns() on a call that answers with a value names the value's type in its refusal, not a Moq class
-			* Setup failures about a mock's default answers name generic types as C# writes them, e.g. ICollection&lt;int&gt; rather than ICollection`1
+			TSpec now mocks with its own engine instead of Moq
+			* Moq is no longer a dependency: reference it directly if your tests use it
+			* Write Any&lt;T&gt;() instead of Moq's It.IsAny and It.Is
+			* Members obsolete in 2.8 are removed
+			* Requires xUnit v3 4.x
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
