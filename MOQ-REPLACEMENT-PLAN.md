@@ -7,7 +7,7 @@ correct it in place as work lands, and move a finished stage to Done as a line.
 | Release | Stage | Breaks |
 |---|---|---|
 | 2.8 | Moq's `Times` leaves the public API, replaced by a TSpec-owned count | done |
-| 3.0 | Obsolete and unreachable surface is deleted; TSpec's own mocking engine on Castle.Core, the Moq package goes | done; 3.0.0 ready to pack and publish |
+| 3.0 | Obsolete and unreachable surface is deleted; TSpec's own mocking engine on Castle.Core, the Moq package goes | published 2026-09-15 |
 | 3.1+ | A cohesive mocking language, built on the engine | additive |
 
 ## 1. The engine as it stands (2026-09-15)
@@ -64,30 +64,21 @@ Moq (commit `2a9a985`, local tag `v3.0.0` on `d6ec7de`) and never published; the
 as 3.1.0. Merged, every break lands in one major version. Below and in Done, "3.0" means that
 unpublished Moq build and "3.1" the engine work; both ship as 3.0.0.
 
-3.0.0 is prepared (version, merged release notes, agent reference) but not packed or published. "Probed"
-means observed on the Castle engine; how Moq behaved is inferred where marked, or probed against the
-cached Moq 4.20.72 package.
+"Probed" means observed on the Castle engine; how Moq behaved is inferred where marked, or probed
+against the cached Moq 4.20.72 package.
 
 Work test first, stop after each item to report and evaluate, and propose any new user-facing
 wording before pinning it. No item is worse than 3.0 any more.
 
-### 2.1 Next session: release 3.0.0
+### 2.1 Next: 3.0.0 in production
 
-**Goal** (PO, 2026-09-15): a package free of Moq that mocks at least slightly better than Moq did.
-Nothing is left to build; every item is in Done. In order:
+3.0.0 is published (2026-09-15), suite green on all three frameworks (1946). Its release notes were
+cut to five lines by the PO: the engine replaces Moq, reference Moq directly, `Any<T>()` for `It.*`,
+obsolete members removed, xUnit 4. The local `v3.0.0` tag still points at `d6ec7de`, the Moq build —
+the PO moves it, if wanted.
 
-1. **Compress the release notes** (PO's next request) to what a user upgrading from 2.8 needs to
-   know. Leave out whatever stays the same and minor rendering details. The merged notes in
-   `Core/Core.csproj` are the input; propose the result to the PO before replacing them.
-2. **Run the suite on net8.0, net9.0 and net10.0** (CLAUDE.md step 2). Last green run: 1946 on all
-   three, after the `_.Get(_.Id)` refusal; since then only docs, release notes and the version changed.
-3. **Pack and upload** per CLAUDE.md. `Core/bin/Release` already holds a `TSpec.3.0.0.nupkg` packed on
-   2026-09-13 from the unpublished Moq build, and a stale `TSpec.3.1.0.nupkg`. Before uploading, check
-   the new 3.0.0's timestamp and that its dependencies list Castle.Core 5.2.1 and no Moq.
-4. **Tag, if wanted**: the local `v3.0.0` tag points at `d6ec7de`, the Moq build — the PO moves it.
-
-After publishing, the PO runs M5's `Core.Spec`/`Integration.Spec` against 3.0.0 (they were not run
-before, PO's choice); what they find is fixed in 3.0.1.
+The PO now runs M5's `Core.Spec`/`Integration.Spec` against 3.0.0 (not run before, PO's choice);
+what they find is fixed in 3.0.1.
 
 ### 2.2 Could break a 2.8 user's test (regressions against Moq)
 
