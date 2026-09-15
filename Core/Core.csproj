@@ -31,6 +31,7 @@
 			* A mock renders as the type it mocks, e.g. IOrderService, instead of Mock&lt;IOrderService:1&gt;.Object
 			* Setting up or verifying a non-virtual member throws SetupFailed saying why
 			* Moq's It.IsAny or It.Is inside a TSpec setup or verification throws SetupFailed; write Any&lt;T&gt;() or Any&lt;T&gt;(constraint)
+			* Any&lt;T&gt;() or Any&lt;T&gt;(constraint) inside an argument rather than as one, e.g. new Filter { Id = Any&lt;int&gt;() }, throws SetupFailed. It never meant any value: on 3.0 it matched only the type's default
 			* A call set up or verified through a chain, e.g. _.Orders(2).Find(1), reaches a mock per step and arguments; a call on it the chain did not set up answers as Given&lt;IOrderStore&gt;() set it up
 			* A chain through an awaited member, e.g. _.GetCustomerAsync(1).Result.Name, reads without .Result in the specification
 			* An unset member returning Task&lt;T&gt; or ValueTask&lt;T&gt; of an interface answers as a member returning T does, instead of throwing "Interface types returned as task must be provided explicitly"

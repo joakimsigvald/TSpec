@@ -128,3 +128,43 @@ public class WhenMockWithAnyArgument : Spec<MyValueIntService, string>
                 "It.IsAny<int>() is Moq's, which TSpec does not use. Write Any<T>() for any value, "
                 + "or Any<T>(constraint) for any value satisfying the constraint");
 }
+
+/// Any matches a whole argument; inside one it would be evaluated as a single generated value.
+public class WhenAnyIsNestedInsideAnArgument : Spec<MemberKindsService, string>
+{
+    [Fact]
+    public void GivenItIsAnElementOfAnArrayInASetup_ThenThrowSetupFailed()
+        => Xunit.Assert.Throws<SetupFailed>(() =>
+            When(_ => _.SumOf(1, 2))
+                .Given<IMemberKinds>().That(_ => _.Sum(new[] { Any<int>(), 2 })).Returns(() => 3)
+                .Then().Result.Is("3"))
+            .Message.Is(
+                "Any<int>() matches a whole argument, not a part of one, "
+                + "so inside the values argument of IMemberKinds.Sum it can match nothing. "
+                + "Write Any<int[]>() for any int[], or Any<int[]>(values => ...) for any int[] satisfying a condition");
+
+    [Fact]
+    public void GivenAConstrainedAnyIsAnElementOfAnArrayInASetup_ThenThrowSetupFailed()
+        => Xunit.Assert.Throws<SetupFailed>(() =>
+            When(_ => _.SumOf(1, 2))
+                .Given<IMemberKinds>().That(_ => _.Sum(new[] { Any<int>(i => i > 0), 2 })).Returns(() => 3)
+                .Then().Result.Is("3"))
+            .Message.Is(
+                "Any<int>(...) matches a whole argument, not a part of one, "
+                + "so inside the values argument of IMemberKinds.Sum it can match nothing. "
+                + "Write Any<int[]>() for any int[], or Any<int[]>(values => ...) for any int[] satisfying a condition");
+}
+
+public class WhenAnyIsNestedInsideAVerifiedArgument : Spec<Subjects.ShoppingService, object>
+{
+    [Fact]
+    public void GivenItInitializesAMember_ThenThrowSetupFailed()
+        => Xunit.Assert.Throws<SetupFailed>(() =>
+            When(_ => _.PlaceOrder(A<Subjects.ShoppingCart>()))
+                .Then<Subjects.IOrderService>(_ => _.CreateOrder(new Subjects.ShoppingCart { Id = Any<int>() })))
+            .Message.Is(
+                "Any<int>() matches a whole argument, not a part of one, "
+                + "so inside the cart argument of IOrderService.CreateOrder it can match nothing. "
+                + "Write Any<ShoppingCart>() for any ShoppingCart, "
+                + "or Any<ShoppingCart>(cart => ...) for any ShoppingCart satisfying a condition");
+}

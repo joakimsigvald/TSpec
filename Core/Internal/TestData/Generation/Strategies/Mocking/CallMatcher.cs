@@ -57,8 +57,9 @@ internal sealed class CallMatcher
             .Where(_ => _.parameter.IsOut)
             .Select(_ => (_.index, Evaluate(arguments[_.index])))
             .ToArray();
+        var callName = $"{service.Type.Alias()}.{method.Name}";
         var matchers = arguments
-            .Select((argument, index) => parameters[index].IsOut ? (_ => true) : ArgumentMatcher(argument))
+            .Select((argument, index) => parameters[index].IsOut ? (_ => true) : ArgumentMatcher(argument, parameters[index], callName))
             .ToArray();
         return new(method, matchers, outValues);
     }
@@ -84,6 +85,10 @@ internal sealed class CallMatcher
     private static bool IsConstraint(MethodInfo method)
         => method.GetParameters() is [{ ParameterType: var type }]
         && type == typeof(Func<,>).MakeGenericType(method.ReturnType, typeof(bool));
+
+    /// The forms of Any that mean a match; Any with a setup yields a value wherever it is written.
+    private static bool IsAnyMatcher(MethodInfo method)
+        => IsAny(method) && (method.GetParameters().Length == 0 || IsConstraint(method));
 
     private static bool IsService(Expression? target, ParameterExpression service)
         => target is not null && Unwrap(target) == service;
@@ -115,7 +120,7 @@ internal sealed class CallMatcher
             + "Only a member the mock can override may be set up or verified");
     }
 
-    private static Func<object?, bool> ArgumentMatcher(Expression argument)
+    private static Func<object?, bool> ArgumentMatcher(Expression argument, ParameterInfo parameter, string callName)
     {
         if (UnwrapConversion(argument) is MethodCallExpression call)
         {
@@ -131,8 +136,22 @@ internal sealed class CallMatcher
                     + "which TSpec does not use. Write Any<T>() for any value, "
                     + "or Any<T>(constraint) for any value satisfying the constraint");
         }
+        if (NestedAny.TryFind(argument, out var nestedAny))
+            throw NestedAnyMatchesNothing(nestedAny, parameter, callName);
+
         var expected = Evaluate(argument);
         return actual => AreEqual(expected, actual);
+    }
+
+    private static SetupFailed NestedAnyMatchesNothing(MethodCallExpression any, ParameterInfo parameter, string callName)
+    {
+        var arguments = any.Arguments.Count == 0 ? "" : "...";
+        var parameterType = parameter.ParameterType.Alias();
+        return new SetupFailed(
+            $"Any<{any.Type.Alias()}>({arguments}) matches a whole argument, not a part of one, "
+            + $"so inside the {parameter.Name} argument of {callName} it can match nothing. "
+            + $"Write Any<{parameterType}>() for any {parameterType}, "
+            + $"or Any<{parameterType}>({parameter.Name} => ...) for any {parameterType} satisfying a condition");
     }
 
     private static SetupFailed ConvertedAnyNeverMatches(MethodCallExpression any, Type parameterType)
@@ -183,5 +202,28 @@ internal sealed class CallMatcher
         return expectedBase.DeclaringType == actualBase.DeclaringType
             && expectedBase.HasSameMetadataDefinitionAs(actualBase)
             && expected.GetGenericArguments().SequenceEqual(actual.GetGenericArguments());
+    }
+
+    /// An argument that is not itself Any, but has one inside it.
+    private sealed class NestedAny : ExpressionVisitor
+    {
+        private MethodCallExpression? _found;
+
+        internal static bool TryFind(Expression argument, out MethodCallExpression any)
+        {
+            var visitor = new NestedAny();
+            visitor.Visit(argument);
+            any = visitor._found!;
+            return visitor._found is not null;
+        }
+
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            if (!IsAnyMatcher(node.Method))
+                return base.VisitMethodCall(node);
+
+            _found ??= node;
+            return node;
+        }
     }
 }

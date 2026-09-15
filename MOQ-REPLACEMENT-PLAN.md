@@ -56,8 +56,8 @@ means observed on the Castle engine; how Moq behaved is inferred where marked, o
 cached Moq 4.20.72 package.
 
 **Next session** (PO, 2026-09-14): finish the items that are worse than 3.0 — marked **[worse]** —
-simplest and most severe first, in this order: the nested `Any<T>()` and the abstract class's raw error
-(§2.3), the tap before `First()` (§2.4). Work test first, stop after each item to report and evaluate,
+simplest and most severe first, in this order: the abstract class's raw error (§2.3), the tap before
+`First()` (§2.4). Work test first, stop after each item to report and evaluate,
 and propose any new user-facing wording before pinning it.
 
 ### 2.1 Before publishing
@@ -86,9 +86,6 @@ None open.
   body. Probed; Moq without `CallBase` most likely did the same. Unpinned.
 - **A `ref` argument** matches by value and is not written back. Probed; most likely as Moq. Unpinned.
 - **An indexer setup** (`That(_ => _[1])`) works. Probed; unpinned.
-- **[worse] `Any<T>()` nested inside an argument** (`new Filter { Id = Any<int>() }`) is read as a generated
-  value, so it matches only that value; on 3.0 it became `It.IsAny`, evaluated as `default`. Wrong on
-  both, but a test that passed because the subject sent the default now fails. Read.
 - **An argument that refers to the setup's own parameter** (`_ => _.Get(_.Id)`) fails with a raw
   `InvalidOperationException` from compiling the value, rather than `SetupFailed`. Read.
 - **A sequence on a `Task`-returning call, past its last step**, answers a null task (kept from 3.0).
@@ -135,6 +132,12 @@ or async (PO, 2026-09-14), as the rest of TSpec does. Candidates, not yet design
 4. **Verification messages that read like TSpec's assertion failures.** The 3.1 wording is a first
    cut, to be tweaked (PO, 2026-09-13). Its listing shows only the verified mock's own calls, so a
    chain's later steps, received by the child's mock, are missing from it.
+5. **`Any<T>()` inside an argument, matched the right way** (PO, 2026-09-15: revisit, possibly
+   support). `_.Find(new Filter { Id = Any<int>() })` or `_.Sum(new[] { Any<int>(), 2 })` would match
+   by structure: each member or element the expression writes either matches its `Any` or is equal.
+   3.1 refuses it (see Done). To decide first: whether members the initializer leaves out take part,
+   positional records (a constructor argument is not named by a member), and nesting inside a
+   constraint's own lambda, which the refusal does not look into.
 
 Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a sequence step
 (improvement plan item 7, dropped 2026-09-11).
@@ -190,3 +193,12 @@ Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a 
   `.Name = "x"`, a generic method with its type arguments, a delegate by its alias; setups not listed.
   PO wording: a count of 0 reads "was never invoked", of 1 "was invoked once". Pinned in
   `WhenAVerificationFails` and the ShoppingService count specs. 2026-09-14.
+- **3.1.0, nested `Any` refused** — `Any<T>()` or `Any<T>(constraint)` anywhere inside an argument,
+  rather than as it, throws `SetupFailed`: "Any<int>() matches a whole argument, not a part of one, so
+  inside the cart argument of IOrderService.CreateOrder it can match nothing. Write Any<ShoppingCart>()
+  for any ShoppingCart, or Any<ShoppingCart>(cart => ...) for any ShoppingCart satisfying a condition". It had been
+  evaluated as one generated value while the specification read "any int". Neither version ever meant
+  any value: on 3.0 (probed against Moq 4.20.72) it matched only `default`, a nested constraint was
+  ignored, and a failed Moq verification crashed formatting its message. `Any<T>(setup)` yields a
+  value and is not refused. Pinned in `WhenAnyIsNestedInsideAnArgument` and
+  `WhenAnyIsNestedInsideAVerifiedArgument`. Supporting it is §3 item 5. 2026-09-15.
