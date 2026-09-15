@@ -52,7 +52,7 @@ internal class SetupPhrases(SpecificationRecording recording)
 
     internal void AddMockSetup<TService>(string callExpr)
         => recording.Record(() => Mock<TService>(
-            StepLayout.SentenceOrPhrase, callExpr.DescribeMockCall(), '.'));
+            StepLayout.SentenceOrPhrase, callExpr.DescribeMockCall(), ExpressionDescriber.MockCallBinder<TService>()));
 
     internal void AddMockFirst()
         => recording.Record(() => Add(StepLayout.Word, StepFamily.None, "first"));
@@ -100,7 +100,7 @@ internal class SetupPhrases(SpecificationRecording recording)
     private static string NameTheTypeOfNull<TValue>(string value)
         => value == "null" ? $"null {typeof(TValue).Alias()}" : value;
 
-    private void Mock<TService>(StepLayout layout, string body, char binder = ' ')
+    private void Mock<TService>(StepLayout layout, string body, string binder = " ")
         => recording.Add(new(layout)
         {
             Family = StepFamily.Given,

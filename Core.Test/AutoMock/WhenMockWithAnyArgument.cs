@@ -155,6 +155,45 @@ public class WhenAnyIsNestedInsideAnArgument : Spec<MemberKindsService, string>
                 + "Write Any<int[]>() for any int[], or Any<int[]>(values => ...) for any int[] satisfying a condition");
 }
 
+/// An argument is read once, before any call is made, so it cannot read what the mock answers.
+public class WhenAnArgumentReadsTheMock : Spec<MemberKindsService, string>
+{
+    [Fact]
+    public void GivenASetup_ThenThrowSetupFailed()
+        => Xunit.Assert.Throws<SetupFailed>(() =>
+            When(_ => _.GetByKey("k"))
+                .Given<IMemberKinds>().That(_ => _.Get(_.Name)).Returns(() => "x")
+                .Then().Result.Is("x"))
+            .Message.Is(
+                "The key argument of IMemberKinds.Get reads IMemberKinds.Name from the mock itself, "
+                + "but arguments are read before any call is made. "
+                + "Set up IMemberKinds.Name to return a value, and write that value as the argument");
+
+    [Fact]
+    public void GivenAVerificationReadingItWithinTheArgument_ThenThrowSetupFailed()
+        => Xunit.Assert.Throws<SetupFailed>(() =>
+            When(_ => _.GetByKey("k"))
+                .Then<IMemberKinds>(_ => _.Get(_.Name + "x")))
+            .Message.Is(
+                "The key argument of IMemberKinds.Get reads IMemberKinds.Name from the mock itself, "
+                + "but arguments are read before any call is made. "
+                + "Set up IMemberKinds.Name to return a value, and write that value as the argument");
+}
+
+public class WhenAChainedArgumentReadsTheMock : Spec<ParentService, string>
+{
+    [Fact]
+    public void GivenALaterStepReadsTheParent_ThenThrowSetupFailed()
+        => Xunit.Assert.Throws<SetupFailed>(() =>
+            Given<IParent>().That(_ => _.GetChild(2).Get(_.Name.Length)).Returns(() => "x")
+                .When(_ => _.GetFromChildOf(2, 1))
+                .Then().Result.Is("x"))
+            .Message.Is(
+                "The id argument of IChild.Get reads IParent.Name from the mock itself, "
+                + "but arguments are read before any call is made. "
+                + "Set up IParent.Name to return a value, and write that value as the argument");
+}
+
 public class WhenAnyIsNestedInsideAVerifiedArgument : Spec<Subjects.ShoppingService, object>
 {
     [Fact]

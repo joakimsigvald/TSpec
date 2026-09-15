@@ -35,4 +35,15 @@ public abstract class WhenCallAsyncActionTwice : Spec<InterfaceService>
         [Fact]
         public void ThenCompletes() => Then().Completes();
     }
+
+    /// Past its last step a sequence answers as ReturnsDefault does: a task that has completed.
+    public class GivenCalledPastTheLastStep : WhenCallAsyncActionTwice
+    {
+        public GivenCalledPastTheLastStep()
+            => Given<IMyService>().That(_ => _.SetValueAsync(1))
+            .First().Returns();
+
+        [Fact]
+        public void ThenCompletes() => Then().Completes();
+    }
 }

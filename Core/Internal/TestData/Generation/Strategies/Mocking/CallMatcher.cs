@@ -138,6 +138,8 @@ internal sealed class CallMatcher
         }
         if (NestedAny.TryFind(argument, out var nestedAny))
             throw NestedAnyMatchesNothing(nestedAny, parameter, callName);
+        if (MockRead.TryFind(argument, out var mockMember))
+            throw ReadsTheMock(parameter, callName, mockMember);
 
         var expected = Evaluate(argument);
         return actual => AreEqual(expected, actual);
@@ -153,6 +155,11 @@ internal sealed class CallMatcher
             + $"Write Any<{parameterType}>() for any {parameterType}, "
             + $"or Any<{parameterType}>({parameter.Name} => ...) for any {parameterType} satisfying a condition");
     }
+
+    private static SetupFailed ReadsTheMock(ParameterInfo parameter, string callName, string mockMember)
+        => new SetupFailed($"The {parameter.Name} argument of {callName} reads {mockMember} from the mock itself, "
+            + "but arguments are read before any call is made. "
+            + $"Set up {mockMember} to return a value, and write that value as the argument");
 
     private static SetupFailed ConvertedAnyNeverMatches(MethodCallExpression any, Type parameterType)
     {
@@ -225,5 +232,46 @@ internal sealed class CallMatcher
             _found ??= node;
             return node;
         }
+    }
+
+    /// <summary>
+    /// The first member an argument reads on the mock: on the parameter of the call's lambda, or of the
+    /// chain it was split from, rather than on one a lambda inside the argument declares.
+    /// </summary>
+    private sealed class MockRead : ExpressionVisitor
+    {
+        private readonly HashSet<ParameterExpression> _declared = [];
+        private string? _found;
+
+        internal static bool TryFind(Expression argument, out string mockMember)
+        {
+            var visitor = new MockRead();
+            visitor.Visit(argument);
+            mockMember = visitor._found!;
+            return visitor._found is not null;
+        }
+
+        protected override Expression VisitLambda<T>(Expression<T> node)
+        {
+            _declared.UnionWith(node.Parameters);
+            return base.VisitLambda(node);
+        }
+
+        protected override Expression VisitMember(MemberExpression node)
+        {
+            if (IsMock(node.Expression))
+                _found ??= $"{node.Expression!.Type.Alias()}.{node.Member.Name}";
+            return base.VisitMember(node);
+        }
+
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            if (IsMock(node.Object))
+                _found ??= $"{node.Object!.Type.Alias()}.{node.Method.Name}";
+            return base.VisitMethodCall(node);
+        }
+
+        private bool IsMock(Expression? receiver)
+            => receiver is not null && Unwrap(receiver) is ParameterExpression parameter && !_declared.Contains(parameter);
     }
 }

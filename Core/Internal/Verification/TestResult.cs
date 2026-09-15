@@ -283,7 +283,7 @@ Try providing a function with the Spec's declared return type instead as paramet
             if (!(times ?? Times.AtLeastOnce).Allows(count))
                 throw WithReceivedCalls(
                     CountNotMet(
-                        $"{typeof(TService).Alias()}.{expressionExpr.DescribeMockCall().StripWrapMarkers()}",
+                        expressionExpr.DescribeMockCallOn<TService>().StripWrapMarkers(),
                         DescribeInvocationTimes(timesExpr),
                         count),
                     mock);

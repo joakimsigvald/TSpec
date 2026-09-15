@@ -111,13 +111,14 @@ internal static class SpecificationRenderer
             : _started.Add(family) ? family.Keyword() : family.Binder();
 
         /// A service is named the first time it is spoken about, and again after
-        /// any non-mock setup step has interrupted the run.
-        internal string MockName(string? service, char binder)
+        /// any non-mock setup step has interrupted the run. A delegate, joined to its call
+        /// by nothing, is named every time: its call has no name to stand on its own.
+        internal string MockName(string? service, string binder)
         {
             if (service is null)
                 return string.Empty;
 
-            var name = service == _currentMock ? string.Empty : $"{service}{binder}";
+            var name = service == _currentMock && binder.Length > 0 ? string.Empty : $"{service}{binder}";
             _currentMock = service;
             return name;
         }

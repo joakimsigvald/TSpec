@@ -26,7 +26,7 @@ internal sealed record SpecificationStep(StepLayout Layout)
     /// The mocked service this step speaks about, and the character joining it to
     /// the body. Consecutive steps about the same service drop the repeated name.
     internal string? MockService { get; init; }
-    internal char MockBinder { get; init; } = ' ';
+    internal string MockBinder { get; init; } = " ";
 
     /// A setup step that is not about a mock ends the run, so a later mock step
     /// names its service again.

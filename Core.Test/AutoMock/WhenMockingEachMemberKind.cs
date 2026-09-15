@@ -15,6 +15,7 @@ public interface IMemberKinds
     bool TryGet(int id, out string value);
     string Get(int id);
     string Get(string key);
+    string Greet() => "default body";
 }
 
 internal interface IInternalLookup
@@ -55,6 +56,7 @@ public class MemberKindsService(
     public string TryGet(int id) => $"{kinds.TryGet(id, out var value)}:{value}";
     public string GetByKey(string key) => kinds.Get(key);
     public string GetById(int id) => kinds.Get(id);
+    public string Greet() => kinds.Greet();
 
     public string NameThenGet(string name)
     {
@@ -65,6 +67,7 @@ public class MemberKindsService(
     public string CallVirtual() => partlyVirtual.Virtual();
     public string CallNonVirtual() => partlyVirtual.NonVirtual();
     public string Lookup(int id) => lookup(id);
+    public string LookupTwice(int first, int second) => lookup(first) + lookup(second);
     public string TryLookup(int id) => $"{tryLookup(id, out var value)}:{value}";
 
     private static void OnChanged(object? sender, EventArgs e) { }
@@ -160,6 +163,20 @@ public class WhenASetupArgumentChangesAfterArrangement : Spec<MemberKindsService
             .Then().Result.Is().Not("matched");
 }
 
+/// A default interface member is mocked as any other member is: its body does not run.
+public class WhenADefaultInterfaceMemberIsMocked : Spec<MemberKindsService, string>
+{
+    [Fact]
+    public void GivenItIsNotSetUp_ThenItAnswersWithoutRunningItsBody()
+        => When(_ => _.Greet()).Then().Result.Is().Not("default body");
+
+    [Fact]
+    public void GivenItIsSetUp_ThenItAnswers()
+        => When(_ => _.Greet())
+            .Given<IMemberKinds>().That(_ => _.Greet()).Returns(() => "set up")
+            .Then().Result.Is("set up");
+}
+
 /// A mocked class answers for what it lets a mock override, and runs its own code for the rest.
 public class WhenAnAbstractClassIsMocked : Spec<MemberKindsService, string>
 {
@@ -187,6 +204,76 @@ public class WhenADelegateIsMocked : Spec<MemberKindsService, string>
         => When(_ => _.TryLookup(1))
             .Given<TryLookup>().That(_ => _(1, out _found)).Returns(() => true)
             .Then().Result.Is("True:found");
+}
+
+/// A call to a mocked delegate reads as the delegate invoked, as a call to a method reads as the method.
+public class WhenADelegateCallIsSpecified : Spec<MemberKindsService, string>
+{
+    private string _found = "found";
+
+    [Fact]
+    public void GivenASetup_ThenItReadsAsTheDelegateInvoked()
+    {
+        When(_ => _.Lookup(1))
+            .Given<Func<int, string>>().That(_ => _(1)).Returns(() => "one")
+            .Then().Result.Is("one");
+        Specification.Is(
+            """
+            Given Func<int, string>(1) returns "one"
+            When Lookup(1)
+            Then Result is "one"
+            """);
+    }
+
+    [Fact]
+    public void GivenASetupWithAnOutArgument_ThenItReadsAsTheDelegateInvoked()
+    {
+        When(_ => _.TryLookup(1))
+            .Given<TryLookup>().That(_ => _(1, out _found)).Returns(() => true)
+            .Then().Result.Is("True:found");
+        Specification.Is(
+            """
+            Given TryLookup(1, out _found) returns true
+            When TryLookup(1)
+            Then Result is "True:found"
+            """);
+    }
+
+    [Fact]
+    public void GivenASecondSetupOnTheSameDelegate_ThenItNamesTheDelegateAgain()
+    {
+        When(_ => _.LookupTwice(1, 2))
+            .Given<Func<int, string>>().That(_ => _(1)).Returns(() => "one")
+            .AndThat(_ => _(2)).Returns(() => "two")
+            .Then().Result.Is("onetwo");
+        Specification.Is(
+            """
+            Given Func<int, string>(1) returns "one"
+              and Func<int, string>(2) returns "two"
+            When LookupTwice(1, 2)
+            Then Result is "onetwo"
+            """);
+    }
+
+    [Fact]
+    public void GivenAVerification_ThenItReadsAsTheDelegateInvoked()
+    {
+        When(_ => _.Lookup(1)).Then<Func<int, string>>(_ => _(1));
+        Specification.Is(
+            """
+            When Lookup(1)
+            Then Func<int, string>(1)
+            """);
+    }
+
+    [Fact]
+    public void GivenAVerificationFails_ThenTheMessageReadsAsTheDelegateInvoked()
+        => Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
+            () => When(_ => _.Lookup(2)).Then<Func<int, string>>(_ => _(1)))
+            .Message.Is(
+                "Expected Func<int, string>(1) to be invoked at least once but was never invoked"
+                + Environment.NewLine + "Func<int, string> received:"
+                + Environment.NewLine + "  Func<int, string>(2)");
 }
 
 /// An internal interface is mocked once its assembly lets the proxies see it.

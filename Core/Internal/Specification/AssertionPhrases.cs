@@ -56,7 +56,7 @@ internal class AssertionPhrases(SpecificationRecording recording)
     internal void AddVerify<TService>(string expressionExpr, string? wasInvokedExpr = null)
         => recording.Record(() =>
         {
-            var call = $"{typeof(TService).Alias()}.{expressionExpr.DescribeMockCall()}";
+            var call = expressionExpr.DescribeMockCallOn<TService>();
             AddWord(wasInvokedExpr is null ? call : $"{call} {DescribeInvocation(wasInvokedExpr)}");
         });
 

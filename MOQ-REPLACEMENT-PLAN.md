@@ -55,19 +55,18 @@ correct it in place as work lands, and move a finished stage to Done as a line.
 means observed on the Castle engine; how Moq behaved is inferred where marked, or probed against the
 cached Moq 4.20.72 package.
 
-**Next session** (PO, 2026-09-14): finish the items that are worse than 3.0 — marked **[worse]** —
-simplest and most severe first. None remain: the abstract class needing constructor arguments and
-the tap before `First()` were on this list until probing showed 3.0 behaved the same. Work test first, stop after each item to report and evaluate,
-and propose any new user-facing wording before pinning it.
+Work test first, stop after each item to report and evaluate, and propose any new user-facing
+wording before pinning it. No item is worse than 3.0 any more.
 
 ### 2.1 Before publishing
 
-- **Suite run on net10.0 only** since the fixes of 2026-09-14; run net8.0 and net9.0 too.
-- **M5's `Core.Spec`/`Integration.Spec` not run.** Part of 3.1's acceptance, but not in this
-  repository. Run them against 3.1.0.
-- **Castle.Core 5.1.1 → 5.2.1** (asked by the PO). A minor version in the same major line; a user who
-  also references Moq 4.20.72 gets it too, since Moq accepts Castle.Core ≥ 5.1.1. Release notes not
-  read yet. Update, then run the suite on all three frameworks and MyHotel.
+**Goal** (PO, 2026-09-15): 3.1 closes with a package free of Moq that mocks at least slightly better
+than Moq did. In order:
+
+1. **Last: the lost way out through `Mock.Get`** (see §2.4).
+
+M5's `Core.Spec`/`Integration.Spec` — 3.1.0 ships without running them (PO, 2026-09-15); the PO runs
+them after, and what they find is fixed in 3.1.1.
 
 ### 2.2 Could break a 3.0 user's test (regressions against Moq)
 
@@ -81,24 +80,38 @@ None open.
   3.0 threw the very same exception: Moq let Castle's through (probed against Moq 4.20.72), so this is
   not worse than 3.0. `Using<X>(instance)` of a hand-written subclass works. Probed. Kept as is for
   3.1; supporting it is §3 item 6.
-- **Rendering**: a delegate mock renders as its full type name (`TSpec.Test.….TryLookup`), not its
-  alias; an abstract class that overrides `ToString` answers with a generated string. Probed/read. A
-  delegate setup reads with the lambda's parameter, "Given TryLookup._(1, out _found) returns true".
+- **Rendering**: a delegate mock as text is its full type name (`System.Func`2[System.Int32,System.String]`,
+  `TSpec.Test.AutoMock.TryLookup`) where an interface mock is its alias (`IMemberKinds`); Moq's was the
+  same full name (probed). Kept for 3.1. An abstract class that overrides `ToString` answers with a
+  generated string. Read.
 - **An unmatched default interface member** answers with TSpec's default instead of running its
-  body. Probed; Moq without `CallBase` most likely did the same. Unpinned.
-- **A `ref` argument** matches by value and is not written back. Probed; most likely as Moq. Unpinned.
+  body. Probed; Moq did not run it either (probed against Moq 4.20.72). Pinned in
+  `WhenADefaultInterfaceMemberIsMocked` before moving to Castle.Core 5.2.1, whose changelog adds
+  default interface methods to proxies without target.
+- **A `ref` argument** matches by value and is not written back. Probed; as Moq (probed). Unpinned.
 - **An indexer setup** (`That(_ => _[1])`) works. Probed; unpinned.
-- **An argument that refers to the setup's own parameter** (`_ => _.Get(_.Id)`) fails with a raw
-  `InvalidOperationException` from compiling the value, rather than `SetupFailed`. Read.
-- **A sequence on a `Task`-returning call, past its last step**, answers a null task (kept from 3.0).
 
 ### 2.4 Decisions and docs
 
 - **Mocking an internal type** needs `[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]` in
-  the test project. Moq users knew it from Moq's docs; TSpec's README and agent reference do not say
-  it. Decide whether a reader needs it.
-- **Housekeeping**: the package tags still include `moq`; `Generic.cs` still renders `It.IsAny<T>()`
-  and `NormalizeTimes` still accepts Moq's `Times.Once()` — both now unreachable in practice.
+  the assembly that declares the type — usually the production assembly, not the test project (in
+  `Core.Test` they are the same). Castle emits proxies into its own dynamic assembly and refuses up
+  front a type that assembly cannot see: "Can not create proxy for type IHidden because it is not
+  accessible…". Moq had the same need. PO (2026-09-15) dislikes it. Spiked: .NET's own
+  `DispatchProxy` proxies an internal interface without it — method, generic method, out parameter
+  written back, default interface member intercepted, `ToString` overridable — since it lets its
+  generated assembly ignore access checks. It proxies interfaces only, so an internal abstract class
+  would still need the line. PO (2026-09-15): behave exactly as Moq until the need is understood — and
+  3.1 already does: Moq 4.20.72 threw the same `ArgumentException` with the same text, for an internal
+  interface and an internal abstract class (probed). No change, no docs.
+- **Moq still named on purpose** (PO, 2026-09-15): `CallMatcher`'s refusal of `Moq.It` by name stays
+  (without it a leftover `It.IsAny` would match only the default), and so do the release-notes lines
+  telling a 3.0 user what changed. Undecided: the README's opening comparison with "plain xUnit with
+  Moq".
+- **Last for 3.1: the lost way out through `Mock.Get`** (PO, 2026-09-15: must be dealt with, how is
+  open). On 3.0 a test could take a TSpec mock to Moq for what TSpec never exposed — raising an event,
+  stateful properties (`SetupProperty`), `CallBase`, `VerifyNoOtherCalls`, `As<T>()`. On 3.1 that
+  throws. §3 item 3 lists the same capabilities as candidates for the language.
 
 ## 3. Release 3.2+ — the mocking language
 
@@ -210,3 +223,39 @@ Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a 
   first returns "a"". With "first" no longer appended to the call's source, a sequence on a call
   with `Any<int>()` reads "any int" instead of the raw `Any<int>()` it showed on 3.0 and 3.1. README
   §4.5 and the agent reference say it. Pinned in `WhenTapASequence`. 2026-09-15.
+- **3.1.0, Moq leftovers and the three frameworks** — the `moq` package tag, `Generic.cs` reading
+  `It.IsAny<T>()` as `Any` and `NormalizeTimes` stripping Moq's `Times.Once()` are gone. Suite green on
+  net8.0, net9.0 and net10.0 (1935); MyHotel's `MyHotel.Spec` (52) and `Core.Spec` (32) green with
+  their `_specification/` unchanged. 2026-09-15.
+- **3.1.0, Castle.Core 5.2.1** (PO) — changelog read: generic `CreateClassProxy<TClass>` overloads,
+  default interface methods in proxies without target, nullable annotations, two by-ref/`out`
+  parameter bugfixes. Suite green on all three frameworks (1937), MyHotel green with its
+  `_specification/` unchanged. 2026-09-15.
+- **3.1.0, a `Task` call past a sequence's last step** (PO) — answered a null task on 3.0 and 3.1,
+  which throws `NullReferenceException` when awaited; it now answers as `Returns()` does, with a
+  completed task (`MockCallSequence.TryNext`). `Task<T>` and `ValueTask` already completed. Pinned in
+  `WhenCallAsyncActionTwice.GivenCalledPastTheLastStep`. 2026-09-15.
+- **3.1.0, a call to a mocked delegate in text** (PO) — read broken on 3.0 and 3.1 (probed on both):
+  "Given Func<int, string>. 1 returns "one"", "Given TryLookup._(1, out _found) returns true", and the
+  same in a verification and its failure message. `CallDescriber` reads `_(…)` as the delegate
+  invoked, and `ExpressionDescriber.MockCallBinder` joins a delegate to its call with nothing instead
+  of a dot, in setups, verifications and the failure message alike: "Given Func<int, string>(1)
+  returns "one"", "Then Func<int, string>(1)". A second setup on the same delegate names it
+  again ("and Func<int, string>(2) returns "two""), since "(2)" cannot stand alone. Pinned in
+  `WhenADelegateCallIsSpecified`. 2026-09-15.
+- **3.1.0, an argument that reads the mock** (PO: refuse) — `_ => _.Get(_.Id)` threw a raw
+  `InvalidOperationException` from compiling the argument, as Moq did (probed). `CallMatcher` now
+  refuses it: "The id argument of IStore.Get reads IStore.Id from the mock itself, but arguments are
+  read before any call is made. Set up IStore.Id to return a value, and write that value as the
+  argument" — naming the first member the argument reads on the mock, also inside a larger
+  expression and on a parent reached through a chain. Supporting it was weighed and not taken: rarely
+  needed, since the test sets up what `_.Id` returns; and reading it while matching would be a call on
+  the mock that counts see. Not refused: an argument that is the mock itself (`_ => _.Compare(_)`),
+  which still throws the raw exception. Pinned in `WhenAnArgumentReadsTheMock` and
+  `WhenAChainedArgumentReadsTheMock`. 2026-09-15.
+- **3.1.0, a throw on an awaited call faults the task — checked against the sync/async promise.**
+  Probed on 3.0 and 3.1 with non-async test methods: `Then().Throws<E>()` passes on both whether the
+  subject awaits the mocked call or hands its task straight back, for `Task` and `Task<T>`. Only a
+  subject that starts two calls before awaiting either tells them apart: on 3.0 the first threw at
+  the call, so the second was never made; on 3.1 both are made, as with a real async implementation.
+  2026-09-15.

@@ -21,10 +21,17 @@ internal sealed class MockCallSequence<TReturns>(Action<IReadOnlyList<object>>? 
 
     internal void Append(Func<IReadOnlyList<object>, TReturns?> step) => _steps.Add(step);
 
-    /// Past the end a sequence answers with the type's default.
-    internal TReturns? Next(IReadOnlyList<object> arguments)
+    /// Taps the call, then answers it with the next step; past the last step there is none to answer with.
+    internal bool TryNext(IReadOnlyList<object> arguments, out TReturns? answer)
     {
         tap?.Invoke(arguments);
-        return _next < _steps.Count ? _steps[_next++](arguments) : default;
+        if (_next == _steps.Count)
+        {
+            answer = default;
+            return false;
+        }
+
+        answer = _steps[_next++](arguments);
+        return true;
     }
 }

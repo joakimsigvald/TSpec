@@ -145,18 +145,14 @@ internal static class StringExtensions
             : str.NormalizeLineEndings();
 
     /// Reduce a captured Times expression to its bare factory name, so that both the
-    /// `using static TSpec.Times;` form (`Once`) and the qualified forms (`Times.Once`, and Moq's `Times.Once()`)
+    /// `using static TSpec.Times;` form (`Once`) and the qualified form (`Times.Once`)
     /// render alike: "Once", "Never", "Exactly(2)".
     internal static string NormalizeTimes(this string? expr)
     {
         if (string.IsNullOrWhiteSpace(expr))
             return string.Empty;
         var trimmed = expr.Trim();
-        if (trimmed.StartsWith("Times."))
-            trimmed = trimmed["Times.".Length..];
-        if (trimmed.EndsWith("()"))
-            trimmed = trimmed[..^2];
-        return trimmed;
+        return trimmed.StartsWith("Times.") ? trimmed["Times.".Length..] : trimmed;
     }
 
     internal static string Capitalize(this string str)

@@ -41,8 +41,12 @@ internal sealed class CallDescriber(bool skipSubjectRef, bool leavesOutResult = 
         if (l.AsParamRefAssign() is { } pa)
             return Prefixed(
                 pa.Receiver, l.Params[0], pa.Target.Name, $" {pa.Op} {Value.Describe(pa.Value)}");
+        if (_skipSubjectRef && l.Body is Call { Target: Identifier invoked } invocation && invoked.Name == l.Params[0])
+            return ArgList(invocation.Args);
         if (_skipSubjectRef && l.Body is Unknown u && u.Raw.StartsWith(l.Params[0] + "."))
             return u.Raw[(l.Params[0].Length + 1)..];
+        if (_skipSubjectRef && l.Body is Unknown unparsed && unparsed.Raw.StartsWith(l.Params[0] + "("))
+            return unparsed.Raw[l.Params[0].Length..];
         return Value.Describe(
             _skipSubjectRef ? SubjectElision.Elide(l.Body, l.Params[0]) : l.Body);
     }

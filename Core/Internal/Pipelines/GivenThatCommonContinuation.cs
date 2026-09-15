@@ -171,7 +171,8 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
 
     /// <summary>
     /// The outcome, preceded by the taps in hand. Outside a sequence it answers the call; inside one
-    /// it is queued as a step, and the first step points the call at the queue.
+    /// it is queued as a step, and the first step points the call at the queue. A call past the last
+    /// step is answered with nothing, as Returns() answers it.
     /// </summary>
     private void Answer(Func<IReadOnlyList<object>, TReturns?> outcome)
     {
@@ -193,7 +194,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
         var opens = sequence.IsEmpty;
         sequence.Append(step);
         if (opens)
-            _answerCall(args => sequence.Next(args));
+            _answerCall(args => sequence.TryNext(args, out var answer) ? answer : Nothing());
     }
 
     private void SetupReturns()
