@@ -548,6 +548,17 @@ Then<IEventQueue>(q => q.MarkRejected(42, Any<string>(), Any<CancellationToken>(
 
 Without `using static TSpec.Times;`, write `wasInvoked: Times.Once`.
 
+### 4.7 Mocks from another library
+
+When a test needs something TSpec's mocking does not offer, make that mock with the mocking library of your choice and hand it to the subject with `Using`, as any other constructor argument:
+
+```csharp
+=> When(_ => _.Refresh())
+   .Using<INotifier>(notifierFromYourLibrary)
+```
+
+TSpec treats it as a plain value, so arrange and verify it with its own library.
+
 ## 5. Asserting Results
 
 TSpec comes with its own fluent assertion framework under the `TSpec.Assert` namespace. 

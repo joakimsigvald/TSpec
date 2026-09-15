@@ -8,7 +8,7 @@ correct it in place as work lands, and move a finished stage to Done as a line.
 |---|---|---|
 | 2.8 | Moq's `Times` leaves the public API, replaced by a TSpec-owned count | done |
 | 3.0 | Obsolete and unreachable surface is deleted | done |
-| 3.1 | TSpec's own mocking engine on Castle.Core; the Moq package goes | engine done; 3.1.0 prepared, not published — §2 to triage |
+| 3.1 | TSpec's own mocking engine on Castle.Core; the Moq package goes | done; 3.1.0 ready to pack and publish |
 | 3.2+ | A cohesive mocking language, built on the engine | additive |
 
 ## 1. The engine as it stands (2026-09-14)
@@ -63,7 +63,7 @@ wording before pinning it. No item is worse than 3.0 any more.
 **Goal** (PO, 2026-09-15): 3.1 closes with a package free of Moq that mocks at least slightly better
 than Moq did. In order:
 
-1. **Last: the lost way out through `Mock.Get`** (see §2.4).
+Nothing left to build: every item is in Done. Pack and publish per CLAUDE.md.
 
 M5's `Core.Spec`/`Integration.Spec` — 3.1.0 ships without running them (PO, 2026-09-15); the PO runs
 them after, and what they find is fixed in 3.1.1.
@@ -108,10 +108,6 @@ None open.
   (without it a leftover `It.IsAny` would match only the default), and so do the release-notes lines
   telling a 3.0 user what changed. Undecided: the README's opening comparison with "plain xUnit with
   Moq".
-- **Last for 3.1: the lost way out through `Mock.Get`** (PO, 2026-09-15: must be dealt with, how is
-  open). On 3.0 a test could take a TSpec mock to Moq for what TSpec never exposed — raising an event,
-  stateful properties (`SetupProperty`), `CallBase`, `VerifyNoOtherCalls`, `As<T>()`. On 3.1 that
-  throws. §3 item 3 lists the same capabilities as candidates for the language.
 
 ## 3. Release 3.2+ — the mocking language
 
@@ -253,6 +249,14 @@ Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a 
   the mock that counts see. Not refused: an argument that is the mock itself (`_ => _.Compare(_)`),
   which still throws the raw exception. Pinned in `WhenAnArgumentReadsTheMock` and
   `WhenAChainedArgumentReadsTheMock`. 2026-09-15.
+- **3.1.0, the way out through `Mock.Get`** (PO: document, don't build) — on 3.0 `Mock.Get(The<IFoo>())`
+  returned the `Mock<IFoo>` TSpec had made, and a Moq setup on it reached the subject (probed on a
+  build of `2a9a985`), so a test could use any Moq feature. It was never TSpec's API: supported in the
+  early XspecT days, since then working by accident — no Moq type public since at least 2.0, no
+  README mention. On 3.1 it throws. README §4.7 (not the agent reference, PO) says to make such a
+  mock with another library, hand it in with `Using`, and arrange and verify it with that library.
+  Left unsaid (PO): `Given<IFoo>()` and `Then<IFoo>(…)` on that type reach TSpec's own mock, which the
+  subject no longer receives (probed). The release notes' Moq line points to `Using`. 2026-09-15.
 - **3.1.0, a throw on an awaited call faults the task — checked against the sync/async promise.**
   Probed on 3.0 and 3.1 with non-async test methods: `Then().Throws<E>()` passes on both whether the
   subject awaits the mocked call or hands its task straight back, for `Task` and `Task<T>`. Only a
