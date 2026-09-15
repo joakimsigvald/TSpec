@@ -17,12 +17,18 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>3.1.0</PackageVersion>
+		<PackageVersion>3.0.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
+			REMOVED
+			* Given&lt;T&gt;(setup) and Given&lt;T&gt;(transform); use Using&lt;T&gt;
+			* Then().DoesNotThrow(); use Then().Completes()
+			* Another&lt;T&gt;(); use Any&lt;T&gt;()
+			* The wasInvoked overloads taking Moq's Times; use TSpec.Times
 			CHANGED
+			* Requires xUnit v3 4.x: installing TSpec 3.0 upgrades a test project's xunit.v3 to 4.0.1 or later, with xUnit 4's own breaking changes
 			* TSpec mocks with its own engine on Castle.Core and no longer depends on Moq: reference Moq directly if your tests use it. A TSpec mock is not a Moq mock, so Mock.Get on one throws; a mock made with Moq can be handed to the subject with Using
 			* A throw on an awaited mocked call (Task, Task&lt;T&gt;, ValueTask, ValueTask&lt;T&gt;) comes back as a faulted task, however the throw was set up
 			* A failed verification by expression fails like a count by name, e.g. "Expected IOrderService.CreateOrder(the ShoppingCart) to be invoked once but was never invoked", instead of throwing Moq's MockException
@@ -31,7 +37,7 @@
 			* A mock renders as the type it mocks, e.g. IOrderService, instead of Mock&lt;IOrderService:1&gt;.Object
 			* Setting up or verifying a non-virtual member throws SetupFailed saying why
 			* Moq's It.IsAny or It.Is inside a TSpec setup or verification throws SetupFailed; write Any&lt;T&gt;() or Any&lt;T&gt;(constraint)
-			* Any&lt;T&gt;() or Any&lt;T&gt;(constraint) inside an argument rather than as one, e.g. new Filter { Id = Any&lt;int&gt;() }, throws SetupFailed. It never meant any value: on 3.0 it matched only the type's default
+			* Any&lt;T&gt;() or Any&lt;T&gt;(constraint) inside an argument rather than as one, e.g. new Filter { Id = Any&lt;int&gt;() }, throws SetupFailed. It never meant any value: on 2.8 it matched only the type's default
 			* An argument that reads the mock itself, e.g. _ =&gt; _.Get(_.Id), throws SetupFailed saying what to write instead, rather than an InvalidOperationException
 			* A call set up or verified through a chain, e.g. _.Orders(2).Find(1), reaches a mock per step and arguments; a call on it the chain did not set up answers as Given&lt;IOrderStore&gt;() set it up
 			* A chain through an awaited member, e.g. _.GetCustomerAsync(1).Result.Name, reads without .Result in the specification
