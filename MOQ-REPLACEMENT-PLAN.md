@@ -72,13 +72,11 @@ or M5 that is worse without it. Done items are struck through.
    - Untrue, found building that: a setup lambda reading a mock,
      `A<Order>(o => o.Label = The<IIdSource>().Name)`, gets the default though `Name` is arranged, as
      the value is arranged before the mock is.
-   - Untrue: `Then<IIdSource>(nameof(IIdSource.NextId), Once)` fails "never invoked" above a listing
-     of `IIdSource.NextId`; `TestResult.VerifyInvoked` compares `Method.Name` (`get_NextId`).
+   - ~~Untrue: `Then<IIdSource>(nameof(IIdSource.NextId), Once)` fails "never invoked".~~ Done.
    - On evidence: a setter setup, since an expression tree cannot assign (Moq's `SetupSet` runs a
      plain lambda against a recorder), e.g. `ThatSetting(_ => _.Name)`, where matching the value set
-     is the hard part; verifying a set with its value, today only `Then<IIdSource>("set_Name", Once)`;
-     `Then<IIdSource>(_ => _.NextId)`, which does not compile since a property read is not a
-     statement, so it takes `Then<IIdSource, int>(…)`.
+     is the hard part; verifying a set with its value, today only `Then<IIdSource>("set_Name", Once)`,
+     undocumented. A getter is verified by `Then<IIdSource, int>(_ => _.NextId, Once)`, unpinned.
 4. **A service-wide default that no member answers with.** `Given<PlainClient>().Returns(() =>
    "mocked")` on a class whose `string` members are not virtual reads "Given PlainClient returns
    "mocked"", and they answer "real" (probed). To decide: refuse a default no interceptable member of
@@ -217,3 +215,7 @@ or M5 that is worse without it. Done items are struck through.
 - **3.1.0** — `Using<T>(setup)` on an interface runs on its mock; it handed the subject null, as
   building a value for a `Using` setup turned mocking off. Only `MockingStrategy` decides what is
   mocked (PO). 2026-09-19.
+- **3.1.0** — verifying by name refuses a property or field ("IMemberKinds.Name is a property;
+  fields and properties cannot be verified by name"; PO: a name does not say which accessor) and a
+  name of no method ("IMemberKinds has no method Nme"); accessor names such as `set_Name` still
+  count. Pinned in `WhenVerifyingByName`. 2026-09-19.

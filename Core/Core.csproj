@@ -26,6 +26,7 @@
 			CHANGED
 			* Mock calls made while arranging, the subject's constructor included, are no longer counted
 			* Setting a mock's property in a setup lambda, which the mock ignored, is refused with the setup to use instead
+			* Verifying by name refuses a property, a field or a name the type has no method by, which it counted as never invoked
 			FIXED
 			* A concrete class set up with Given&lt;T&gt;() is now mocked instead of ignored
 			* Using&lt;T&gt;(setup) on an interface now runs on its mock instead of handing the subject null

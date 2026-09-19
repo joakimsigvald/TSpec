@@ -159,6 +159,7 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
         var expectation = DescribeInvocationTimes(timesExpr);
         try
         {
+            VerificationByName.AssertNamesAMethod(typeof(TService), method);
             SpecificationContext.Current.ClearSubject();
             SpecificationContext.Current.AddWasInvoked<TService>(method, timesExpr);
             var mock = _context.GetMock<TService>();
