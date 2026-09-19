@@ -1,6 +1,6 @@
 # TSpec — Agent Reference
 
-Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 3.0).
+Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 3.1).
 TSpec is a fluent Given–When–Then specification framework for .NET on top of xUnit v3.
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec#readme).
 
@@ -10,7 +10,7 @@ Full documentation: [README.md](https://github.com/joakimsigvald/TSpec#readme).
 - **Execution is deferred**: nothing runs until the first `Then()` or `Result`, and the pipeline runs **at most once** per test method. All arrangement must come before it.
 - **Declaration order does not matter.** Execution is always `Given` → `Having` → `When` → `Until`. `Having` steps run in reverse declaration order; `Until` steps in declaration order, after the test method returns.
 - **Exactly one `When` per test.** Put the shared `When` in an abstract base constructor and vary preconditions in nested subclasses (see Recommended structure).
-- The subject is auto-constructed: interface/abstract dependencies become mocks, concrete constructor arguments are generated, and a parameter that declares a default keeps it unless the test arranged that type. Provide your own with `Using(instance)`.
+- The subject is auto-constructed: its dependencies are mocked or generated (see Mocking). Provide your own with `Using(instance)`.
 - Test methods need not be `async`. `When(_ => _.DoAsync())` awaits `Task`, `Task<T>`, `ValueTask` and `ValueTask<T>` — don't make the lambda `async`. A lambda that is `async` binds to the `Task` overloads; state its return type to select `ValueTask` (`When(async ValueTask (_) => ...)`), and for a bare throw (`Until(void (_) => throw ...)`).
 
 ## Pipeline verbs
@@ -81,6 +81,8 @@ Given<ICartRepository>().Returns(A<Cart>)
 Given<HttpMessageHandler>().ThatProtected<HttpResponseMessage>("SendAsync").Returns(A<HttpResponseMessage>)
 ```
 
+- Interfaces, abstract classes and delegates are mocked; a class once the test sets it up with `Given<T>()`. Only a class's virtual members are mocked.
+- A constructor parameter with a default keeps it, unless the test arranged that type.
 - Arguments match by value — `The<T>()` matches the value used in the test — except `Any<T>()`, which matches any value, and `Any<T>(b => b.Nights > 7)`, which matches any value satisfying the constraint. The constraint form throws `SetupFailed` outside a mock setup or verification.
 - Setups are the same whether the member returns `T`, `Task<T>` or `ValueTask<T>`: `Returns(() => 7)` supplies the unwrapped value. For a task that completes later, state the task as the return type: `That<Task<int>>(_ => _.GetAsync()).Returns(() => _pending.Task)`.
 - Unmocked members return generated defaults.

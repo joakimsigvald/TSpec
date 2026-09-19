@@ -186,9 +186,18 @@ internal sealed class MockHandle
         => type.IsValueType && type != typeof(void) ? Activator.CreateInstance(type) : null;
 
     private object Create(Type type)
-        => typeof(Delegate).IsAssignableFrom(type) ? DelegateForwarder.Create(type, Receive)
-        : type.IsInterface ? _generator.CreateClassProxy(typeof(object), [type], _options, new Interceptor(this))
-        : _generator.CreateClassProxy(type, _options, new Interceptor(this));
+    {
+        if (typeof(Delegate).IsAssignableFrom(type))
+            return DelegateForwarder.Create(type, Receive);
+
+        if (type.IsInterface)
+            return _generator.CreateClassProxy(typeof(object), [type], _options, new Interceptor(this));
+
+        if (type.IsSealed)
+            throw new SetupFailed($"{type.Alias()} is sealed, so it cannot be mocked. Provide one with Using instead");
+
+        return _generator.CreateClassProxy(type, _options, new Interceptor(this));
+    }
 
     private sealed record CallSetup(CallMatcher Matcher, Func<object?[], object?> Respond);
 

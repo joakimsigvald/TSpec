@@ -9,7 +9,7 @@ correct it in place as work lands, and move a finished item to Done as one or tw
 
 - **Where it lives**: `Core/Internal/TestData/Generation/Strategies/Mocking/`.
   - `MockHandle` — one mock. Castle makes the instance (a proxy of `object` implementing an interface,
-    or of an abstract class); `DelegateForwarder` compiles a delegate. Every call is logged as a
+    or of a class); `DelegateForwarder` compiles a delegate. Every call is logged as a
     `MockInvocation`, then answered by the latest matching setup, else by `FluentDefaultProvider`.
     Of `object`'s members only `ToString` is intercepted, answering with the type's alias.
   - `CallMatcher` — which calls a setup or verification is about: method (through overrides, with
@@ -57,13 +57,7 @@ defects; for 6–8, evidence from Cdr or M5 before designing.
 
 ### A. Silently wrong
 
-1. **A concrete class that is set up is ignored.** `Given<ConcreteVirtual>().That(_ => _.Get())
-   .Returns(() => "mocked")` is stated in the specification, but the subject gets a real instance and
-   answers "real" (probed) — `MockingStrategy.IsMockable` takes interfaces, abstract classes and
-   delegates only. Moq mocks any unsealed class with virtual members; the Azure SDK clients
-   (`BlobClient`, `ServiceBusSender`, `SecretClient`) are built to be mocked that way. At least refuse;
-   better, mock a concrete class the test has arranged, as `TryUseArrangedMock` already does for an
-   optional parameter. Shares its constructor question with item 19.
+1. **A concrete class that is set up is ignored.** Done, see Done; what is left of it is item 19.
 2. **A mock's property does not keep what is set.** A set is swallowed, and an unset getter answers a
    new value on every read ("String1|String2", probed). So `A<IOrderLine>(_ => _.Quantity = 3)` does
    nothing, and nothing says so. Moq has `SetupProperty`/`SetupAllProperties`; NSubstitute stores sets
@@ -127,12 +121,14 @@ defects; for 6–8, evidence from Cdr or M5 before designing.
     `is IDisposable`.
 18. **`ref` arguments**: match any and write a value back (today matched by value, not written back,
     as Moq; unpinned); out values computed from the arguments (today fixed at setup).
-19. **Mock an abstract class with no parameterless constructor** (PO, 2026-09-15: support it). Today
-    Castle's `ArgumentException` "Can not instantiate proxy of class … Could not find a parameterless
-    constructor", as Moq 4.20.72 threw; `Using<X>(subclassInstance)` works. As an input object is made:
-    the constructor with the most parameters, arguments generated, handed to `CreateClassProxy`. To
-    settle: protected constructors (`ConstructorCompiler` sees public ones only), and a base
-    constructor that rejects generated arguments. Do with item 1.
+19. **Mocking a class, continued.** A class with no parameterless constructor, abstract or set up (PO,
+    2026-09-15: support it): today Castle's `ArgumentException` "Can not instantiate proxy of class …
+    Could not find a parameterless constructor", as Moq 4.20.72 threw; `Using<X>(subclassInstance)`
+    works. As an input object is made: the constructor with the most parameters, arguments generated,
+    handed to `CreateClassProxy`. To settle: protected constructors (`ConstructorCompiler` sees public
+    ones only), and a base constructor that rejects generated arguments. And a chain through a class —
+    the Azure clients' `GetBlobContainerClient(…).GetBlobClient(…)` — refused today: "IClientFactory.Client
+    returns a VirtualClient, which TSpec does not mock" (probed).
 20. **A service-wide sequence.** `Given<IChatCompletion>().First().Returns(…).AndNext()…` with no call
     named; the engine owns defaults, so it need not enumerate methods.
 21. **`Any<T>()` inside an argument, matched by structure** (PO, 2026-09-15: revisit, possibly
@@ -201,3 +197,5 @@ makes it free: from-arguments `Returns` on a sequence step (improvement plan ite
   pipeline runs (`WhenAValueIsHandedOverBeforeThePipelineRuns`); a plain-type verification counting
   chain mocks documented, a delegate-started chain pinned; a task that completes later pinned
   (`ValueTask<T>` likely, unpinned). 2026-09-15.
+- **3.1.0** — a class set up with `Given<T>()` is mocked, the subject included (PO); a sealed one is
+  refused. Pinned in `WhenAClassIsSetUp`. 2026-09-19.

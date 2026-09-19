@@ -347,7 +347,7 @@ Built-in generation covers most types out of the box:
 * **Enums, nullables and collections**: resolved from their underlying or element types.
 * **Semantic types**: objects deriving from `Semantic<TPrimitive>` (such as `Email`, `PhoneNumber`, `Age`) are generated from their primitive values.
 * **Interfaces and abstract classes**: mocked automatically, without boilerplate.
-* **Concrete classes**: constructed with generated constructor arguments.
+* **Concrete classes**: constructed with generated constructor arguments, or mocked once the test sets one up with `Given<T>()`.
 * If none of the above applies, the type's default value is used.
 
 ### 3.4 Type Registration and Conversion
@@ -386,6 +386,9 @@ This chapter assumes familiarity with mocking, and shows how TSpec simplifies th
 ### 4.1 Auto-Mocking subject under test
 
 The subject under test will be created automatically with mocks and default values.
+Interfaces, abstract classes and delegates are mocked, and so is a class the test sets up with `Given<T>()`.
+Only a class's virtual members are mocked; its other members run their own code.
+
 Remember from Chapter 2 that mocks are configured after test data has been generated, 
 so test data, setups and transforms are available in the mocking stage regardless of where in the test they are provided.
 
@@ -397,9 +400,7 @@ You can even provide the subject under test itself:
 
 ### 4.2 Mocking
 
-To mock the behavior of a dependency, call `Given<[TheService]>().That(_ => _.[TheMethod](...)).Returns/Throws(...)`. 
-You do not need to create and manage mocks manually, but can supply mocked behavior directly to the pipeline.
-This allows most mocking scenarios to be expressed inline, close to the behavior under test.
+To mock the behavior of a dependency, call `Given<[TheService]>().That(_ => _.[TheMethod](...)).Returns/Throws(...)`.
 
 Naming no method, `Given<[TheService]>().Returns(...)` sets a default that applies to every method of the interface returning a type assignable from that type.
 
