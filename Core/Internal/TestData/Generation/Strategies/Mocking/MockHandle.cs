@@ -35,7 +35,10 @@ internal sealed class MockHandle
 
     internal void Answer<TService>(Expression<Action<TService>> call, Func<IReadOnlyList<object>, object?> answer)
         where TService : class
-        => Prepare(call, typeof(void), answer)(this);
+    {
+        CallReader.AssertIsNotARead(call);
+        Prepare(call, typeof(void), answer)(this);
+    }
 
     internal void Answer<TService, TResult>(
         Expression<Func<TService, TResult>> call, Type answerType, Func<IReadOnlyList<object>, object?> answer)

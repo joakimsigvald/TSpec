@@ -100,3 +100,50 @@ public class WhenAPropertySetIsMocked : Spec<Renamer>
 
     private readonly List<string> _names = [];
 }
+
+/// A read is verified with Get(property), since a read alone is no statement for Then<T> to take.
+public class WhenAPropertyReadIsVerified : Spec<Labeler, string>
+{
+    [Fact]
+    public void GivenARead_ThenItIsVerifiedWithOneTypeArgument()
+    {
+        When(_ => _.Label())
+            .Then<IIdSource>(_ => Get(_.Name), Once);
+        Specification.Is(
+            """
+            When Label()
+            Then IIdSource.Name was invoked once
+            """);
+    }
+
+    [Fact]
+    public void GivenAnIndexer_ThenItsReadIsVerifiedByIndex()
+    {
+        When(_ => _.LabelAt(1))
+            .Then<IIdSource>(_ => Get(_[1]), Once);
+        Specification.Is(
+            """
+            When LabelAt(1)
+            Then IIdSource[1] was invoked once
+            """);
+    }
+
+    [Fact]
+    public void GivenGetInASetup_ThenItIsRefused()
+        => Xunit.Assert.Throws<SetupFailed>(() =>
+            When(_ => _.Label()).Given<IIdSource>().That(_ => Get(_.Name)).Throws<ArgumentException>().Then())
+            .Message.Is("Get names a read only in Then<T>(…); set up IIdSource.Name with That(_ => _.Name)");
+
+    [Fact]
+    public void GivenGetIsCalled_ThenItIsRefused()
+        => Xunit.Assert.Throws<SetupFailed>(() => Get("a"))
+            .Message.Is("Get names a property read only inside Then<T>(…)");
+}
+
+/// A set is not a read, so verifying the read counts none.
+public class WhenOnlyASetIsMade : Spec<Renamer>
+{
+    [Fact]
+    public void ThenNoReadIsCounted()
+        => When(_ => _.Rename("x")).Then<IIdSource>(_ => Get(_.Name), Never);
+}

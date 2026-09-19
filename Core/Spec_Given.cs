@@ -66,6 +66,17 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         => throw new SetupFailed("Set names a property set only inside That(…) or Then<T>(…)");
 
     /// <summary>
+    /// Names a read of a mocked property to verify, which Then&lt;TService&gt; cannot take alone since
+    /// a read is no statement: <c>Then&lt;TService&gt;(_ =&gt; Get(_.Name), Once)</c>. A read is set up
+    /// with <c>That(_ =&gt; _.Name)</c>.
+    /// </summary>
+    /// <typeparam name="TValue">The property's type</typeparam>
+    /// <param name="property">The property on the mock, such as <c>_.Name</c> or <c>_[1]</c></param>
+    /// <exception cref="SetupFailed">Thrown when called rather than written inside a verification</exception>
+    protected internal static void Get<TValue>(TValue property)
+        => throw new SetupFailed("Get names a property read only inside Then<T>(…)");
+
+    /// <summary>
     /// Provide any setup as an action, through the returned continuation
     /// </summary>
     /// <returns>A continuation for providing test data and other arrangement</returns>

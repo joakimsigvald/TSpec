@@ -38,6 +38,8 @@ internal sealed class CallDescriber(bool skipSubjectRef, bool isMockCall = false
     {
         if (l.Body is Call { Target: Identifier { Name: "Set" }, Args: [var property, var value] })
             return DescribeSet(property, value, l.Params[0]);
+        if (l.Body is Call { Target: Identifier { Name: "Get" }, Args: [var read] })
+            return DescribeProperty(read, l.Params[0]);
         if (DescribeMockIndexer(l.Body, l.Params[0]) is { } indexer)
             return indexer;
         if (l.AsParamRefCall() is { } pc)

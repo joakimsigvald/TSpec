@@ -75,13 +75,16 @@ or M5 that is worse without it. Done items are struck through.
    - ~~Untrue: a setup lambda reading a mock gets the default though the mock is arranged.~~ Done.
    - ~~Untrue: `Then<IIdSource>(nameof(IIdSource.NextId), Once)` fails "never invoked".~~ Done.
    - On evidence, each waiting for a real spec that needs it:
-     - ~~Arranging and verifying a set.~~ Done, see Done. Left out: a set through a chain,
-       `Set(_.Child.Name, …)`, refused as naming no call on the service.
+     - ~~Arranging and verifying a set.~~ Done, see Done. Not taken (PO): a set through a chain,
+       `Set(_.Child.Name, …)`, refused as naming no call on the service; a test reaches the child
+       more simply, e.g. `Given<IChild>().That(_ => Set(_.Name, …))`. A protected property's setter,
+       which `ThatProtected` cannot name (it takes the getter), is left to the by-name rework, item 9
+       (PO: not important).
      - A property that keeps what is set and answers it when read (PO's idea; Moq's `SetupProperty`),
        e.g. `Given<IIdSource>().That(_ => _.Name).Keeps()`. It would also verify a set, by reading it
        back after the act. Undecided: a transform on the kept value, which a fake given with `Using`
        may state better.
-   - Works, unpinned: verifying a read, `Then<IIdSource, int>(_ => _.NextId, Once)`.
+   - ~~Verifying a read with one type argument.~~ Done, see Done.
 4. **A service-wide default that no member answers with.** `Given<PlainClient>().Returns(() =>
    "mocked")` on a class whose `string` members are not virtual reads "Given PlainClient returns
    "mocked"", and they answer "real" (probed). To decide: refuse a default no interceptable member of
@@ -235,5 +238,10 @@ or M5 that is worse without it. Done items are struck through.
   "x" was invoked once"; an indexer getter now reads `IIdSource[1]` too. Refused: a property with no
   setter; `Set` called. Not taken (PO): `ThatSet(_ => _.Name, value)` and `That(_ => _.Name).Set(…)`,
   whose value, outside the expression tree, would make `Any` a generated value; Moq's plain lambda
-  against a recording mock; a `Get` marker. One line in each doc. Pinned in
-  `WhenAPropertySetIsMocked`. 2026-09-19.
+  against a recording mock. One line in each doc. Pinned in `WhenAPropertySetIsMocked`. 2026-09-19.
+- **3.1.0** — a read is verified as `Then<IIdSource>(_ => Get(_.Name), Once)`, one type argument
+  where `Then<IIdSource, int>(_ => _.NextId)` took two: a read is no statement, so its lambda could
+  only be a `Func`, and a `Then<TService>(Func<TService, object?>)` overload would have drawn every
+  non-void method call. `Get` in a setup is refused for `That(_ => _.Name)`, which can answer (PO).
+  The two-argument form still works, undocumented. Pinned in `WhenAPropertyReadIsVerified`.
+  2026-09-19.
