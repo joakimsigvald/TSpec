@@ -66,7 +66,8 @@ or M5 that is worse without it. Done items are struck through.
    - Rule (PO): a mock assumes nothing about a property the test did not arrange — no stored set, no
      stable value, since `NextId` may answer anew on every read.
    - Works (probed): a getter through `That(_ => _.NextId)` with `Returns`, `Throws`, `Tap` and
-     `First`/`AndNext`; an indexer getter through `That(_ => _[1])`, unpinned.
+     `First`/`AndNext`; an indexer getter through `That(_ => _[1])`, pinned in
+     `WhenTheSuggestedSetupIsFollowed`.
    - ~~Untrue: a set the test makes on a mock is ignored while the specification states it.~~ Done.
    - Untrue, found building that: a setup lambda reading a mock,
      `A<Order>(o => o.Label = The<IIdSource>().Name)`, gets the default though `Name` is arranged, as

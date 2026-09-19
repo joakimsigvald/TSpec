@@ -17,6 +17,7 @@ public class IdHolder
 public class Labeler(IIdSource source)
 {
     public string Label() => source.Name;
+    public string LabelAt(int slot) => source[slot];
 }
 
 public class HolderLabeler(IdHolder holder)
@@ -92,4 +93,30 @@ public class WhenAUsingSetupSetsAPropertyOnAMock : Spec<HolderLabeler, string>
 
     private static string RefusalOf(Action arrangement)
         => Xunit.Assert.Throws<SetupFailed>(arrangement).Message;
+}
+
+/// The setup a refusal suggests is one that answers with the value the refused set would have stated.
+public class WhenTheSuggestedSetupIsFollowed : Spec<Labeler, string>
+{
+    [Fact]
+    public void GivenAProperty_ThenItAnswersTheArrangedValue()
+        => When(_ => _.Label())
+            .Given<IIdSource>().That(_ => _.Name).Returns(() => "arranged")
+            .Then().Result.Is("arranged");
+
+    [Fact]
+    public void GivenAnIndexer_ThenItAnswersTheArrangedValue()
+        => When(_ => _.LabelAt(1))
+            .Given<IIdSource>().That(_ => _[1]).Returns(() => "arranged")
+            .Then().Result.Is("arranged");
+}
+
+/// A mock held by another value is the mock of its type, so the suggested setup reaches it there too.
+public class WhenTheSuggestedSetupIsFollowedForAHeldMock : Spec<HolderLabeler, string>
+{
+    [Fact]
+    public void ThenTheHeldMockAnswersTheArrangedValue()
+        => When(_ => _.Label())
+            .Given<IIdSource>().That(_ => _.Name).Returns(() => "arranged")
+            .Then().Result.Is("arranged");
 }
