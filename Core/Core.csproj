@@ -26,7 +26,7 @@
 			* A mocked property's set is set up or verified as Set(_.Name, value), since an expression cannot assign
 			* A mocked property's read is verified as Get(_.Name), with one type argument: Then&lt;IIdSource&gt;(_ =&gt; Get(_.Name), Once)
 			* A class with no parameterless constructor is mocked through its greediest, protected ones included, with arguments built as the subject's are
-			REMOVED
+			* A call is set up or verified through a member returning a class, as through one returning an interface, unless the class is sealed: Given&lt;IClientFactory&gt;().That(_ =&gt; _.Get("a").Fetch())
 			CHANGED
 			* Mock calls made while arranging, the subject's constructor included, are no longer counted
 			* Setting a mock's property in a setup lambda, which the mock ignored, is refused with the setup to use instead

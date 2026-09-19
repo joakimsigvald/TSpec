@@ -78,9 +78,10 @@ or M5 that is worse without it. Done items are struck through.
 
 5. **Mocking a class, continued** (PO, 2026-09-15: support it).
    - ~~A class with no parameterless constructor.~~ Done, see Done.
-   - A chain through a class — the Azure clients' `GetBlobContainerClient(…).GetBlobClient(…)` — is
-     refused, untruly since 3.1: "IClientFactory.Client returns a VirtualClient, which TSpec does not
-     mock" (probed).
+   - ~~A chain through a class.~~ Done, see Done. Open: a chain through a class that is only
+     verified. With nothing set up through it, the first step answers with a real instance, since a
+     class is mocked only once set up, so `Then<IClientFactory>(_ => _.Get("a").Fetch(), Once)` fails
+     "never invoked", and with `Never` passes whatever the subject did (probed).
 6. **Several mocks of one type.** README: "Distinct mentions get distinct values where the type has
    room for them" — but `A<IRule>()` and `ASecond<IRule>()` are the same mock, and an
    `IEnumerable<IRule>` constructor parameter gets an empty collection (probed). Composites, validator
@@ -236,3 +237,7 @@ or M5 that is worse without it. Done items are struck through.
   rejecting them is refused: "Provide ThreeLetterCode with Using instead of a mock: its constructor
   threw ArgumentException for the arguments TSpec generated, because: …". A release-notes line only.
   Pinned in `WhenAClassHasNoParameterlessConstructor`. 2026-09-19.
+- **3.1.0** — a chain goes through any class that is not sealed (`MockingStrategy.IsMockable`), as
+  the Azure clients need; a sealed one, `string` included, is still refused. A chain setup does not
+  make the class mocked elsewhere: one handed to the subject directly stays real (probed). Pinned in
+  `WhenAChainGoesThroughAClass`. 2026-09-19.

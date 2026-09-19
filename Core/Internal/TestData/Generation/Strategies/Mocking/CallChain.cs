@@ -23,7 +23,7 @@ internal static class CallChain
             return false;
 
         var (step, calledOnStep) = FirstStepOf(body, service);
-        if (!MockingStrategy.IsMockedByDefault(step.Type))
+        if (!MockingStrategy.IsMockable(step.Type))
             throw NotMockable(step, calledOnStep);
 
         var child = Expression.Parameter(step.Type, "_");
