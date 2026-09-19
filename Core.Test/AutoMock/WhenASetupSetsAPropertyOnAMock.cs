@@ -7,6 +7,7 @@ public interface IIdSource
     string Name { get; set; }
     DateTime Created { get; set; }
     string this[int slot] { get; set; }
+    int Version { get; }
 }
 
 public class IdHolder
@@ -106,9 +107,17 @@ public class WhenTheSuggestedSetupIsFollowed : Spec<Labeler, string>
 
     [Fact]
     public void GivenAnIndexer_ThenItAnswersTheArrangedValue()
-        => When(_ => _.LabelAt(1))
+    {
+        When(_ => _.LabelAt(1))
             .Given<IIdSource>().That(_ => _[1]).Returns(() => "arranged")
             .Then().Result.Is("arranged");
+        Specification.Is(
+            """
+            Given IIdSource[1] returns "arranged"
+            When LabelAt(1)
+            Then Result is "arranged"
+            """);
+    }
 }
 
 /// A mock held by another value is the mock of its type, so the suggested setup reaches it there too.

@@ -85,6 +85,7 @@ Given<HttpMessageHandler>().ThatProtected<HttpResponseMessage>("SendAsync").Retu
 - A constructor parameter with a default keeps it, unless the test arranged that type.
 - Arguments match by value — `The<T>()` matches the value used in the test — except `Any<T>()`, which matches any value, and `Any<T>(b => b.Nights > 7)`, which matches any value satisfying the constraint. The constraint form throws `SetupFailed` outside a mock setup or verification.
 - Setups are the same whether the member returns `T`, `Task<T>` or `ValueTask<T>`: `Returns(() => 7)` supplies the unwrapped value. For a task that completes later, state the task as the return type: `That<Task<int>>(_ => _.GetAsync()).Returns(() => _pending.Task)`.
+- An expression cannot assign, so a property set is written `Set(_.Name, value)`, or `Set(_[1], value)`, and set up or verified as any call: `Then<IIdSource>(_ => Set(_.Name, Any<string>()), Never)`.
 - Unmocked members return generated defaults.
 - A chain gets a mock per step and argument values: `Orders(1)` and `Orders(2)` are set up and verified apart, `Orders(1)` twice is the same mock. Calls the chain did not set up answer as `Given<IOrderStore>()` set them up; a step no chain matches returns the shared `IOrderStore` mock.
 - `Then<IOrderStore>(…)` counts calls on every `IOrderStore` mock, including those reached through a chain; verify through the chain to count one.

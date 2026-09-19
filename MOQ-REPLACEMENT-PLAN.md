@@ -74,10 +74,14 @@ or M5 that is worse without it. Done items are struck through.
    - ~~Untrue: a set the test makes on a mock is ignored while the specification states it.~~ Done.
    - ~~Untrue: a setup lambda reading a mock gets the default though the mock is arranged.~~ Done.
    - ~~Untrue: `Then<IIdSource>(nameof(IIdSource.NextId), Once)` fails "never invoked".~~ Done.
-   - On evidence: a setter setup, since an expression tree cannot assign (Moq's `SetupSet` runs a
-     plain lambda against a recorder), e.g. `ThatSetting(_ => _.Name)`, where matching the value set
-     is the hard part; verifying a set with its value, today only `Then<IIdSource>("set_Name", Once)`,
-     undocumented. A getter is verified by `Then<IIdSource, int>(_ => _.NextId, Once)`, unpinned.
+   - On evidence, each waiting for a real spec that needs it:
+     - ~~Arranging and verifying a set.~~ Done, see Done. Left out: a set through a chain,
+       `Set(_.Child.Name, …)`, refused as naming no call on the service.
+     - A property that keeps what is set and answers it when read (PO's idea; Moq's `SetupProperty`),
+       e.g. `Given<IIdSource>().That(_ => _.Name).Keeps()`. It would also verify a set, by reading it
+       back after the act. Undecided: a transform on the kept value, which a fake given with `Using`
+       may state better.
+   - Works, unpinned: verifying a read, `Then<IIdSource, int>(_ => _.NextId, Once)`.
 4. **A service-wide default that no member answers with.** `Given<PlainClient>().Returns(() =>
    "mocked")` on a class whose `string` members are not virtual reads "Given PlainClient returns
    "mocked"", and they answer "real" (probed). To decide: refuse a default no interceptable member of
@@ -225,3 +229,11 @@ or M5 that is worse without it. Done items are struck through.
   last in Mock. A setup lambda reading a mock's property before Mock is refused, suggesting a shared
   value, `That(_ => _.Name).Returns(() => The<string>())` (PO: making both orders work is the mud).
   Pinned in `WhenASetupReadsAMock`. 2026-09-19.
+- **3.1.0** — a set is set up and verified as `Set(_.Name, value)`, a marker `CallReader` reads as the
+  setter, since an expression cannot assign; the value and an indexer's index match as arguments,
+  `Any` included. Reads "Given IIdSource.Name = "" throws ArgumentException", "Then IIdSource[1] =
+  "x" was invoked once"; an indexer getter now reads `IIdSource[1]` too. Refused: a property with no
+  setter; `Set` called. Not taken (PO): `ThatSet(_ => _.Name, value)` and `That(_ => _.Name).Set(…)`,
+  whose value, outside the expression tree, would make `Any` a generated value; Moq's plain lambda
+  against a recording mock; a `Get` marker. One line in each doc. Pinned in
+  `WhenAPropertySetIsMocked`. 2026-09-19.

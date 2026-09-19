@@ -27,15 +27,21 @@ internal static class ExpressionDescriber
     /// chains it through a task.
     public static string DescribeMockCall(this string expr)
         => string.IsNullOrWhiteSpace(expr) ? string.Empty
-        : new CallDescriber(skipSubjectRef: true, leavesOutResult: true).Describe(Parser.Parse(expr.ToSingleLine()));
+        : new CallDescriber(skipSubjectRef: true, isMockCall: true).Describe(Parser.Parse(expr.ToSingleLine()));
 
     /// The call as above, following the name of the service it is made on.
     public static string DescribeMockCallOn<TService>(this string expr)
-        => $"{typeof(TService).Alias()}{MockCallBinder<TService>()}{expr.DescribeMockCall()}";
+    {
+        var call = expr.DescribeMockCall();
+        return $"{typeof(TService).Alias()}{MockCallBinder<TService>(call)}{call}";
+    }
 
-    /// What joins a mocked service to a call on it: a member is reached with a dot, a delegate is invoked as it is.
-    public static string MockCallBinder<TService>()
-        => typeof(Delegate).IsAssignableFrom(typeof(TService)) ? string.Empty : ".";
+    /// <summary>
+    /// What joins a mocked service to a call on it: a member is reached with a dot, a delegate is
+    /// invoked and an indexer indexed as it is.
+    /// </summary>
+    public static string MockCallBinder<TService>(string call)
+        => typeof(Delegate).IsAssignableFrom(typeof(TService)) || call.StartsWith('[') ? string.Empty : ".";
 
     public static string DescribeActual(this string? expr, string? subject = null)
         => string.IsNullOrWhiteSpace(expr) ? string.Empty

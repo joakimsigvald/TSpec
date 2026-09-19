@@ -55,6 +55,17 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         => new GivenServiceContinuation<TSUT, TResult, TService>(this);
 
     /// <summary>
+    /// Names a set of a mocked property, which a setup or verification cannot write as an assignment:
+    /// <c>That(_ =&gt; Set(_.Name, "x"))</c>, <c>Then&lt;TService&gt;(_ =&gt; Set(_.Name, Any&lt;string&gt;()), Never)</c>.
+    /// </summary>
+    /// <typeparam name="TValue">The property's type</typeparam>
+    /// <param name="property">The property on the mock, such as <c>_.Name</c> or <c>_[1]</c></param>
+    /// <param name="value">The value set, matched as any argument is</param>
+    /// <exception cref="SetupFailed">Thrown when called rather than written inside a setup or verification</exception>
+    protected internal static void Set<TValue>(TValue property, TValue value)
+        => throw new SetupFailed("Set names a property set only inside That(…) or Then<T>(…)");
+
+    /// <summary>
     /// Provide any setup as an action, through the returned continuation
     /// </summary>
     /// <returns>A continuation for providing test data and other arrangement</returns>

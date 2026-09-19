@@ -51,8 +51,11 @@ internal class SetupPhrases(SpecificationRecording recording)
             $"{typeof(TTarget).Alias()} from {generateExpr}{ScopeSuffix(scope)}"));
 
     internal void AddMockSetup<TService>(string callExpr)
-        => recording.Record(() => Mock<TService>(
-            StepLayout.SentenceOrPhrase, callExpr.DescribeMockCall(), ExpressionDescriber.MockCallBinder<TService>()));
+        => recording.Record(() =>
+        {
+            var call = callExpr.DescribeMockCall();
+            Mock<TService>(StepLayout.SentenceOrPhrase, call, ExpressionDescriber.MockCallBinder<TService>(call));
+        });
 
     internal void AddMockFirst()
         => recording.Record(() => Add(StepLayout.Word, StepFamily.None, "first"));

@@ -10,14 +10,14 @@ namespace TSpec.Internal.Specification.ExpressionParsing.Describe;
 /// drops the leading <c>_.</c> when the caller (e.g. mock setup) prepends
 /// the receiver name itself.
 /// </summary>
-internal sealed class CallDescriber(bool skipSubjectRef, bool leavesOutResult = false) : Describer
+internal sealed class CallDescriber(bool skipSubjectRef, bool isMockCall = false) : Describer
 {
     private readonly bool _skipSubjectRef = skipSubjectRef;
 
     protected override string Render(Expr expr)
         => expr switch
         {
-            Lambda l when leavesOutResult => DescribeLambda(l with { Body = WithoutResult(l.Body) }),
+            Lambda l when isMockCall => DescribeLambda(l with { Body = WithoutResult(l.Body) }),
             Lambda l => DescribeLambda(l),
             New n => DescribeNew(n),
             Call c => $"{Path(c.Target)}{ArgList(c.Args)}",
@@ -36,6 +36,10 @@ internal sealed class CallDescriber(bool skipSubjectRef, bool leavesOutResult = 
 
     private string DescribeOneArgLambda(Lambda l)
     {
+        if (l.Body is Call { Target: Identifier { Name: "Set" }, Args: [var property, var value] })
+            return DescribeSet(property, value, l.Params[0]);
+        if (DescribeMockIndexer(l.Body, l.Params[0]) is { } indexer)
+            return indexer;
         if (l.AsParamRefCall() is { } pc)
             return Prefixed(pc.Receiver, l.Params[0], pc.Target.Name, ArgList(pc.Args));
         if (l.AsParamRefAssign() is { } pa)
@@ -50,6 +54,20 @@ internal sealed class CallDescriber(bool skipSubjectRef, bool leavesOutResult = 
         return Value.Describe(
             _skipSubjectRef ? SubjectElision.Elide(l.Body, l.Params[0]) : l.Body);
     }
+
+    /// A set of a mocked property is written Set(_.Name, value), since no expression can assign; it reads as the assignment.
+    private string DescribeSet(Expr property, Expr value, string parameter)
+        => $"{DescribeProperty(property, parameter)} = {Value.Describe(value)}";
+
+    private string DescribeProperty(Expr property, string parameter)
+        => DescribeMockIndexer(property, parameter)
+        ?? Value.Describe(_skipSubjectRef ? SubjectElision.Elide(property, parameter) : property);
+
+    /// An indexer on the mock reads as its index, which follows the mock's name as it is.
+    private string? DescribeMockIndexer(Expr expr, string parameter)
+        => isMockCall && expr is IndexExpr { Target: Identifier receiver } index && receiver.Name == parameter
+            ? $"[{DescribeAll(index.Args)}]"
+            : null;
 
     /// <summary>
     /// A mocked call chained through a task is written with Result, since no expression can await. The
