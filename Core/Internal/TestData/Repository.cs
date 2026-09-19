@@ -88,6 +88,8 @@ internal class Repository : IRepository
 
     internal MockHandle GetMock<TObject>() where TObject : class => _mockingStrategy.GetMock(typeof(TObject));
 
+    internal void BeginAct() => _mockingStrategy.BeginAct();
+
     internal void SetDefaultException(Type type, Func<Exception> ex)
         => _fluentDefaultProvider.SetDefaultException(type, ex);
 

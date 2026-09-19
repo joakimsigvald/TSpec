@@ -171,6 +171,8 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
     internal MockHandle GetMock<TObject>() where TObject : class
         => _repository.GetMock<TObject>();
 
+    internal void BeginAct() => _repository.BeginAct();
+
     internal void Use<TService>(TService service, For scope) => _repository.Use(service, scope);
     internal void Use<TService>(Func<TService> factory, For scope) => _repository.Use(factory, scope);
 

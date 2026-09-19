@@ -108,12 +108,12 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
         _fixture.AppendTearDown(new(tearDown ?? throw new SetupFailed("TearDown cannot be null"), tearDownExpr));
     }
 
-    internal Lazy<TSUT> Arrange()
+    internal TSUT Arrange()
     {
         _context.BeginArranging();
         _arranger.Arrange();
         _context.EndArranging();
-        return new Lazy<TSUT>(Instantiate<TSUT>);
+        return Instantiate<TSUT>();
     }
 
     internal TClass Instantiate<TClass>() => _context.Instantiate<TClass>();

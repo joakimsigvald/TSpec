@@ -5,13 +5,13 @@ namespace TSpec.Internal.Pipelines;
 internal class SpecFixture<TSUT>(ISpecificationProvider specificationProvider) : IDisposable
 {
     private bool _disposed;
-    private Lazy<TSUT>? _sut;
+    private TSUT? _sut;
     private readonly List<Command> _setUp = [];
     private readonly List<Command> _tearDown = [];
 
     internal void PrependSetUp(Command setUp) => _setUp.Insert(0, setUp);
     internal void AppendTearDown(Command tearDown) => _tearDown.Add(tearDown);
-    internal void SetUp(Lazy<TSUT> sut)
+    internal void SetUp(TSUT sut)
     {
         _sut = sut;
         foreach (var setUp in _setUp)
@@ -20,7 +20,7 @@ internal class SpecFixture<TSUT>(ISpecificationProvider specificationProvider) :
     }
 
     internal bool IsSetUp { get; private set; } = false;
-    internal TSUT SubjectUnderTest => _sut!.Value;
+    internal TSUT SubjectUnderTest => _sut!;
 
     internal void TearDown()
     {

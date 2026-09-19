@@ -46,7 +46,10 @@ internal sealed class MockHandle
 
     internal object Instance => _instance!;
 
-    internal IReadOnlyList<MockInvocation> Invocations
+    /// Calls made while arranging are logged, but not counted.
+    internal IReadOnlyList<MockInvocation> ActInvocations => [.. Invocations.Where(call => call.InAct)];
+
+    private IReadOnlyList<MockInvocation> Invocations
     {
         get
         {
@@ -79,14 +82,14 @@ internal sealed class MockHandle
     /// <summary>
     /// A count made ready to take over a mock's calls; every step of a chain is read now. The rest of a
     /// chain is counted on each mock its first step answered with, once, among the calls that mock
-    /// received itself.
+    /// received itself. A step taken while arranging still leads on; only the act's calls are counted.
     /// </summary>
     private static Func<IEnumerable<MockInvocation>, int> Counting(LambdaExpression call)
     {
         if (!CallChain.TrySplit(call, out var firstStep, out var rest))
         {
             var matcher = CallMatcher.For(call);
-            return calls => calls.Count(matcher.Matches);
+            return calls => calls.Count(called => called.InAct && matcher.Matches(called));
         }
 
         var step = CallMatcher.For(firstStep);
@@ -138,7 +141,7 @@ internal sealed class MockHandle
     /// with is logged after.
     private object? Receive(MethodInfo method, object?[] arguments)
     {
-        var invocation = new MockInvocation(method, [.. arguments], this);
+        var invocation = new MockInvocation(method, [.. arguments], this, _mocks.ActHasBegun);
         Log(invocation);
         invocation.Answer = Respond(method, arguments);
         return invocation.Answer;
@@ -234,7 +237,7 @@ internal sealed class MockHandle
     }
 }
 
-internal sealed record MockInvocation(MethodInfo Method, IReadOnlyList<object?> Arguments, MockHandle Receiver)
+internal sealed record MockInvocation(MethodInfo Method, IReadOnlyList<object?> Arguments, MockHandle Receiver, bool InAct)
 {
     internal object? Answer { get; set; }
 }

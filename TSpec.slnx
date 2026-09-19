@@ -2,6 +2,7 @@
   <Folder Name="/Assets/">
     <File Path="CLAUDE.md" />
     <File Path="icon.png" />
+    <File Path="MOQ-REPLACEMENT-PLAN.md" />
     <File Path="README.md" />
     <File Path="SPEC-GENERATION-PLAN.md" />
     <File Path="TODO.txt" />

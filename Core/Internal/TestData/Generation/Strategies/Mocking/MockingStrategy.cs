@@ -7,6 +7,8 @@ internal class MockingStrategy(FluentDefaultProvider fluentDefaultProvider) : IG
 
     internal MockHandle GetMock(Type type) => _registry.GetMock(type);
 
+    internal void BeginAct() => _registry.BeginAct();
+
     public bool TryGenerate(GenerationRequest request, ref object? result)
     {
         if (!ShouldMock(request))

@@ -167,6 +167,7 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
     /// </summary>
     private TestResult<TSUT, TResult> Execute()
     {
+        _context.BeginAct();
         var act = SpecificationContext.Create();
         try
         {
