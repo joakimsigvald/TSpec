@@ -13,6 +13,25 @@ surface, a semantic they would otherwise get wrong, a behaviour that would surpr
 Update `PackageVersion` and `PackageReleaseNotes` in `Core/Core.csproj` when preparing a release
 (docs/packaging-only = patch, new functionality = minor).
 
+## Working cycle
+
+Test first: write the failing test, run it and see it fail for the right reason, then implement.
+Once it passes, refactor what you touched to clean code, keep the suite green, then report.
+
+## Code style
+
+- Short methods that do one thing, on one level of abstraction.
+- No clever constructs: don't make one construct do too much, and keep a top-level decision apart
+  from the handling of each case.
+- A class that needs section comments should be split; propose the split and ask before doing it.
+- Comments: none by default. Write one only where a reader would otherwise change the code and break
+  something — a constraint, an invariant, a rejected alternative — never a `<summary>` restating a
+  well-named member. The same restraint holds for release notes, plan entries and test comments: one
+  line unless a second earns its place.
+- An early return puts the condition on its own line and the return, indented, on the next, followed
+  by an empty line — never `if (x) return y;` on one line.
+- A `TryX` method returns `bool` with an `out` parameter, never a sentinel value.
+
 ## Build and test
 
 - `dotnet test Core.Test` builds and runs the suite on net8.0, net9.0 and net10.0; narrow it with
@@ -27,12 +46,6 @@ Update `PackageVersion` and `PackageReleaseNotes` in `Core/Core.csproj` when pre
    reference's "covers TSpec x.y" line — it ships inside the package and had gone four minor
    versions stale by 1.5.0.
 2. Run the full suite on all three target frameworks.
-3. `dotnet pack Core -c Release`, then upload `Core/bin/Release/TSpec.<version>.nupkg` **manually at
-   nuget.org**. That folder keeps every previously packed version, so pick the file by name rather
-   than globbing.
-4. Optional: tag the published commit `v<version>` — worth it only if a GitHub Releases page is
-   wanted. Without a tag, the commit a version shipped from is still findable with
-   `git log -S "<version>" -- Core/Core.csproj`.
 
 ## MyHotel
 
