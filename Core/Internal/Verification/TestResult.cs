@@ -137,7 +137,7 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
             SpecificationContext.Current.ClearSubject();
             SpecificationContext.Current.AddWasInvoked<TService>(timesExpr);
             var mock = _context.GetMock<TService>();
-            var count = mock.ActInvocations.Count;
+            var count = mock.CountedInvocations.Count;
             if (times.Allows(count))
                 return new AndVerify<TSUT, TResult>(this);
 
@@ -162,7 +162,7 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
             SpecificationContext.Current.ClearSubject();
             SpecificationContext.Current.AddWasInvoked<TService>(method, timesExpr);
             var mock = _context.GetMock<TService>();
-            var count = mock.ActInvocations.Count(i => i.Method.Name == method);
+            var count = mock.CountedInvocations.Count(i => i.Method.Name == method);
             if (!times.Allows(count))
                 throw WithReceivedCalls(CountNotMet($"{typeof(TService).Alias()}.{method}", expectation, count), mock);
             return new AndVerify<TSUT, TResult>(this);

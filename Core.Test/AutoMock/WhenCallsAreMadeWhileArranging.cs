@@ -26,6 +26,18 @@ public class Tallying
     }
 }
 
+public interface ILedger
+{
+    ITally Tally(int id);
+}
+
+public class LedgerTallying(ILedger ledger)
+{
+    private readonly ITally _tally = ledger.Tally(1);
+
+    public void Add(int value) => _tally.Add(value);
+}
+
 /// Creating the subject and every Having is arranging; only the calls the act makes are counted.
 public class WhenCallsAreMadeWhileArranging : Spec<Tallying>
 {
@@ -51,4 +63,12 @@ public class WhenCallsAreMadeWhileArranging : Spec<Tallying>
             .Message.Is(
                 "Expected ITally.Add(any int) to be invoked at least once but was never invoked"
                 + Environment.NewLine + "ITally received no calls");
+}
+
+/// A chain reached while arranging still leads to the mock it returned, whose calls in the act are counted.
+public class WhenAChainIsReachedWhileArranging : Spec<LedgerTallying>
+{
+    [Fact]
+    public void ThenTheActsCallsThroughItAreCounted()
+        => When(_ => _.Add(2)).Then<ILedger>(_ => _.Tally(1).Add(2), Once);
 }

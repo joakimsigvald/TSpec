@@ -12,7 +12,7 @@ internal static class ReceivedCalls
     internal static string Of(MockHandle mock)
     {
         var mockName = mock.MockedType.Alias();
-        var calls = mock.ActInvocations;
+        var calls = mock.CountedInvocations;
         if (calls.Count == 0)
             return $"{mockName} received no calls";
 

@@ -16,10 +16,8 @@ internal class SpecFixture<TSUT>(ISpecificationProvider specificationProvider) :
         _sut = sut;
         foreach (var setUp in _setUp)
             Invoke<object>(setUp);
-        IsSetUp = true;
     }
 
-    internal bool IsSetUp { get; private set; } = false;
     internal TSUT SubjectUnderTest => _sut!;
 
     internal void TearDown()

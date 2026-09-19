@@ -35,7 +35,7 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
     {
         subjectExpr.AssertNoTrainwreck();
         HandedOverSubject.AssertIsNotALambda(subject, subjectExpr);
-        HandedOverSubject.AssertIsNotACopyTakenBeforeTheRun<TSubject>(_result is not null, subjectExpr);
+        HandedOverSubject.AssertIsNotACopyTakenBeforeTheRun<TSubject>(_phase.Current == Phase.Assert, subjectExpr);
         Specification.SetSubject(subjectExpr);
         _ = Claim;
         return subject;
@@ -140,7 +140,9 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         try
         {
             PrepareToExecute();
-            return Execute();
+            var result = Execute();
+            _phase.AdvanceTo(Phase.Assert);
+            return result;
         }
         catch (SetupFailed ex)
         {
@@ -152,8 +154,7 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
 
     private void PrepareToExecute()
     {
-        if (!_fixture.IsSetUp)
-            _fixture.SetUp(Arrange());
+        _fixture.SetUp(Arrange());
         Specification.AddWhen(MethodUnderTest.Expression);
         _fixture.AddToSpecification();
     }
@@ -167,7 +168,7 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
     /// </summary>
     private TestResult<TSUT, TResult> Execute()
     {
-        _context.BeginAct();
+        _phase.AdvanceTo(Phase.Act);
         var act = SpecificationContext.Create();
         try
         {
@@ -195,7 +196,7 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
 
     private void AssertHasNotRun()
     {
-        if (_result != null)
+        if (_phase.Current > Phase.Act)
             throw new SetupFailed("Cannot provide setup after test pipeline was run");
     }
 }

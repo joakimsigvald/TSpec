@@ -1,13 +1,13 @@
-﻿namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+﻿using TSpec.Internal.Pipelines;
 
-internal class MockingStrategy(FluentDefaultProvider fluentDefaultProvider) : IGenerationStrategy
+namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+
+internal class MockingStrategy(FluentDefaultProvider fluentDefaultProvider, IPipelinePhase phase) : IGenerationStrategy
 {
     private readonly FluentDefaultProvider _defaults = fluentDefaultProvider;
-    private readonly MockRegistry _registry = new(fluentDefaultProvider);
+    private readonly MockRegistry _registry = new(fluentDefaultProvider, phase);
 
     internal MockHandle GetMock(Type type) => _registry.GetMock(type);
-
-    internal void BeginAct() => _registry.BeginAct();
 
     public bool TryGenerate(GenerationRequest request, ref object? result)
     {

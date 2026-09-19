@@ -1,7 +1,9 @@
 ﻿using System.Collections.Concurrent;
+using TSpec.Internal.Pipelines;
+
 namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
-internal class MockRegistry(FluentDefaultProvider defaultProvider)
+internal class MockRegistry(FluentDefaultProvider defaultProvider, IPipelinePhase phase)
 {
     private readonly ConcurrentDictionary<Type, MockHandle> _mocks = [];
 
@@ -9,9 +11,7 @@ internal class MockRegistry(FluentDefaultProvider defaultProvider)
 
     internal bool HasMock(Type type) => _mocks.ContainsKey(type);
 
-    internal bool ActHasBegun { get; private set; }
-
-    internal void BeginAct() => ActHasBegun = true;
+    internal Phase Phase => phase.Current;
 
     private MockHandle CreateMock(Type type) => new(type, defaultProvider, this);
 }

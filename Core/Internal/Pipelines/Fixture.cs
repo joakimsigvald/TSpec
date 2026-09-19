@@ -16,12 +16,13 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
     private protected readonly SpecFixture<TSUT> _fixture = null!;
     private protected readonly Arranger _arranger = new();
     private protected readonly DisposalTracker _disposalTracker = new();
+    private protected readonly PipelinePhase _phase = new();
     private protected Command? _methodUnderTest;
 
     protected Fixture()
     {
         _fixture = new(this);
-        _context = new(this, _disposalTracker);
+        _context = new(this, _disposalTracker, _phase);
         Specification = SpecificationContext.Create();
     }
 
@@ -31,7 +32,7 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
     {
         try
         {
-            if (_fixture.IsSetUp)
+            if (_phase.Current >= Phase.Act)
                 _fixture.Dispose();
         }
         finally
@@ -51,7 +52,7 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
         Action<TModel> setup, string setupExpr, For scope) where TModel : class
     {
         Specification.AddUsingSetup<TModel>(setupExpr, scope);
-        AssertIsNotSetUp();
+        AssertActHasNotBegun();
         _context.SetDefault(setup, scope);
     }
 
@@ -59,7 +60,7 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
         Func<TValue, TValue> transform, string transformExpr, For scope)
     {
         Specification.AddUsingSetup<TValue>(transformExpr, scope);
-        AssertIsNotSetUp();
+        AssertActHasNotBegun();
         _context.SetDefault(transform, scope);
     }
 
@@ -67,7 +68,7 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
     {
         if (!string.IsNullOrEmpty(defaultValuesExpr))
             Specification.AddGiven(defaultValuesExpr, scope);
-        AssertIsNotSetUp();
+        AssertActHasNotBegun();
         _context.Use(defaultValue, scope);
     }
 
@@ -75,7 +76,7 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
     {
         if (!string.IsNullOrEmpty(defaultValuesExpr))
             Specification.AddUsing<TValue>(defaultValuesExpr, scope, owned);
-        AssertIsNotSetUp();
+        AssertActHasNotBegun();
         if (owned)
             _disposalTracker.Track(defaultValue);
         _context.Use(defaultValue, scope);
@@ -85,7 +86,7 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
     {
         if (!string.IsNullOrEmpty(defaultFactoryExpr))
             Specification.AddUsing<TValue>(defaultFactoryExpr, scope, owned);
-        AssertIsNotSetUp();
+        AssertActHasNotBegun();
         _context.Use(owned ? TrackCreated(defaultFactory) : defaultFactory, scope);
     }
 
@@ -98,21 +99,20 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
 
     internal void PrependSetUp(Delegate setUp, string setUpExpr)
     {
-        AssertIsNotSetUp();
+        AssertActHasNotBegun();
         _fixture.PrependSetUp(new(setUp ?? throw new SetupFailed("SetUp cannot be null"), setUpExpr));
     }
 
     internal void SetTearDown(Delegate tearDown, string tearDownExpr)
     {
-        AssertIsNotSetUp();
+        AssertActHasNotBegun();
         _fixture.AppendTearDown(new(tearDown ?? throw new SetupFailed("TearDown cannot be null"), tearDownExpr));
     }
 
     internal TSUT Arrange()
     {
-        _context.BeginArranging();
+        _phase.AdvanceTo(Phase.Arrange);
         _arranger.Arrange();
-        _context.EndArranging();
         return Instantiate<TSUT>();
     }
 
@@ -128,43 +128,43 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
 
     internal void AppendUsing(Action given)
     {
-        AssertIsNotSetUp();
+        AssertActHasNotBegun();
         _arranger.AppendUsing(given);
     }
 
     internal void PrependGiven(Action given)
     {
-        AssertIsNotSetUp();
+        AssertActHasNotBegun();
         _arranger.PrependGiven(given);
     }
 
     internal void AppendGiven(Action given)
     {
-        AssertIsNotSetUp();
+        AssertActHasNotBegun();
         _arranger.AppendGiven(given);
     }
 
     internal void SetupThrows<TService>(Func<Exception> expected)
     {
-        AssertIsNotSetUp();
+        AssertActHasNotBegun();
         _context.SetupThrows<TService>(expected);
     }
 
     internal void Register<TTarget, TSource>(Func<TSource, TTarget>? convert, For scope, SequenceHolder sequence)
     {
-        AssertIsNotSetUp();
+        AssertActHasNotBegun();
         _context.Register(convert, scope, sequence);
     }
 
     internal void SetSequence(SequenceHolder sequence, Func<object?> next)
     {
-        AssertIsNotSetUp();
+        AssertActHasNotBegun();
         sequence._next = next;
     }
 
-    private void AssertIsNotSetUp()
+    private void AssertActHasNotBegun()
     {
-        if (_fixture.IsSetUp)
+        if (_phase.Current >= Phase.Act)
             throw new SetupFailed("Cannot provide setup after pipeline is set up");
     }
 }

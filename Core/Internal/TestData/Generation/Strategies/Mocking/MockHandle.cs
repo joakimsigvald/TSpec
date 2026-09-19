@@ -1,7 +1,9 @@
 using Castle.DynamicProxy;
+using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using TSpec.Internal.Pipelines;
 using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
@@ -26,7 +28,7 @@ internal sealed class MockHandle
     private readonly FluentDefaultProvider _defaults;
     private readonly MockRegistry _mocks;
     private readonly MockHandle? _shared;
-    private readonly List<MockInvocation> _invocations = [];
+    private readonly ConcurrentQueue<MockInvocation> _invocations = [];
     private readonly List<CallSetup> _setups = [];
     private readonly MockChildren _children;
     private readonly object? _instance;
@@ -46,17 +48,7 @@ internal sealed class MockHandle
 
     internal object Instance => _instance!;
 
-    /// Calls made while arranging are logged, but not counted.
-    internal IReadOnlyList<MockInvocation> ActInvocations => [.. Invocations.Where(call => call.InAct)];
-
-    private IReadOnlyList<MockInvocation> Invocations
-    {
-        get
-        {
-            lock (_invocations)
-                return [.. _invocations];
-        }
-    }
+    internal IReadOnlyList<MockInvocation> CountedInvocations => [.. _invocations.Where(call => call.IsCounted)];
 
     internal void Answer<TService>(Expression<Action<TService>> call, Func<IReadOnlyList<object>, object?> answer)
         where TService : class
@@ -75,21 +67,19 @@ internal sealed class MockHandle
         where TService : class
         => SetUp(CallMatcher.For(member), answerType, answer);
 
-    internal int CountCalls(LambdaExpression call) => Counting(call)(Invocations);
-
-    private IReadOnlyList<MockInvocation> OwnInvocations => [.. Invocations.Where(call => call.Receiver == this)];
+    internal int CountCalls(LambdaExpression call) => Counting(call)(_invocations);
 
     /// <summary>
     /// A count made ready to take over a mock's calls; every step of a chain is read now. The rest of a
     /// chain is counted on each mock its first step answered with, once, among the calls that mock
-    /// received itself. A step taken while arranging still leads on; only the act's calls are counted.
+    /// received itself. A step taken while arranging still leads on to the mock it answered with.
     /// </summary>
     private static Func<IEnumerable<MockInvocation>, int> Counting(LambdaExpression call)
     {
         if (!CallChain.TrySplit(call, out var firstStep, out var rest))
         {
             var matcher = CallMatcher.For(call);
-            return calls => calls.Count(called => called.InAct && matcher.Matches(called));
+            return calls => calls.Count(called => called.IsCounted && matcher.Matches(called));
         }
 
         var step = CallMatcher.For(firstStep);
@@ -101,6 +91,8 @@ internal sealed class MockHandle
             .Distinct()
             .Sum(mock => countRest(mock.OwnInvocations));
     }
+
+    private IEnumerable<MockInvocation> OwnInvocations => _invocations.Where(call => call.Receiver == this);
 
     private static MockHandle? HandleOf(object? answer)
         => AsyncAnswer.ValueOf(answer) is { } value && _handles.TryGetValue(value, out var mock) ? mock : null;
@@ -141,7 +133,7 @@ internal sealed class MockHandle
     /// with is logged after.
     private object? Receive(MethodInfo method, object?[] arguments)
     {
-        var invocation = new MockInvocation(method, [.. arguments], this, _mocks.ActHasBegun);
+        var invocation = new MockInvocation(method, [.. arguments], this, _mocks.Phase);
         Log(invocation);
         invocation.Answer = Respond(method, arguments);
         return invocation.Answer;
@@ -170,8 +162,7 @@ internal sealed class MockHandle
     /// A child's call is logged on the shared mock of its type too, which so counts every call to the type.
     private void Log(MockInvocation invocation)
     {
-        lock (_invocations)
-            _invocations.Add(invocation);
+        _invocations.Enqueue(invocation);
         _shared?.Log(invocation);
     }
 
@@ -237,7 +228,10 @@ internal sealed class MockHandle
     }
 }
 
-internal sealed record MockInvocation(MethodInfo Method, IReadOnlyList<object?> Arguments, MockHandle Receiver, bool InAct)
+internal sealed record MockInvocation(MethodInfo Method, IReadOnlyList<object?> Arguments, MockHandle Receiver, Phase Phase)
 {
     internal object? Answer { get; set; }
+
+    /// Calls made while arranging are logged, but not counted.
+    internal bool IsCounted => Phase == Phase.Act;
 }

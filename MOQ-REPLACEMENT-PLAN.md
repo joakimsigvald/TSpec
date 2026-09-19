@@ -201,4 +201,5 @@ or M5 that is worse without it. Done items are struck through.
   refused. Pinned in `WhenAClassIsSetUp`. 2026-09-19.
 - **3.1.0** — mock calls made while arranging are not counted; the subject is built as the last step
   of arranging, so its constructor's calls are not either (PO). A chain reached while arranging still
-  leads on. Pinned in `WhenCallsAreMadeWhileArranging`. 2026-09-19.
+  leads on. Pinned in `WhenCallsAreMadeWhileArranging` and `WhenAChainIsReachedWhileArranging`.
+  2026-09-19.

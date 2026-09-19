@@ -16,11 +16,11 @@ internal class Repository : IRepository
     private readonly Dictionary<Type, Dictionary<int, object?>> _numberedMentions = [];
     private readonly ISpecificationProvider _specificationProvider;
 
-    public Repository(ISpecificationProvider specificationProvider, DisposalTracker disposalTracker)
+    public Repository(ISpecificationProvider specificationProvider, DisposalTracker disposalTracker, IPipelinePhase phase)
     {
         _dataProvider = new();
         _fluentDefaultProvider = new(this);
-        _mockingStrategy = new(_fluentDefaultProvider);
+        _mockingStrategy = new(_fluentDefaultProvider, phase);
         _generator = new(new(), _typeConversionStrategy, new(this), _mockingStrategy, disposalTracker);
         _specificationProvider = specificationProvider;
     }
@@ -87,8 +87,6 @@ internal class Repository : IRepository
         => _typeConversionStrategy.Register(convert, scope, sequence);
 
     internal MockHandle GetMock<TObject>() where TObject : class => _mockingStrategy.GetMock(typeof(TObject));
-
-    internal void BeginAct() => _mockingStrategy.BeginAct();
 
     internal void SetDefaultException(Type type, Func<Exception> ex)
         => _fluentDefaultProvider.SetDefaultException(type, ex);

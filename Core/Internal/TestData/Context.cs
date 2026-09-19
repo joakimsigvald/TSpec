@@ -5,21 +5,13 @@ using TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 namespace TSpec.Internal.TestData;
 
-internal class Context(ISpecificationProvider specificationProvider, DisposalTracker disposalTracker)
+internal class Context(ISpecificationProvider specificationProvider, DisposalTracker disposalTracker, IPipelinePhase phase)
 {
-    private readonly Repository _repository = new(specificationProvider, disposalTracker);
+    private readonly Repository _repository = new(specificationProvider, disposalTracker, phase);
     private readonly Dictionary<Type, Dictionary<object, int>> _tagIndices = [];
     private readonly HashSet<string> _tagNames = new(StringComparer.Ordinal);
-    private readonly HashSet<(Type, int)> _readBeforeArranging = [];
+    private readonly HashSet<(Type, int)> _readWhileDeclaring = [];
     private readonly Dictionary<(Type, int), string> _namesByIndex = [];
-    private Arranging _arranging;
-
-    /// Reads are early only before arrangement; overwrites are suspect only while it runs.
-    private enum Arranging { NotStarted, Running, Done }
-
-    internal void BeginArranging() => _arranging = Arranging.Running;
-
-    internal void EndArranging() => _arranging = Arranging.Done;
 
     /// <summary>
     /// A read the test made before the pipeline was arranged. Harmless on its own — it generates a
@@ -35,8 +27,8 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
 
     private void NoteRead(Type type, int index)
     {
-        if (_arranging == Arranging.NotStarted)
-            _readBeforeArranging.Add((type, index));
+        if (phase.Current == Phase.Declare)
+            _readWhileDeclaring.Add((type, index));
     }
 
     /// <summary>
@@ -47,7 +39,7 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
     /// </summary>
     private void AssertNotReplacingWhatWasRead(Type type, int index, object? value)
     {
-        if (_arranging != Arranging.Running || !_readBeforeArranging.Contains((type, index)))
+        if (!WasReadBeforeArrange(type, index))
             return;
 
         var (prior, found) = _repository.Retrieve(type, index);
@@ -59,6 +51,9 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
             + "generated value rather than the one arranged for it. "
             + "Run the pipeline with Then() before reading it");
     }
+
+    private bool WasReadBeforeArrange(Type type, int index) 
+        => phase.Current == Phase.Arrange && _readWhileDeclaring.Contains((type, index));
 
     private string NameOf(Type type, int index)
         => _namesByIndex.TryGetValue((type, index), out var name)
@@ -170,8 +165,6 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
 
     internal MockHandle GetMock<TObject>() where TObject : class
         => _repository.GetMock<TObject>();
-
-    internal void BeginAct() => _repository.BeginAct();
 
     internal void Use<TService>(TService service, For scope) => _repository.Use(service, scope);
     internal void Use<TService>(Func<TService> factory, For scope) => _repository.Use(factory, scope);
