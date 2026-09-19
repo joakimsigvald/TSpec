@@ -29,7 +29,7 @@ internal sealed class MockHandle
     private readonly MockRegistry _mocks;
     private readonly MockHandle? _shared;
     private readonly ConcurrentQueue<MockInvocation> _invocations = [];
-    private readonly List<CallSetup> _setups = [];
+    private readonly ConcurrentQueue<CallSetup> _setups = [];
     private readonly MockChildren _children;
     private readonly object? _instance;
 
@@ -123,11 +123,8 @@ internal sealed class MockHandle
     }
 
     private void SetUp(CallMatcher matcher, Type answerType, Func<IReadOnlyList<object>, object?> answer)
-    {
-        lock (_setups)
-            _setups.Add(new(
-                matcher, arguments => AsyncAnswer.Respond(matcher.ReturnType, answerType, () => answer(arguments!))));
-    }
+        => _setups.Enqueue(new(
+            matcher, arguments => AsyncAnswer.Respond(matcher.ReturnType, answerType, () => answer(arguments!))));
 
     /// A call is logged before it is answered, so whatever answers it may read the log; what it answered
     /// with is logged after.
@@ -171,10 +168,7 @@ internal sealed class MockHandle
         => OwnLatestMatching(method, arguments) ?? _shared?.LatestMatching(method, arguments);
 
     private CallSetup? OwnLatestMatching(MethodInfo method, object?[] arguments)
-    {
-        lock (_setups)
-            return _setups.LastOrDefault(setup => setup.Matcher.Matches(method, arguments));
-    }
+        => _setups.LastOrDefault(setup => setup.Matcher.Matches(method, arguments));
 
     private static object? DefaultOf(Type type)
         => type.IsValueType && type != typeof(void) ? Activator.CreateInstance(type) : null;
