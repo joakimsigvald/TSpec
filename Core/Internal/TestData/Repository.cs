@@ -1,6 +1,7 @@
 ﻿using TSpec.Internal.Pipelines;
 using TSpec.Internal.TestData.Generation;
 using TSpec.Internal.TestData.Generation.Strategies;
+using TSpec.Internal.TestData.Generation.Strategies.IlCompilation;
 using TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 namespace TSpec.Internal.TestData;
@@ -82,6 +83,9 @@ internal class Repository : IRepository
         => TryResolveDefault(type, scope, out var value) ? (value, true) : (null, false);
 
     public object Create(Type type, For scope) => _mutator.Mutate(type, _generator.Create(type, scope), scope)!;
+
+    public object?[] CreateMockConstructorArguments(Type type)
+        => _generator.CreateArguments(type, ConstructorCompiler.GetForMock(type));
 
     internal TValue Create<TValue>(For scope)
         => (TValue)_mutator.Mutate(typeof(TValue), _generator.Create<TValue>(scope), scope)!;

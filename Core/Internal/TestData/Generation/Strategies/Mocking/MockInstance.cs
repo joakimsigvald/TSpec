@@ -13,7 +13,8 @@ internal static class MockInstance
     private static readonly ProxyGenerator _generator = new();
     private static readonly ProxyGenerationOptions _options = new(new MockHook());
 
-    internal static object Create(Type type, Func<MethodInfo, object?[], object?> receive)
+    internal static object Create(
+        Type type, Func<MethodInfo, object?[], object?> receive, Func<object?[]> constructorArguments)
     {
         if (typeof(Delegate).IsAssignableFrom(type))
             return DelegateForwarder.Create(type, receive);
@@ -24,7 +25,24 @@ internal static class MockInstance
         if (type.IsSealed)
             throw new SetupFailed($"{type.Alias()} is sealed, so it cannot be mocked. Provide one with Using instead");
 
-        return _generator.CreateClassProxy(type, _options, new Interceptor(type, receive));
+        return CreateClassProxy(type, new Interceptor(type, receive), constructorArguments());
+    }
+
+    private static object CreateClassProxy(Type type, IInterceptor interceptor, object?[] arguments)
+    {
+        if (arguments.Length == 0)
+            return _generator.CreateClassProxy(type, _options, interceptor);
+
+        try
+        {
+            return _generator.CreateClassProxy(type, _options, arguments!, interceptor);
+        }
+        catch (TargetInvocationException ex) when (ex.InnerException is { } rejection)
+        {
+            throw new SetupFailed(
+                $"Provide {type.Alias()} with Using instead of a mock: its constructor threw "
+                + $"{rejection.GetType().Name} for the arguments TSpec generated", rejection);
+        }
     }
 
     private sealed class Interceptor(Type type, Func<MethodInfo, object?[], object?> receive) : IInterceptor

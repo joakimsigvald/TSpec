@@ -25,6 +25,8 @@ internal class FluentDefaultProvider(IRepository repository)
             : repository.Create(type, For.Subject);
     }
 
+    internal object?[] GetConstructorArguments(Type mockedType) => repository.CreateMockConstructorArguments(mockedType);
+
     private Exception? GetDefaultException(Type type)
         => _defaultExceptions.TryGetValue(type, out var ex) ? ex() : null;
 

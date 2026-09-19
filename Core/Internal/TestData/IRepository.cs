@@ -7,4 +7,5 @@ internal interface IRepository
     bool TryResolveDefault(Type type, For scope, out object? val);
     (object? val, bool found) Use(Type type, For scope);
     object Create(Type type, For scope);
+    object?[] CreateMockConstructorArguments(Type type);
 }

@@ -1,4 +1,5 @@
 ﻿using TSpec.Internal.TestData.Generation.Strategies;
+using TSpec.Internal.TestData.Generation.Strategies.IlCompilation;
 using TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 namespace TSpec.Internal.TestData.Generation;
@@ -31,6 +32,10 @@ internal class DataGenerator(
     internal TValue Create<TValue>(For scope) => (TValue)Create(typeof(TValue), scope)!;
     internal object? Create(Type type, For scope) => Create(new GenerationRequest(type, true, [], this, scope));
     internal object? CreateNew(Type type, For scope) => Create(new GenerationRequest(type, false, [], this, scope));
+
+    /// The arguments a mock's constructor is called with, built as the subject's are.
+    internal object?[] CreateArguments(Type type, CompiledParameter[] parameters)
+        => ConstructorArguments.Of(parameters, new GenerationRequest(type, true, [], this, For.Subject), []);
 
     // Only what the test said: the strategies that answer from the setup, plus a mock the test
     // has already arranged. Nothing here invents a value.

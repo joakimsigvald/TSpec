@@ -13,8 +13,7 @@ internal class ObjectStrategy : IGenerationStrategy
     public bool TryGenerate(GenerationRequest request, ref object? result)
     {
         var type = request.Type;
-        var stack = request.Stack;
-        List<string>? honouredDefaults = null;
+        var honouredDefaults = new List<string>();
         result = InstantiateWithConstructor()
             ?? InstantiateWithConversionOperator()
             ?? (type.IsValueType ? Activator.CreateInstance(request.Type) : null);
@@ -29,16 +28,14 @@ internal class ObjectStrategy : IGenerationStrategy
             if (compiled.Instantiate is null)
                 return null;
 
-            var args = new object?[compiled.Parameters.Length];
-            for (int i = 0; i < compiled.Parameters.Length; i++)
-                args[i] = Fill(compiled.Parameters[i]);
+            var args = ConstructorArguments.Of(compiled.Parameters, request, honouredDefaults);
             try
             {
                 return compiled.Instantiate(args!);
             }
             catch (Exception ex)
             {
-                honouredDefaults = null;
+                honouredDefaults.Clear();
                 object instance;
                 try
                 {
@@ -56,19 +53,6 @@ internal class ObjectStrategy : IGenerationStrategy
                     + $"Arrange it with Using<{type.Name}>(...) or Given().A<{type.Name}>(...) if that is not what you want.");
                 return instance;
             }
-        }
-
-        // A parameter with a default value says what the class runs without, so building the
-        // subject fills it with what the test arranged and lets the default stand for the rest.
-        object? Fill(CompiledParameter parameter)
-        {
-            if (!parameter.HasDefault || !request.Scope.HasFlag(For.Subject))
-                return request.Next.Create(parameter.Type);
-            if (request.Next.TryCreateFromSetup(parameter.Type, out var arranged))
-                return arranged;
-
-            (honouredDefaults ??= []).Add(parameter.Name);
-            return parameter.Default;
         }
 
         object? InstantiateWithConversionOperator()
@@ -104,6 +88,6 @@ internal class ObjectStrategy : IGenerationStrategy
         }
 
         bool CarriesAHonouredDefault(string propertyName)
-            => honouredDefaults?.Any(parameterName => string.Equals(parameterName, propertyName, StringComparison.OrdinalIgnoreCase)) ?? false;
+            => honouredDefaults.Any(parameterName => string.Equals(parameterName, propertyName, StringComparison.OrdinalIgnoreCase));
     }
 }

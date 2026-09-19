@@ -25,6 +25,7 @@
 			ADDED
 			* A mocked property's set is set up or verified as Set(_.Name, value), since an expression cannot assign
 			* A mocked property's read is verified as Get(_.Name), with one type argument: Then&lt;IIdSource&gt;(_ =&gt; Get(_.Name), Once)
+			* A class with no parameterless constructor is mocked through its greediest, protected ones included, with arguments built as the subject's are
 			REMOVED
 			CHANGED
 			* Mock calls made while arranging, the subject's constructor included, are no longer counted

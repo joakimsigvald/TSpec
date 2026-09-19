@@ -9,16 +9,37 @@ internal static class ConstructorCompiler
 {
     private static readonly ConcurrentDictionary<Type, CompiledConstructor> _cache = [];
 
+    private static readonly ConcurrentDictionary<Type, CompiledParameter[]> _mockCache = [];
+
     internal static CompiledConstructor Get(Type type) => _cache.GetOrAdd(type, Compile);
+
+    /// <summary>
+    /// The parameters of the constructor a mock of the type is made with: none where it has a
+    /// parameterless one, which a class built to be mocked keeps for that; else those of its greediest,
+    /// a protected one included, as the mock is a subclass.
+    /// </summary>
+    internal static CompiledParameter[] GetForMock(Type type) => _mockCache.GetOrAdd(type, DescribeForMock);
 
     private static CompiledConstructor Compile(Type type)
     {
-        var constructor = GetGreediestConstructor(type);
+        var constructor = GetGreediestConstructor(type.GetConstructors());
         return constructor is null ? new(null, []) : CompileConstructor(constructor);
     }
 
-    private static ConstructorInfo? GetGreediestConstructor(Type type) =>
-        type.GetConstructors().OrderByDescending(c => c.GetParameters().Length).FirstOrDefault();
+    private static CompiledParameter[] DescribeForMock(Type type)
+    {
+        var constructors = type
+            .GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            .Where(constructor => constructor.IsPublic || constructor.IsFamily || constructor.IsFamilyOrAssembly)
+            .ToArray();
+        if (constructors.Any(constructor => constructor.GetParameters().Length == 0))
+            return [];
+
+        return GetGreediestConstructor(constructors) is { } greediest ? GetParameters(greediest) : [];
+    }
+
+    private static ConstructorInfo? GetGreediestConstructor(ConstructorInfo[] constructors) =>
+        constructors.OrderByDescending(c => c.GetParameters().Length).FirstOrDefault();
 
     private static CompiledConstructor CompileConstructor(ConstructorInfo constructor)
     {

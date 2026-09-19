@@ -65,40 +65,19 @@ or M5 that is worse without it. Done items are struck through.
 
 1. ~~**A concrete class that is set up is ignored.**~~ Done in 3.1.0; continued in item 5.
 2. ~~**Calls made while arranging are counted.**~~ Done in 3.1.0.
-3. **Mocking properties.** Design the parts together (PO, 2026-09-19).
-   - Rule (PO): a mock assumes nothing about a property the test did not arrange — no stored set, no
-     stable value, since `NextId` may answer anew on every read.
-   - Works (probed): a getter through `That(_ => _.NextId)` with `Returns`, `Throws`, `Tap` and
-     `First`/`AndNext`; an indexer getter through `That(_ => _[1])`, pinned in
-     `WhenTheSuggestedSetupIsFollowed`.
-   - ~~Untrue: a set the test makes on a mock is ignored while the specification states it.~~ Done.
-   - ~~Untrue: a setup lambda reading a mock gets the default though the mock is arranged.~~ Done.
-   - ~~Untrue: `Then<IIdSource>(nameof(IIdSource.NextId), Once)` fails "never invoked".~~ Done.
-   - On evidence, each waiting for a real spec that needs it:
-     - ~~Arranging and verifying a set.~~ Done, see Done. Not taken (PO): a set through a chain,
-       `Set(_.Child.Name, …)`, refused as naming no call on the service; a test reaches the child
-       more simply, e.g. `Given<IChild>().That(_ => Set(_.Name, …))`. A protected property's setter,
-       which `ThatProtected` cannot name (it takes the getter), is left to the by-name rework, item 9
-       (PO: not important).
-     - A property that keeps what is set and answers it when read (PO's idea; Moq's `SetupProperty`),
-       e.g. `Given<IIdSource>().That(_ => _.Name).Keeps()`. It would also verify a set, by reading it
-       back after the act. Undecided: a transform on the kept value, which a fake given with `Using`
-       may state better.
-   - ~~Verifying a read with one type argument.~~ Done, see Done.
-4. **A service-wide default that no member answers with.** `Given<PlainClient>().Returns(() =>
-   "mocked")` on a class whose `string` members are not virtual reads "Given PlainClient returns
-   "mocked"", and they answer "real" (probed). To decide: refuse a default no interceptable member of
-   the mocked type returns, for an interface too, where it is vacuous rather than untrue.
+3. ~~**Mocking properties.**~~ Done in 3.1.0, see Done. Rule (PO): a mock assumes nothing about a
+   property the test did not arrange — no stored set, no stable value. Not taken (PO): a set through
+   a chain, `Set(_.Child.Name, …)`, since `Given<IChild>().That(_ => Set(_.Name, …))` reaches the
+   child more simply. A protected property's setter, which `ThatProtected` cannot name, is left to the
+   by-name rework, item 9 (PO: not important). A property that keeps what is set is item 19.
+4. ~~**A service-wide default that no member answers with.**~~ Not taken (PO, 2026-09-19): the
+   default is valid, e.g. in a base test class, and one the type has no use for is unhelpful rather
+   than wrong, which is the developer's to see, not the framework's to prevent.
 
 ### B. Decided, to build
 
 5. **Mocking a class, continued** (PO, 2026-09-15: support it).
-   - A class with no parameterless constructor, abstract or set up: today Castle's
-     `ArgumentException` "Can not instantiate proxy of class … Could not find a parameterless
-     constructor", as Moq 4.20.72 threw; `Using<X>(subclassInstance)` works. As an input object is
-     made: the constructor with the most parameters, arguments generated, handed to
-     `CreateClassProxy`. To settle: protected constructors (`ConstructorCompiler` sees public ones
-     only), and a base constructor that rejects generated arguments.
+   - ~~A class with no parameterless constructor.~~ Done, see Done.
    - A chain through a class — the Azure clients' `GetBlobContainerClient(…).GetBlobClient(…)` — is
      refused, untruly since 3.1: "IClientFactory.Client returns a VirtualClient, which TSpec does not
      mock" (probed).
@@ -137,6 +116,10 @@ or M5 that is worse without it. Done items are struck through.
 18. **`Any<T>()` inside an argument, matched by structure** (PO, 2026-09-15: revisit, possibly
     support). To decide: members an initializer leaves out, positional records, nesting inside a
     constraint's own lambda.
+19. **A property that keeps what is set** and answers it when read (PO's idea; Moq's
+    `SetupProperty`), e.g. `Given<IIdSource>().That(_ => _.Name).Keeps()`. It would also verify a set,
+    by reading it back after the act. Undecided: a transform on the kept value, which a fake given
+    with `Using` may state better.
 
 **Not taken:**
 - `Verifiable`/`VerifyAll`: verification belongs in `Then`.
@@ -245,3 +228,11 @@ or M5 that is worse without it. Done items are struck through.
   non-void method call. `Get` in a setup is refused for `That(_ => _.Name)`, which can answer (PO).
   The two-argument form still works, undocumented. Pinned in `WhenAPropertyReadIsVerified`.
   2026-09-19.
+- **3.1.0** — a class with no parameterless constructor is mocked: a parameterless one, public or
+  protected, is still used where there is one, as a class built to be mocked keeps it for that; else
+  the greediest, protected ones included, as the mock is a subclass (`ConstructorCompiler.GetForMock`).
+  Its arguments are filled as the subject's are, a default kept unless the test arranged the type,
+  by `ConstructorArguments`, extracted from `ObjectStrategy` for both (PO: reuse). A constructor
+  rejecting them is refused: "Provide ThreeLetterCode with Using instead of a mock: its constructor
+  threw ArgumentException for the arguments TSpec generated, because: …". A release-notes line only.
+  Pinned in `WhenAClassHasNoParameterlessConstructor`. 2026-09-19.

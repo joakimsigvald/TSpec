@@ -23,7 +23,7 @@ internal sealed class MockHandle
         _log = new(shared?._log);
         _setups = new(shared?._setups);
         _children = new(mocks, shared?._children);
-        _instance = MockInstance.Create(mockedType, Receive);
+        _instance = MockInstance.Create(mockedType, Receive, () => mocks.Defaults.GetConstructorArguments(mockedType));
         _log.RecordsCallsOf(_instance);
     }
 
