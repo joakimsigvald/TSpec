@@ -22,7 +22,7 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
     protected Fixture()
     {
         _fixture = new(this);
-        _context = new(this, _disposalTracker, _phase);
+        _context = new(this, _disposalTracker, _phase, new());
         Specification = SpecificationContext.Create();
     }
 

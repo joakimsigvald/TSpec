@@ -81,13 +81,7 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         return _context.Apply(tag, mutation);
     }
 
-    internal TValue Create<TValue>(Action<TValue> setup) => ApplyTo(setup, _context.Create<TValue>());
-
-    private static TValue ApplyTo<TValue>(Action<TValue> setup, TValue value)
-    {
-        setup.Invoke(value);
-        return value;
-    }
+    internal TValue Create<TValue>(Action<TValue> setup) => _context.Create(setup);
 
     internal TValue Apply<TValue>(Mutation<TValue> mutation, int? index = null)
     {

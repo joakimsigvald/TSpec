@@ -2,10 +2,11 @@
 
 namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
-internal class MockingStrategy(FluentDefaultProvider fluentDefaultProvider, IPipelinePhase phase) : IGenerationStrategy
+internal class MockingStrategy(
+    FluentDefaultProvider fluentDefaultProvider, IPipelinePhase phase, SetupLambda setupLambda) : IGenerationStrategy
 {
     private readonly FluentDefaultProvider _defaults = fluentDefaultProvider;
-    private readonly MockRegistry _registry = new(fluentDefaultProvider, phase);
+    private readonly MockRegistry _registry = new(fluentDefaultProvider, phase, setupLambda);
 
     internal MockHandle GetMock(Type type) => _registry.GetMock(type);
 

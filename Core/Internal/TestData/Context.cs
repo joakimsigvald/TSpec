@@ -5,9 +5,13 @@ using TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 namespace TSpec.Internal.TestData;
 
-internal class Context(ISpecificationProvider specificationProvider, DisposalTracker disposalTracker, IPipelinePhase phase)
+internal class Context(
+    ISpecificationProvider specificationProvider,
+    DisposalTracker disposalTracker,
+    IPipelinePhase phase,
+    SetupLambda setupLambda)
 {
-    private readonly Repository _repository = new(specificationProvider, disposalTracker, phase);
+    private readonly Repository _repository = new(specificationProvider, disposalTracker, phase, setupLambda);
     private readonly Dictionary<Type, Dictionary<object, int>> _tagIndices = [];
     private readonly HashSet<string> _tagNames = new(StringComparer.Ordinal);
     private readonly HashSet<(Type, int)> _readWhileDeclaring = [];
@@ -99,9 +103,9 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
                 return newValue;
             try
             {
-                return mutation.Apply(newValue, index);
+                return setupLambda.Run(() => mutation.Apply(newValue, index));
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not SetupFailed)
             {
                 throw new SetupFailed("Failed to apply transform", ex);
             }
@@ -124,15 +128,18 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
         => _repository.AddDefaultSetup(
             typeof(TModel),
             scope,
-            obj =>
+            RunAsSetupLambda(obj =>
             {
                 if (obj is TModel model)
                     setup(model);
                 return obj;
-            });
+            }));
 
     internal void SetDefault<TValue>(Func<TValue, TValue> setup, For scope)
-        => _repository.AddDefaultSetup(typeof(TValue), scope, _ => setup((TValue)_)!);
+        => _repository.AddDefaultSetup(typeof(TValue), scope, RunAsSetupLambda(_ => setup((TValue)_)!));
+
+    private Func<object, object> RunAsSetupLambda(Func<object, object> setup)
+        => obj => setupLambda.Run(() => setup(obj));
 
     internal TValue[] AssignMany<TValue>(TValue[] values)
         => Assign(values);
@@ -162,6 +169,16 @@ internal class Context(ISpecificationProvider specificationProvider, DisposalTra
         => Assign(Enumerable.Range(0, count).Select(i => Apply(mutation with { }, i)).ToArray());
 
     internal TValue Create<TValue>() => _repository.Create<TValue>(For.Input);
+
+    internal TValue Create<TValue>(Action<TValue> setup)
+    {
+        var value = Create<TValue>();
+        return setupLambda.Run(() =>
+        {
+            setup(value);
+            return value;
+        });
+    }
 
     internal MockHandle GetMock<TObject>() where TObject : class
         => _repository.GetMock<TObject>();

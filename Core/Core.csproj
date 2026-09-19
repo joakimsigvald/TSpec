@@ -25,6 +25,7 @@
 			REMOVED
 			CHANGED
 			* Mock calls made while arranging, the subject's constructor included, are no longer counted
+			* Setting a mock's property in a setup lambda, which the mock ignored, is refused with the setup to use instead
 			FIXED
 			* A concrete class set up with Given&lt;T&gt;() is now mocked instead of ignored
 		</PackageReleaseNotes>

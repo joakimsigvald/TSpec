@@ -11,7 +11,8 @@ or two lines.
 - **Where it lives**: `Core/Internal/TestData/Generation/Strategies/Mocking/`.
   - `MockHandle` — one mock. Castle makes the instance (a proxy of `object` implementing an interface,
     or of a class); `DelegateForwarder` compiles a delegate. Every call is logged as a
-    `MockInvocation`, then answered by the latest matching setup, else by `FluentDefaultProvider`.
+    `MockInvocation` with the pipeline phase it was made in, then answered by the latest matching
+    setup, else by `FluentDefaultProvider`. Only calls made from `Act` on are counted.
     Of `object`'s members only `ToString` is intercepted, answering with the type's alias.
   - `CallMatcher` — which calls a setup or verification is about: method (through overrides, with
     generic type arguments), property getter or delegate invocation; arguments by value (collections
@@ -66,9 +67,11 @@ or M5 that is worse without it. Done items are struck through.
      stable value, since `NextId` may answer anew on every read.
    - Works (probed): a getter through `That(_ => _.NextId)` with `Returns`, `Throws`, `Tap` and
      `First`/`AndNext`; an indexer getter through `That(_ => _[1])`, unpinned.
-   - Untrue: a set the test makes on a mock is ignored while the specification states it.
-     `A<IIdSource>(s => s.Name = "arranged")` reads "Given a IIdSource with Name = "arranged"", and
-     the getter answers "String1". Refuse it, pointing at `That(_ => _.Name).Returns(…)`.
+   - ~~Untrue: a set the test makes on a mock is ignored while the specification states it.~~ Done.
+   - Untrue, found building that: `Using<IIdSource>(s => s.Name = "x")` hands the subject null (a
+     `NullReferenceException` in the act); a setup lambda reading a mock,
+     `A<Order>(o => o.Label = The<IIdSource>().Name)`, gets the default though `Name` is arranged, as
+     the value is arranged before the mock is.
    - Untrue: `Then<IIdSource>(nameof(IIdSource.NextId), Once)` fails "never invoked" above a listing
      of `IIdSource.NextId`; `TestResult.VerifyInvoked` compares `Method.Name` (`get_NextId`).
    - On evidence: a setter setup, since an expression tree cannot assign (Moq's `SetupSet` runs a
@@ -203,3 +206,11 @@ or M5 that is worse without it. Done items are struck through.
   of arranging, so its constructor's calls are not either (PO). A chain reached while arranging still
   leads on. Pinned in `WhenCallsAreMadeWhileArranging` and `WhenAChainIsReachedWhileArranging`.
   2026-09-19.
+- **3.1.0, refactor** — one pipeline phase, `Declare → Arrange → Act → Assert`, advanced only by the
+  `Fixture` and read through `IPipelinePhase`; running a pipeline again after it failed throws an
+  `InvalidOperationException` pointing to GitHub issues (PO). Mock logs are `ConcurrentQueue`s.
+  2026-09-19.
+- **3.1.0** — a property or indexer set on any mock while a setup lambda (`A`…, `One`…, `Any`,
+  `Using`) runs is refused, naming `That(…).Returns(…)` with the value where it is a literal, else
+  `…` (PO: sets only, other calls if a real spec shows them). Pinned in
+  `WhenASetupSetsAPropertyOnAMock` and `WhenAUsingSetupSetsAPropertyOnAMock`. 2026-09-19.

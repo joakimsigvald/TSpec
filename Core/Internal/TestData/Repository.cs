@@ -16,11 +16,15 @@ internal class Repository : IRepository
     private readonly Dictionary<Type, Dictionary<int, object?>> _numberedMentions = [];
     private readonly ISpecificationProvider _specificationProvider;
 
-    public Repository(ISpecificationProvider specificationProvider, DisposalTracker disposalTracker, IPipelinePhase phase)
+    public Repository(
+        ISpecificationProvider specificationProvider,
+        DisposalTracker disposalTracker,
+        IPipelinePhase phase,
+        SetupLambda setupLambda)
     {
         _dataProvider = new();
         _fluentDefaultProvider = new(this);
-        _mockingStrategy = new(_fluentDefaultProvider, phase);
+        _mockingStrategy = new(_fluentDefaultProvider, phase, setupLambda);
         _generator = new(new(), _typeConversionStrategy, new(this), _mockingStrategy, disposalTracker);
         _specificationProvider = specificationProvider;
     }

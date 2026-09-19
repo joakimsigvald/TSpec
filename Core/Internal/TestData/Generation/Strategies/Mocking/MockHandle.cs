@@ -130,10 +130,17 @@ internal sealed class MockHandle
     /// with is logged after.
     private object? Receive(MethodInfo method, object?[] arguments)
     {
+        AssertIsNotSetInASetup(method, arguments);
         var invocation = new MockInvocation(method, [.. arguments], this, _mocks.Phase);
         Log(invocation);
         invocation.Answer = Respond(method, arguments);
         return invocation.Answer;
+    }
+
+    private void AssertIsNotSetInASetup(MethodInfo method, object?[] arguments)
+    {
+        if (_mocks.IsRunningSetupLambda && SetInASetup.IsPropertySet(method))
+            throw SetInASetup.Refusal(MockedType, method, arguments);
     }
 
     /// <summary>
