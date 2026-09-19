@@ -13,7 +13,9 @@ internal class MockRegistry(FluentDefaultProvider defaultProvider, IPipelinePhas
 
     internal Phase Phase => phase.Current;
 
-    internal bool IsRunningSetupLambda => setupLambda.IsRunning;
+    internal FluentDefaultProvider Defaults => defaultProvider;
 
-    private MockHandle CreateMock(Type type) => new(type, defaultProvider, this);
+    internal SetupGuard Guard { get; } = new(phase, setupLambda);
+
+    private MockHandle CreateMock(Type type) => new(type, this);
 }

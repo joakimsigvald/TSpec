@@ -9,11 +9,13 @@ or two lines.
 ## 1. The engine
 
 - **Where it lives**: `Core/Internal/TestData/Generation/Strategies/Mocking/`.
-  - `MockHandle` — one mock. Castle makes the instance (a proxy of `object` implementing an interface,
-    or of a class); `DelegateForwarder` compiles a delegate. Every call is logged as a
-    `MockInvocation` with the pipeline phase it was made in, then answered by the latest matching
-    setup, else by `FluentDefaultProvider`. Only calls made from `Act` on are counted.
-    Of `object`'s members only `ToString` is intercepted, answering with the type's alias.
+  - `MockHandle` — one mock, receiving each call in three steps: `SetupGuard` refuses what a setup
+    lambda may not do, `CallLog` records it as a `MockInvocation` with the pipeline phase it was made
+    in (and counts, chains included), `CallSetups` answers with the latest matching setup, else
+    `FluentDefaultProvider` does. Only calls made from `Act` on are counted. `MockInstance` makes the
+    instance: a Castle proxy of `object` implementing an interface, or of a class, or a delegate
+    `DelegateForwarder` compiles; of `object`'s members only `ToString` is intercepted, answering
+    with the type's alias.
   - `CallMatcher` — which calls a setup or verification is about: method (through overrides, with
     generic type arguments), property getter or delegate invocation; arguments by value (collections
     by content), `Any<T>()`, `Any<T>(constraint)`; out arguments match anything and get the setup's

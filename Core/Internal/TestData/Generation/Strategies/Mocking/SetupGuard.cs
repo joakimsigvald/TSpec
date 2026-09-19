@@ -1,21 +1,31 @@
 using System.Reflection;
+using TSpec.Internal.Pipelines;
 using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
-/// <summary>
-/// A mock keeps nothing set on it, and is set up only after the values are arranged, so a setup lambda
-/// setting its property would be lost, and one reading it before then would get the unarranged answer.
-/// </summary>
-internal static class PropertyInASetup
+/// What a setup lambda may not do to a mock, since the mock would not answer as the specification states.
+internal sealed class SetupGuard(IPipelinePhase phase, SetupLambda setupLambda)
 {
-    internal static bool IsSet(MethodInfo method)
+    internal void Check(Type mockedType, MethodInfo method, object?[] arguments)
+    {
+        if (!setupLambda.IsRunning)
+            return;
+
+        if (IsSet(method))
+            throw SetRefusal(mockedType, method, arguments);
+        if (phase.Current < Phase.Mock && IsRead(method))
+            throw ReadRefusal(mockedType, method, arguments);
+    }
+
+    private static bool IsSet(MethodInfo method)
         => method.IsSpecialName && method.Name.StartsWith("set_");
 
-    internal static bool IsRead(MethodInfo method)
+    private static bool IsRead(MethodInfo method)
         => method.IsSpecialName && method.Name.StartsWith("get_");
 
-    internal static SetupFailed SetRefusal(Type mockedType, MethodInfo method, object?[] arguments)
+    /// A mock keeps nothing set on it, so the set would be lost while the specification states it.
+    private static SetupFailed SetRefusal(Type mockedType, MethodInfo method, object?[] arguments)
     {
         var service = mockedType.Alias();
         var access = AccessOf(method, arguments[..^1]);
@@ -25,7 +35,8 @@ internal static class PropertyInASetup
             + $"Arrange it with Given<{service}>().That(_ => _{access}).Returns(() => {value})");
     }
 
-    internal static SetupFailed ReadRefusal(Type mockedType, MethodInfo method, object?[] arguments)
+    /// Mocks are set up after the values are arranged, so a read before then gets the unarranged answer.
+    private static SetupFailed ReadRefusal(Type mockedType, MethodInfo method, object?[] arguments)
     {
         var service = mockedType.Alias();
         var access = AccessOf(method, arguments);

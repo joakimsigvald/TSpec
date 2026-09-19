@@ -7,7 +7,7 @@ namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 /// the arguments it was called with — and is made the first time its address is reached, with every
 /// chained setup whose first step matches it.
 /// </summary>
-internal sealed class MockChildren(FluentDefaultProvider defaults, MockRegistry mocks, MockChildren? sharedChildren)
+internal sealed class MockChildren(MockRegistry mocks, MockChildren? sharedChildren)
 {
     private readonly List<ChainedSetup> _chains = [];
     private readonly List<Child> _children = [];
@@ -25,7 +25,7 @@ internal sealed class MockChildren(FluentDefaultProvider defaults, MockRegistry 
             if (_children.FirstOrDefault(child => child.Address.Matches(method, arguments)) is { } reached)
                 return reached.Mock;
 
-            var mock = new MockHandle(childType, defaults, mocks, mocks.GetMock(childType));
+            var mock = new MockHandle(childType, mocks, mocks.GetMock(childType));
             _children.Add(new(CallMatcher.Exactly(method, arguments), mock));
             foreach (var chain in ChainsFor(method, arguments))
                 chain.SetUpChild(mock);

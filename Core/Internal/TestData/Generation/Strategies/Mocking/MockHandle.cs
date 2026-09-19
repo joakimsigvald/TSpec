@@ -1,10 +1,5 @@
-using Castle.DynamicProxy;
-using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using TSpec.Internal.Pipelines;
-using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
@@ -13,42 +8,30 @@ namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 /// calls that instance received. Castle makes the instance; every call it receives is logged, then
 /// answered by the latest setup that matches it, or else by TSpec's defaults.
 /// </summary>
-/// <remarks>
-/// A call is set up with one answer: a function from the call's arguments to what it answers with,
-/// or a throw. Reading the call and answering it are the same function, so a tap, an outcome and a
-/// sequence step compose without an order to rely on. The answer produces a value of its own answer
-/// type; where the call is awaited and that is the value inside the task, the task is made here.
-/// </remarks>
 internal sealed class MockHandle
 {
-    private static readonly ProxyGenerator _generator = new();
-    private static readonly ProxyGenerationOptions _options = new(new MockHook());
-    private static readonly ConditionalWeakTable<object, MockHandle> _handles = [];
-
-    private readonly FluentDefaultProvider _defaults;
     private readonly MockRegistry _mocks;
-    private readonly MockHandle? _shared;
-    private readonly ConcurrentQueue<MockInvocation> _invocations = [];
-    private readonly ConcurrentQueue<CallSetup> _setups = [];
+    private readonly CallLog _log;
+    private readonly CallSetups _setups;
     private readonly MockChildren _children;
     private readonly object? _instance;
 
-    internal MockHandle(Type mockedType, FluentDefaultProvider defaults, MockRegistry mocks, MockHandle? shared = null)
+    internal MockHandle(Type mockedType, MockRegistry mocks, MockHandle? shared = null)
     {
         MockedType = mockedType;
-        _defaults = defaults;
         _mocks = mocks;
-        _shared = shared;
-        _children = new(defaults, mocks, shared?._children);
-        _instance = Create(mockedType);
-        _handles.Add(_instance, this);
+        _log = new(shared?._log);
+        _setups = new(shared?._setups);
+        _children = new(mocks, shared?._children);
+        _instance = MockInstance.Create(mockedType, Receive);
+        _log.RecordsCallsOf(_instance);
     }
 
     internal Type MockedType { get; }
 
     internal object Instance => _instance!;
 
-    internal IReadOnlyList<MockInvocation> CountedInvocations => [.. _invocations.Where(call => call.IsCounted)];
+    internal IReadOnlyList<MockInvocation> CountedInvocations => _log.Counted;
 
     internal void Answer<TService>(Expression<Action<TService>> call, Func<IReadOnlyList<object>, object?> answer)
         where TService : class
@@ -65,37 +48,9 @@ internal sealed class MockHandle
     /// </summary>
     internal void Answer<TService>(MemberInfo member, Type answerType, Func<IReadOnlyList<object>, object?> answer)
         where TService : class
-        => SetUp(CallMatcher.For(member), answerType, answer);
+        => _setups.Add(CallMatcher.For(member), answerType, answer);
 
-    internal int CountCalls(LambdaExpression call) => Counting(call)(_invocations);
-
-    /// <summary>
-    /// A count made ready to take over a mock's calls; every step of a chain is read now. The rest of a
-    /// chain is counted on each mock its first step answered with, once, among the calls that mock
-    /// received itself. A step taken while arranging still leads on to the mock it answered with.
-    /// </summary>
-    private static Func<IEnumerable<MockInvocation>, int> Counting(LambdaExpression call)
-    {
-        if (!CallChain.TrySplit(call, out var firstStep, out var rest))
-        {
-            var matcher = CallMatcher.For(call);
-            return calls => calls.Count(called => called.IsCounted && matcher.Matches(called));
-        }
-
-        var step = CallMatcher.For(firstStep);
-        var countRest = Counting(rest);
-        return calls => calls
-            .Where(step.Matches)
-            .Select(reached => HandleOf(reached.Answer))
-            .OfType<MockHandle>()
-            .Distinct()
-            .Sum(mock => countRest(mock.OwnInvocations));
-    }
-
-    private IEnumerable<MockInvocation> OwnInvocations => _invocations.Where(call => call.Receiver == this);
-
-    private static MockHandle? HandleOf(object? answer)
-        => AsyncAnswer.ValueOf(answer) is { } value && _handles.TryGetValue(value, out var mock) ? mock : null;
+    internal int CountCalls(LambdaExpression call) => _log.Count(call);
 
     /// <summary>
     /// A setup made ready to apply to a mock. Every step of a chain is read now, as the setup is made,
@@ -107,7 +62,7 @@ internal sealed class MockHandle
         if (!CallChain.TrySplit(call, out var firstStep, out var rest))
         {
             var matcher = CallMatcher.For(call);
-            return mock => mock.SetUp(matcher, answerType, answer);
+            return mock => mock._setups.Add(matcher, answerType, answer);
         }
 
         var step = CallMatcher.For(firstStep);
@@ -119,33 +74,18 @@ internal sealed class MockHandle
     private void SetUpChain(CallMatcher firstStep, Type childType, Action<MockHandle> setUpChild)
     {
         _children.Add(firstStep, setUpChild);
-        SetUp(firstStep, childType, arguments => _children.At(firstStep.Method, childType, arguments).Instance);
+        _setups.Add(firstStep, childType, arguments => _children.At(firstStep.Method, childType, arguments).Instance);
     }
-
-    private void SetUp(CallMatcher matcher, Type answerType, Func<IReadOnlyList<object>, object?> answer)
-        => _setups.Enqueue(new(
-            matcher, arguments => AsyncAnswer.Respond(matcher.ReturnType, answerType, () => answer(arguments!))));
 
     /// A call is logged before it is answered, so whatever answers it may read the log; what it answered
     /// with is logged after.
     private object? Receive(MethodInfo method, object?[] arguments)
     {
-        AssertIsAllowedInASetup(method, arguments);
-        var invocation = new MockInvocation(method, [.. arguments], this, _mocks.Phase);
-        Log(invocation);
+        _mocks.Guard.Check(MockedType, method, arguments);
+        var invocation = new MockInvocation(method, [.. arguments], _mocks.Phase);
+        _log.Record(invocation);
         invocation.Answer = Respond(method, arguments);
         return invocation.Answer;
-    }
-
-    private void AssertIsAllowedInASetup(MethodInfo method, object?[] arguments)
-    {
-        if (!_mocks.IsRunningSetupLambda)
-            return;
-
-        if (PropertyInASetup.IsSet(method))
-            throw PropertyInASetup.SetRefusal(MockedType, method, arguments);
-        if (_mocks.Phase < Phase.Mock && PropertyInASetup.IsRead(method))
-            throw PropertyInASetup.ReadRefusal(MockedType, method, arguments);
     }
 
     /// <summary>
@@ -156,88 +96,15 @@ internal sealed class MockHandle
     private object? Respond(MethodInfo method, object?[] arguments)
     {
         var returnType = method.ReturnType;
-        if (LatestMatching(method, arguments) is { } setup)
-        {
-            setup.Matcher.WriteOutArguments(arguments);
-            return setup.Respond(arguments) ?? DefaultOf(returnType);
-        }
+        if (_setups.TryAnswer(method, arguments, out var answer))
+            return answer ?? DefaultOf(returnType);
         if (returnType == typeof(void))
             return null;
         if (_instance is null)
             return DefaultOf(returnType);
-        return _defaults.GetDefaultValue(returnType, this) ?? DefaultOf(returnType);
+        return _mocks.Defaults.GetDefaultValue(returnType, this) ?? DefaultOf(returnType);
     }
-
-    /// A child's call is logged on the shared mock of its type too, which so counts every call to the type.
-    private void Log(MockInvocation invocation)
-    {
-        _invocations.Enqueue(invocation);
-        _shared?.Log(invocation);
-    }
-
-    /// A child's own setups come first; a call they leave unanswered goes to the shared mock's setups.
-    private CallSetup? LatestMatching(MethodInfo method, object?[] arguments)
-        => OwnLatestMatching(method, arguments) ?? _shared?.LatestMatching(method, arguments);
-
-    private CallSetup? OwnLatestMatching(MethodInfo method, object?[] arguments)
-        => _setups.LastOrDefault(setup => setup.Matcher.Matches(method, arguments));
 
     private static object? DefaultOf(Type type)
         => type.IsValueType && type != typeof(void) ? Activator.CreateInstance(type) : null;
-
-    private object Create(Type type)
-    {
-        if (typeof(Delegate).IsAssignableFrom(type))
-            return DelegateForwarder.Create(type, Receive);
-
-        if (type.IsInterface)
-            return _generator.CreateClassProxy(typeof(object), [type], _options, new Interceptor(this));
-
-        if (type.IsSealed)
-            throw new SetupFailed($"{type.Alias()} is sealed, so it cannot be mocked. Provide one with Using instead");
-
-        return _generator.CreateClassProxy(type, _options, new Interceptor(this));
-    }
-
-    private sealed record CallSetup(CallMatcher Matcher, Func<object?[], object?> Respond);
-
-    private sealed class Interceptor(MockHandle mock) : IInterceptor
-    {
-        public void Intercept(IInvocation invocation)
-        {
-            if (invocation.Method.DeclaringType == typeof(object))
-            {
-                invocation.ReturnValue = mock.MockedType.Alias();
-                return;
-            }
-            invocation.ReturnValue = mock.Receive(invocation.GetConcreteMethod(), invocation.Arguments);
-        }
-    }
-
-    /// <summary>
-    /// Every member the mocked type lets a proxy override is intercepted. Of what every object has,
-    /// only ToString is, so a mock names itself as the specification names it; equality stays the
-    /// instance's own.
-    /// </summary>
-    private sealed class MockHook : IProxyGenerationHook
-    {
-        public void MethodsInspected() { }
-
-        public void NonProxyableMemberNotification(Type type, MemberInfo memberInfo) { }
-
-        public bool ShouldInterceptMethod(Type type, MethodInfo methodInfo)
-            => methodInfo.DeclaringType != typeof(object) || methodInfo.Name == nameof(ToString);
-
-        public override bool Equals(object? obj) => obj is MockHook;
-
-        public override int GetHashCode() => typeof(MockHook).GetHashCode();
-    }
-}
-
-internal sealed record MockInvocation(MethodInfo Method, IReadOnlyList<object?> Arguments, MockHandle Receiver, Phase Phase)
-{
-    internal object? Answer { get; set; }
-
-    /// Calls made while arranging are logged, but not counted.
-    internal bool IsCounted => Phase == Phase.Act;
 }
