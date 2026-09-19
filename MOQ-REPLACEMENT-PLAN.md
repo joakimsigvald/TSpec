@@ -16,12 +16,13 @@ or two lines.
     instance: a Castle proxy of `object` implementing an interface, or of a class, or a delegate
     `DelegateForwarder` compiles; of `object`'s members only `ToString` is intercepted, answering
     with the type's alias.
-  - `CallMatcher` — which calls a setup or verification is about: method (through overrides, with
-    generic type arguments), property getter or delegate invocation; arguments by value (collections
-    by content), `Any<T>()`, `Any<T>(constraint)`; out arguments match anything and get the setup's
-    value. Refuses with `SetupFailed` a non-virtual member, Moq's `It.*`, an `Any` converted to a type
-    that cannot hold it, an `Any` inside an argument (`NestedAny`), an argument that reads the mock
-    (`MockRead`).
+  - `CallMatcher` — which calls a setup or verification is about: a method (through overrides, with
+    generic type arguments), one predicate per argument, and out values, which match anything and are
+    handed back. `CallReader` reads the lambda: a method, property getter or delegate invocation on
+    the service, refusing a non-virtual member. `ArgumentMatcher` makes each predicate: by value
+    (collections by content), `Any<T>()`, `Any<T>(constraint)`. `ArgumentRefusals` refuses first
+    Moq's `It.*`, an `Any` converted to a type that cannot hold it, an `Any` inside an argument
+    (`NestedAny`), an argument that reads the mock (`MockRead`).
   - `CallChain` splits `_ => _.GetChild(2).Get(1)` into its first step and the rest; `MockChildren`
     holds a mock's chained setups and its children by address; `AsyncAnswer` faults a task on a throw
     and wraps a value in one; `MockRegistry` keeps one handle per type; `MockingStrategy` decides which

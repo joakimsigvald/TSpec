@@ -14,9 +14,9 @@ internal static class CallChain
     {
         firstStep = rest = null!;
         var service = call.Parameters[0];
-        var body = CallMatcher.Unwrap(call.Body);
+        var body = CallReader.Unwrap(call.Body);
         var receiver = ReceiverOf(body);
-        if (receiver is null || CallMatcher.Unwrap(receiver) == service)
+        if (receiver is null || CallReader.Unwrap(receiver) == service)
             return false;
 
         if (!IsReachedFrom(receiver, service))
@@ -36,9 +36,9 @@ internal static class CallChain
     {
         var calledOnStep = body;
         var step = ReceiverOf(body)!;
-        while (CallMatcher.Unwrap(ReceiverOf(CallMatcher.Unwrap(step))!) != service)
+        while (CallReader.Unwrap(ReceiverOf(CallReader.Unwrap(step))!) != service)
         {
-            calledOnStep = CallMatcher.Unwrap(step);
+            calledOnStep = CallReader.Unwrap(step);
             step = ReceiverOf(calledOnStep)!;
         }
         return (step, calledOnStep);
@@ -46,7 +46,7 @@ internal static class CallChain
 
     private static SetupFailed NotMockable(Expression receiver, Expression call)
     {
-        var returning = CallMatcher.Unwrap(receiver);
+        var returning = CallReader.Unwrap(receiver);
         return new SetupFailed(
             $"{ReceiverOf(returning)!.Type.Alias()}.{MemberName(returning)} returns {receiver.Type.Alias().WithArticle()}, "
             + $"which TSpec does not mock, so {MemberName(call)} cannot be set up or verified through it");
@@ -71,8 +71,8 @@ internal static class CallChain
 
     private static bool IsReachedFrom(Expression? expression, ParameterExpression service)
         => expression is not null
-        && (CallMatcher.Unwrap(expression) == service
-            || IsReachedFrom(ReceiverOf(CallMatcher.Unwrap(expression)), service));
+        && (CallReader.Unwrap(expression) == service
+            || IsReachedFrom(ReceiverOf(CallReader.Unwrap(expression)), service));
 
     private static Expression Replace(Expression node, Expression step, ParameterExpression child)
     {
