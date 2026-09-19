@@ -130,17 +130,22 @@ internal sealed class MockHandle
     /// with is logged after.
     private object? Receive(MethodInfo method, object?[] arguments)
     {
-        AssertIsNotSetInASetup(method, arguments);
+        AssertIsAllowedInASetup(method, arguments);
         var invocation = new MockInvocation(method, [.. arguments], this, _mocks.Phase);
         Log(invocation);
         invocation.Answer = Respond(method, arguments);
         return invocation.Answer;
     }
 
-    private void AssertIsNotSetInASetup(MethodInfo method, object?[] arguments)
+    private void AssertIsAllowedInASetup(MethodInfo method, object?[] arguments)
     {
-        if (_mocks.IsRunningSetupLambda && SetInASetup.IsPropertySet(method))
-            throw SetInASetup.Refusal(MockedType, method, arguments);
+        if (!_mocks.IsRunningSetupLambda)
+            return;
+
+        if (PropertyInASetup.IsSet(method))
+            throw PropertyInASetup.SetRefusal(MockedType, method, arguments);
+        if (_mocks.Phase < Phase.Mock && PropertyInASetup.IsRead(method))
+            throw PropertyInASetup.ReadRefusal(MockedType, method, arguments);
     }
 
     /// <summary>

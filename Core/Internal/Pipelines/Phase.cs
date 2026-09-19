@@ -1,6 +1,7 @@
 namespace TSpec.Internal.Pipelines;
 
-internal enum Phase { Declare, Arrange, Act, Assert }
+// Mock follows Arrange because a mock setup reads the values it is given as it is applied
+internal enum Phase { Declare, Arrange, Mock, Act, Assert }
 
 /// What the pipeline builds reads the phase; only the pipeline advances it.
 internal interface IPipelinePhase

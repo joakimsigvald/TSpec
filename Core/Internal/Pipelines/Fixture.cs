@@ -113,6 +113,8 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
     {
         _phase.AdvanceTo(Phase.Arrange);
         _arranger.Arrange();
+        _phase.AdvanceTo(Phase.Mock);
+        _arranger.Mock();
         return Instantiate<TSUT>();
     }
 

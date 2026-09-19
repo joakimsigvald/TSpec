@@ -57,7 +57,7 @@ internal class Context(
     }
 
     private bool WasReadBeforeArrange(Type type, int index) 
-        => phase.Current == Phase.Arrange && _readWhileDeclaring.Contains((type, index));
+        => (phase.Current is Phase.Arrange or Phase.Mock) && _readWhileDeclaring.Contains((type, index));
 
     private string NameOf(Type type, int index)
         => _namesByIndex.TryGetValue((type, index), out var name)

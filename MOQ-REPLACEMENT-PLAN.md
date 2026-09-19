@@ -69,9 +69,7 @@ or M5 that is worse without it. Done items are struck through.
      `First`/`AndNext`; an indexer getter through `That(_ => _[1])`, pinned in
      `WhenTheSuggestedSetupIsFollowed`.
    - ~~Untrue: a set the test makes on a mock is ignored while the specification states it.~~ Done.
-   - Untrue, found building that: a setup lambda reading a mock,
-     `A<Order>(o => o.Label = The<IIdSource>().Name)`, gets the default though `Name` is arranged, as
-     the value is arranged before the mock is.
+   - ~~Untrue: a setup lambda reading a mock gets the default though the mock is arranged.~~ Done.
    - ~~Untrue: `Then<IIdSource>(nameof(IIdSource.NextId), Once)` fails "never invoked".~~ Done.
    - On evidence: a setter setup, since an expression tree cannot assign (Moq's `SetupSet` runs a
      plain lambda against a recorder), e.g. `ThatSetting(_ => _.Name)`, where matching the value set
@@ -219,3 +217,8 @@ or M5 that is worse without it. Done items are struck through.
   fields and properties cannot be verified by name"; PO: a name does not say which accessor) and a
   name of no method ("IMemberKinds has no method Nme"); accessor names such as `set_Name` still
   count. Pinned in `WhenVerifyingByName`. 2026-09-19.
+- **3.1.0** — a new phase, `Declare → Arrange → Mock → Act → Assert` (PO: more may hang on it): values
+  are arranged, then mocks set up, as a mock setup reads the values it is given; the subject is built
+  last in Mock. A setup lambda reading a mock's property before Mock is refused, suggesting a shared
+  value, `That(_ => _.Name).Returns(() => The<string>())` (PO: making both orders work is the mud).
+  Pinned in `WhenASetupReadsAMock`. 2026-09-19.
