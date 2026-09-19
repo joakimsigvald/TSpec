@@ -68,8 +68,7 @@ or M5 that is worse without it. Done items are struck through.
    - Works (probed): a getter through `That(_ => _.NextId)` with `Returns`, `Throws`, `Tap` and
      `First`/`AndNext`; an indexer getter through `That(_ => _[1])`, unpinned.
    - ~~Untrue: a set the test makes on a mock is ignored while the specification states it.~~ Done.
-   - Untrue, found building that: `Using<IIdSource>(s => s.Name = "x")` hands the subject null (a
-     `NullReferenceException` in the act); a setup lambda reading a mock,
+   - Untrue, found building that: a setup lambda reading a mock,
      `A<Order>(o => o.Label = The<IIdSource>().Name)`, gets the default though `Name` is arranged, as
      the value is arranged before the mock is.
    - Untrue: `Then<IIdSource>(nameof(IIdSource.NextId), Once)` fails "never invoked" above a listing
@@ -214,3 +213,6 @@ or M5 that is worse without it. Done items are struck through.
   `Using`) runs is refused, naming `That(…).Returns(…)` with the value where it is a literal, else
   `…` (PO: sets only, other calls if a real spec shows them). Pinned in
   `WhenASetupSetsAPropertyOnAMock` and `WhenAUsingSetupSetsAPropertyOnAMock`. 2026-09-19.
+- **3.1.0** — `Using<T>(setup)` on an interface runs on its mock; it handed the subject null, as
+  building a value for a `Using` setup turned mocking off. Only `MockingStrategy` decides what is
+  mocked (PO). 2026-09-19.

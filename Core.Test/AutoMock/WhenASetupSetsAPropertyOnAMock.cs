@@ -59,6 +59,12 @@ public class WhenASetupSetsAPropertyOnAMock : Spec<Labeler, string>
             .Is("IIdSource is a mock and ignores Name = \"arranged\". "
                 + "Arrange it with Given<IIdSource>().That(_ => _.Name).Returns(() => \"arranged\")");
 
+    [Fact]
+    public void GivenUsingOnTheMockedType_ThenItIsRefusedToo()
+        => RefusalOf(() => Using<IIdSource>(s => s.Name = "arranged").Then())
+            .Is("IIdSource is a mock and ignores Name = \"arranged\". "
+                + "Arrange it with Given<IIdSource>().That(_ => _.Name).Returns(() => \"arranged\")");
+
     private static string RefusalOf(Action arrangement)
         => Xunit.Assert.Throws<SetupFailed>(arrangement).Message;
 }

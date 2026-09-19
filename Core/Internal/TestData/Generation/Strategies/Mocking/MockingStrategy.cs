@@ -12,15 +12,12 @@ internal class MockingStrategy(
 
     public bool TryGenerate(GenerationRequest request, ref object? result)
     {
-        if (!ShouldMock(request))
+        if (!ShouldMock(request.Type))
             return false;
 
         result = _registry.GetMock(request.Type).Instance;
         return true;
     }
-
-    private bool ShouldMock(GenerationRequest request)
-        => request.WithDefaultFallback && ShouldMock(request.Type);
 
     internal bool TryUseArrangedMock(GenerationRequest request, ref object? result)
     {
