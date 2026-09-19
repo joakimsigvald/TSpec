@@ -1,319 +1,203 @@
 # Moq replacement plan
 
-TSpec takes Moq off its public surface, then out of the package, then builds the mocking language it
-could not build on top of Moq. Written for a Claude session in this repository; a living document —
-correct it in place as work lands, and move a finished stage to Done as a line.
+TSpec mocks with its own engine on Castle.Core since 3.0.0 (published 2026-09-15); 3.0.1 carries the
+fixes from upgrading production projects. What remains is closing the gap to Moq, and past it where
+TSpec owns the mocking layer. Written for a Claude session in this repository; a living document —
+correct it in place as work lands, and move a finished item to Done as one or two lines.
 
-| Release | Stage | Breaks |
-|---|---|---|
-| 2.8 | Moq's `Times` leaves the public API, replaced by a TSpec-owned count | done |
-| 3.0 | Obsolete and unreachable surface is deleted; TSpec's own mocking engine on Castle.Core, the Moq package goes | published 2026-09-15 |
-| 3.1+ | A cohesive mocking language, built on the engine | additive |
-
-## 1. The engine as it stands (2026-09-15)
+## 1. The engine
 
 - **Where it lives**: `Core/Internal/TestData/Generation/Strategies/Mocking/`.
-  - `MockHandle` — one mock. Castle makes the instance: a class proxy of `object` implementing an
-    interface, or of an abstract class; `DelegateForwarder` compiles a delegate. Every call is logged
-    as a `MockInvocation`, then answered by the latest matching setup, else by `FluentDefaultProvider`.
-    Of `object`'s members only `ToString` is intercepted; it answers with the mocked type's alias.
+  - `MockHandle` — one mock. Castle makes the instance (a proxy of `object` implementing an interface,
+    or of an abstract class); `DelegateForwarder` compiles a delegate. Every call is logged as a
+    `MockInvocation`, then answered by the latest matching setup, else by `FluentDefaultProvider`.
+    Of `object`'s members only `ToString` is intercepted, answering with the type's alias.
   - `CallMatcher` — which calls a setup or verification is about: method (through overrides, with
     generic type arguments), property getter or delegate invocation; arguments by value (collections
     by content), `Any<T>()`, `Any<T>(constraint)`; out arguments match anything and get the setup's
     value. Refuses with `SetupFailed` a non-virtual member, Moq's `It.*`, an `Any` converted to a type
-    that cannot hold it, an `Any` inside an argument (`NestedAny`), and an argument that reads the
-    mock (`MockRead`).
-  - `CallChain` — splits `_ => _.GetChild(2).Get(1)` into its first step and the rest. A receiver
-    TSpec does not mock is refused naming the member that returns it ("IParent.Name returns a
-    string, which TSpec does not mock, …").
-  - `MockChildren` — a mock's chained setups and its children by address; a new child takes the
-    matching chained setups of its parent's type, then its parent's own.
-  - `AsyncAnswer` — a throw on an awaited call faults the task; a value inside a task is wrapped.
-  - `MockRegistry` — one handle per type; `MockingStrategy` — which types are mocked.
-  - `ReceivedCalls` — the calls a mock received, written as calls, for a failed verification.
-  - Outside the folder: `Pipelines/MockCallSequence` — a sequence's steps, the taps written before
-    `First()` (run on every call), and nothing past the last step; `ExpressionDescriber.MockCallBinder`
-    — a member call joins its service with a dot, a delegate call with nothing.
-- **Verification by expression** counts `CallMatcher` matches in the log (`TestResult.VerifyCall`); a
-  logged call keeps what it answered with, so a chain is counted on the mocks its first step actually
-  answered with, each once. It fails like a count by name: "Expected IOrderService.CreateOrder(the ShoppingCart) to be invoked
-  once but was never invoked", then the calls the mock received (`ReceivedCalls`).
-- **Behaviour pinned, so an engine change cannot drop it silently**:
-  - unmatched calls, in order: a service-wide `Returns` value (or a task of it), the service-wide
-    exception, a `Using` value, the mock itself, a wrapped task, a generated value
-    (`WhenReturnsDefaultValue`, `WhenMockReturnsSelf`, `WhenValueTaskOfInterface`);
-  - async throws fault (`WhenAMockedAsyncCallThrows`);
-  - member kinds and Moq's unstated behaviours (`WhenMockingEachMemberKind`): `Equals`/`GetHashCode`/
-    `ToString` are not invocations, event accessors are; collections match by content; setup
-    arguments are read at setup; generic methods by type argument; out parameters; overloads;
-    virtual members of a class answer, non-virtual ones run their own code, and setting one up is
-    refused; delegates; internal interfaces (the test project declares
-    `InternalsVisibleTo("DynamicProxyGenAssembly2")`, as users of Moq did); `HttpMessageHandler`; how
-    a mock renders.
-- **Moq left in the repository, on purpose**: `Core.Test/AutoMock/MoqIt.cs` stands in for `Moq.It` so
-  the refusal can be tested. The package references no Moq.
-- **Probing Moq and 3.0 again**: the scratchpad is per session. A Moq 4.20.72 console probe needs
-  only the cached package; a build of the unpublished Moq-based 3.0 comes from `git archive 2a9a985`,
-  with a probe test dropped into its `Core.Test`.
-- **Inside any `TSpec.*` namespace a bare `Times` binds to `TSpec.Times`.**
+    that cannot hold it, an `Any` inside an argument (`NestedAny`), an argument that reads the mock
+    (`MockRead`).
+  - `CallChain` splits `_ => _.GetChild(2).Get(1)` into its first step and the rest; `MockChildren`
+    holds a mock's chained setups and its children by address; `AsyncAnswer` faults a task on a throw
+    and wraps a value in one; `MockRegistry` keeps one handle per type; `MockingStrategy` decides which
+    types are mocked; `ReceivedCalls` lists a mock's calls for a failed verification.
+  - Outside the folder: `Pipelines/MockCallSequence` (a sequence's steps and its taps),
+    `Pipelines/ProtectedMember` (`ThatProtected`), `ExpressionDescriber.MockCallBinder`, and
+    `TestResult.VerifyCall`, which counts `CallMatcher` matches in the log — a chain on the mocks its
+    first step actually answered with.
+- **Pinned, so an engine change cannot drop it silently**: the order unmatched calls are answered in
+  (`WhenReturnsDefaultValue`, `WhenMockReturnsSelf`, `WhenValueTaskOfInterface`), async throws fault
+  (`WhenAMockedAsyncCallThrows`), and every member kind and unstated Moq behaviour
+  (`WhenMockingEachMemberKind`).
+- **Moq left in the repository on purpose**: `Core.Test/AutoMock/MoqIt.cs` stands in for `Moq.It` so
+  the refusal can be tested; `CallMatcher` refuses `Moq.It` by name, and the release notes tell an
+  upgrading user what changed (PO, 2026-09-15). The package references no Moq.
+- **Probing**: the current engine with a throwaway spec in `Core.Test`, deleted after. Moq 4.20.72
+  with a console probe on the cached package; the unpublished Moq-based 3.0 from `git archive
+  2a9a985`, with a probe test dropped into its `Core.Test`.
+- Inside any `TSpec.*` namespace a bare `Times` binds to `TSpec.Times`.
 
-## 2. Remaining — to triage: fold into 3.0.0, or a later release
+## 2. How to work an item
 
-**3.0 and 3.1 are one package, 3.0.0** (PO, 2026-09-15). The deletions were prepared as 3.0.0 on
-Moq (commit `2a9a985`, local tag `v3.0.0` on `d6ec7de`) and never published; the engine was prepared
-as 3.1.0. Merged, every break lands in one major version. Below and in Done, "3.0" means that
-unpublished Moq build and "3.1" the engine work; both ship as 3.0.0.
+- Test first; stop after each item to report and evaluate; propose new user-facing wording before
+  pinning it.
+- Each item needs a real spec that is worse without it, and lands on its own, suite green on all three
+  frameworks and MyHotel green, before the next starts.
+- A setup reads the same whether the member is sync or async (PO, 2026-09-14).
+- Probe a mocking change against a property, a generic method, an `out` parameter, an overload set, a
+  non-virtual member and a `Task`-returning void — the six that broke the reverted by-name attempt
+  (improvement plan, 2026-09-10).
 
-"Probed" means observed on the Castle engine; how Moq behaved is inferred where marked, or probed
-against the cached Moq 4.20.72 package.
+## 3. The gap, in priority order
 
-Work test first, stop after each item to report and evaluate, and propose any new user-facing
-wording before pinning it. No item is worse than 3.0 any more.
+From reading Moq 4.20, NSubstitute and the engine, and a probe of the current engine (2026-09-19,
+net10.0). Silent wrong answers first, then what backend code needs daily, then parity. Items 1–5 are
+defects; for 6–8, evidence from Cdr or M5 before designing.
 
-### 2.1 Next: 3.0.0 in production
+### A. Silently wrong
 
-3.0.0 is published (2026-09-15), suite green on all three frameworks (1946). Its release notes were
-cut to five lines by the PO: the engine replaces Moq, reference Moq directly, `Any<T>()` for `It.*`,
-obsolete members removed, xUnit 4. The local `v3.0.0` tag still points at `d6ec7de`, the Moq build —
-the PO moves it, if wanted.
+1. **A concrete class that is set up is ignored.** `Given<ConcreteVirtual>().That(_ => _.Get())
+   .Returns(() => "mocked")` is stated in the specification, but the subject gets a real instance and
+   answers "real" (probed) — `MockingStrategy.IsMockable` takes interfaces, abstract classes and
+   delegates only. Moq mocks any unsealed class with virtual members; the Azure SDK clients
+   (`BlobClient`, `ServiceBusSender`, `SecretClient`) are built to be mocked that way. At least refuse;
+   better, mock a concrete class the test has arranged, as `TryUseArrangedMock` already does for an
+   optional parameter. Shares its constructor question with item 19.
+2. **A mock's property does not keep what is set.** A set is swallowed, and an unset getter answers a
+   new value on every read ("String1|String2", probed). So `A<IOrderLine>(_ => _.Quantity = 3)` does
+   nothing, and nothing says so. Moq has `SetupProperty`/`SetupAllProperties`; NSubstitute stores sets
+   by default. A getter answering the last set value, else one stable default, would also make
+   interface-typed models usable as test data.
+3. **Verification by name misses properties.** `Then<IProbe>(nameof(IProbe.Name), Once)` fails with
+   "never invoked" above a listing of `IProbe.Name = "x"` and `IProbe.Name` (probed):
+   `TestResult.VerifyInvoked` compares `Method.Name`, which is `set_Name`/`get_Name`. A set cannot be
+   verified with its value at all (Moq's `VerifySet`), since an expression tree cannot assign.
+4. **Verifying a mock the subject never received passes.** `Then<INotInjected>(wasInvoked: Never)` is
+   vacuous; after 3.0.1's item 1 the remaining silent case. May break existing tests.
+5. **Calls made while arranging are counted.** A `Having` that drives the subject, as MyHotel's
+   `ButIsAlreadyBooked` does, adds its calls to every count: `Then<IProbe>(_ => _.Get(Any<int>()),
+   Once)` fails on `Get(1)` from `Having` and `Get(2)` from `When` (probed). Moq users clear
+   `Invocations`; TSpec has no lever. To decide: whether a verification counts the act only.
 
-The PO now upgrades production projects to 3.0.0; what they find is fixed in 3.0.1.
+### B. Common needs TSpec cannot express
 
-- **M5** (2026-09-15): all 1276 unit tests green. The most common break was `using static Moq.Times;`,
-  which no longer compiles without Moq and has to be deleted.
-- **Cdr** (and PvqDemo): in progress — many Moq references and non-TSpec tests. `dotnet test` failed
-  on the .NET 10 SDK: xunit.v3 4.x brings Microsoft.Testing.Platform 2.x, which refuses the VSTest
-  mode of `dotnet test` there ("Testing with VSTest target is no longer supported…"). Fixed by
-  opting in to the SDK's MTP mode in `global.json`; VSTest options such as `--logger trx` are then
-  refused (exit code 5), so CI steps need MTP equivalents. Reproduced and fixed the same way in this
-  repository.
+6. **Several mocks of one type.** `A<IRule>()` and `ASecond<IRule>()` are the same mock, and an
+   `IEnumerable<IRule>` constructor parameter gets an empty collection (probed). Composites, validator
+   lists and pipeline behaviours are everyday DI; a delegate factory is the only way out today. To
+   design: how a setup or verification addresses one of them, and that `Then<IRule>` counts them all,
+   as it does chain children.
+7. **Microsoft's `ILogger`.** `LogError(…)` is an extension over `Log<TState>` with an internal state
+   type, so neither a setup nor a verification can name it; by name it is counted (a name covers every
+   type argument, probed) but level and message cannot be checked. Moq needs `It.IsAnyType` — match any
+   type argument of a generic method. Neither Moq nor TSpec accepts the extension call itself:
+   `Then<ILogger<OrderService>>(_ => _.LogError(Any<Exception>(), Any<string>()))`, translated by TSpec.
+8. **Assert on what a call received** (neither has it). Today: `Tap` into a field and `Then(field)`
+   (refused for a value type since 3.0.1), or `Any<T>(constraint)`, whose failure says only "never
+   invoked". MyHotel's `Then<IBookingStore>(nameof(Save), Once)` is where a stronger claim about the
+   saved booking belongs. Shape to design; it must read in the specification as an assertion.
+9. **Set up a call by name, in the general case.** `Given<IChat>().That(nameof(IChat.Complete))
+   .Returns(…)` for public members too. Decided in the improvement plan: the return type matches
+   exactly; a name covers every overload; a from-arguments `Returns` states a signature and narrows the
+   name to that overload; it renders "Given IChat.Complete returns …". `ThatProtected` then folds into
+   `That` and is obsoleted; sequences by name fall out; it carries "any type argument" (item 7) in a
+   setup. `CallMatcher.For(MemberInfo)` already matches a member with any arguments.
+10. **Raise an event on a mock** (Moq's `Raise`, and `Raises` on a setup). Subscribing is logged as a
+    call today, nothing more.
+11. **A partial mock that runs the real member** (Moq's `CallBase`): an abstract class's template
+    method as the subject, and default interface members, which answer TSpec's default today.
+12. **`Throws` from the call's arguments.** `Returns` takes up to five; `Throws` none (Moq:
+    `Throws((int id) => new NotFound(id))`).
 
-**3.0.1** — version bumped, release notes in `Core/Core.csproj` (only what is new: `TSpec.Times`
-for `Moq.Times`; `global.json` and TrxReport 2.x on the .NET 10 SDK). From the Cdr agent's report,
-triaged with the PO, in order — work test first, report after each:
+### C. Verification
 
-1. **Done: a service-wide setup counts as arranging the mock.** `Given<T>().Returns(…)` and
-   `.Throws(…)` only stored default answers, so a constructor parameter with a default kept it — the
-   production fallback ran and nothing failed, though README §4.1 promised "a mock the test has
-   already set up". `MockingStrategy.IsArranged` now also asks `FluentDefaultProvider.IsSetUp`.
-   Pinned in `WhenAnOptionalDependencyIsArranged`. Suite green on all three (1948), MyHotel green.
-2. **Done: `Then(x)` refuses a value type before the pipeline runs** (PO: refuse, not document). A
-   copy taken before the act is stale or meaningless, as the refused lambda is. PO wording: "Then(tapped)
-   hands over a copy of tapped taken before the pipeline runs, so it cannot see what the pipeline
-   changes. Call Then() first, then assert on tapped". `HandedOverSubject`, pinned in
-   `WhenAValueIsHandedOverBeforeThePipelineRuns`; three tests that handed over a placeholder `int`
-   now hand over a string. Refused wrongly: a struct holding a reference the pipeline changes —
-   accepted as rare. Suite green on all three (1950), MyHotel green.
-3. **Done: a plain-type verification counts every mock of the type**, chain mocks included (a child
-   logs to the shared mock too); verifying through the chain counts one. Already pinned in
-   `GivenCallsOnChildren_ThenTheirTypeCountsThemAll`. A chain starting with a delegate — a factory,
-   the way to several mocks of one type — worked but was unpinned; now `WhenAChainStartsWithADelegate`.
-   One sentence and the factory example in README §4.2 and the agent reference's Mocking bullets; no
-   release note, since nothing changed.
-4. **Done: a task that completes later** — `That<Task<X>>(…).Returns(() => tcs.Task)` binds the
-   plain overload, so `Returns` takes the task itself. Worked; now pinned in
-   `WhenAMockedTaskCompletesLater` (a race the completed call wins). One line in README §4.2 and the
-   agent reference's Mocking bullets; `ValueTask<T>` the same way is likely but unpinned.
+13. **Failure messages that read like TSpec's assertion failures.** The 3.0 wording is a first cut, to
+    be tweaked (PO, 2026-09-13). The listing shows only the verified mock's own calls, so a chain's
+    later steps are missing. Beyond Moq: mark which argument differed (NSubstitute does), and name
+    setups no call matched — an argument mismatch is the usual reason a mock "does not work".
+14. **Call order across mocks** — "saved before published". Moq has only setup-side `MockSequence`,
+    NSubstitute `Received.InOrder`. Needs a sequence number shared by every mock's log.
+15. **No other calls** (Moq's `VerifyNoOtherCalls`, strict mocks). `wasInvoked: Never` covers only a
+    mock left untouched.
+16. **`because` on a verification** (Moq's `Verify(…, failMessage)`). `because` reaches assertions only.
 
-3.0.1 is ready to release once the PO has run it against Cdr, if wanted.
+### D. Parity, rarely needed
 
-To §3 when 3.0.1 is out: refuse verifying a mock the subject never received (after item 1 the
-remaining silent case; may break existing tests), and a pipeline timeout (Cdr hand-rolls `Patience`
-constants — check xUnit's `[Fact(Timeout)]` on synchronous test methods first).
+17. **A mock implementing further interfaces** (Moq's `As<TInterface>()`), for a subject that checks
+    `is IDisposable`.
+18. **`ref` arguments**: match any and write a value back (today matched by value, not written back,
+    as Moq; unpinned); out values computed from the arguments (today fixed at setup).
+19. **Mock an abstract class with no parameterless constructor** (PO, 2026-09-15: support it). Today
+    Castle's `ArgumentException` "Can not instantiate proxy of class … Could not find a parameterless
+    constructor", as Moq 4.20.72 threw; `Using<X>(subclassInstance)` works. As an input object is made:
+    the constructor with the most parameters, arguments generated, handed to `CreateClassProxy`. To
+    settle: protected constructors (`ConstructorCompiler` sees public ones only), and a base
+    constructor that rejects generated arguments. Do with item 1.
+20. **A service-wide sequence.** `Given<IChatCompletion>().First().Returns(…).AndNext()…` with no call
+    named; the engine owns defaults, so it need not enumerate methods.
+21. **`Any<T>()` inside an argument, matched by structure** (PO, 2026-09-15: revisit, possibly
+    support). `_.Find(new Filter { Id = Any<int>() })`: each member or element the expression writes
+    matches its `Any` or is equal; refused today. To decide: members the initializer leaves out,
+    positional records, and nesting inside a constraint's own lambda, which the refusal does not see.
+22. **Delayed async answers** (Moq's `ReturnsAsync(value, delay)`). Today a `TaskCompletionSource`
+    returned as the task does it.
 
-### 2.2 Could break a 2.8 user's test (regressions against Moq)
+**Not taken**: `Verifiable`/`VerifyAll` (verification belongs in `Then`); `Mock.Of`'s LINQ form (item 2
+covers it through `A<T>(setup)`); conditional setups; `MockRepository`; custom default providers
+(`Using` covers them); `Protected().As<>()` (item 9 covers it). Dropped, reopen only if the engine
+makes it free: from-arguments `Returns` on a sequence step (improvement plan item 7, 2026-09-11).
 
-None open.
+**Parked here, not mocking**: a pipeline timeout — Cdr hand-rolls `Patience` constants; check xUnit's
+`[Fact(Timeout)]` on synchronous test methods first.
 
-### 2.3 Edges: probed or read, likely harmless
+## 4. Edges and decisions, kept as they are
 
-- **An abstract class with no parameterless constructor** throws Castle's `ArgumentException` "Can not
-  instantiate proxy of class: X. Could not find a parameterless constructor. (Parameter
-  'constructorArguments')", whether the subject depends on it, it is set up, or asked for with `A<X>()`.
-  3.0 threw the very same exception: Moq let Castle's through (probed against Moq 4.20.72), so this is
-  not worse than 3.0. `Using<X>(instance)` of a hand-written subclass works. Probed. Kept as is for
-  3.1; supporting it is §3 item 6.
-- **Rendering**: a delegate mock as text is its full type name (`System.Func`2[System.Int32,System.String]`,
-  `TSpec.Test.AutoMock.TryLookup`) where an interface mock is its alias (`IMemberKinds`); Moq's was the
-  same full name (probed). Kept for 3.1. An abstract class that overrides `ToString` answers with a
-  generated string. Read.
-- **An unmatched default interface member** answers with TSpec's default instead of running its
-  body. Probed; Moq did not run it either (probed against Moq 4.20.72). Pinned in
-  `WhenADefaultInterfaceMemberIsMocked` before moving to Castle.Core 5.2.1, whose changelog adds
-  default interface methods to proxies without target.
-- **A `ref` argument** matches by value and is not written back. Probed; as Moq (probed). Unpinned.
-- **An indexer setup** (`That(_ => _[1])`) works. Probed; unpinned.
-
-### 2.4 Decisions and docs
-
-- **Mocking an internal type** needs `[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]` in
-  the assembly that declares the type — usually the production assembly, not the test project (in
-  `Core.Test` they are the same). Castle emits proxies into its own dynamic assembly and refuses up
-  front a type that assembly cannot see: "Can not create proxy for type IHidden because it is not
-  accessible…". Moq had the same need. PO (2026-09-15) dislikes it. Spiked: .NET's own
-  `DispatchProxy` proxies an internal interface without it — method, generic method, out parameter
-  written back, default interface member intercepted, `ToString` overridable — since it lets its
-  generated assembly ignore access checks. It proxies interfaces only, so an internal abstract class
-  would still need the line. PO (2026-09-15): behave exactly as Moq until the need is understood — and
-  3.1 already does: Moq 4.20.72 threw the same `ArgumentException` with the same text, for an internal
-  interface and an internal abstract class (probed). No change, no docs.
-- **Moq still named on purpose** (PO, 2026-09-15): `CallMatcher`'s refusal of `Moq.It` by name stays
-  (without it a leftover `It.IsAny` would match only the default), and so do the release-notes lines
-  telling an upgrading user what changed. Undecided: the README's opening comparison with "plain
-  xUnit with Moq".
-- **Left as is, raise only if asked**: an argument that is the mock itself (`_ => _.Compare(_)`) still
-  throws the raw `InvalidOperationException`; a delegate mock printed as a value shows its full type
-  name.
-
-## 3. Release 3.1+ — the mocking language
-
-Build only on the engine; each item needs a real spec that is worse without it, and each lands on its
-own, with the suite green, before the next starts. A setup reads the same whether the member is sync
-or async (PO, 2026-09-14), as the rest of TSpec does. Candidates, not yet designed:
-
-1. **Set up a call by name, in the general case.** `Given<IChat>().That(nameof(IChat.Complete)).Returns(…)`
-   for public members, not only protected ones. Carries over from the improvement plan, already
-   decided there: the return type matches exactly; a name covers every overload of it; a
-   from-arguments `Returns` states a signature and narrows the name to that overload; it renders
-   "Given IChat.Complete returns …". `ThatProtected` then folds into `That` — accessibility is a fact
-   about the mock, decided below the API — and is obsoleted. Sequences by name (`First`/`AndNext`)
-   fall out of it. `CallMatcher.For(MemberInfo)` already matches a member with any arguments.
-2. **A service-wide sequence.** `Given<IChatCompletion>().First().Returns(…).AndNext()…` with no
-   method named (moved here from RELEASE-PLAN §1). The engine owns defaults, so it does not have to
-   enumerate methods.
-3. **Moq capabilities TSpec never exposed.** Each is taken only on evidence, per the rule above:
-   - raising an event on a mock;
-   - property setters that store and stateful properties (Moq's `SetupProperty`/`SetupAllProperties`);
-   - a partial mock that runs the real member (`CallBase`), including default interface members;
-   - strict mocks / "no other calls" (`VerifyNoOtherCalls`);
-   - a mock implementing further interfaces (`As<TInterface>()`);
-   - setting a `ref` argument's value on the way out;
-   - matching any type argument of a generic method (`It.IsAnyType`).
-4. **Verification messages that read like TSpec's assertion failures.** The 3.1 wording is a first
-   cut, to be tweaked (PO, 2026-09-13). Its listing shows only the verified mock's own calls, so a
-   chain's later steps, received by the child's mock, are missing from it.
-5. **`Any<T>()` inside an argument, matched the right way** (PO, 2026-09-15: revisit, possibly
-   support). `_.Find(new Filter { Id = Any<int>() })` or `_.Sum(new[] { Any<int>(), 2 })` would match
-   by structure: each member or element the expression writes either matches its `Any` or is equal.
-   3.1 refuses it (see Done). To decide first: whether members the initializer leaves out take part,
-   positional records (a constructor argument is not named by a member), and nesting inside a
-   constraint's own lambda, which the refusal does not look into.
-6. **Mock an abstract class that has no parameterless constructor** (PO, 2026-09-15: support it, in a
-   later version). As an input object is made: its constructor with the most parameters, arguments
-   generated, handed to Castle's `CreateClassProxy`. No new API. To settle: protected constructors
-   (`ConstructorCompiler` looks at public ones only), and a base constructor that rejects generated
-   arguments.
-
-Dropped, reopen only if the engine makes it free: from-arguments `Returns` on a sequence step
-(improvement plan item 7, dropped 2026-09-11).
+- **Internal types** need `[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]` in the assembly
+  that declares them, as Moq did (PO, 2026-09-15: behave as Moq until the need is understood). A
+  `DispatchProxy` spike would lift it for interfaces only. No docs.
+- **Rendering**: a delegate mock as text is its full type name where an interface mock is its alias,
+  as Moq's was; an abstract class overriding `ToString` answers a generated string. `.Result` in a
+  chain is left out of the specification by text, so a mocked member really named `Result` after a
+  call is left out too.
+- **An unmatched default interface member** answers TSpec's default without running its body, as Moq
+  did; pinned in `WhenADefaultInterfaceMemberIsMocked`. Running it is item 11.
+- **An indexer setup** (`That(_ => _[1])`) works; unpinned.
+- **An argument that is the mock itself** (`_ => _.Compare(_)`) still throws the raw
+  `InvalidOperationException`; raise only if asked.
+- **A mock from another library**: README §4.7 says make it there, hand it in with `Using`, arrange and
+  verify it there. Left unsaid (PO): `Given<IFoo>()`/`Then<IFoo>()` then reach TSpec's own mock, which
+  the subject no longer receives.
+- Undecided: the README's opening comparison with "plain xUnit with Moq".
 
 ## Done
 
-- **2.8.0** — `TSpec.Times` (`Core/Times.cs`, PO's name): `Once`, `Never`, `AtLeastOnce`, `AtMostOnce`
-  as properties, `Exactly`, `AtLeast`, `AtMost`, `Between` (inclusive) as methods; bounds no count can
-  meet throw `SetupFailed`. The 24 `Moq.Times` overloads went obsolete; a file importing both `Moq` and
-  `TSpec` gets an ambiguous qualified `Times`, accepted by the PO. 2026-09-13.
-- **3.0.0** — every obsolete member deleted (`Given<T>(setup/transform)`, `DoesNotThrow`, `Another`, the
-  `Moq.Times` overloads), with `Obsoletions`, the unreachable `IVerifyService`/`VerifyService` and the
-  internals only they used. `SomeOther<T>()` kept and documented. No test needed changing. 2026-09-13.
-- **3.0.0, the seam (steps 1–5)** — an internal `MockHandle` between the pipeline and Moq, built on
-  Moq, each step green on its own. Moq's `SetReturnsDefault` turned out not to be redundant, and its
-  precedence moved into `FluentDefaultProvider`. A call got one answer function, which retired the
-  `is IReturnsThrows` ladders and every reliance on Moq's callback-before-returns order. Counts moved
-  onto `TSpec.Times`; Moq was confined to four adapter files. PO decision: a throw on an awaited call
-  faults the task, however it was set up. 2026-09-13.
-- **3.0.0, the engine (E0–E5)** — built beside Moq behind `TSPEC_MOCK_ENGINE=castle`, the Castle-mode
-  failure count the progress meter (186 after E1, 25 after E3, 0 after E4). E0 pinned Moq's unstated
-  behaviours first (§1). Then Moq's files and package reference were deleted, and Castle.Core 5.1.1 is
-  referenced directly. PO decisions: `It.IsAny`/`It.Is` are refused; a mock and a failed verification
-  render in line with TSpec's other text, not perfected. Release notes and the agent reference
-  updated. 2026-09-13.
-- **3.0.0, generic type names** — `FluentDefaultProvider`'s refusal when no provided default is most
-  specific names types with `Alias()`, pinned in `WhenReturnsAssignableValue`. 2026-09-13.
-- **3.0.0, tasks of interfaces** — the refusal "Interface types returned as task must be provided
-  explicitly" is gone: it arrived with the Xspec merge, uncommented, and guarded nothing on the new
-  engine nor on 3.0's Moq 4.20.72 (only its own specs failed without it). An unset `Task<T>`/`ValueTask<T>`
-  member answers as a `T` member does; pinned in `WhenMockReturnTaskOfInterface`,
-  `WhenGivenArrayOfModelsAsync` and `WhenAChainGoesThroughATask`. 2026-09-14.
-- **3.0.0, delegate out parameters** — `DelegateForwarder` writes by-ref arguments back after the
-  call, so a delegate mock sets its out values as an interface mock does; pinned in
-  `WhenADelegateIsMocked`. 2026-09-14.
-- **3.0.0, `Any<T>()` across a conversion** — refused with `SetupFailed` when the parameter's type
-  cannot hold a `T` (`Any<MyValueInt>()` on `Get(int)`), as Moq refused it ("Matcher … is
-  unmatchable"); it had silently matched nothing. Pinned in `WhenMockWithAnyArgument`. 2026-09-14.
-- **3.0.0, chained calls** (PO design) — a child per address, the member and the actual arguments,
-  made only where a chained setup's first step matches; elsewhere the shared mock of the type. A child
-  answers its chained setups, then the type's, then defaults; a chain is counted on the mocks its first
-  step answered with. `.Result` steps through a task and is left out of the specification; the renderer
-  sees text, not types, so a mocked member really named `Result` after a call is left out too (a flag
-  from the expression tree would make it exact). Deliberately unlike Moq 4.20.72 (probed): a child per
-  `Any` address, and setups at one address combine. A call left of a dot renders as a call, not a
-  phrase. Pinned in `WhenMockingAChainedCall`. 2026-09-14.
-- **3.0.0, the verification listing** — every failed count (whole mock, by name, by expression) is
-  followed by the calls the mock received, in order ("IOrderService received:" and one call per line,
-  or "IOrderService received no calls", which a count of the whole mock leaves out at 0, as the count
-  already says it); arguments by `FormatValue`, a property as `.Name` /
-  `.Name = "x"`, a generic method with its type arguments, a delegate by its alias; setups not listed.
-  PO wording: a count of 0 reads "was never invoked", of 1 "was invoked once". Pinned in
-  `WhenAVerificationFails` and the ShoppingService count specs. 2026-09-14.
-- **3.0.0, nested `Any` refused** — `Any<T>()` or `Any<T>(constraint)` anywhere inside an argument,
-  rather than as it, throws `SetupFailed`: "Any<int>() matches a whole argument, not a part of one, so
-  inside the cart argument of IOrderService.CreateOrder it can match nothing. Write Any<ShoppingCart>()
-  for any ShoppingCart, or Any<ShoppingCart>(cart => ...) for any ShoppingCart satisfying a condition". It had been
-  evaluated as one generated value while the specification read "any int". Neither version ever meant
-  any value: on 3.0 (probed against Moq 4.20.72) it matched only `default`, a nested constraint was
-  ignored, and a failed Moq verification crashed formatting its message. `Any<T>(setup)` yields a
-  value and is not refused. Pinned in `WhenAnyIsNestedInsideAnArgument` and
-  `WhenAnyIsNestedInsideAVerifiedArgument`. Supporting it is §3 item 5. 2026-09-15.
-- **3.0.0, a tap before `First()`** (PO: fires on every call) — `That(…).Tap(a).First()…` had dropped
-  `a` from the call and the specification, exactly as 3.0 did (probed on a build of `2a9a985`: its
-  sequence's Moq callback replaced the tap's). `First()` now hands the taps in hand to
-  `MockCallSequence`, which runs them before every step, past the last one too; the opening step
-  states them, then "first" as a word of its own: "Given IMyValueIntRepo.Get(any int) tap(_asked.Add)
-  first returns "a"". With "first" no longer appended to the call's source, a sequence on a call
-  with `Any<int>()` reads "any int" instead of the raw `Any<int>()` it showed on 3.0 and 3.1. README
-  §4.5 and the agent reference say it. Pinned in `WhenTapASequence`. 2026-09-15.
-- **3.0.0, Moq leftovers and the three frameworks** — the `moq` package tag, `Generic.cs` reading
-  `It.IsAny<T>()` as `Any` and `NormalizeTimes` stripping Moq's `Times.Once()` are gone. Suite green on
-  net8.0, net9.0 and net10.0 (1935); MyHotel's `MyHotel.Spec` (52) and `Core.Spec` (32) green with
-  their `_specification/` unchanged. 2026-09-15.
-- **3.0.0, Castle.Core 5.2.1** (PO) — changelog read: generic `CreateClassProxy<TClass>` overloads,
-  default interface methods in proxies without target, nullable annotations, two by-ref/`out`
-  parameter bugfixes. Suite green on all three frameworks (1937), MyHotel green with its
-  `_specification/` unchanged. 2026-09-15.
-- **3.0.0, a `Task` call past a sequence's last step** (PO) — answered a null task on 3.0 and 3.1,
-  which throws `NullReferenceException` when awaited; it now answers as `Returns()` does, with a
-  completed task (`MockCallSequence.TryNext`). `Task<T>` and `ValueTask` already completed. Pinned in
-  `WhenCallAsyncActionTwice.GivenCalledPastTheLastStep`. 2026-09-15.
-- **3.0.0, a call to a mocked delegate in text** (PO) — read broken on 3.0 and 3.1 (probed on both):
-  "Given Func<int, string>. 1 returns "one"", "Given TryLookup._(1, out _found) returns true", and the
-  same in a verification and its failure message. `CallDescriber` reads `_(…)` as the delegate
-  invoked, and `ExpressionDescriber.MockCallBinder` joins a delegate to its call with nothing instead
-  of a dot, in setups, verifications and the failure message alike: "Given Func<int, string>(1)
-  returns "one"", "Then Func<int, string>(1)". A second setup on the same delegate names it
-  again ("and Func<int, string>(2) returns "two""), since "(2)" cannot stand alone. Pinned in
-  `WhenADelegateCallIsSpecified`. 2026-09-15.
-- **3.0.0, an argument that reads the mock** (PO: refuse) — `_ => _.Get(_.Id)` threw a raw
-  `InvalidOperationException` from compiling the argument, as Moq did (probed). `CallMatcher` now
-  refuses it: "The id argument of IStore.Get reads IStore.Id from the mock itself, but arguments are
-  read before any call is made. Set up IStore.Id to return a value, and write that value as the
-  argument" — naming the first member the argument reads on the mock, also inside a larger
-  expression and on a parent reached through a chain. Supporting it was weighed and not taken: rarely
-  needed, since the test sets up what `_.Id` returns; and reading it while matching would be a call on
-  the mock that counts see. Not refused: an argument that is the mock itself (`_ => _.Compare(_)`),
-  which still throws the raw exception. Pinned in `WhenAnArgumentReadsTheMock` and
-  `WhenAChainedArgumentReadsTheMock`. 2026-09-15.
-- **3.0.0, the way out through `Mock.Get`** (PO: document, don't build) — on 3.0 `Mock.Get(The<IFoo>())`
-  returned the `Mock<IFoo>` TSpec had made, and a Moq setup on it reached the subject (probed on a
-  build of `2a9a985`), so a test could use any Moq feature. It was never TSpec's API: supported in the
-  early XspecT days, since then working by accident — no Moq type public since at least 2.0, no
-  README mention. On 3.1 it throws. README §4.7 (not the agent reference, PO) says to make such a
-  mock with another library, hand it in with `Using`, and arrange and verify it with that library.
-  Left unsaid (PO): `Given<IFoo>()` and `Then<IFoo>(…)` on that type reach TSpec's own mock, which the
-  subject no longer receives (probed). The release notes' Moq line points to `Using`. 2026-09-15.
-- **3.0.0, a throw on an awaited call faults the task — checked against the sync/async promise.**
-  Probed on 3.0 and 3.1 with non-async test methods: `Then().Throws<E>()` passes on both whether the
-  subject awaits the mocked call or hands its task straight back, for `Task` and `Task<T>`. Only a
-  subject that starts two calls before awaiting either tells them apart: on 3.0 the first threw at
-  the call, so the second was never made; on 3.1 both are made, as with a real async implementation.
-  2026-09-15.
+- **2.8.0** — `TSpec.Times` replaces `Moq.Times` in the public API (`Once`, `Never`, `AtLeastOnce`,
+  `AtMostOnce`, `Exactly`, `AtLeast`, `AtMost`, `Between`). 2026-09-13.
+- **3.0.0** — obsolete and unreachable surface deleted; `SomeOther<T>()` kept. 2026-09-13.
+- **3.0.0** — the engine: a seam over Moq, then Castle.Core behind a switch until the failure count hit
+  0, then Moq's files and package deleted (PO: `It.*` refused; a throw on an awaited call faults the
+  task). Castle.Core 5.2.1. 2026-09-13–15.
+- **3.0.0** — tasks of interfaces answer as their value type; delegates write back out arguments; an
+  `Any` that its parameter cannot hold is refused; generic type names in the no-most-specific-default
+  refusal. 2026-09-14.
+- **3.0.0** — chained calls (PO design): a child per address, counted on the mocks the first step
+  answered with; deliberately unlike Moq, a child per `Any` address and setups at one address
+  combine. Pinned in `WhenMockingAChainedCall`. 2026-09-14.
+- **3.0.0** — a failed verification lists the calls the mock received; "was never invoked", "was
+  invoked once" (PO). Pinned in `WhenAVerificationFails`. 2026-09-14.
+- **3.0.0** — refused with `SetupFailed`: an `Any` nested inside an argument, and an argument that
+  reads the mock (supporting it weighed and not taken). 2026-09-15.
+- **3.0.0** — a tap before `First()` taps every call and is stated ("tap(_asked.Add) first returns");
+  a `Task` call past a sequence's last step answers a completed task; a delegate call reads
+  "Func<int, string>(1)". 2026-09-15.
+- **3.0.0** — `Mock.Get` on a TSpec mock throws; README §4.7 points to another library with `Using`
+  (PO: document, don't build). A throw on an awaited call checked against the sync/async promise.
+  Moq leftovers removed; published 2026-09-15. The local `v3.0.0` tag still points at `d6ec7de`, the
+  Moq build.
+- **Production upgrades** — M5: 1276 green, the one break `using static Moq.Times`. Cdr: the .NET 10
+  SDK needs the MTP opt-in in `global.json`, and then refuses VSTest options such as `--logger trx`.
+- **3.0.1** — a service-wide `Returns`/`Throws` counts as arranging the mock
+  (`WhenAnOptionalDependencyIsArranged`); `Then(x)` refuses a value type handed over before the
+  pipeline runs (`WhenAValueIsHandedOverBeforeThePipelineRuns`); a plain-type verification counting
+  chain mocks documented, a delegate-started chain pinned; a task that completes later pinned
+  (`ValueTask<T>` likely, unpinned). 2026-09-15.
