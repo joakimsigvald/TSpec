@@ -1,8 +1,9 @@
 # Moq replacement plan
 
 TSpec mocks with its own engine on Castle.Core since 3.0.0 (published 2026-09-15); 3.0.1 carries the
-fixes from upgrading production projects. What remains is closing the gap to Moq, and past it where
-TSpec owns the mocking layer. Written for a Claude session in this repository; a living document —
+fixes from upgrading production projects. 3.1.0 (shipped 2026-09-19, PO) closes section A as triaged
+and mocks classes: set up, without a parameterless constructor, and through a chain. What remains is
+closing the gap to Moq, and past it where TSpec owns the mocking layer. Written for a Claude session in this repository; a living document —
 correct it in place as work lands. Strike a finished item through in §3, and add it to Done in one
 or two lines.
 
@@ -63,7 +64,7 @@ or M5 that is worse without it. Done items are struck through.
 
 ### A. Untrue today
 
-1. ~~**A concrete class that is set up is ignored.**~~ Done in 3.1.0; continued in item 5.
+1. ~~**A concrete class that is set up is ignored.**~~ Done in 3.1.0, with item 5.
 2. ~~**Calls made while arranging are counted.**~~ Done in 3.1.0.
 3. ~~**Mocking properties.**~~ Done in 3.1.0, see Done. Rule (PO): a mock assumes nothing about a
    property the test did not arrange — no stored set, no stable value. Not taken (PO): a set through
@@ -73,15 +74,17 @@ or M5 that is worse without it. Done items are struck through.
 4. ~~**A service-wide default that no member answers with.**~~ Not taken (PO, 2026-09-19): the
    default is valid, e.g. in a base test class, and one the type has no use for is unhelpful rather
    than wrong, which is the developer's to see, not the framework's to prevent.
+20. **A chain through a class that is only verified** (found after 3.1.0). With nothing set up
+    through it, the first step answers with a real instance, as a class is mocked only once set up,
+    so `Then<IClientFactory>(_ => _.Get("a").Fetch(), Once)` fails "never invoked", and with `Never`
+    passes whatever the subject did (probed). Proposed, undecided: refuse the verification where a
+    step it goes through answered with a real instance, naming the setup to write, e.g.
+    `Given<IClientFactory>().That(_ => _.Get("a").Fetch())`. Not taken: answering an unmatched call
+    that returns a class with a mock, which would mock every class a mock returns, data included.
 
 ### B. Decided, to build
 
-5. **Mocking a class, continued** (PO, 2026-09-15: support it).
-   - ~~A class with no parameterless constructor.~~ Done, see Done.
-   - ~~A chain through a class.~~ Done, see Done. Open: a chain through a class that is only
-     verified. With nothing set up through it, the first step answers with a real instance, since a
-     class is mocked only once set up, so `Then<IClientFactory>(_ => _.Get("a").Fetch(), Once)` fails
-     "never invoked", and with `Never` passes whatever the subject did (probed).
+5. ~~**Mocking a class, continued.**~~ Done in 3.1.0, see Done; what is left of it is item 20.
 6. **Several mocks of one type.** README: "Distinct mentions get distinct values where the type has
    room for them" — but `A<IRule>()` and `ASecond<IRule>()` are the same mock, and an
    `IEnumerable<IRule>` constructor parameter gets an empty collection (probed). Composites, validator

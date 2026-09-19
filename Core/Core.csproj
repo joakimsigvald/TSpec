@@ -22,6 +22,7 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
+			Added mocking capabilities:
 			ADDED
 			* A mocked property's set is set up or verified as Set(_.Name, value), since an expression cannot assign
 			* A mocked property's read is verified as Get(_.Name), with one type argument: Then&lt;IIdSource&gt;(_ =&gt; Get(_.Name), Once)
