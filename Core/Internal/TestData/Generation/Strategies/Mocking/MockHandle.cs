@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Reflection;
+using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
@@ -17,18 +18,25 @@ internal sealed class MockHandle
     private readonly KeptAnswers _answers = new();
     private readonly object? _instance;
 
-    internal MockHandle(Type mockedType, MockRegistry mocks, MockHandle? shared = null)
+    internal MockHandle(Type mockedType, MockRegistry mocks, MockHandle? shared = null, string? madeBy = null)
     {
         MockedType = mockedType;
+        Path = madeBy ?? mockedType.Alias();
+        Name = madeBy is null ? $"the {mockedType.Alias()}" : $"{mockedType.Alias()} from {madeBy}";
         _mocks = mocks;
         _log = new(shared?._log);
         _setups = new(shared?._setups);
-        _children = new(mocks, shared?._children);
-        _instance = MockInstance.Create(mockedType, Receive, () => mocks.Defaults.GetConstructorArguments(mockedType));
+        _children = new(mocks, shared?._children, Path);
+        _instance = MockInstance.Create(mockedType, Name, Receive, () => mocks.Defaults.GetConstructorArguments(mockedType));
         _log.RecordsCallsOf(_instance);
     }
 
     internal Type MockedType { get; }
+
+    /// How the mock names itself: the mock of its type, or the call that made it, which its own children compose on.
+    internal string Name { get; }
+
+    private string Path { get; }
 
     internal object Instance => _instance!;
 

@@ -21,19 +21,21 @@ internal static class ReceivedCalls
             [$"{mockName} received:", .. calls.Select(call => $"  {Describe(mockName, call)}")]);
     }
 
-    /// A property reads as the property, a delegate's Invoke as the delegate; any other member by its method's name.
     internal static string Describe(string mockName, MockInvocation call)
-    {
-        var method = call.Method;
-        var arguments = call.Arguments.Select(argument => argument.FormatValue()).ToArray();
-        if (IsDelegateInvoke(method))
-            return $"{mockName}({string.Join(", ", arguments)})";
-        if (method.IsSpecialName && method.Name.StartsWith("get_") && arguments.Length == 0)
-            return $"{mockName}.{method.Name[4..]}";
-        if (method.IsSpecialName && method.Name.StartsWith("set_") && arguments.Length == 1)
-            return $"{mockName}.{method.Name[4..]} = {arguments[0]}";
+        => Describe(mockName, call.Method, call.Arguments);
 
-        return $"{mockName}.{method.Name}{TypeArguments(method)}({string.Join(", ", arguments)})";
+    /// A property reads as the property, a delegate's Invoke as the delegate; any other member by its method's name.
+    internal static string Describe(string mockName, MethodInfo method, IReadOnlyList<object?> arguments)
+    {
+        var values = arguments.Select(argument => argument.FormatValue()).ToArray();
+        if (IsDelegateInvoke(method))
+            return $"{mockName}({string.Join(", ", values)})";
+        if (method.IsSpecialName && method.Name.StartsWith("get_") && values.Length == 0)
+            return $"{mockName}.{method.Name[4..]}";
+        if (method.IsSpecialName && method.Name.StartsWith("set_") && values.Length == 1)
+            return $"{mockName}.{method.Name[4..]} = {values[0]}";
+
+        return $"{mockName}.{method.Name}{TypeArguments(method)}({string.Join(", ", values)})";
     }
 
     private static bool IsDelegateInvoke(MethodInfo method)
