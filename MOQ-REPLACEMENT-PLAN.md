@@ -13,7 +13,9 @@ or two lines.
   - `MockHandle` — one mock, receiving each call in three steps: `SetupGuard` refuses what a setup
     lambda may not do, `CallLog` records it as a `MockInvocation` with the pipeline phase it was made
     in (and counts, chains included), `CallSetups` answers with the latest matching setup, else
-    `FluentDefaultProvider` does. Only calls made from `Act` on are counted. `MockInstance` makes the
+    `FluentDefaultProvider` does. A property comes before the defaults: `PropertyValues` keeps one
+    value per address, taking what a set writes and what the first read generated, and
+    `PropertyAccess` tells the accessors apart. Only calls made from `Act` on are counted. `MockInstance` makes the
     instance: a Castle proxy of `object` implementing an interface, or of a class, or a delegate
     `DelegateForwarder` compiles; of `object`'s members only `ToString` is intercepted, answering
     with the type's alias.
@@ -66,11 +68,12 @@ or M5 that is worse without it. Done items are struck through.
 
 1. ~~**A concrete class that is set up is ignored.**~~ Done in 3.1.0, with item 5.
 2. ~~**Calls made while arranging are counted.**~~ Done in 3.1.0.
-3. ~~**Mocking properties.**~~ Done in 3.1.0, see Done. Rule (PO): a mock assumes nothing about a
-   property the test did not arrange — no stored set, no stable value. Not taken (PO): a set through
-   a chain, `Set(_.Child.Name, …)`, since `Given<IChild>().That(_ => Set(_.Name, …))` reaches the
-   child more simply. A protected property's setter, which `ThatProtected` cannot name, is left to the
-   by-name rework, item 9 (PO: not important). A property that keeps what is set is item 19.
+3. ~~**Mocking properties.**~~ Done in 3.1.0, see Done. The 3.1.0 rule — a mock assumes nothing about
+   a property the test did not arrange, no stored set, no stable value — is overturned by item 19 (PO,
+   2026-09-20). Not taken (PO): a set through a chain, `Set(_.Child.Name, …)`, since
+   `Given<IChild>().That(_ => Set(_.Name, …))` reaches the child more simply. A protected property's
+   setter, which `ThatProtected` cannot name, is left to the by-name rework, item 9 (PO: not
+   important).
 4. ~~**A service-wide default that no member answers with.**~~ Not taken (PO, 2026-09-19): the
    default is valid, e.g. in a base test class, and one the type has no use for is unhelpful rather
    than wrong, which is the developer's to see, not the framework's to prevent.
@@ -90,6 +93,10 @@ or M5 that is worse without it. Done items are struck through.
    `IEnumerable<IRule>` constructor parameter gets an empty collection (probed). Composites, validator
    lists and pipeline behaviours are everyday DI. To design: how a setup or verification addresses one
    of them; `Then<IRule>` counts them all, as it does chain children.
+19. ~~**A property keeps its value.**~~ Done in 3.2.0, see Done. A getter that yields different values
+    stays a setup, `Returns(() => _next++)` or `First()…AndNext()`; no verb was added, since `Get` and
+    `Set` earn their place on a gap this has not — an expression can state neither a read as a
+    statement nor an assignment at all.
 
 ### C. On evidence
 
@@ -120,10 +127,17 @@ or M5 that is worse without it. Done items are struck through.
 18. **`Any<T>()` inside an argument, matched by structure** (PO, 2026-09-15: revisit, possibly
     support). To decide: members an initializer leaves out, positional records, nesting inside a
     constraint's own lambda.
-19. **A property that keeps what is set** and answers it when read (PO's idea; Moq's
-    `SetupProperty`), e.g. `Given<IIdSource>().That(_ => _.Name).Keeps()`. It would also verify a set,
-    by reading it back after the act. Undecided: a transform on the kept value, which a fake given
-    with `Using` may state better.
+21. **One answer per address, for every unmatched call** (found and probed 2026-09-22). A mock is two
+    things at once today: a call returning a value generates a fresh one every time, whatever its
+    arguments — `GetString(1)` twice answers "String1" then "String2" — while a call returning a
+    mockable type answers every call with the one type-level mock, so `GetChild(1)` and `GetChild(2)`
+    are the same child, and a child per address appears only where a chained setup was made. Proposed:
+    a mock answers the same address with the same thing, value or child, which makes item 19's
+    property slot the no-argument case of one rule, and dissolves item 20, since a step of a chain
+    would reach a child of its own with nothing set up. To weigh: every unmatched call returning a
+    mockable type then makes a child, which item 20 declined for classes; `Then<IChild>` would count
+    per-address children where it counts one mock today; and a value per address no longer tells two
+    calls apart in a failure listing. Item 6 asks the same question of a type with several mocks.
 
 **Not taken:**
 - `Verifiable`/`VerifyAll`: verification belongs in `Then`.
@@ -244,3 +258,8 @@ or M5 that is worse without it. Done items are struck through.
   the Azure clients need; a sealed one, `string` included, is still refused. A chain setup does not
   make the class mocked elsewhere: one handed to the subject directly stays real (probed). Pinned in
   `WhenAChainGoesThroughAClass`. 2026-09-19.
+- **3.2.0** — a property keeps its value: a setup answers every read, else the last set, else what the
+  first read answered, one value per indexer address and per chain child; the slot is live from the
+  first read, arranging included. A set in a setup lambda is kept, so the 3.1.0 refusal is gone, while
+  a read there is still refused. Pinned in `WhenAPropertyKeepsItsValue` and
+  `WhenASetupSetsAPropertyOnAMock`. 2026-09-22.

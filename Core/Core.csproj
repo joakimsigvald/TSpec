@@ -17,26 +17,16 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>3.1.0</PackageVersion>
+		<PackageVersion>3.2.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			Added mocking capabilities:
 			ADDED
-			* A mocked property's set is set up or verified as Set(_.Name, value), since an expression cannot assign
-			* A mocked property's read is verified as Get(_.Name), with one type argument: Then&lt;IIdSource&gt;(_ =&gt; Get(_.Name), Once)
-			* A class with no parameterless constructor is mocked through its greediest, protected ones included, with arguments built as the subject's are
-			* A call is set up or verified through a member returning a class, as through one returning an interface, unless the class is sealed: Given&lt;IClientFactory&gt;().That(_ =&gt; _.Get("a").Fetch())
 			CHANGED
-			* Mock calls made while arranging, the subject's constructor included, are no longer counted
-			* Setting a mock's property in a setup lambda, which the mock ignored, is refused with the setup to use instead
-			* Reading a mock's property in a setup lambda before the mocks are set up, which got the unarranged answer, is refused with a shared value to use instead
-			* Verifying by name refuses a property, a field or a name the type has no method by, which it counted as never invoked
+			* A mocked property keeps its value: a read answers the last set, else what the first read answered
+			* Setting a mock's property in a setup lambda is allowed - GuardClause for setters removed
 			FIXED
-			* A concrete class set up with Given&lt;T&gt;() is now mocked instead of ignored
-			* Using&lt;T&gt;(setup) on an interface now runs on its mock instead of handing the subject null
-			* A mocked indexer reads IIdSource[1] in the specification, not IIdSource._[1]
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

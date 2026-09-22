@@ -406,6 +406,8 @@ Naming no method, `Given<[TheService]>().Returns(...)` sets a default that appli
 
 An expression cannot assign, so a property being set is written `Set(_.Name, value)` and then set up or verified as any call is: `That(_ => Set(_.Name, "")).Throws<ArgumentException>()`. A read is verified as `Get(_.Name)`: `Then<IIdSource>(_ => Get(_.Name), Once)`.
 
+**A property keeps its value**: Unless set up with `That(_ => _.Name).Returns(…)`, a read answers the last set, or what the first read answered, and an indexer keeps one value per index.
+
 An awaited call is set up with the value inside its task. To answer with a task that completes later, state the task as the call's return type:
 
 ```csharp

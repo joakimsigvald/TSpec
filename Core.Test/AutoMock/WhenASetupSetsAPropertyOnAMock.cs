@@ -26,78 +26,65 @@ public class HolderLabeler(IdHolder holder)
     public string Label() => holder.Source.Name;
 }
 
-/// A mock keeps nothing set on it, so a setup lambda setting its property is refused, not ignored.
+/// A mock keeps what a setup lambda sets on it, and states it as the lambda is written.
 public class WhenASetupSetsAPropertyOnAMock : Spec<Labeler, string>
 {
     public WhenASetupSetsAPropertyOnAMock() => When(_ => _.Label());
 
     [Fact]
-    public void ThenSetupFailsPointingToReturns()
-        => RefusalOf(() => Given().A<IIdSource>(s => s.Name = "arranged").Then())
-            .Is("IIdSource is a mock and ignores Name = \"arranged\". "
-                + "Arrange it with Given<IIdSource>().That(_ => _.Name).Returns(() => \"arranged\")");
+    public void ThenTheMockAnswersWhatWasSet()
+    {
+        Given().A<IIdSource>(s => s.Name = "arranged").Then().Result.Is("arranged");
+        Specification.Is(
+            """
+            Given a IIdSource with Name = "arranged"
+            When Label()
+            Then Result is "arranged"
+            """);
+    }
 
     [Fact]
-    public void GivenAValueThatIsNotALiteral_ThenTheMessageLeavesItOut()
-        => RefusalOf(() => Given().A<IIdSource>(s => s.Created = new DateTime(2026, 9, 19)).Then())
-            .Is("IIdSource is a mock and ignores Created = …. "
-                + "Arrange it with Given<IIdSource>().That(_ => _.Created).Returns(() => …)");
+    public void GivenTheMockIsHeldByAnotherValue_ThenItIsReachedThere()
+        => Given().A<IdHolder>(h => h.Source.Name = "arranged").Then().Result.Is("arranged");
 
     [Fact]
-    public void GivenAnIndexer_ThenTheMessageNamesTheIndex()
-        => RefusalOf(() => Given().A<IIdSource>(s => s[1] = "arranged").Then())
-            .Is("IIdSource is a mock and ignores [1] = \"arranged\". "
-                + "Arrange it with Given<IIdSource>().That(_ => _[1]).Returns(() => \"arranged\")");
+    public void GivenAnyWithASetup_ThenItIsSetToo()
+    {
+        Any<IIdSource>(s => s.Name = "arranged");
+        Then().Result.Is("arranged");
+    }
 
     [Fact]
-    public void GivenTheMockIsHeldByAnotherValue_ThenItIsRefusedToo()
-        => RefusalOf(() => Given().A<IdHolder>(h => h.Source.Name = "arranged").Then())
-            .Is("IIdSource is a mock and ignores Name = \"arranged\". "
-                + "Arrange it with Given<IIdSource>().That(_ => _.Name).Returns(() => \"arranged\")");
+    public void GivenUsingOnTheMockedType_ThenItIsSetToo()
+        => Using<IIdSource>(s => s.Name = "arranged").Then().Result.Is("arranged");
 
     [Fact]
-    public void GivenAnyWithASetup_ThenItIsRefusedToo()
-        => RefusalOf(() => Any<IIdSource>(s => s.Name = "arranged"))
-            .Is("IIdSource is a mock and ignores Name = \"arranged\". "
-                + "Arrange it with Given<IIdSource>().That(_ => _.Name).Returns(() => \"arranged\")");
-
-    [Fact]
-    public void GivenUsingOnTheMockedType_ThenItIsRefusedToo()
-        => RefusalOf(() => Using<IIdSource>(s => s.Name = "arranged").Then())
-            .Is("IIdSource is a mock and ignores Name = \"arranged\". "
-                + "Arrange it with Given<IIdSource>().That(_ => _.Name).Returns(() => \"arranged\")");
-
-    private static string RefusalOf(Action arrangement)
-        => Xunit.Assert.Throws<SetupFailed>(arrangement).Message;
+    public void GivenTheSamePropertyIsSetUp_ThenTheSetupAnswers()
+        => Given().A<IIdSource>(s => s.Name = "arranged")
+            .Given<IIdSource>().That(_ => _.Name).Returns(() => "set up")
+            .Then().Result.Is("set up");
 }
 
-/// A setup lambda given with Using runs each time its type is generated, and is refused as any other.
+/// A setup lambda given with Using runs each time its type is generated, and sets the mock as any other.
 public class WhenAUsingSetupSetsAPropertyOnAMock : Spec<HolderLabeler, string>
 {
     public WhenAUsingSetupSetsAPropertyOnAMock() => When(_ => _.Label());
 
     [Fact]
-    public void ThenSetupFailsPointingToReturns()
-        => RefusalOf(() => Using<IdHolder>(h => h.Source.Name = "arranged").Then())
-            .Is("IIdSource is a mock and ignores Name = \"arranged\". "
-                + "Arrange it with Given<IIdSource>().That(_ => _.Name).Returns(() => \"arranged\")");
+    public void ThenTheMockAnswersWhatWasSet()
+        => Using<IdHolder>(h => h.Source.Name = "arranged").Then().Result.Is("arranged");
 
     [Fact]
-    public void GivenATransform_ThenItIsRefusedToo()
-        => RefusalOf(() => Using<IdHolder>(h =>
+    public void GivenATransform_ThenItSetsTheMockToo()
+        => Using<IdHolder>(h =>
             {
                 h.Source.Name = "arranged";
                 return h;
-            }).Then())
-            .Is("IIdSource is a mock and ignores Name = \"arranged\". "
-                + "Arrange it with Given<IIdSource>().That(_ => _.Name).Returns(() => \"arranged\")");
-
-    private static string RefusalOf(Action arrangement)
-        => Xunit.Assert.Throws<SetupFailed>(arrangement).Message;
+            }).Then().Result.Is("arranged");
 }
 
-/// The setup a refusal suggests is one that answers with the value the refused set would have stated.
-public class WhenTheSuggestedSetupIsFollowed : Spec<Labeler, string>
+/// A property set up to answer answers every read, whatever is set on it.
+public class WhenAPropertyIsSetUpToAnswer : Spec<Labeler, string>
 {
     [Fact]
     public void GivenAProperty_ThenItAnswersTheArrangedValue()
@@ -120,8 +107,8 @@ public class WhenTheSuggestedSetupIsFollowed : Spec<Labeler, string>
     }
 }
 
-/// A mock held by another value is the mock of its type, so the suggested setup reaches it there too.
-public class WhenTheSuggestedSetupIsFollowedForAHeldMock : Spec<HolderLabeler, string>
+/// A mock held by another value is the mock of its type, so a setup on the type reaches it there too.
+public class WhenAHeldMockIsSetUpToAnswer : Spec<HolderLabeler, string>
 {
     [Fact]
     public void ThenTheHeldMockAnswersTheArrangedValue()

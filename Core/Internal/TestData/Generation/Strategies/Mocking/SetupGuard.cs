@@ -9,33 +9,12 @@ internal sealed class SetupGuard(IPipelinePhase phase, SetupLambda setupLambda)
 {
     internal void Check(Type mockedType, MethodInfo method, object?[] arguments)
     {
-        if (!setupLambda.IsRunning)
-            return;
-
-        if (IsSet(method))
-            throw SetRefusal(mockedType, method, arguments);
-        if (phase.Current < Phase.Mock && IsRead(method))
+        if (setupLambda.IsRunning && phase.Current < Phase.Mock && PropertyAccess.IsRead(method))
             throw ReadRefusal(mockedType, method, arguments);
     }
 
-    private static bool IsSet(MethodInfo method)
-        => method.IsSpecialName && method.Name.StartsWith("set_");
-
-    private static bool IsRead(MethodInfo method)
-        => method.IsSpecialName && method.Name.StartsWith("get_");
-
-    /// A mock keeps nothing set on it, so the set would be lost while the specification states it.
-    private static SetupFailed SetRefusal(Type mockedType, MethodInfo method, object?[] arguments)
-    {
-        var service = mockedType.Alias();
-        var access = AccessOf(method, arguments[..^1]);
-        var value = LiteralOf(arguments[^1]);
-        return new(
-            $"{service} is a mock and ignores {access.TrimStart('.')} = {value}. "
-            + $"Arrange it with Given<{service}>().That(_ => _{access}).Returns(() => {value})");
-    }
-
-    /// Mocks are set up after the values are arranged, so a read before then gets the unarranged answer.
+    /// Mocks are set up after the values are arranged, so a read before then gets the unarranged
+    /// answer, and the property keeps it.
     private static SetupFailed ReadRefusal(Type mockedType, MethodInfo method, object?[] arguments)
     {
         var service = mockedType.Alias();

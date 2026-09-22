@@ -14,6 +14,7 @@ public interface IParent
 
 public interface IChild
 {
+    string Name { get; set; }
     IGrandChild GrandChild { get; }
     IGrandChild GetGrandChild(int id);
     string Get(int id);

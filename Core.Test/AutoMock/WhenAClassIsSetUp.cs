@@ -12,6 +12,8 @@ public class VirtualClient
 
     public Uri? Endpoint { get; }
 
+    public virtual string? Token { get; set; }
+
     public virtual string Fetch() => "real";
 
     public string Describe() => $"own {Fetch()}";

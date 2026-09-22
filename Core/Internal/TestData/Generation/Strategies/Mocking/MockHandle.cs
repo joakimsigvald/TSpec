@@ -14,6 +14,7 @@ internal sealed class MockHandle
     private readonly CallLog _log;
     private readonly CallSetups _setups;
     private readonly MockChildren _children;
+    private readonly PropertyValues _properties = new();
     private readonly object? _instance;
 
     internal MockHandle(Type mockedType, MockRegistry mocks, MockHandle? shared = null)
@@ -91,12 +92,48 @@ internal sealed class MockHandle
         return invocation.Answer;
     }
 
+    private object? Respond(MethodInfo method, object?[] arguments)
+    {
+        if (PropertyAccess.IsSet(method))
+            return RespondToSet(method, arguments);
+        if (PropertyAccess.IsRead(method))
+            return RespondToRead(method, arguments);
+        return RespondToCall(method, arguments);
+    }
+
+    /// A set is answered as any call is, so a setup on it still throws or taps; what it kept is
+    /// written only once that returned, since a set that threw never happened.
+    private object? RespondToSet(MethodInfo setter, object?[] arguments)
+    {
+        var answer = RespondToCall(setter, arguments);
+        _properties.Write(setter, arguments[..^1], arguments[^1]);
+        return answer;
+    }
+
+    /// <summary>
+    /// A setup answers every read it matches and the kept value is left alone; a read no setup
+    /// answers is answered by what the property keeps, which the first such read fills.
+    /// </summary>
+    private object? RespondToRead(MethodInfo getter, object?[] arguments)
+    {
+        var returnType = getter.ReturnType;
+        if (_setups.TryAnswer(getter, arguments, out var answer))
+            return answer ?? DefaultOf(returnType);
+        if (_instance is null)
+            return DefaultOf(returnType);
+        if (_properties.TryRead(getter, arguments, out var kept))
+            return kept;
+        var value = DefaultValueOf(returnType);
+        _properties.Write(getter, arguments, value);
+        return value;
+    }
+
     /// <summary>
     /// The latest setup matching a call answers it; a call no setup matches is answered by TSpec's
     /// defaults, except one made while the instance is still being constructed, which has no mock to be
     /// answered for yet and gets its type's default.
     /// </summary>
-    private object? Respond(MethodInfo method, object?[] arguments)
+    private object? RespondToCall(MethodInfo method, object?[] arguments)
     {
         var returnType = method.ReturnType;
         if (_setups.TryAnswer(method, arguments, out var answer))
@@ -105,8 +142,11 @@ internal sealed class MockHandle
             return null;
         if (_instance is null)
             return DefaultOf(returnType);
-        return _mocks.Defaults.GetDefaultValue(returnType, this) ?? DefaultOf(returnType);
+        return DefaultValueOf(returnType);
     }
+
+    private object? DefaultValueOf(Type returnType)
+        => _mocks.Defaults.GetDefaultValue(returnType, this) ?? DefaultOf(returnType);
 
     private static object? DefaultOf(Type type)
         => type.IsValueType && type != typeof(void) ? Activator.CreateInstance(type) : null;
