@@ -22,7 +22,7 @@ internal static class ReceivedCalls
     }
 
     /// A property reads as the property, a delegate's Invoke as the delegate; any other member by its method's name.
-    private static string Describe(string mockName, MockInvocation call)
+    internal static string Describe(string mockName, MockInvocation call)
     {
         var method = call.Method;
         var arguments = call.Arguments.Select(argument => argument.FormatValue()).ToArray();

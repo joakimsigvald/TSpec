@@ -272,19 +272,19 @@ Try providing a function with the Spec's declared return type instead as paramet
     /// A call named by an expression is counted among the calls the mock received, and fails the way
     /// a count by name does — at least once unless a count is given.
     private AndVerify<TSUT, TResult> VerifyCall<TService>(
-        LambdaExpression expression, Times? times, string expressionExpr, string? timesExpr)
+        LambdaExpression call, Times? times, string callExpr, string? timesExpr)
         where TService : class
     {
         try
         {
             SpecificationContext.Current.ClearSubject();
-            SpecificationContext.Current.AddVerify<TService>(expressionExpr, timesExpr);
+            SpecificationContext.Current.AddVerify<TService>(callExpr, timesExpr);
             var mock = _context.GetMock<TService>();
-            var count = mock.CountCalls(expression);
+            var count = mock.CountCalls(call, callExpr);
             if (!(times ?? Times.AtLeastOnce).Allows(count))
                 throw WithReceivedCalls(
                     CountNotMet(
-                        expressionExpr.DescribeMockCallOn<TService>().StripWrapMarkers(),
+                        callExpr.DescribeMockCallOn<TService>().StripWrapMarkers(),
                         DescribeInvocationTimes(timesExpr),
                         count),
                     mock);

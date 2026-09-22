@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
@@ -25,7 +26,8 @@ internal sealed class CallLog(CallLog? shared)
         Include(call);
     }
 
-    internal int Count(LambdaExpression call) => Counting(call)(_calls);
+    internal int Count(LambdaExpression call, string callExpr)
+        => Counting(call, new(call.Parameters[0].Type, callExpr))(_calls);
 
     private void Include(MockInvocation call)
     {
@@ -38,7 +40,7 @@ internal sealed class CallLog(CallLog? shared)
     /// chain is counted on each mock its first step answered with, once, among the calls that mock
     /// received itself. A step taken while arranging still leads on to the mock it answered with.
     /// </summary>
-    private static Func<IEnumerable<MockInvocation>, int> Counting(LambdaExpression call)
+    private static Func<IEnumerable<MockInvocation>, int> Counting(LambdaExpression call, Verification verification)
     {
         if (!CallChain.TrySplit(call, out var firstStep, out var rest))
         {
@@ -47,13 +49,29 @@ internal sealed class CallLog(CallLog? shared)
         }
 
         var step = CallMatcher.For(firstStep);
-        var countRest = Counting(rest);
-        return calls => calls
-            .Where(step.Matches)
-            .Select(reached => LogOf(reached.Answer))
-            .OfType<CallLog>()
-            .Distinct()
-            .Sum(log => countRest(log._own));
+        var countRest = Counting(rest, verification);
+        return calls => LogsReachedBy(step, calls, verification).Distinct().Sum(log => countRest(log._own));
+    }
+
+    /// A step answering with anything but a mock recorded nothing, so what was called through it is
+    /// refused rather than counted as none, which it would be whatever the subject did.
+    private static IEnumerable<CallLog> LogsReachedBy(
+        CallMatcher step, IEnumerable<MockInvocation> calls, Verification verification)
+    {
+        foreach (var reached in calls.Where(step.Matches))
+            yield return LogOf(reached.Answer) ?? throw verification.Unverifiable(reached);
+    }
+
+    /// The verification being counted, as the test wrote it, so a refusal can name the setup to write.
+    private sealed record Verification(Type Service, string Expression)
+    {
+        internal SetupFailed Unverifiable(MockInvocation step)
+            => new($"{ReceivedCalls.Describe(step.Method.DeclaringType!.Alias(), step)} answers with "
+                + $"{Answered(step.Answer)}, which records no calls. "
+                + $"Set it up to verify through it: Given<{Service.Alias()}>().That({Expression})");
+
+        private static string Answered(object? answer)
+            => (AsyncAnswer.ValueOf(answer) ?? answer) is { } value ? $"a real {value.GetType().Alias()}" : "null";
     }
 
     private static CallLog? LogOf(object? answer)

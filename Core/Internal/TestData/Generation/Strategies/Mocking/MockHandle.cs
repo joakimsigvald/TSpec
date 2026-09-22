@@ -54,7 +54,7 @@ internal sealed class MockHandle
         where TService : class
         => _setups.Add(CallMatcher.For(member), answerType, answer);
 
-    internal int CountCalls(LambdaExpression call) => _log.Count(call);
+    internal int CountCalls(LambdaExpression call, string callExpr) => _log.Count(call, callExpr);
 
     /// <summary>
     /// A setup made ready to apply to a mock. Every step of a chain is read now, as the setup is made,

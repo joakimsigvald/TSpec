@@ -78,13 +78,11 @@ or M5 that is worse without it. Done items are struck through.
 4. ~~**A service-wide default that no member answers with.**~~ Not taken (PO, 2026-09-19): the
    default is valid, e.g. in a base test class, and one the type has no use for is unhelpful rather
    than wrong, which is the developer's to see, not the framework's to prevent.
-20. **A chain through a class that is only verified** (found after 3.1.0). With nothing set up
-    through it, the first step answers with a real instance, as a class is mocked only once set up,
-    so `Then<IClientFactory>(_ => _.Get("a").Fetch(), Once)` fails "never invoked", and with `Never`
-    passes whatever the subject did (probed). Proposed, undecided: refuse the verification where a
-    step it goes through answered with a real instance, naming the setup to write, e.g.
-    `Given<IClientFactory>().That(_ => _.Get("a").Fetch())`. Not taken: answering an unmatched call
-    that returns a class with a mock, which would mock every class a mock returns, data included.
+20. ~~**A chain through a concrete class that is only verified.**~~ Done in 3.2.0, see Done. An
+    abstract class is mocked as an interface is, so only a concrete one was ever at stake (probed
+    2026-09-22). Not taken: answering an unmatched call that returns a class with a mock, which would
+    mock every class a mock returns, data included; and mocking the class because a verification
+    names it, which would depend on whether that verification is the one that runs the pipeline.
 21. ~~**A mock answers per type where it should answer per address.**~~ Done in 3.2.0, see Done.
     `The<IChild>()` is now the answer to no call, as it already was not under a chained setup. Item 6
     asks the same question of a type with several mocks.
@@ -263,3 +261,8 @@ or M5 that is worse without it. Done items are struck through.
   property is the no-argument case, so item 19's store is this one. What is mocked did not change.
   Pinned in `WhenACallIsAnsweredPerAddress` and `WhenAChainIsVerifiedThroughAnUnmatchedStep`.
   2026-09-22.
+- **3.2.0** — a verification through a step that answered with anything but a mock is refused where it
+  counted no calls: `IClientFactory.Get("a") answers with a real VirtualClient, which records no
+  calls. Set it up to verify through it: Given<IClientFactory>().That(_ => _.Get("a").Fetch())`. A
+  step the subject never called is untouched, so `Never` still passes there. Pinned in
+  `WhenAChainIsVerifiedThroughAClassThatIsNotSetUp`. 2026-09-22.

@@ -40,3 +40,28 @@ public class WhenAChainGoesThroughAClass : Spec<ClientFactoryService, string>
                 "IClientFactory.GetSealed returns a SealedClient, which TSpec does not mock, "
                 + "so Fetch cannot be set up or verified through it");
 }
+
+/// A chain verified through a class nothing set up is refused: the real instance it answers with
+/// records no calls, so the count would be none whatever the subject did.
+public class WhenAChainIsVerifiedThroughAClassThatIsNotSetUp : Spec<ClientFactoryService, string>
+{
+    [Fact]
+    public void ThenTheVerificationIsRefused()
+        => Xunit.Assert.Throws<SetupFailed>(() =>
+            When(_ => _.Fetch("a")).Then<IClientFactory>(_ => _.Get("a").Fetch(), Once))
+            .Message.Is("""
+                IClientFactory.Get("a") answers with a real VirtualClient, which records no calls. Set it up to verify through it: Given<IClientFactory>().That(_ => _.Get("a").Fetch())
+                """);
+
+    [Fact]
+    public void GivenNever_ThenItIsRefusedToo()
+        => Xunit.Assert.Throws<SetupFailed>(() =>
+            When(_ => _.Fetch("a")).Then<IClientFactory>(_ => _.Get("a").Fetch(), Never))
+            .Message.Is("""
+                IClientFactory.Get("a") answers with a real VirtualClient, which records no calls. Set it up to verify through it: Given<IClientFactory>().That(_ => _.Get("a").Fetch())
+                """);
+
+    [Fact]
+    public void GivenTheStepWasNeverCalled_ThenTheVerificationStands()
+        => When(_ => _.Fetch("a")).Then<IClientFactory>(_ => _.Get("b").Fetch(), Never);
+}
