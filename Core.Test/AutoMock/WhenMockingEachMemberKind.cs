@@ -307,7 +307,7 @@ public class WhenAMockIsRendered : Spec<MemberKindsService, string>
 {
     [Fact]
     public void ThenItReadsAsTheMockedType()
-        => When(_ => _.TouchObjectMembers()).Then().Result.Is("IMemberKinds");
+        => When(_ => _.TouchObjectMembers()).Then().Result.Is("the IMemberKinds");
 }
 
 public class WhenANonVirtualMemberIsSetUp : Spec<MemberKindsService, string>
