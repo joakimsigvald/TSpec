@@ -11,6 +11,10 @@ internal class MockRegistry(FluentDefaultProvider defaultProvider, IPipelinePhas
 
     internal bool HasMock(Type type) => _mocks.ContainsKey(type);
 
+    /// Whether a value is the one mock of its type, which a call answers with one of its own children instead.
+    internal bool IsTypeMock(Type type, object? value)
+        => value is not null && HasMock(type) && ReferenceEquals(GetMock(type).Instance, value);
+
     internal Phase Phase => phase.Current;
 
     internal FluentDefaultProvider Defaults => defaultProvider;

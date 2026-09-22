@@ -18,7 +18,7 @@ internal sealed class MockChildren(MockRegistry mocks, MockChildren? sharedChild
             _chains.Add(new(firstStep, setUpChild));
     }
 
-    internal MockHandle At(MethodInfo method, Type childType, IReadOnlyList<object> arguments)
+    internal MockHandle At(MethodInfo method, Type childType, IReadOnlyList<object?> arguments)
     {
         lock (_children)
         {
@@ -34,10 +34,10 @@ internal sealed class MockChildren(MockRegistry mocks, MockChildren? sharedChild
     }
 
     /// The chained setups made on the type come first, so those made on this mock win.
-    private IEnumerable<ChainedSetup> ChainsFor(MethodInfo method, IReadOnlyList<object> arguments)
+    private IEnumerable<ChainedSetup> ChainsFor(MethodInfo method, IReadOnlyList<object?> arguments)
         => (sharedChildren?.ChainsMatching(method, arguments) ?? []).Concat(ChainsMatching(method, arguments));
 
-    private ChainedSetup[] ChainsMatching(MethodInfo method, IReadOnlyList<object> arguments)
+    private ChainedSetup[] ChainsMatching(MethodInfo method, IReadOnlyList<object?> arguments)
     {
         lock (_chains)
             return [.. _chains.Where(chain => chain.FirstStep.Matches(method, arguments))];

@@ -14,7 +14,7 @@ internal sealed class MockHandle
     private readonly CallLog _log;
     private readonly CallSetups _setups;
     private readonly MockChildren _children;
-    private readonly PropertyValues _properties = new();
+    private readonly KeptAnswers _answers = new();
     private readonly object? _instance;
 
     internal MockHandle(Type mockedType, MockRegistry mocks, MockHandle? shared = null)
@@ -93,45 +93,23 @@ internal sealed class MockHandle
     }
 
     private object? Respond(MethodInfo method, object?[] arguments)
-    {
-        if (PropertyAccess.IsSet(method))
-            return RespondToSet(method, arguments);
-        if (PropertyAccess.IsRead(method))
-            return RespondToRead(method, arguments);
-        return RespondToCall(method, arguments);
-    }
+        => PropertyAccess.IsSet(method)
+            ? RespondToSet(method, arguments)
+            : RespondToCall(method, arguments);
 
-    /// A set is answered as any call is, so a setup on it still throws or taps; what it kept is
+    /// A set is answered as any call is, so a setup on it still throws or taps; what it keeps is
     /// written only once that returned, since a set that threw never happened.
     private object? RespondToSet(MethodInfo setter, object?[] arguments)
     {
         var answer = RespondToCall(setter, arguments);
-        _properties.Write(setter, arguments[..^1], arguments[^1]);
+        _answers.Write(CallAddress.Of(setter, arguments), arguments[^1]);
         return answer;
     }
 
     /// <summary>
-    /// A setup answers every read it matches and the kept value is left alone; a read no setup
-    /// answers is answered by what the property keeps, which the first such read fills.
-    /// </summary>
-    private object? RespondToRead(MethodInfo getter, object?[] arguments)
-    {
-        var returnType = getter.ReturnType;
-        if (_setups.TryAnswer(getter, arguments, out var answer))
-            return answer ?? DefaultOf(returnType);
-        if (_instance is null)
-            return DefaultOf(returnType);
-        if (_properties.TryRead(getter, arguments, out var kept))
-            return kept;
-        var value = DefaultValueOf(returnType);
-        _properties.Write(getter, arguments, value);
-        return value;
-    }
-
-    /// <summary>
-    /// The latest setup matching a call answers it; a call no setup matches is answered by TSpec's
-    /// defaults, except one made while the instance is still being constructed, which has no mock to be
-    /// answered for yet and gets its type's default.
+    /// The latest setup matching a call answers it; a call no setup matches is answered once per
+    /// address and answers the same from then on, except one made while the instance is still being
+    /// constructed, which has no mock to be answered for yet and gets its type's default.
     /// </summary>
     private object? RespondToCall(MethodInfo method, object?[] arguments)
     {
@@ -142,11 +120,25 @@ internal sealed class MockHandle
             return null;
         if (_instance is null)
             return DefaultOf(returnType);
-        return DefaultValueOf(returnType);
+        return KeptAnswer(CallAddress.Of(method, arguments), returnType);
     }
 
-    private object? DefaultValueOf(Type returnType)
-        => _mocks.Defaults.GetDefaultValue(returnType, this) ?? DefaultOf(returnType);
+    private object? KeptAnswer(CallAddress address, Type returnType)
+    {
+        if (_answers.TryRead(address, out var kept))
+            return kept;
+
+        var answer = _mocks.Defaults.GetDefaultValue(returnType, this, address) ?? DefaultOf(returnType);
+        _answers.Write(address, answer);
+        return answer;
+    }
+
+    /// A call answered with the mock of its return type is answered with one mock per address
+    /// instead, as a chained setup is, so what is reached through other arguments is counted apart.
+    internal object? PerAddress(Type type, object? value, CallAddress address)
+        => _mocks.IsTypeMock(type, value)
+            ? _children.At(address.Member, type, address.Arguments).Instance
+            : value;
 
     private static object? DefaultOf(Type type)
         => type.IsValueType && type != typeof(void) ? Activator.CreateInstance(type) : null;

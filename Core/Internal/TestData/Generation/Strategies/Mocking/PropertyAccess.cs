@@ -11,10 +11,11 @@ internal static class PropertyAccess
     internal static bool IsSet(MethodInfo method)
         => method.IsSpecialName && method.Name.StartsWith("set_");
 
-    /// The property both accessors belong to, taken where it is declared so an override meets it there.
-    internal static (Type, string) PropertyOf(MethodInfo accessor)
-    {
-        var declared = accessor.GetBaseDefinition();
-        return (declared.DeclaringType!, declared.Name[4..]);
-    }
+    /// A property is addressed by its getter; one with none is addressed by its setter, as nothing reads it.
+    internal static MethodInfo AddressedBy(MethodInfo setter) => GetterOf(setter) ?? setter;
+
+    private static MethodInfo? GetterOf(MethodInfo setter)
+        => setter.DeclaringType!
+            .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            .FirstOrDefault(property => property.SetMethod == setter)?.GetMethod;
 }

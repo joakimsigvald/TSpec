@@ -260,6 +260,8 @@ public class WhenChainedCallsReachDifferentAddresses : Spec<ParentService, strin
             .Then().Result.Is("first");
 }
 
+/// A child belongs to the address it was reached at, whether or not a chained setup matches it, and
+/// the shared mock is none of them.
 public class WhenAChildIsReturned : Spec<ParentService, IChild>
 {
     [Fact]
@@ -269,10 +271,10 @@ public class WhenAChildIsReturned : Spec<ParentService, IChild>
             .Then().Result.Is().Not(The<IChild>());
 
     [Fact]
-    public void GivenNoChainedSetupMatchesItsAddress_ThenItIsTheSharedMock()
+    public void GivenNoChainedSetupMatchesItsAddress_ThenItIsNotTheSharedMockEither()
         => Given<IParent>().That(_ => _.GetChild(2).Get(1)).Returns(() => "two")
             .When(_ => _.ChildOf(7))
-            .Then().Result.Is(The<IChild>());
+            .Then().Result.Is().Not(The<IChild>());
 }
 
 /// A call reached through a member of the mocked service is a call on the mock of that member's type.

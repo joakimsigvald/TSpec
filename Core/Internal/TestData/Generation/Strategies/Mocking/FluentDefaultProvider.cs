@@ -8,7 +8,7 @@ internal class FluentDefaultProvider(IRepository repository)
     private readonly Dictionary<Type, Func<Exception>> _defaultExceptions = [];
     private readonly Dictionary<Type, Dictionary<Type, object?>> _providedDefaults = [];
 
-    internal object GetDefaultValue(Type type, MockHandle mock)
+    internal object? GetDefaultValue(Type type, MockHandle mock, CallAddress address)
     {
         if (TryGetProvidedDefault(type, mock, out var provided))
             return provided!;
@@ -20,9 +20,9 @@ internal class FluentDefaultProvider(IRepository repository)
         var (val, found) = repository.Use(type, For.Subject);
         return found ? val!
             : IsReturningSelf(type, mock) ? mock.Instance
-            : IsTask(type) ? GetTask(type, mock)
-            : IsValueTask(type) ? GetValueTask(type, mock)
-            : repository.Create(type, For.Subject);
+            : IsTask(type) ? GetTask(type, mock, address)
+            : IsValueTask(type) ? GetValueTask(type, mock, address)
+            : mock.PerAddress(type, repository.Create(type, For.Subject), address);
     }
 
     internal object?[] GetConstructorArguments(Type mockedType) => repository.CreateMockConstructorArguments(mockedType);
@@ -84,15 +84,15 @@ Provide a value for {returnType.Alias()} itself to say which one applies.");
         => type == typeof(ValueTask)
         || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ValueTask<>);
 
-    private Task GetTask(Type type, MockHandle mock)
-        => type == typeof(Task) ? Task.CompletedTask : GetTaskOf(type.GenericTypeArguments.Single(), mock);
+    private Task GetTask(Type type, MockHandle mock, CallAddress address)
+        => type == typeof(Task) ? Task.CompletedTask : GetTaskOf(type.GenericTypeArguments.Single(), mock, address);
 
-    private Task GetTaskOf(Type valueType, MockHandle mock)
-        => TaskCompiler.GetFromResultMethod(valueType)(GetDefaultValue(valueType, mock));
+    private Task GetTaskOf(Type valueType, MockHandle mock, CallAddress address)
+        => TaskCompiler.GetFromResultMethod(valueType)(GetDefaultValue(valueType, mock, address)!);
 
-    private object GetValueTask(Type type, MockHandle mock)
-        => type == typeof(ValueTask) ? default(ValueTask) : GetValueTaskOf(type.GenericTypeArguments.Single(), mock);
+    private object GetValueTask(Type type, MockHandle mock, CallAddress address)
+        => type == typeof(ValueTask) ? default(ValueTask) : GetValueTaskOf(type.GenericTypeArguments.Single(), mock, address);
 
-    private object GetValueTaskOf(Type valueType, MockHandle mock)
-        => ValueTaskCompiler.GetFromResultMethod(valueType)(GetDefaultValue(valueType, mock));
+    private object GetValueTaskOf(Type valueType, MockHandle mock, CallAddress address)
+        => ValueTaskCompiler.GetFromResultMethod(valueType)(GetDefaultValue(valueType, mock, address)!);
 }

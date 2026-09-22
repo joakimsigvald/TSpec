@@ -26,7 +26,9 @@
 			CHANGED
 			* A mocked property keeps its value: a read answers the last set, else what the first read answered
 			* Setting a mock's property in a setup lambda is allowed - GuardClause for setters removed
+			* A call no setup matches is answered once per address: the same arguments answer the same from then on, other arguments answer otherwise
 			FIXED
+			* A call answering with a mock gives one per address, so verifying Then&lt;IParent&gt;(_ =&gt; _.GetChild(1).Get(9), Once) no longer counts what was called through GetChild(2)
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

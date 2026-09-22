@@ -408,6 +408,8 @@ An expression cannot assign, so a property being set is written `Set(_.Name, val
 
 **A property keeps its value**: Unless set up with `That(_ => _.Name).Returns(…)`, a read answers the last set, or what the first read answered, and an indexer keeps one value per index.
 
+**So does a call**: one no setup matches is answered once for the arguments it was called with, and answers the same from then on; other arguments get another answer, a mock of their own where the return type is mocked. A property is that rule with no arguments.
+
 An awaited call is set up with the value inside its task. To answer with a task that completes later, state the task as the call's return type:
 
 ```csharp
@@ -430,7 +432,7 @@ A call can be set up, or verified, through the members that lead to it. An await
 ```
 
 Each step of a chain reaches a mock of its own for the arguments it is called with: `Orders(1)` and `Orders(2)` are set up and counted apart, while calling `Orders(1)` twice reaches the same mock.
-A call on that mock which no chain set up is answered as `Given<IOrderStore>()` set it up, and a step no chain matches returns the shared `IOrderStore` mock itself.
+A call on that mock which no chain set up is answered as `Given<IOrderStore>()` set it up, and a step no chain matches reaches a mock of its own all the same, for the arguments it was called with.
 Verifying on the type, `Then<IOrderStore>(…)`, counts the calls on every `IOrderStore` mock, including those reached through a chain; verify through the chain to count the calls on one.
 
 A delegate starts a chain as a member does, so a factory the subject depends on hands it a mock per argument:

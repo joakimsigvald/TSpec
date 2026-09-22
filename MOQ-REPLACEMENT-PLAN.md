@@ -13,9 +13,10 @@ or two lines.
   - `MockHandle` — one mock, receiving each call in three steps: `SetupGuard` refuses what a setup
     lambda may not do, `CallLog` records it as a `MockInvocation` with the pipeline phase it was made
     in (and counts, chains included), `CallSetups` answers with the latest matching setup, else
-    `FluentDefaultProvider` does. A property comes before the defaults: `PropertyValues` keeps one
-    value per address, taking what a set writes and what the first read generated, and
-    `PropertyAccess` tells the accessors apart. Only calls made from `Act` on are counted. `MockInstance` makes the
+    `FluentDefaultProvider` does, once per address: `KeptAnswers` keeps what was answered,
+    `CallAddress` names it and leads a property's set to its getter through `PropertyAccess`, and a
+    call the defaults answer with the mock of its type is answered with a child of that address
+    instead. Only calls made from `Act` on are counted. `MockInstance` makes the
     instance: a Castle proxy of `object` implementing an interface, or of a class, or a delegate
     `DelegateForwarder` compiles; of `object`'s members only `ToString` is intercepted, answering
     with the type's alias.
@@ -84,6 +85,9 @@ or M5 that is worse without it. Done items are struck through.
     step it goes through answered with a real instance, naming the setup to write, e.g.
     `Given<IClientFactory>().That(_ => _.Get("a").Fetch())`. Not taken: answering an unmatched call
     that returns a class with a mock, which would mock every class a mock returns, data included.
+21. ~~**A mock answers per type where it should answer per address.**~~ Done in 3.2.0, see Done.
+    `The<IChild>()` is now the answer to no call, as it already was not under a chained setup. Item 6
+    asks the same question of a type with several mocks.
 
 ### B. Decided, to build
 
@@ -127,17 +131,6 @@ or M5 that is worse without it. Done items are struck through.
 18. **`Any<T>()` inside an argument, matched by structure** (PO, 2026-09-15: revisit, possibly
     support). To decide: members an initializer leaves out, positional records, nesting inside a
     constraint's own lambda.
-21. **One answer per address, for every unmatched call** (found and probed 2026-09-22). A mock is two
-    things at once today: a call returning a value generates a fresh one every time, whatever its
-    arguments — `GetString(1)` twice answers "String1" then "String2" — while a call returning a
-    mockable type answers every call with the one type-level mock, so `GetChild(1)` and `GetChild(2)`
-    are the same child, and a child per address appears only where a chained setup was made. Proposed:
-    a mock answers the same address with the same thing, value or child, which makes item 19's
-    property slot the no-argument case of one rule, and dissolves item 20, since a step of a chain
-    would reach a child of its own with nothing set up. To weigh: every unmatched call returning a
-    mockable type then makes a child, which item 20 declined for classes; `Then<IChild>` would count
-    per-address children where it counts one mock today; and a value per address no longer tells two
-    calls apart in a failure listing. Item 6 asks the same question of a type with several mocks.
 
 **Not taken:**
 - `Verifiable`/`VerifyAll`: verification belongs in `Then`.
@@ -263,3 +256,10 @@ or M5 that is worse without it. Done items are struck through.
   first read, arranging included. A set in a setup lambda is kept, so the 3.1.0 refusal is gone, while
   a read there is still refused. Pinned in `WhenAPropertyKeepsItsValue` and
   `WhenASetupSetsAPropertyOnAMock`. 2026-09-22.
+- **3.2.0** — a call no setup matches is answered once per address — its member and arguments — and
+  answers the same from then on; `KeptAnswers` keeps it, `CallAddress` names it, and a call answering
+  with the mock of its type answers with a child of that address instead, awaited calls included, so
+  `Then<IParent>(_ => _.GetChild(1).Get(9), Once)` no longer counts what `GetChild(2)` received. A
+  property is the no-argument case, so item 19's store is this one. What is mocked did not change.
+  Pinned in `WhenACallIsAnsweredPerAddress` and `WhenAChainIsVerifiedThroughAnUnmatchedStep`.
+  2026-09-22.
