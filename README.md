@@ -918,7 +918,7 @@ A `README.md` in the folder is the entry point: the project's title, the `<Descr
 file when it has one, what holds throughout the specification, and a table linking each file with how
 many `When`, `Given` and `Then` it holds.
 
-**The specification is written only when every non-skipped test in the assembly passed.** A filtered or failed run
+**The specification is written only when every test in the assembly that is neither skipped nor explicit passed.** A filtered or failed run
 leaves the existing files untouched and the gaps are named:
 
 ```

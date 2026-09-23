@@ -19,6 +19,10 @@ public class WhenListExpectedRequirements : Spec
     public void ThenExcludeASkippedTest()
         => Lists<SkippedSample>(nameof(SkippedSample.ThenNeverRuns)).Is(false);
 
+    [Fact]
+    public void ThenExcludeAnExplicitTest()
+        => Lists<ExplicitSample>(nameof(ExplicitSample.ThenRunsOnlyWhenAsked)).Is(false);
+
     /// <summary>xunit never runs an abstract class, so it must not be expected to report.</summary>
     [Fact]
     public void ThenExcludeAnAbstractSpec()
@@ -58,6 +62,12 @@ public class WhenListExpectedRequirements : Spec
     {
         [Fact(Skip = "Present so that skip-handling has a regression test")]
         public void ThenNeverRuns() { }
+    }
+
+    public class ExplicitSample : Spec
+    {
+        [Fact(Explicit = true)]
+        public void ThenRunsOnlyWhenAsked() { }
     }
 
     public abstract class AbstractSample : Spec

@@ -39,7 +39,8 @@ public sealed class SpecificationDocument : IDisposable
     }
 
     /// <summary>
-    /// Writes the files, but only when every non-skipped test in the assembly reported a pass.
+    /// Writes the files, but only when every test in the assembly that is neither skipped nor
+    /// explicit reported a pass.
     /// A filtered run, a failure, or a test whose constructor threw all leave requirements
     /// unreported, and publishing then would silently shorten the specification — so the existing files
     /// are left alone and the missing requirements are named instead.

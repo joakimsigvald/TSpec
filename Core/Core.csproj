@@ -35,6 +35,7 @@
 			FIXED
 			* A failure message relating to mock verification adds information that differentiates between mock instances of the same type ("the IChild" or "IChild from IParent.GetChild(1)" instead of just "IChild")
 			* AndReturnsDefault states its value in the specification instead of "value"
+			* An explicit test no longer stops the specification from being written
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

@@ -157,7 +157,7 @@ Opt in with one line in the spec project; a `_specification/` folder of markdown
 
 - **The spec project must be named after the project it describes** plus one suffix (`MyHotel.Spec` → `MyHotel`) and reference it **directly**; otherwise `SetupFailed` before the first test.
 - **Names are the document**: top-level folder → file, `When…` class → section, `Given…` class → subsection, `Then…` method → a claim, each read as words (`WhenListRooms` → "When list rooms"). Name a test method after the claim it makes. A top-level folder named `README` or as the project under test throws `SetupFailed`.
-- **Written only when every non-skipped test in the assembly passed** — a filtered or failing run leaves the files untouched. Run the whole suite before expecting a diff.
+- **Written only when every test in the assembly that is neither skipped nor explicit passed** — a filtered or failing run leaves the files untouched. Run the whole suite before expecting a diff.
 - A `[Theory]` with `[InlineData]` renders as a table of its rows; more than 8 parameters throws `SetupFailed`.
 - Output is deterministic, so CI can check it: `dotnet test && git diff --exit-code -- "**/_specification/*.md"` (a new file is untracked; `git status --porcelain` sees it).
 

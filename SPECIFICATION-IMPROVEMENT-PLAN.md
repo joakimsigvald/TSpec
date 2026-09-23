@@ -321,7 +321,8 @@ class declared what.
   will.
 - Collection: recorded at `Dispose` keyed on `TestState.Result` (`TestStatus` alone can't tell pass
   from running); the assembly fixture disposes last; only a `Passed` result is recorded; the write
-  gate compares "every participating method minus skips" against "what reported in".
+  gate compares "every participating method minus skipped and explicit ones" against "what
+  reported in".
 
 **Traps.**
 
