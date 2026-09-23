@@ -33,6 +33,7 @@
 			* A mock reads as its type, IRule, until a mention names it: the second IRule
 			* A default after a call setup reads "and otherwise returns 5"
 			FIXED
+			* A failure message relating to mock verification adds information that differentiates between mock instances of the same type ("the IChild" or "IChild from IParent.GetChild(1)" instead of just "IChild")
 			* AndReturnsDefault states its value in the specification instead of "value"
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
