@@ -1,92 +1,65 @@
 using System.Linq.Expressions;
 using System.Reflection;
-using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 /// <summary>
-/// TSpec's hold on one mock: the type it stands in for, the instance handed to the subject, and the
-/// calls that instance received. Castle makes the instance; every call it receives is logged, then
-/// answered by the latest setup that matches it, or else by TSpec's defaults.
+/// TSpec's hold on one mock: the instance handed out, and the calls that instance received. Castle
+/// makes the instance; every call it receives is logged, then answered by the latest setup that
+/// matches it, or else by TSpec's defaults. What its type was set up with applies to it too.
 /// </summary>
-internal sealed class MockHandle
+internal sealed class MockHandle : IMocked
 {
+    private readonly MockFamily _family;
     private readonly MockRegistry _mocks;
     private readonly CallLog _log;
-    private readonly CallSetups _setups;
-    private readonly MockChildren _children;
+    private readonly MockChildren _children = new();
     private readonly KeptAnswers _answers = new();
     private readonly object? _instance;
 
-    internal MockHandle(Type mockedType, MockRegistry mocks, MockHandle? shared = null, string? madeBy = null)
+    internal MockHandle(MockFamily family, MockRegistry mocks, string name, string path)
     {
-        MockedType = mockedType;
-        Path = madeBy ?? mockedType.Alias();
-        Name = madeBy is null ? $"the {mockedType.Alias()}" : $"{mockedType.Alias()} from {madeBy}";
+        _family = family;
         _mocks = mocks;
-        _log = new(shared?._log);
-        _setups = new(shared?._setups);
-        _children = new(mocks, shared?._children, Path);
-        _instance = MockInstance.Create(mockedType, Name, Receive, () => mocks.Defaults.GetConstructorArguments(mockedType));
+        Name = name;
+        Path = path;
+        _log = new(family.Log);
+        Setups = new(family.Setups);
+        _instance = MockInstance.Create(
+            MockedType, () => Name, Receive, () => mocks.Defaults.GetConstructorArguments(MockedType));
         _log.RecordsCallsOf(_instance);
+        mocks.Add(this);
     }
 
-    internal Type MockedType { get; }
+    internal Type MockedType => _family.MockedType;
 
-    /// How the mock names itself: the mock of its type, or the call that made it, which its own children compose on.
-    internal string Name { get; }
+    /// How the mock names itself: by its type, by the mention that took it, or by the call that made it.
+    public string Name { get; private set; }
 
-    private string Path { get; }
+    /// How a call on the mock is written, which the names of its children compose on.
+    private string Path { get; set; }
 
     internal object Instance => _instance!;
 
-    internal IReadOnlyList<MockInvocation> CountedInvocations => _log.Counted;
+    /// What this mock alone was set up with, before what its family was.
+    public CallSetups Setups { get; }
 
-    internal void Answer<TService>(Expression<Action<TService>> call, Func<IReadOnlyList<object>, object?> answer)
-        where TService : class
+    public IReadOnlyList<MockInvocation> CountedInvocations => _log.Counted;
+
+    public int CountCalls(LambdaExpression call, string callExpr) => _log.Count(call, callExpr);
+
+    internal void Mentioned(string name) => Name = Path = name;
+
+    /// The mock a call reached at an address, made the first time with every chain whose first step matches it.
+    internal MockHandle ChildAt(MethodInfo method, Type childType, IReadOnlyList<object?> arguments)
+        => _children.At(method, arguments, () => NewChild(method, childType, arguments));
+
+    private MockHandle NewChild(MethodInfo method, Type childType, IReadOnlyList<object?> arguments)
     {
-        CallReader.AssertIsNotARead(call);
-        Prepare(call, typeof(void), answer)(this);
-    }
-
-    internal void Answer<TService, TResult>(
-        Expression<Func<TService, TResult>> call, Type answerType, Func<IReadOnlyList<object>, object?> answer)
-        where TService : class
-        => Prepare(call, answerType, answer)(this);
-
-    /// <summary>
-    /// A member no expression can name — a protected method or property. A name states no
-    /// arguments, so every parameter takes whatever it is passed.
-    /// </summary>
-    internal void Answer<TService>(MemberInfo member, Type answerType, Func<IReadOnlyList<object>, object?> answer)
-        where TService : class
-        => _setups.Add(CallMatcher.For(member), answerType, answer);
-
-    internal int CountCalls(LambdaExpression call, string callExpr) => _log.Count(call, callExpr);
-
-    /// <summary>
-    /// A setup made ready to apply to a mock. Every step of a chain is read now, as the setup is made,
-    /// though the rest of it applies only to the children reached at an address its first step matches.
-    /// </summary>
-    private static Action<MockHandle> Prepare(
-        LambdaExpression call, Type answerType, Func<IReadOnlyList<object>, object?> answer)
-    {
-        if (!CallChain.TrySplit(call, out var firstStep, out var rest))
-        {
-            var matcher = CallMatcher.For(call);
-            return mock => mock._setups.Add(matcher, answerType, answer);
-        }
-
-        var step = CallMatcher.For(firstStep);
-        var childType = firstStep.Body.Type;
-        var setUpChild = Prepare(rest, answerType, answer);
-        return mock => mock.SetUpChain(step, childType, setUpChild);
-    }
-
-    private void SetUpChain(CallMatcher firstStep, Type childType, Action<MockHandle> setUpChild)
-    {
-        _children.Add(firstStep, setUpChild);
-        _setups.Add(firstStep, childType, arguments => _children.At(firstStep.Method, childType, arguments).Instance);
+        var child = _mocks.GetMockFamily(childType).NewChild(ReceivedCalls.Describe(Path, method, arguments));
+        foreach (var setUp in Setups.ChainsFor(method, arguments))
+            setUp(child.Setups);
+        return child;
     }
 
     /// A call is logged before it is answered, so whatever answers it may read the log; what it answered
@@ -122,7 +95,7 @@ internal sealed class MockHandle
     private object? RespondToCall(MethodInfo method, object?[] arguments)
     {
         var returnType = method.ReturnType;
-        if (_setups.TryAnswer(method, arguments, out var answer))
+        if (Setups.TryAnswer(this, method, arguments, out var answer))
             return answer ?? DefaultOf(returnType);
         if (returnType == typeof(void))
             return null;
@@ -141,11 +114,11 @@ internal sealed class MockHandle
         return answer;
     }
 
-    /// A call answered with the mock of its return type is answered with one mock per address
-    /// instead, as a chained setup is, so what is reached through other arguments is counted apart.
+    /// A call answered with a new mock is answered with one mock per address instead, as a chained
+    /// setup is, so what is reached through other arguments is counted apart.
     internal object? PerAddress(Type type, object? value, CallAddress address)
-        => _mocks.IsTypeMock(type, value)
-            ? _children.At(address.Member, type, address.Arguments).Instance
+        => _mocks.IsUnnamed(value)
+            ? ChildAt(address.Member, type, address.Arguments).Instance
             : value;
 
     private static object? DefaultOf(Type type)

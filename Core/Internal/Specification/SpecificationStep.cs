@@ -28,6 +28,9 @@ internal sealed record SpecificationStep(StepLayout Layout)
     internal string? MockService { get; init; }
     internal string MockBinder { get; init; } = " ";
 
+    /// Whether the step answers every call on the service that no setup covers, rather than one call.
+    internal bool IsMockDefault { get; init; }
+
     /// A setup step that is not about a mock ends the run, so a later mock step
     /// names its service again.
     internal bool EndsMockRun { get; init; }

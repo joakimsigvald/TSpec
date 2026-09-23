@@ -9,10 +9,10 @@ namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
 /// </summary>
 internal static class ReceivedCalls
 {
-    internal static string Of(MockHandle mock)
+    internal static string Of(IMocked mocked)
     {
-        var mockName = mock.MockedType.Alias();
-        var calls = mock.CountedInvocations;
+        var mockName = mocked.Name;
+        var calls = mocked.CountedInvocations;
         if (calls.Count == 0)
             return $"{mockName} received no calls";
 

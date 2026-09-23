@@ -29,11 +29,11 @@ internal static class ExpressionDescriber
         => string.IsNullOrWhiteSpace(expr) ? string.Empty
         : new CallDescriber(skipSubjectRef: true, isMockCall: true).Describe(Parser.Parse(expr.ToSingleLine()));
 
-    /// The call as above, following the name of the service it is made on.
-    public static string DescribeMockCallOn<TService>(this string expr)
+    /// The call as above, following the name of the mock it is made on.
+    public static string DescribeMockCallOn<TService>(this string expr, string mock)
     {
         var call = expr.DescribeMockCall();
-        return $"{typeof(TService).Alias()}{MockCallBinder<TService>(call)}{call}";
+        return $"{mock}{MockCallBinder<TService>(call)}{call}";
     }
 
     /// <summary>

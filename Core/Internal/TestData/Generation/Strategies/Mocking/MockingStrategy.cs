@@ -8,14 +8,16 @@ internal class MockingStrategy(
     private readonly FluentDefaultProvider _defaults = fluentDefaultProvider;
     private readonly MockRegistry _registry = new(fluentDefaultProvider, phase, setupLambda);
 
-    internal MockHandle GetMock(Type type) => _registry.GetMock(type);
+    internal MockFamily GetMockFamily(Type type) => _registry.GetMockFamily(type);
+
+    internal MockHandle MockOf(object? value, string mentionName) => _registry.MockOf(value, mentionName);
 
     public bool TryGenerate(GenerationRequest request, ref object? result)
     {
         if (!ShouldMock(request.Type))
             return false;
 
-        result = _registry.GetMock(request.Type).Instance;
+        result = _registry.NewMock(request.Type).Instance;
         return true;
     }
 
@@ -24,13 +26,15 @@ internal class MockingStrategy(
         if (!IsArranged(request.Type))
             return false;
 
-        result = _registry.GetMock(request.Type).Instance;
+        result = _registry.NewMock(request.Type).Instance;
         return true;
     }
 
+    internal void Name(object? value, Func<string> name) => _registry.Name(value, name);
+
     private bool ShouldMock(Type type) => IsMockedByDefault(type) || IsArranged(type);
 
-    private bool IsArranged(Type type) => _registry.HasMock(type) || _defaults.IsSetUp(type);
+    private bool IsArranged(Type type) => _registry.HasMockFamily(type) || _defaults.IsSetUp(type);
 
     /// A class the test sets up is mocked as well, so every type but a sealed class or a value can be.
     internal static bool IsMockable(Type type)

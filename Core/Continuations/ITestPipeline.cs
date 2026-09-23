@@ -327,6 +327,17 @@ public interface ITestPipeline<TSUT, TResult>
     IGivenServiceContinuation<TSUT, TResult, TService> Given<TService>() where TService : class;
 
     /// <summary>
+    /// Set up the one mock a mention holds, rather than every mock of its type
+    /// </summary>
+    /// <typeparam name="TService">The mocked type</typeparam>
+    /// <param name="mock">The mention, as a method group: <c>Given(TheSecond&lt;IRule&gt;)</c></param>
+    /// <param name="mockExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for setting up calls on that mock</returns>
+    IGivenMockContinuation<TSUT, TResult, TService> Given<TService>(
+        Func<TService> mock,
+        [CallerArgumentExpression(nameof(mock))] string? mockExpr = null) where TService : class;
+
+    /// <summary>
     /// Provide a tag to setup some expectation, such as associating it with a value.
     /// </summary>
     /// <typeparam name="TValue">The type of value the tag is associated with</typeparam>

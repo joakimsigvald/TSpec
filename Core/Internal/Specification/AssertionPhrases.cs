@@ -53,20 +53,20 @@ internal class AssertionPhrases(SpecificationRecording recording)
     internal void AddAssertThrows(string expectedExpr)
         => recording.Record(() => AddWord($"throws {expectedExpr.Describe()}"));
 
-    internal void AddVerify<TService>(string expressionExpr, string? wasInvokedExpr = null)
+    internal void AddVerify<TService>(string mock, string expressionExpr, string? wasInvokedExpr)
         => recording.Record(() =>
         {
-            var call = expressionExpr.DescribeMockCallOn<TService>();
+            var call = expressionExpr.DescribeMockCallOn<TService>(mock);
             AddWord(wasInvokedExpr is null ? call : $"{call} {DescribeInvocation(wasInvokedExpr)}");
         });
 
-    internal void AddWasInvoked<TService>(string? wasInvokedExpr)
+    internal void AddWasInvoked(string mock, string? wasInvokedExpr)
         => recording.Record(() => AddWord(
-            $"{typeof(TService).Alias()} {DescribeInvocation(wasInvokedExpr)}"));
+            $"{mock} {DescribeInvocation(wasInvokedExpr)}"));
 
-    internal void AddWasInvoked<TService>(string method, string? wasInvokedExpr)
+    internal void AddWasInvoked(string mock, string method, string? wasInvokedExpr)
         => recording.Record(() => AddWord(
-            $"{typeof(TService).Alias()}.{method} {DescribeInvocation(wasInvokedExpr)}"));
+            $"{mock}.{method} {DescribeInvocation(wasInvokedExpr)}"));
 
     private void AddWord(string body)
         => recording.Add(new(StepLayout.Word) { Body = body });

@@ -1,7 +1,6 @@
 ﻿using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using TSpec.Continuations;
-using TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 namespace TSpec.Internal.Pipelines;
 
@@ -17,24 +16,22 @@ internal class GivenThatContinuation<TSUT, TResult, TService, TReturns, TActualR
 {
     internal GivenThatContinuation(
         Spec<TSUT, TResult> spec,
+        MockTarget<TService> target,
         Expression<Func<TService, TActualReturns>> call,
         string callExpr)
-        : base(spec, AnswerCall(call), callExpr) { }
+        : base(spec, target, (setups, answer) => setups.Add(call, typeof(TReturns), answer), callExpr) { }
 
     /// A member named because no expression can name it; the name is what the specification states.
     internal GivenThatContinuation(Spec<TSUT, TResult> spec, string member)
         : base(
             spec,
-            (mock, answer) => mock.Answer<TService>(
+            MockTarget<TService>.Family,
+            (setups, answer) => setups.Add(
                 ProtectedMember.Resolve<TService>(member, Answering), typeof(TReturns), answer),
             member) { }
 
     private static Type[] Answering =>
         [typeof(TReturns), typeof(Task<TReturns>), typeof(ValueTask<TReturns>)];
-
-    private static Action<MockHandle, Func<IReadOnlyList<object>, object?>> AnswerCall(
-        Expression<Func<TService, TActualReturns>> call)
-        => (mock, answer) => mock.Answer(call, typeof(TReturns), answer);
 
     public IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Returns<TArg>(
         Func<TArg, TReturns> returns,

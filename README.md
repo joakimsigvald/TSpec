@@ -396,6 +396,9 @@ You can supply your own constructor arguments by calling `Using`, or modify the 
 You can even provide the subject under test itself:
 `Using(new MyClass(42, "Thursday"))`
 
+Each mention of a mocked type is a mock of its own, and the subject's dependencies are others: hand one over with `Using(The<IRule>)` to arrange or verify what the subject holds.
+`Given<IRule>()` and `Then<IRule>(…)` reach them all, and a count is the total across them.
+
 **Constructor defaults are honoured.** A parameter that declares a default gets what the test arranged — a value from `Using`, a registered conversion, or a mock the test has already set up — and keeps its default otherwise.
 
 ### 4.2 Mocking
@@ -422,6 +425,14 @@ To set up another call on the same service, continue with `AndThat`; `And<[TheOt
 => Given<IRoomStore>().That(_ => _.Find(The<int>())).Returns(A<Room>)
    .AndThat(_ => _.IsBooked(The<int>())).Returns(() => false)
    .And<IClock>().That(_ => _.Today).Returns(() => The<DateOnly>())
+```
+
+To set up one mock of several, name the mention without calling it, or give its tag: `Given(TheSecond<IRule>)`, `Given(primary)`.
+What a mock is set up with wins over what its type is set up with:
+
+```csharp
+=> Given<IRule>().That(_ => _.Passes()).Returns(() => true)
+   .And(TheSecond<IRule>).That(_ => _.Passes()).Returns(() => false)
 ```
 
 A call can be set up, or verified, through the members that lead to it. An awaited member is written with `.Result`, since an expression cannot `await`:
@@ -567,6 +578,16 @@ Then<IEventQueue>(q => q.MarkRejected(42, Any<string>(), Any<CancellationToken>(
   so `wasInvoked: Never` asserts the service was not touched at all. Here `wasInvoked:` must be named.
 
 Without `using static TSpec.Times;`, write `wasInvoked: Times.Once`.
+
+#### 4.6.2 One mock of several
+
+To verify one mock of several, name the mention without calling it, or give its tag, in any of the three forms:
+
+```csharp
+Then(TheSecond<IRule>, _ => _.Passes(), Once)
+    .And(primary, nameof(IRule.Passes), Never)
+    .And(TheThird<IRule>, wasInvoked: Never);
+```
 
 ### 4.7 Mocks from another library
 

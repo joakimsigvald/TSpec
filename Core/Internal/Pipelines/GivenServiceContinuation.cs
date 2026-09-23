@@ -9,15 +9,20 @@ internal class GivenServiceContinuation<TSUT, TResult, TService> : IGivenService
     where TService : class
 {
     private readonly Spec<TSUT, TResult> _spec;
+    private readonly MockTarget<TService> _target;
 
-    internal GivenServiceContinuation(Spec<TSUT, TResult> spec) => _spec = spec;
+    internal GivenServiceContinuation(Spec<TSUT, TResult> spec, MockTarget<TService> target)
+    {
+        _spec = spec;
+        _target = target;
+    }
 
     public IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Returns<TReturns>(
         Func<TReturns> returns,
         [CallerArgumentExpression(nameof(returns))] string? returnsExpr = null)
     {
         _spec.AppendGiven(DoSetupReturnsDefault);
-        return new GivenThatReturnsContinuation<TSUT, TResult, TService, TReturns>(_spec, null);
+        return new GivenThatReturnsContinuation<TSUT, TResult, TService, TReturns>(_spec, null, _target);
 
         void DoSetupReturnsDefault()
         {
@@ -56,20 +61,20 @@ internal class GivenServiceContinuation<TSUT, TResult, TService> : IGivenService
     public IGivenThatVoidContinuation<TSUT, TResult, TService> That(
         Expression<Action<TService>> call,
         [CallerArgumentExpression(nameof(call))] string? callExpr = null)
-        => new GivenThatVoidContinuation<TSUT, TResult, TService>(_spec, call, callExpr!);
+        => new GivenThatVoidContinuation<TSUT, TResult, TService>(_spec, _target, call, callExpr!);
 
     public IGivenThatContinuation<TSUT, TResult, TService, TReturns> That<TReturns>(
         Expression<Func<TService, TReturns>> call,
         [CallerArgumentExpression(nameof(call))] string? callExpr = null)
-        => new GivenThatContinuation<TSUT, TResult, TService, TReturns, TReturns>(_spec, call, callExpr!);
+        => new GivenThatContinuation<TSUT, TResult, TService, TReturns, TReturns>(_spec, _target, call, callExpr!);
 
     public IGivenThatContinuation<TSUT, TResult, TService, TReturns> That<TReturns>(
         Expression<Func<TService, Task<TReturns>>> call,
         [CallerArgumentExpression(nameof(call))] string? callExpr = null)
-        => new GivenThatContinuation<TSUT, TResult, TService, TReturns, Task<TReturns>>(_spec, call, callExpr!);
+        => new GivenThatContinuation<TSUT, TResult, TService, TReturns, Task<TReturns>>(_spec, _target, call, callExpr!);
 
     public IGivenThatContinuation<TSUT, TResult, TService, TReturns> That<TReturns>(
         Expression<Func<TService, ValueTask<TReturns>>> call,
         [CallerArgumentExpression(nameof(call))] string? callExpr = null)
-        => new GivenThatContinuation<TSUT, TResult, TService, TReturns, ValueTask<TReturns>>(_spec, call, callExpr!);
+        => new GivenThatContinuation<TSUT, TResult, TService, TReturns, ValueTask<TReturns>>(_spec, _target, call, callExpr!);
 }

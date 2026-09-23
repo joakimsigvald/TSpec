@@ -40,7 +40,7 @@ public class WhenAPropertyKeepsItsValue : Spec<IdHolder, IIdSource>
 
     [Fact]
     public void GivenTheTestReadItBeforeTheAct_ThenItKeepsThatValue()
-        => Then(The<IIdSource>().Name).Is(Result.Name);
+        => Using(The<IIdSource>).Then(The<IIdSource>().Name).Is(Result.Name);
 }
 
 /// What the subject sets, it reads back.
@@ -76,7 +76,7 @@ public class WhenAClassMockKeepsItsPropertyValue : Spec<VirtualClientService, st
 public class WhenAChainChildKeepsItsPropertyValue : Spec<ParentService, IChild>
 {
     public WhenAChainChildKeepsItsPropertyValue()
-        => When(_ => _.ChildOf(1))
+        => When(_ => _.ChildOf(1)).Using(The<IParent>)
             .Given<IParent>().That(_ => _.GetChild(Any<int>()).Get(9)).Returns(() => "child");
 
     [Fact]

@@ -87,7 +87,7 @@ internal static class SpecificationRenderer
 
     private static string Content(SpecificationStep step, Position position)
     {
-        var tail = position.MockName(step.MockService, step.MockBinder) + step.Body;
+        var tail = position.MockName(step) + step.Body;
         var lead = position.LeadWord(step.Family);
         if (lead is null)
             return tail;
@@ -100,6 +100,7 @@ internal static class SpecificationRenderer
     {
         private readonly HashSet<StepFamily> _started = [];
         private string? _currentMock;
+        private bool _afterCall;
 
         internal void EndMockRun() => _currentMock = null;
 
@@ -113,14 +114,24 @@ internal static class SpecificationRenderer
         /// A service is named the first time it is spoken about, and again after
         /// any non-mock setup step has interrupted the run. A delegate, joined to its call
         /// by nothing, is named every time: its call has no name to stand on its own.
-        internal string MockName(string? service, string binder)
+        internal string MockName(SpecificationStep step)
         {
-            if (service is null)
+            if (step.MockService is null)
                 return string.Empty;
 
-            var name = service == _currentMock && binder.Length > 0 ? string.Empty : $"{service}{binder}";
-            _currentMock = service;
+            var name = Named(step);
+            _currentMock = step.MockService;
+            _afterCall = !step.IsMockDefault;
             return name;
+        }
+
+        /// A default after a call on the same service reads "otherwise": it answers the calls that one does not.
+        private string Named(SpecificationStep step)
+        {
+            if (step.MockService != _currentMock || step.MockBinder.Length == 0)
+                return $"{step.MockService}{step.MockBinder}";
+
+            return step.IsMockDefault && _afterCall ? "otherwise " : string.Empty;
         }
     }
 }

@@ -7,5 +7,5 @@ public class WhenMockReturnTaskOfInterface : Spec<MyValueIntService, IMyValueInt
 {
     [Fact]
     public void ThenTheTaskHoldsTheMockItself()
-        => When(_ => _.GetRepoAsync()).Then().Result.Is(The<IMyValueIntRepo>());
+        => When(_ => _.GetRepoAsync()).Using(The<IMyValueIntRepo>).Then().Result.Is(The<IMyValueIntRepo>());
 }

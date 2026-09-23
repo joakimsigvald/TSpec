@@ -18,8 +18,11 @@ public interface IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns
     /// </summary>
     /// <typeparam name="TReturns2">The return type to provide a default value for</typeparam>
     /// <param name="value">A function providing the default value to return</param>
+    /// <param name="valueExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for providing further arrangement of the test pipeline</returns>
-    IGivenTestPipeline<TSUT, TResult> AndReturnsDefault<TReturns2>(Func<TReturns2> value);
+    IGivenTestPipeline<TSUT, TResult> AndReturnsDefault<TReturns2>(
+        Func<TReturns2> value,
+        [CallerArgumentExpression(nameof(value))] string? valueExpr = null);
 
     /// <summary>
     /// Mock another method invocation on the same service

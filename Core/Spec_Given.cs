@@ -52,7 +52,19 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
     /// <returns>A continuation for providing mock-setup for the given type</returns>
     /// <exception cref="SetupFailed">Thrown when providing arrangement after the test pipeline has been set up</exception>
     public IGivenServiceContinuation<TSUT, TResult, TService> Given<TService>() where TService : class
-        => new GivenServiceContinuation<TSUT, TResult, TService>(this);
+        => new GivenServiceContinuation<TSUT, TResult, TService>(this, MockTarget<TService>.Family);
+
+    /// <summary>
+    /// Set up the one mock a mention holds, rather than every mock of its type
+    /// </summary>
+    /// <typeparam name="TService">The mocked type</typeparam>
+    /// <param name="mock">The mention, as a method group: <c>Given(TheSecond&lt;IRule&gt;)</c></param>
+    /// <param name="mockExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for setting up calls on that mock</returns>
+    public IGivenMockContinuation<TSUT, TResult, TService> Given<TService>(
+        Func<TService> mock,
+        [CallerArgumentExpression(nameof(mock))] string? mockExpr = null) where TService : class
+        => new GivenServiceContinuation<TSUT, TResult, TService>(this, MockTarget<TService>.Of(mock, mockExpr!));
 
     /// <summary>
     /// Names a set of a mocked property, which a setup or verification cannot write as an assignment:

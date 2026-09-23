@@ -167,7 +167,7 @@ internal class SpecificationContext : IAssertSpecificationContext
     internal void AddGivenThat(string customArrangementExpr)
         => _setup.AddGivenThat(customArrangementExpr);
 
-    internal void AddMockSetup<TService>(string callExpr) => _setup.AddMockSetup<TService>(callExpr);
+    internal void AddMockSetup<TService>(string callExpr, string mock) => _setup.AddMockSetup<TService>(callExpr, mock);
 
     internal void AddMockFirst() => _setup.AddMockFirst();
 
@@ -248,22 +248,22 @@ internal class SpecificationContext : IAssertSpecificationContext
 
     public void AddThat() => _assertion.AddThat();
 
-    public void AddVerify<TService>(string expressionExpr, string? wasInvokedExpr = null)
+    public void AddVerify<TService>(string mock, string expressionExpr, string? wasInvokedExpr)
     {
         NoteAssertion();
-        _assertion.AddVerify<TService>(expressionExpr, wasInvokedExpr);
+        _assertion.AddVerify<TService>(mock, expressionExpr, wasInvokedExpr);
     }
 
-    public void AddWasInvoked<TService>(string? wasInvokedExpr)
+    public void AddWasInvoked(string mock, string? wasInvokedExpr)
     {
         NoteAssertion();
-        _assertion.AddWasInvoked<TService>(wasInvokedExpr);
+        _assertion.AddWasInvoked(mock, wasInvokedExpr);
     }
 
-    public void AddWasInvoked<TService>(string method, string? wasInvokedExpr)
+    public void AddWasInvoked(string mock, string method, string? wasInvokedExpr)
     {
         NoteAssertion();
-        _assertion.AddWasInvoked<TService>(method, wasInvokedExpr);
+        _assertion.AddWasInvoked(mock, method, wasInvokedExpr);
     }
 
     public void AddAssertThrows<TError>(string? binder = null)

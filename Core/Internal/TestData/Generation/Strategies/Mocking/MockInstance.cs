@@ -14,16 +14,13 @@ internal static class MockInstance
     private static readonly ProxyGenerationOptions _options = new(new MockHook());
 
     internal static object Create(
-        Type type, string name, Func<MethodInfo, object?[], object?> receive, Func<object?[]> constructorArguments)
+        Type type, Func<string> name, Func<MethodInfo, object?[], object?> receive, Func<object?[]> constructorArguments)
     {
         if (typeof(Delegate).IsAssignableFrom(type))
             return DelegateForwarder.Create(type, receive);
 
         if (type.IsInterface)
             return _generator.CreateClassProxy(typeof(object), [type], _options, new Interceptor(name, receive));
-
-        if (type.IsSealed)
-            throw new SetupFailed($"{type.Alias()} is sealed, so it cannot be mocked. Provide one with Using instead");
 
         return CreateClassProxy(type, new Interceptor(name, receive), constructorArguments());
     }
@@ -45,13 +42,13 @@ internal static class MockInstance
         }
     }
 
-    private sealed class Interceptor(string name, Func<MethodInfo, object?[], object?> receive) : IInterceptor
+    private sealed class Interceptor(Func<string> name, Func<MethodInfo, object?[], object?> receive) : IInterceptor
     {
         public void Intercept(IInvocation invocation)
         {
             if (invocation.Method.DeclaringType == typeof(object))
             {
-                invocation.ReturnValue = name;
+                invocation.ReturnValue = name();
                 return;
             }
             invocation.ReturnValue = receive(invocation.GetConcreteMethod(), invocation.Arguments);

@@ -34,9 +34,10 @@ public class WhenASetupSetsAPropertyOnAMock : Spec<Labeler, string>
     [Fact]
     public void ThenTheMockAnswersWhatWasSet()
     {
-        Given().A<IIdSource>(s => s.Name = "arranged").Then().Result.Is("arranged");
+        Given().A<IIdSource>(s => s.Name = "arranged").Using(The<IIdSource>).Then().Result.Is("arranged");
         Specification.Is(
             """
+            Using the IIdSource
             Given a IIdSource with Name = "arranged"
             When Label()
             Then Result is "arranged"
@@ -45,14 +46,12 @@ public class WhenASetupSetsAPropertyOnAMock : Spec<Labeler, string>
 
     [Fact]
     public void GivenTheMockIsHeldByAnotherValue_ThenItIsReachedThere()
-        => Given().A<IdHolder>(h => h.Source.Name = "arranged").Then().Result.Is("arranged");
+        => Given().A<IdHolder>(h => h.Source.Name = "arranged").Using(() => The<IdHolder>().Source)
+            .Then().Result.Is("arranged");
 
     [Fact]
     public void GivenAnyWithASetup_ThenItIsSetToo()
-    {
-        Any<IIdSource>(s => s.Name = "arranged");
-        Then().Result.Is("arranged");
-    }
+        => Using(Any<IIdSource>(s => s.Name = "arranged")).Then().Result.Is("arranged");
 
     [Fact]
     public void GivenUsingOnTheMockedType_ThenItIsSetToo()

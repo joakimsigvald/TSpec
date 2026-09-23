@@ -64,6 +64,8 @@ Given<ICalculator>().That(_ => _.Add(TheFirst<int>(), TheSecond<int>())).Returns
 Given<IRoomStore>().That(_ => _.Find(The<int>())).Returns(A<Room>)
     .AndThat(_ => _.IsBooked(The<int>())).Returns(() => false)
     .And<IClock>().That(_ => _.Today).Returns(() => The<DateOnly>())
+// One mock of several, by mention (not called) or tag; it wins over the type's setup
+Given(TheSecond<IRule>).That(_ => _.Passes()).Returns(() => false)
 // Through a chain of members; an awaited member is written with .Result
 Given<IUnitOfWork>().That(_ => _.Orders(2).Find(Any<int>())).Returns(A<Order>)
 // Throw
@@ -82,6 +84,7 @@ Given<HttpMessageHandler>().ThatProtected<HttpResponseMessage>("SendAsync").Retu
 ```
 
 - Interfaces, abstract classes and delegates are mocked; a class once the test sets it up with `Given<T>()`. Only a class's virtual members are mocked.
+- Each mention of a mocked type is a mock of its own, and the subject's dependencies are others: hand one over with `Using(The<IRule>)` to arrange or verify what the subject holds. `Given<IRule>()` and `Then<IRule>(…)` reach them all, and a count is the total across them.
 - A constructor parameter with a default keeps it, unless the test arranged that type.
 - Arguments match by value — `The<T>()` matches the value used in the test — except `Any<T>()`, which matches any value, and `Any<T>(b => b.Nights > 7)`, which matches any value satisfying the constraint. The constraint form throws `SetupFailed` outside a mock setup or verification.
 - Setups are the same whether the member returns `T`, `Task<T>` or `ValueTask<T>`: `Returns(() => 7)` supplies the unwrapped value. For a task that completes later, state the task as the return type: `That<Task<int>>(_ => _.GetAsync()).Returns(() => _pending.Task)`.
@@ -101,6 +104,7 @@ Then<IOrderService>(_ => _.CreateOrder(The<Cart>()))                    // calle
 Then<IEventQueue>(q => q.MarkRejected(42, Any<string>()), Once)          // count, arguments matched
     .And<IEventQueue>(nameof(IEventQueue.MarkFailed), Never)             // any arguments, all overloads
     .And<IEntityWriter>(wasInvoked: Never);                              // any member, property access included
+Then(TheSecond<IRule>, _ => _.Passes(), Once)                            // one mock of several, by mention (not called) or tag
 ```
 
 `wasInvoked:` must be named on the whole-service form. Counts: `Once`, `Never`, `AtLeastOnce`, `AtMostOnce`, `Exactly(n)`, `AtLeast(n)`, `AtMost(n)`, `Between(from, to)` (inclusive).

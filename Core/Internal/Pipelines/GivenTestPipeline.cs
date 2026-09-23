@@ -14,6 +14,12 @@ internal class GivenTestPipeline<TSUT, TResult>
         => new GivenTag<TSUT, TResult, TValue>(_parent, tag, tagExpr!);
 
     public IGivenServiceContinuation<TSUT, TResult, TService> And<TService>() where TService : class => Given<TService>();
+
+    public IGivenMockContinuation<TSUT, TResult, TService> And<TService>(
+        Func<TService> mock,
+        [CallerArgumentExpression(nameof(mock))] string? mockExpr = null) where TService : class
+        => Given(mock, mockExpr!);
+
     public IGivenContinuation<TSUT, TResult> And() => Given();
     public IGivenContinuation<TSUT, TResult> and => Given();
 }

@@ -23,13 +23,13 @@ public class WhenSUTSharesMockedInterfaceAcrossDeps : Spec<MockShareSUT, bool>
     public WhenSUTSharesMockedInterfaceAcrossDeps() => When(_ => _.DirectAndIndirectShareSameInstance());
 
     [Fact]
-    public void Then_SameMockInstanceIsInjectedToBothPaths()
+    public void Then_EachPathGetsAMockOfItsOwn()
     {
-        Then().Result.Is(true);
+        Then().Result.Is(false);
         Specification.Is(
             """
             When DirectAndIndirectShareSameInstance()
-            Then Result is true
+            Then Result is false
             """);
     }
 }

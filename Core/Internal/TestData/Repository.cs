@@ -35,9 +35,10 @@ internal class Repository : IRepository
             ? (val, found: true)
             : (null, found: false);
 
-    internal void Assign(Type type, object? value, int index)
+    internal void Assign(Type type, object? value, int index, Func<string> mentionName)
     {
         _specificationProvider.Specification.Assign(type, index, value);
+        _mockingStrategy.Name(value, mentionName);
         GetMentions(type)[index] = value;
     }
 
@@ -94,7 +95,9 @@ internal class Repository : IRepository
     internal void Register<TTarget, TSource>(Func<TSource, TTarget>? convert, For scope, SequenceHolder sequence)
         => _typeConversionStrategy.Register(convert, scope, sequence);
 
-    internal MockHandle GetMock<TObject>() where TObject : class => _mockingStrategy.GetMock(typeof(TObject));
+    internal MockFamily GetMockFamily<TObject>() where TObject : class => _mockingStrategy.GetMockFamily(typeof(TObject));
+
+    internal MockHandle MockOf(object? value, string mentionName) => _mockingStrategy.MockOf(value, mentionName);
 
     internal void SetDefaultException(Type type, Func<Exception> ex)
         => _fluentDefaultProvider.SetDefaultException(type, ex);

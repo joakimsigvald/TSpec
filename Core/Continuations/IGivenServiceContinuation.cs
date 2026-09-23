@@ -1,5 +1,4 @@
-﻿using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 namespace TSpec.Continuations;
 
@@ -17,7 +16,7 @@ namespace TSpec.Continuations;
 ///     .Returns((a, b) =&gt; a + b)
 /// </code>
 /// </example>
-public interface IGivenServiceContinuation<TSUT, TResult, TService>
+public interface IGivenServiceContinuation<TSUT, TResult, TService> : IGivenMockContinuation<TSUT, TResult, TService>
     where TService : class
 {
     /// <summary>
@@ -79,47 +78,4 @@ public interface IGivenServiceContinuation<TSUT, TResult, TService>
     /// <param name="member">The name of the protected member to mock</param>
     /// <returns>A continuation for providing the result to mock</returns>
     IGivenThatVoidContinuation<TSUT, TResult, TService> ThatProtected(string member);
-
-    /// <summary>
-    /// Mock the void method invocation
-    /// </summary>
-    /// <param name="call">An expression specifying the method invocation to mock</param>
-    /// <param name="callExpr">Captured automatically by the compiler — do not provide</param>
-    /// <returns>A continuation for providing the method invocation result to mock</returns>
-    IGivenThatVoidContinuation<TSUT, TResult, TService> That(
-        Expression<Action<TService>> call,
-        [CallerArgumentExpression(nameof(call))] string? callExpr = null);
-
-    /// <summary>
-    /// Mock the value-returning method invocation
-    /// </summary>
-    /// <typeparam name="TReturns">The return type of the mocked invocation</typeparam>
-    /// <param name="call">An expression specifying the method invocation to mock</param>
-    /// <param name="callExpr">Captured automatically by the compiler — do not provide</param>
-    /// <returns>A continuation for providing the method invocation result to mock</returns>
-    IGivenThatContinuation<TSUT, TResult, TService, TReturns> That<TReturns>(
-        Expression<Func<TService, TReturns>> call,
-        [CallerArgumentExpression(nameof(call))] string? callExpr = null);
-
-    /// <summary>
-    /// Provide async method invocation to mock
-    /// </summary>
-    /// <typeparam name="TReturns">The return type of the mocked async invocation</typeparam>
-    /// <param name="call">An expression specifying the async method invocation to mock</param>
-    /// <param name="callExpr">Captured automatically by the compiler — do not provide</param>
-    /// <returns>A continuation for providing the method invocation result to mock</returns>
-    IGivenThatContinuation<TSUT, TResult, TService, TReturns> That<TReturns>(
-        Expression<Func<TService, Task<TReturns>>> call,
-        [CallerArgumentExpression(nameof(call))] string? callExpr = null);
-
-    /// <summary>
-    /// Provide async method invocation to mock
-    /// </summary>
-    /// <typeparam name="TReturns">The return type of the mocked async invocation</typeparam>
-    /// <param name="call">An expression specifying the async method invocation to mock</param>
-    /// <param name="callExpr">Captured automatically by the compiler — do not provide</param>
-    /// <returns>A continuation for providing the method invocation result to mock</returns>
-    IGivenThatContinuation<TSUT, TResult, TService, TReturns> That<TReturns>(
-        Expression<Func<TService, ValueTask<TReturns>>> call,
-        [CallerArgumentExpression(nameof(call))] string? callExpr = null);
 }

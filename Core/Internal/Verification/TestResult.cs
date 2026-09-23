@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using TSpec.Continuations;
+using TSpec.Internal.Pipelines;
 using TSpec.Internal.Specification;
 using TSpec.Internal.TestData;
 using TSpec.Internal.TestData.Generation.Strategies.Mocking;
@@ -128,22 +129,26 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
         return And();
     }
 
-    internal IAndVerify<TResult> VerifyInvoked<TService>(Times times, string? timesExpr)
+    internal IAndVerify<TResult> VerifyInvoked<TService>(MockTarget<TService> target, Times times, string? timesExpr)
         where TService : class
     {
         var expectation = DescribeInvocationTimes(timesExpr);
         try
         {
             SpecificationContext.Current.ClearSubject();
-            SpecificationContext.Current.AddWasInvoked<TService>(timesExpr);
-            var mock = _context.GetMock<TService>();
-            var count = mock.CountedInvocations.Count;
+            SpecificationContext.Current.AddWasInvoked(target.Name, timesExpr);
+            var mocked = target.In(_context);
+            var count = mocked.CountedInvocations.Count;
             if (times.Allows(count))
                 return new AndVerify<TSUT, TResult>(this);
 
-            var failure = CountNotMet(typeof(TService).Alias(), expectation, count);
+            var failure = CountNotMet(mocked.Name, expectation, count);
             // A count of every call the mock received already says, at 0, that there were none
-            throw count == 0 ? new XunitException(failure) : WithReceivedCalls(failure, mock);
+            var received = count == 0 ? failure : WithReceivedCalls(failure, mocked);
+            var others = OnOtherMocks(
+                target, count, family => family.CountedInvocations.Count,
+                $"Other instances of {typeof(TService).Alias()} were invoked");
+            throw new XunitException(received + others);
         }
         catch (Exception ex)
         {
@@ -153,7 +158,8 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
         }
     }
 
-    internal IAndVerify<TResult> VerifyInvoked<TService>(string method, Times times, string? timesExpr)
+    internal IAndVerify<TResult> VerifyInvoked<TService>(
+        MockTarget<TService> target, string method, Times times, string? timesExpr)
         where TService : class
     {
         var expectation = DescribeInvocationTimes(timesExpr);
@@ -161,12 +167,17 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
         {
             VerificationByName.AssertNamesAMethod(typeof(TService), method);
             SpecificationContext.Current.ClearSubject();
-            SpecificationContext.Current.AddWasInvoked<TService>(method, timesExpr);
-            var mock = _context.GetMock<TService>();
-            var count = mock.CountedInvocations.Count(i => i.Method.Name == method);
-            if (!times.Allows(count))
-                throw WithReceivedCalls(CountNotMet($"{typeof(TService).Alias()}.{method}", expectation, count), mock);
-            return new AndVerify<TSUT, TResult>(this);
+            SpecificationContext.Current.AddWasInvoked(target.Name, method, timesExpr);
+            var mocked = target.In(_context);
+            var count = CountByName(mocked, method);
+            if (times.Allows(count))
+                return new AndVerify<TSUT, TResult>(this);
+
+            var failure = WithReceivedCalls(CountNotMet($"{mocked.Name}.{method}", expectation, count), mocked);
+            var others = OnOtherMocks(
+                target, count, family => CountByName(family, method),
+                $"{method} was invoked on other instances of {typeof(TService).Alias()}");
+            throw new XunitException(failure + others);
         }
         catch (Exception ex)
         {
@@ -188,8 +199,22 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
     private static string CountNotMet(string call, string expectation, int count)
         => $"Expected {call} to be invoked {expectation} but {DescribeCount(count)}";
 
-    private static XunitException WithReceivedCalls(string failure, MockHandle mock)
-        => new($"{failure}{Environment.NewLine}{ReceivedCalls.Of(mock)}");
+    private static string WithReceivedCalls(string failure, IMocked mocked)
+        => $"{failure}{Environment.NewLine}{ReceivedCalls.Of(mocked)}";
+
+    private static int CountByName(IMocked mocked, string method)
+        => mocked.CountedInvocations.Count(call => call.Method.Name == method);
+
+    /// One mock verified alone that matched nothing, where another mock of its type did, says so.
+    private string OnOtherMocks<TService>(
+        MockTarget<TService> target, int count, Func<IMocked, int> counting, string invokedOnOthers)
+        where TService : class
+    {
+        if (target.IsFamily || count > 0 || counting(_context.GetMockFamily<TService>()) == 0)
+            return string.Empty;
+
+        return $"{Environment.NewLine}{invokedOnOthers}";
+    }
 
     private static string DescribeCount(int count)
         => count switch
@@ -198,26 +223,6 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
             1 => "was invoked once",
             _ => $"was invoked {count} times"
         };
-
-    internal IAndVerify<TResult> Verify<TService>(
-        Expression<Action<TService>> expression, string expressionExpr)
-        where TService : class
-        => VerifyCall<TService>(expression, null, expressionExpr, null);
-
-    internal IAndVerify<TResult> Verify<TService>(
-        Expression<Action<TService>> expression, Times wasInvoked, string expressionExpr, string? wasInvokedExpr)
-        where TService : class
-        => VerifyCall<TService>(expression, wasInvoked, expressionExpr, wasInvokedExpr);
-
-    internal IAndVerify<TResult> Verify<TService, TReturns>(
-        Expression<Func<TService, TReturns>> expression, string expressionExpr)
-        where TService : class
-        => VerifyCall<TService>(expression, null, expressionExpr, null);
-
-    internal IAndVerify<TResult> Verify<TService, TReturns>(
-        Expression<Func<TService, TReturns>> expression, Times wasInvoked, string expressionExpr, string? wasInvokedExpr)
-        where TService : class
-        => VerifyCall<TService>(expression, wasInvoked, expressionExpr, wasInvokedExpr);
 
     private void AssertError<TError>(TError expected)
         where TError : Exception
@@ -271,24 +276,29 @@ Try providing a function with the Spec's declared return type instead as paramet
 
     /// A call named by an expression is counted among the calls the mock received, and fails the way
     /// a count by name does — at least once unless a count is given.
-    private AndVerify<TSUT, TResult> VerifyCall<TService>(
-        LambdaExpression call, Times? times, string callExpr, string? timesExpr)
+    internal AndVerify<TSUT, TResult> VerifyCall<TService>(
+        MockTarget<TService> target, LambdaExpression call, Times? times, string callExpr, string? timesExpr)
         where TService : class
     {
         try
         {
             SpecificationContext.Current.ClearSubject();
-            SpecificationContext.Current.AddVerify<TService>(callExpr, timesExpr);
-            var mock = _context.GetMock<TService>();
-            var count = mock.CountCalls(call, callExpr);
-            if (!(times ?? Times.AtLeastOnce).Allows(count))
-                throw WithReceivedCalls(
-                    CountNotMet(
-                        callExpr.DescribeMockCallOn<TService>().StripWrapMarkers(),
-                        DescribeInvocationTimes(timesExpr),
-                        count),
-                    mock);
-            return new AndVerify<TSUT, TResult>(this);
+            SpecificationContext.Current.AddVerify<TService>(target.Name, callExpr, timesExpr);
+            var mocked = target.In(_context);
+            var count = mocked.CountCalls(call, callExpr);
+            if ((times ?? Times.AtLeastOnce).Allows(count))
+                return new AndVerify<TSUT, TResult>(this);
+
+            var failure = WithReceivedCalls(
+                CountNotMet(
+                    callExpr.DescribeMockCallOn<TService>(mocked.Name).StripWrapMarkers(),
+                    DescribeInvocationTimes(timesExpr),
+                    count),
+                mocked);
+            var others = OnOtherMocks(
+                target, count, family => family.CountCalls(call, callExpr),
+                $"{callExpr.DescribeMockCall().StripWrapMarkers()} was invoked on other instances of {typeof(TService).Alias()}");
+            throw new XunitException(failure + others);
         }
         catch (Exception ex)
         {

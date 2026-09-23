@@ -40,19 +40,19 @@ public class ChildFactorySinkService(Func<int, IChild> childOf, IChildSink sink)
     }
 }
 
-/// A mock names itself by where it came from: the shared mock by its type, a child by the call that made it.
+/// A mock names itself by where it came from: a mention as mentioned, a child by the call that made it.
 public class WhenAMockIsNamedInAMessage : Spec<ParentService, IChild>
 {
     [Fact]
-    public void GivenTheSharedMockIsExpected_ThenItIsNamedByItsType()
-        => MessageOf(() => When(_ => _.ChildOf(1)).Then().Result.Is(The<IChild>()))
-            .Is("Expected Result to be the IChild but found IChild from IParent.GetChild(1)");
+    public void GivenAMentionIsExpected_ThenItIsNamedAsMentioned()
+        => MessageOf(() => When(_ => _.ChildOf(1)).Then().Result.Is(TheSecond<IChild>()))
+            .Is("Expected Result to be the second IChild but found IChild from IParent.GetChild(1)");
 
     [Fact]
     public void GivenAnotherChildIsExpected_ThenBothAreNamedByTheCallThatMadeThem()
-        => MessageOf(() => When(_ => _.ChildOf(1)).Then().Result.Is(The<IParent>().GetChild(2)))
-            .Is("Expected Result to be IChild from IParent.GetChild(2) "
-                + "but found IChild from IParent.GetChild(1)");
+        => MessageOf(() => When(_ => _.ChildOf(1)).Using(The<IParent>).Then().Result.Is(The<IParent>().GetChild(2)))
+            .Is("Expected Result to be IChild from the IParent.GetChild(2) "
+                + "but found IChild from the IParent.GetChild(1)");
 
     internal static string MessageOf(Action assertion)
         => Xunit.Assert.Throws<XunitException>(assertion).Message.NormalizeLineEndings();

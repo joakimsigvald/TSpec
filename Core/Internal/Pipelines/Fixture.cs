@@ -122,8 +122,7 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
 
     internal TClass InstantiateNew<TClass>() => _context.InstantiateNew<TClass>();
 
-    internal MockHandle GetMock<TObject>() where TObject : class
-        => _context.GetMock<TObject>();
+    internal IMocked Mocked<TService>(MockTarget<TService> target) where TService : class => target.In(_context);
 
     internal void SetupReturnsDefault<TService, TReturns>(TReturns value)
         => _context.SetupReturnsDefault<TService, TReturns>(value);

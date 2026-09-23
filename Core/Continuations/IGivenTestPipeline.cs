@@ -18,6 +18,17 @@ public interface IGivenTestPipeline<TSUT, TResult> : ITestPipeline<TSUT, TResult
     IGivenServiceContinuation<TSUT, TResult, TService> And<TService>() where TService : class;
 
     /// <summary>
+    /// Set up the one mock a mention holds, rather than every mock of its type
+    /// </summary>
+    /// <typeparam name="TService">The mocked type</typeparam>
+    /// <param name="mock">The mention, as a method group: <c>And(TheSecond&lt;IRule&gt;)</c></param>
+    /// <param name="mockExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for setting up calls on that mock</returns>
+    IGivenMockContinuation<TSUT, TResult, TService> And<TService>(
+        Func<TService> mock,
+        [CallerArgumentExpression(nameof(mock))] string? mockExpr = null) where TService : class;
+
+    /// <summary>
     /// A continuation to provide further arrangement to the test
     /// </summary>
     /// <returns>A continuation for providing test data and other arrangement</returns>

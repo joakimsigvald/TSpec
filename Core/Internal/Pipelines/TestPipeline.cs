@@ -112,6 +112,11 @@ internal abstract class TestPipeline<TSUT, TResult, TParent>(TParent parent) whe
     public IGivenServiceContinuation<TSUT, TResult, TService> Given<TService>() where TService : class
         => _parent.Given<TService>();
 
+    public IGivenMockContinuation<TSUT, TResult, TService> Given<TService>(
+        Func<TService> mock,
+        [CallerArgumentExpression(nameof(mock))] string? mockExpr = null) where TService : class
+        => _parent.Given(mock, mockExpr!);
+
     public IGivenContinuation<TSUT, TResult> Given() => _parent.Given();
 
     public IGivenTag<TSUT, TResult, TValue> Given<TValue>(

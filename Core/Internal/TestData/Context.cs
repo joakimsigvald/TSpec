@@ -148,9 +148,15 @@ internal class Context(
     internal TValue Assign<TValue>(TValue value, int index = 0)
     {
         AssertNotReplacingWhatWasRead(typeof(TValue), index, value);
-        _repository.Assign(typeof(TValue), value, index);
+        _repository.Assign(typeof(TValue), value, index, () => MentionName(typeof(TValue), index));
         return value;
     }
+
+    /// A mention as the specification words it: the IRule, the second IRule, the Primary.
+    private string MentionName(Type type, int index)
+        => _namesByIndex.TryGetValue((type, index), out var tag) ? $"the {tag.AsTagName()}"
+        : index == 0 ? $"the {type.Alias()}"
+        : $"the {Ordinal(index)} {type.Alias()}";
 
     internal TValue[] MentionMany<TValue>(int count, int? minCount)
     {
@@ -180,8 +186,10 @@ internal class Context(
         });
     }
 
-    internal MockHandle GetMock<TObject>() where TObject : class
-        => _repository.GetMock<TObject>();
+    internal MockFamily GetMockFamily<TObject>() where TObject : class
+        => _repository.GetMockFamily<TObject>();
+
+    internal MockHandle MockOf(object? value, string mentionName) => _repository.MockOf(value, mentionName);
 
     internal void Use<TService>(TService service, For scope) => _repository.Use(service, scope);
     internal void Use<TService>(Func<TService> factory, For scope) => _repository.Use(factory, scope);

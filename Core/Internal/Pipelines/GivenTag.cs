@@ -10,6 +10,12 @@ internal class GivenTag<TSUT, TResult, TValue>(
 {
     private readonly string _name = tagExpr.AsTagName();
 
+    /// The one mock the tag holds, which the setups that follow are made on.
+    internal GivenServiceContinuation<TSUT, TResult, TMock> Mock<TMock>(Tag<TMock> mock) where TMock : class
+        => new(spec, MockTarget<TMock>.Of(mock, tagExpr));
+
+    internal Tag<TValue> Tag => tag;
+
     public IGivenTestPipeline<TSUT, TResult> Is(
         TValue value,
         [CallerArgumentExpression(nameof(value))] string? valueExpr = null)

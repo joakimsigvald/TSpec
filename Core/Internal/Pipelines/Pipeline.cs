@@ -41,29 +41,18 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         return subject;
     }
 
-    internal IAndVerify<TResult> ThenWasInvoked<TService>(Times wasInvoked, string wasInvokedExpr) where TService : class
-        => Claim.VerifyInvoked<TService>(wasInvoked, wasInvokedExpr);
-
-    internal IAndVerify<TResult> Then<TService>(string method, Times wasInvoked, string wasInvokedExpr) where TService : class
-        => Claim.VerifyInvoked<TService>(method, wasInvoked, wasInvokedExpr);
+    internal IAndVerify<TResult> ThenWasInvoked<TService>(
+        MockTarget<TService> target, Times wasInvoked, string wasInvokedExpr) where TService : class
+        => Claim.VerifyInvoked(target, wasInvoked, wasInvokedExpr);
 
     internal IAndVerify<TResult> Then<TService>(
-        Expression<Action<TService>> expression, string expressionExpr)
-        where TService : class
-        => Claim.Verify(expression, expressionExpr);
+        MockTarget<TService> target, string method, Times wasInvoked, string wasInvokedExpr) where TService : class
+        => Claim.VerifyInvoked(target, method, wasInvoked, wasInvokedExpr);
 
     internal IAndVerify<TResult> Then<TService>(
-        Expression<Action<TService>> expression, Times wasInvoked, string expressionExpr, string wasInvokedExpr) where TService : class
-        => Claim.Verify(expression, wasInvoked, expressionExpr, wasInvokedExpr);
-
-    internal IAndVerify<TResult> Then<TService, TReturns>(
-        Expression<Func<TService, TReturns>> expression, string expressionExpr) where TService : class
-        => Claim.Verify(expression, expressionExpr);
-
-    internal IAndVerify<TResult> Then<TService, TReturns>(
-        Expression<Func<TService, TReturns>> expression, Times wasInvoked, string expressionExpr, string wasInvokedExpr)
+        MockTarget<TService> target, LambdaExpression call, Times? wasInvoked, string callExpr, string? wasInvokedExpr)
         where TService : class
-        => Claim.Verify(expression, wasInvoked, expressionExpr, wasInvokedExpr);
+        => Claim.VerifyCall(target, call, wasInvoked, callExpr, wasInvokedExpr);
 
     internal TValue Mention<TValue>(int? index = 0) => _context.Mention<TValue>(index);
 

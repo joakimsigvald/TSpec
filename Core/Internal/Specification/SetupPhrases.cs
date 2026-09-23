@@ -50,18 +50,18 @@ internal class SetupPhrases(SpecificationRecording recording)
         => RecordSetup(() => Add(StepLayout.SentenceOrPhrase, StepFamily.Using,
             $"{typeof(TTarget).Alias()} from {generateExpr}{ScopeSuffix(scope)}"));
 
-    internal void AddMockSetup<TService>(string callExpr)
+    internal void AddMockSetup<TService>(string callExpr, string mock)
         => recording.Record(() =>
         {
             var call = callExpr.DescribeMockCall();
-            Mock<TService>(StepLayout.SentenceOrPhrase, call, ExpressionDescriber.MockCallBinder<TService>(call));
+            MockCall(StepLayout.SentenceOrPhrase, mock, call, ExpressionDescriber.MockCallBinder<TService>(call));
         });
 
     internal void AddMockFirst()
         => recording.Record(() => Add(StepLayout.Word, StepFamily.None, "first"));
 
     internal void AddMockReturnsDefault<TService>(string returnsExpr)
-        => recording.Record(() => Mock<TService>(
+        => recording.Record(() => MockDefault<TService>(
             StepLayout.SentenceOrPhrase, $"returns {returnsExpr.Describe()}"));
 
     internal void AddMockReturns(string? returnsExpr)
@@ -69,11 +69,11 @@ internal class SetupPhrases(SpecificationRecording recording)
             StepLayout.Word, StepFamily.None, $"returns {returnsExpr?.Describe()}".Trim()));
 
     internal void AddMockThrowsDefault<TService, TException>()
-        => recording.Record(() => Mock<TService>(
+        => recording.Record(() => MockDefault<TService>(
             StepLayout.Word, $"throws {typeof(TException).Alias()}"));
 
     internal void AddMockThrowsDefault<TService>(string expectedExpr)
-        => recording.Record(() => Mock<TService>(
+        => recording.Record(() => MockDefault<TService>(
             StepLayout.Word, $"throws {expectedExpr.Describe()}"));
 
     internal void AddMockThrows<TException>()
@@ -103,12 +103,21 @@ internal class SetupPhrases(SpecificationRecording recording)
     private static string NameTheTypeOfNull<TValue>(string value)
         => value == "null" ? $"null {typeof(TValue).Alias()}" : value;
 
-    private void Mock<TService>(StepLayout layout, string body, string binder = " ")
+    private void MockDefault<TService>(StepLayout layout, string body)
         => recording.Add(new(layout)
         {
             Family = StepFamily.Given,
             Body = body,
             MockService = typeof(TService).Alias(),
+            IsMockDefault = true,
+        });
+
+    private void MockCall(StepLayout layout, string mock, string body, string binder)
+        => recording.Add(new(layout)
+        {
+            Family = StepFamily.Given,
+            Body = body,
+            MockService = mock,
             MockBinder = binder,
         });
 

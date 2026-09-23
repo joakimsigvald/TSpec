@@ -16,6 +16,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
     where TService : class
 {
     private readonly Spec<TSUT, TResult> _spec;
+    private readonly MockTarget<TService> _target;
     private readonly Action<Func<IReadOnlyList<object>, object?>> _answerCall;
     private readonly string _callExpr;
     private readonly IReadOnlyList<string> _tapExprs;
@@ -24,14 +25,16 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
 
     protected GivenThatCommonContinuation(
         Spec<TSUT, TResult> spec,
-        Action<MockHandle, Func<IReadOnlyList<object>, object?>> answerCall,
+        MockTarget<TService> target,
+        Action<CallSetups, Func<IReadOnlyList<object>, object?>> answerCall,
         string callExpr)
-        : this(spec, answer => answerCall(spec.Pipeline.GetMock<TService>(), answer), callExpr)
+        : this(spec, target, answer => answerCall(spec.Pipeline.Mocked(target).Setups, answer), callExpr)
     {
     }
 
     protected GivenThatCommonContinuation(
         Spec<TSUT, TResult> spec,
+        MockTarget<TService> target,
         Action<Func<IReadOnlyList<object>, object?>> answerCall,
         string callExpr,
         IReadOnlyList<string>? tapExprs = null,
@@ -39,6 +42,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
         Action<IReadOnlyList<object>>? tap = null)
     {
         _spec = spec;
+        _target = target;
         _answerCall = answerCall;
         _callExpr = callExpr;
         _tapExprs = tapExprs ?? [];
@@ -143,7 +147,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
     protected static TArg Arg<TArg>(IReadOnlyList<object> arguments, int index)
         => (TArg)arguments[index];
 
-    private GivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Done() => new(_spec, this);
+    private GivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Done() => new(_spec, this, _target);
 
     /// <summary>
     /// A tap inside a sequence belongs to the step it precedes, so it fires on the call that step
@@ -155,6 +159,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
         Action<IReadOnlyList<object>> tap, string? tapExpr)
         => new GivenThatNextContinuation<TSUT, TResult, TService, TReturns>(
             _spec,
+            _target,
             _answerCall,
             _callExpr,
             tapExpr is null ? _tapExprs : [.. _tapExprs, tapExpr],
@@ -167,7 +172,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
 
     private GivenThatNextContinuation<TSUT, TResult, TService, TReturns> InSequence(
         string callExpr, MockCallSequence<TReturns> sequence)
-        => new(_spec, _answerCall, callExpr, sequence: sequence);
+        => new(_spec, _target, _answerCall, callExpr, sequence: sequence);
 
     /// <summary>
     /// The outcome, preceded by the taps in hand. Outside a sequence it answers the call; inside one
@@ -259,7 +264,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
     private void SpecifyMock()
     {
         if (_callExpr is not null)
-            _spec.Pipeline.Specification.AddMockSetup<TService>(_callExpr);
+            _spec.Pipeline.Specification.AddMockSetup<TService>(_callExpr, _target.Name);
         if (_sequence is { IsEmpty: true })
         {
             foreach (var tapExpr in _sequence.TapExprs)
