@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 /// Every mock of a type, or one mock: what a setup is made on, and what a verification counts.
 internal interface IMocked

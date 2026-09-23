@@ -1,6 +1,7 @@
-﻿using TSpec.Internal.Pipelines;
+﻿using TSpec.Internal.Mocking;
+using TSpec.Internal.Pipelines;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.TestData.Generation.Strategies;
 
 internal class MockingStrategy(
     FluentDefaultProvider fluentDefaultProvider, IPipelinePhase phase, SetupLambda setupLambda) : IGenerationStrategy
@@ -32,16 +33,7 @@ internal class MockingStrategy(
 
     internal void Name(object? value, Func<string> name) => _registry.Name(value, name);
 
-    private bool ShouldMock(Type type) => IsMockedByDefault(type) || IsArranged(type);
+    private bool ShouldMock(Type type) => MockableTypes.IsMockedByDefault(type) || IsArranged(type);
 
     private bool IsArranged(Type type) => _registry.HasMockFamily(type) || _defaults.IsSetUp(type);
-
-    /// A class the test sets up is mocked as well, so every type but a sealed class or a value can be.
-    internal static bool IsMockable(Type type)
-        => IsMockedByDefault(type) || type is { IsClass: true, IsSealed: false };
-
-    internal static bool IsMockedByDefault(Type type)
-        => type.IsInterface
-        || type.IsAbstract
-        || typeof(Delegate).IsAssignableFrom(type);
-    }
+}

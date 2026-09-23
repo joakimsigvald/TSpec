@@ -2,7 +2,7 @@ using Castle.DynamicProxy;
 using System.Reflection;
 using TSpec.Internal.Specification;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 /// <summary>
 /// The instance a mock hands out: a Castle proxy of a class, or of object implementing an interface, or

@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 /// Which calls reach a property, and where both its accessors meet.
 internal static class PropertyAccess

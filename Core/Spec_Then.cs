@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using TSpec.Continuations;
-using TSpec.Internal.Pipelines;
+using TSpec.Internal.Mocking;
 
 namespace TSpec;
 

@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using TSpec.Internal.TestData.Generation.Strategies.IlCompilation;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 /// <summary>
 /// How an answer reaches a call that is awaited. A real async method never throws at its caller, so

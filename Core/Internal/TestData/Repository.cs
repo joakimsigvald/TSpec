@@ -1,8 +1,8 @@
-﻿using TSpec.Internal.Pipelines;
+﻿using TSpec.Internal.Mocking;
+using TSpec.Internal.Pipelines;
 using TSpec.Internal.TestData.Generation;
 using TSpec.Internal.TestData.Generation.Strategies;
 using TSpec.Internal.TestData.Generation.Strategies.IlCompilation;
-using TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 namespace TSpec.Internal.TestData;
 

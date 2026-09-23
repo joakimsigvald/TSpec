@@ -1,7 +1,7 @@
 using System.Reflection;
 using TSpec.Internal.Specification;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 /// <summary>
 /// The calls a mock received, in order, each written as the call would be: what a failed

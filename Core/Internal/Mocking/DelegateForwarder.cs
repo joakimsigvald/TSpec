@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 /// <summary>
 /// A delegate cannot be proxied, so a mocked one is compiled: a lambda of the delegate's own

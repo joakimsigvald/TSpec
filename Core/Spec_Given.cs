@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using TSpec.Continuations;
+using TSpec.Internal.Mocking;
 using TSpec.Internal.Pipelines;
 
 namespace TSpec;

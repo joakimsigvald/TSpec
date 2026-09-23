@@ -1,6 +1,5 @@
 ﻿using TSpec.Internal.TestData.Generation.Strategies;
 using TSpec.Internal.TestData.Generation.Strategies.IlCompilation;
-using TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 namespace TSpec.Internal.TestData.Generation;
 

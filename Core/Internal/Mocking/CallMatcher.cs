@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using TSpec.Internal.Specification;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 /// Which calls a setup or a verification is about: one member of the mocked service, and what its arguments must be.
 internal sealed class CallMatcher

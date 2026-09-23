@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 /// <summary>
 /// Where a mock keeps what it answered: the member called and the arguments it was called with. A

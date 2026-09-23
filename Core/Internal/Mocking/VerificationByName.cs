@@ -1,7 +1,7 @@
 using System.Reflection;
 using TSpec.Internal.Specification;
 
-namespace TSpec.Internal.Verification;
+namespace TSpec.Internal.Mocking;
 
 /// A name counts calls to a method. A property's name does not say which accessor was meant.
 internal static class VerificationByName

@@ -1,8 +1,7 @@
 using TSpec.Internal.Specification;
 using TSpec.Internal.TestData;
-using TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
-namespace TSpec.Internal.Pipelines;
+namespace TSpec.Internal.Mocking;
 
 /// <summary>
 /// What a setup is made on, or a verification counts: every mock of a type, or the one mock a mention

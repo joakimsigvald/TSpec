@@ -55,7 +55,8 @@ layer. A living document: correct it in place, and move a finished item to Histo
 
 ## 3. The engine
 
-`Core/Internal/TestData/Generation/Strategies/Mocking/`:
+`Core/Internal/Mocking/`, flat; generation reaches it only through `Strategies/MockingStrategy`, which
+hands the generator a new mock of a type `MockableTypes` says is mocked.
 
 - `MockFamily` — every mock of a type, and what `Given<T>()` and `Then<T>()` reach: the setups made on
   the type, and a `CallLog` of the calls all its mocks received. It makes the mocks and refuses a
@@ -81,15 +82,15 @@ layer. A living document: correct it in place, and move a finished item to Histo
   received it; `MockChildren` holds a mock's children by address, each named by the call that made it;
   `AsyncAnswer` faults a task on a throw and wraps a value in one; `MockRegistry` keeps the `MockFamily`
   of each type, makes a new mock for every grab, and names one when a mention first takes it;
-  `MockingStrategy` decides which types are mocked; `ReceivedCalls` lists a mock's calls for a failed
-  verification.
+  `ReceivedCalls` lists a mock's calls for a failed verification.
 - `IMocked` — a `MockFamily` or one `MockHandle`: what a setup is made on and a verification counts.
-- Outside the folder: `Pipelines/MockTarget` (the `IMocked` a setup or verification is about — the
-  family, or the mock a mention or tag holds, which `MockRegistry.MockOf` finds or refuses — and its
-  name in the specification), `Pipelines/MockCallSequence` (a sequence's steps and its taps),
-  `Pipelines/ProtectedMember` (`ThatProtected`), `ExpressionDescriber.MockCallBinder`, and
-  `TestResult.VerifyCall`, which counts `CallMatcher` matches in the log — a chain on the mocks its
-  first step actually answered with, refusing a step that answered with anything else.
+  `MockTarget` is the `IMocked` a setup or verification is about — the family, or the mock a mention
+  or tag holds, which `MockRegistry.MockOf` finds or refuses — and its name in the specification.
+  `ProtectedMember` resolves `ThatProtected`; `VerificationByName` refuses a name of no method.
+- Outside the folder: `Pipelines/MockCallSequence` (a sequence's steps and its taps),
+  `ExpressionDescriber.MockCallBinder`, and `TestResult.VerifyCall`, which counts `CallMatcher`
+  matches in the log — a chain on the mocks its first step actually answered with, refusing a step
+  that answered with anything else.
 
 **Pinned, so an engine change cannot drop it silently**: the order unmatched calls are answered in
 (`WhenReturnsDefaultValue`, `WhenMockReturnsSelf`, `WhenValueTaskOfInterface`), async throws fault

@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using TSpec.Internal.Specification;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 /// The forms an argument of a setup or verification may not take, each refused saying what to write instead.
 internal static class ArgumentRefusals

@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using TSpec.Internal.Specification;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 /// <summary>
 /// A call reached through members of the mocked service, such as <c>_ => _.GetChild(2).Get(1)</c>: its
@@ -23,7 +23,7 @@ internal static class CallChain
             return false;
 
         var (step, calledOnStep) = FirstStepOf(body, service);
-        if (!MockingStrategy.IsMockable(step.Type))
+        if (!MockableTypes.IsMockable(step.Type))
             throw NotMockable(step, calledOnStep);
 
         var child = Expression.Parameter(step.Type, "_");

@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 /// <summary>
 /// The children a mock answers chained calls with. A child is reached at an address — the member and

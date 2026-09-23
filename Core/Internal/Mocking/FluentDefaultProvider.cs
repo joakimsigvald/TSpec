@@ -1,7 +1,8 @@
 ﻿using TSpec.Internal.Specification;
+using TSpec.Internal.TestData;
 using TSpec.Internal.TestData.Generation.Strategies.IlCompilation;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 internal class FluentDefaultProvider(IRepository repository)
 {

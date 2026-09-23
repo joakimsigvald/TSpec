@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using TSpec.Continuations;
+using TSpec.Internal.Mocking;
 using TSpec.Internal.Specification;
 using TSpec.Internal.TestData;
 using TSpec.Internal.Verification;

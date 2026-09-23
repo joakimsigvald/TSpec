@@ -1,8 +1,9 @@
 using System.Reflection;
 using TSpec.Internal.Pipelines;
 using TSpec.Internal.Specification;
+using TSpec.Internal.TestData;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 /// What a setup lambda may not do to a mock, since the mock would not answer as the specification states.
 internal sealed class SetupGuard(IPipelinePhase phase, SetupLambda setupLambda)

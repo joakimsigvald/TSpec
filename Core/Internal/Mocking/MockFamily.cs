@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using TSpec.Internal.Specification;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 /// <summary>
 /// What every mock of a type shares: the setups made on the type, and the calls all of them received.
@@ -13,7 +13,7 @@ internal sealed class MockFamily : IMocked
 
     internal MockFamily(Type type, MockRegistry mocks)
     {
-        if (!MockingStrategy.IsMockable(type))
+        if (!MockableTypes.IsMockable(type))
             throw new SetupFailed($"{type.Alias()} is sealed, so it cannot be mocked. Provide one with Using instead");
 
         MockedType = type;

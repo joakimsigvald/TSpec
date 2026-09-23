@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using TSpec.Internal.Specification;
 
-namespace TSpec.Internal.Pipelines;
+namespace TSpec.Internal.Mocking;
 
 /// <summary>
 /// Finds a member a test cannot write a lambda for, by its name.

@@ -1,4 +1,4 @@
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 /// <summary>
 /// What a mock has answered, kept one per address, so a call no setup matches is answered the same

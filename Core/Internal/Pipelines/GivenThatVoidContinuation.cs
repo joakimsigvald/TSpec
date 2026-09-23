@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using TSpec.Continuations;
+using TSpec.Internal.Mocking;
 
 namespace TSpec.Internal.Pipelines;
 

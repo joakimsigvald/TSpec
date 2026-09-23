@@ -1,10 +1,9 @@
 ﻿using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using TSpec.Continuations;
-using TSpec.Internal.Pipelines;
+using TSpec.Internal.Mocking;
 using TSpec.Internal.Specification;
 using TSpec.Internal.TestData;
-using TSpec.Internal.TestData.Generation.Strategies.Mocking;
 using Xunit.Sdk;
 
 namespace TSpec.Internal.Verification;

@@ -1,7 +1,7 @@
 using System.Reflection;
 using TSpec.Internal.Pipelines;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 internal sealed record MockInvocation(MethodInfo Method, IReadOnlyList<object?> Arguments, Phase Phase)
 {

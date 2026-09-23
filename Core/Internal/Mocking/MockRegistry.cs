@@ -2,8 +2,9 @@
 using System.Runtime.CompilerServices;
 using TSpec.Internal.Pipelines;
 using TSpec.Internal.Specification;
+using TSpec.Internal.TestData;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 internal class MockRegistry(FluentDefaultProvider defaultProvider, IPipelinePhase phase, SetupLambda setupLambda)
 {

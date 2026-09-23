@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using TSpec.Continuations;
+using TSpec.Internal.Mocking;
 using TSpec.Internal.Specification;
-using TSpec.Internal.TestData.Generation.Strategies.Mocking;
 
 namespace TSpec.Internal.Pipelines;
 

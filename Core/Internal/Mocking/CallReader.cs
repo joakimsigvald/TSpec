@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using TSpec.Internal.Specification;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 /// <summary>
 /// The member a call lambda calls on the mocked service, and the argument expressions it passes. A set,

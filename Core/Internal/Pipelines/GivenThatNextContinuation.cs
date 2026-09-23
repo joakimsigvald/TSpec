@@ -1,4 +1,6 @@
-﻿namespace TSpec.Internal.Pipelines;
+﻿using TSpec.Internal.Mocking;
+
+namespace TSpec.Internal.Pipelines;
 
 internal class GivenThatNextContinuation<TSUT, TResult, TService, TReturns>
     : GivenThatCommonContinuation<TSUT, TResult, TService, TReturns>

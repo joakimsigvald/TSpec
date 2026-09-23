@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using TSpec.Internal.Specification;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 /// <summary>
 /// The first member an argument reads on the mock: on the parameter of the call's lambda, or of the

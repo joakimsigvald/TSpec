@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace TSpec.Internal.TestData.Generation.Strategies.Mocking;
+namespace TSpec.Internal.Mocking;
 
 /// An argument that is not itself Any, but has one inside it.
 internal sealed class NestedAny : ExpressionVisitor
