@@ -21,14 +21,21 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
     private readonly string _callExpr;
     private readonly IReadOnlyList<string> _tapExprs;
     private readonly Action<IReadOnlyList<object>>? _tap;
+    private readonly Action? _guardArgumentReads;
     internal readonly MockCallSequence<TReturns>? _sequence;
 
     protected GivenThatCommonContinuation(
         Spec<TSUT, TResult> spec,
         MockTarget<TService> target,
         Action<CallSetups, Func<IReadOnlyList<object>, object?>> answerCall,
-        string callExpr)
-        : this(spec, target, answer => answerCall(spec.Pipeline.Mocked(target).Setups, answer), callExpr)
+        string callExpr,
+        Action? guardArgumentReads = null)
+        : this(
+            spec,
+            target,
+            answer => answerCall(spec.Pipeline.Mocked(target).Setups, answer),
+            callExpr,
+            guardArgumentReads: guardArgumentReads)
     {
     }
 
@@ -39,7 +46,8 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
         string callExpr,
         IReadOnlyList<string>? tapExprs = null,
         MockCallSequence<TReturns>? sequence = null,
-        Action<IReadOnlyList<object>>? tap = null)
+        Action<IReadOnlyList<object>>? tap = null,
+        Action? guardArgumentReads = null)
     {
         _spec = spec;
         _target = target;
@@ -48,6 +56,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
         _tapExprs = tapExprs ?? [];
         _sequence = sequence;
         _tap = tap;
+        _guardArgumentReads = guardArgumentReads;
     }
 
     public IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Returns()
@@ -97,24 +106,24 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
     public IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> Tap<TArg>(
         Action<TArg> callback,
         [CallerArgumentExpression(nameof(callback))] string? callbackExpr = null)
-        => Tapping(args => callback(Arg<TArg>(args, 0)), callbackExpr!);
+        => ReadingArguments(args => callback(Arg<TArg>(args, 0)), callbackExpr!);
 
     public IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> Tap<TArg1, TArg2>(
         Action<TArg1, TArg2> callback,
         [CallerArgumentExpression(nameof(callback))] string? callbackExpr = null)
-        => Tapping(args => callback(Arg<TArg1>(args, 0), Arg<TArg2>(args, 1)), callbackExpr!);
+        => ReadingArguments(args => callback(Arg<TArg1>(args, 0), Arg<TArg2>(args, 1)), callbackExpr!);
 
     public IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> Tap<TArg1, TArg2, TArg3>(
         Action<TArg1, TArg2, TArg3> callback,
         [CallerArgumentExpression(nameof(callback))] string? callbackExpr = null)
-        => Tapping(
+        => ReadingArguments(
             args => callback(Arg<TArg1>(args, 0), Arg<TArg2>(args, 1), Arg<TArg3>(args, 2)),
             callbackExpr!);
 
     public IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> Tap<TArg1, TArg2, TArg3, TArg4>(
         Action<TArg1, TArg2, TArg3, TArg4> callback,
         [CallerArgumentExpression(nameof(callback))] string? callbackExpr = null)
-        => Tapping(
+        => ReadingArguments(
             args => callback(
                 Arg<TArg1>(args, 0), Arg<TArg2>(args, 1), Arg<TArg3>(args, 2), Arg<TArg4>(args, 3)),
             callbackExpr!);
@@ -122,7 +131,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
     public IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> Tap<TArg1, TArg2, TArg3, TArg4, TArg5>(
         Action<TArg1, TArg2, TArg3, TArg4, TArg5> callback,
         [CallerArgumentExpression(nameof(callback))] string? callbackExpr = null)
-        => Tapping(
+        => ReadingArguments(
             args => callback(
                 Arg<TArg1>(args, 0), Arg<TArg2>(args, 1), Arg<TArg3>(args, 2), Arg<TArg4>(args, 3),
                 Arg<TArg5>(args, 4)),
@@ -142,7 +151,15 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
     /// A tap the specification does not state, for a step that reads the call to answer it.
     protected IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> Observing(
         Action<IReadOnlyList<object>> observe)
-        => Tapping(observe, tapExpr: null);
+        => ReadingArguments(observe, tapExpr: null);
+
+    /// A tap that reads the arguments needs the call to say what they are, which a name may not.
+    private IGivenThatCommonContinuation<TSUT, TResult, TService, TReturns> ReadingArguments(
+        Action<IReadOnlyList<object>> tap, string? tapExpr)
+    {
+        _guardArgumentReads?.Invoke();
+        return Tapping(tap, tapExpr);
+    }
 
     protected static TArg Arg<TArg>(IReadOnlyList<object> arguments, int index)
         => (TArg)arguments[index];
@@ -164,7 +181,8 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
             _callExpr,
             tapExpr is null ? _tapExprs : [.. _tapExprs, tapExpr],
             _sequence,
-            Then(_tap, tap));
+            Then(_tap, tap),
+            _guardArgumentReads);
 
     private static Action<IReadOnlyList<object>> Then(
         Action<IReadOnlyList<object>>? first, Action<IReadOnlyList<object>> next)
@@ -172,7 +190,7 @@ internal abstract class GivenThatCommonContinuation<TSUT, TResult, TService, TRe
 
     private GivenThatNextContinuation<TSUT, TResult, TService, TReturns> InSequence(
         string callExpr, MockCallSequence<TReturns> sequence)
-        => new(_spec, _target, _answerCall, callExpr, sequence: sequence);
+        => new(_spec, _target, _answerCall, callExpr, sequence: sequence, guardArgumentReads: _guardArgumentReads);
 
     /// <summary>
     /// The outcome, preceded by the taps in hand. Outside a sequence it answers the call; inside one

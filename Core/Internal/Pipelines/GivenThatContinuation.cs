@@ -22,17 +22,21 @@ internal class GivenThatContinuation<TSUT, TResult, TService, TReturns, TActualR
         string callExpr)
         : base(spec, target, (setups, answer) => setups.Add(call, typeof(TReturns), answer), callExpr) { }
 
-    /// A member named because no expression can name it; the name is what the specification states.
-    internal GivenThatContinuation(Spec<TSUT, TResult> spec, string member)
-        : base(
-            spec,
-            MockTarget<TService>.Family,
-            (setups, answer) => setups.Add(
-                ProtectedMember.Resolve<TService>(member, Answering), typeof(TReturns), answer),
-            member) { }
+    private GivenThatContinuation(
+        Spec<TSUT, TResult> spec,
+        Action<CallSetups, Func<IReadOnlyList<object>, object?>> answerCall,
+        string member,
+        Action guardArgumentReads)
+        : base(spec, MockTarget<TService>.Family, answerCall, member, guardArgumentReads) { }
 
-    private static Type[] Answering =>
-        [typeof(TReturns), typeof(Task<TReturns>), typeof(ValueTask<TReturns>)];
+    /// Every call to a member of the name; the name is what the specification states.
+    internal static GivenThatContinuation<TSUT, TResult, TService, TReturns, TActualReturns> ByName(
+        Spec<TSUT, TResult> spec, string member)
+        => new(
+            spec,
+            (setups, answer) => setups.AddByName(typeof(TService), member, typeof(TReturns), answer),
+            member,
+            () => NamedMembers.AssertOne(typeof(TService), member, typeof(TReturns)));
 
     public IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns> Returns<TArg>(
         Func<TArg, TReturns> returns,

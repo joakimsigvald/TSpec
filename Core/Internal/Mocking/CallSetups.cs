@@ -7,7 +7,8 @@ namespace TSpec.Internal.Mocking;
 /// <summary>
 /// What a mock, or every mock of a type, was set up with: the answers to its calls, and the chains
 /// whose rest applies to the children it reaches. The latest setup matching a call answers it; a
-/// mock's own setups come first, and a call they leave unanswered goes to the type's.
+/// mock's own setups come first, and a call they leave unanswered goes to the type's. Setups made by
+/// name are asked apart, after those, since a name is a default for its members.
 /// </summary>
 /// <remarks>
 /// A call is set up with one answer: a function from the call's arguments to what it answers with,
@@ -18,6 +19,7 @@ namespace TSpec.Internal.Mocking;
 internal sealed class CallSetups(CallSetups? shared)
 {
     private readonly ConcurrentQueue<CallSetup> _setups = [];
+    private readonly ConcurrentQueue<CallSetup> _byName = [];
     private readonly List<ChainedSetup> _chains = [];
 
     internal void Add(LambdaExpression call, Type answerType, Func<IReadOnlyList<object>, object?> answer)
@@ -30,14 +32,12 @@ internal sealed class CallSetups(CallSetups? shared)
         Add(call, typeof(void), answer);
     }
 
-    /// <summary>
-    /// A member no expression can name — a protected method or property. A name states no
-    /// arguments, so every parameter takes whatever it is passed.
-    /// </summary>
-    internal void Add(MemberInfo member, Type answerType, Func<IReadOnlyList<object>, object?> answer)
-        => Add(CallMatcher.For(member), answerType, answer);
+    internal void AddByName(
+        Type service, string member, Type answerType, Func<IReadOnlyList<object>, object?> answer)
+        => _byName.Enqueue(Setup(
+            NamedMembers.Matcher(service, member, answerType), answerType, (_, arguments) => answer(arguments)));
 
-    internal void Add(CallMatcher matcher, Type answerType, Func<IReadOnlyList<object>, object?> answer)
+    private void Add(CallMatcher matcher, Type answerType, Func<IReadOnlyList<object>, object?> answer)
         => Add(matcher, answerType, (_, arguments) => answer(arguments));
 
     /// <summary>
@@ -67,19 +67,30 @@ internal sealed class CallSetups(CallSetups? shared)
         Add(firstStep, childType, (mock, arguments) => mock.ChildAt(firstStep.Method, childType, arguments).Instance);
     }
 
-    private void Add(CallMatcher matcher, Type answerType, Func<MockHandle, IReadOnlyList<object>, object?> answer)
-        => _setups.Enqueue(new(
+    private void Add(ICallMatcher matcher, Type answerType, Func<MockHandle, IReadOnlyList<object>, object?> answer)
+        => _setups.Enqueue(Setup(matcher, answerType, answer));
+
+    private static CallSetup Setup(
+        ICallMatcher matcher, Type answerType, Func<MockHandle, IReadOnlyList<object>, object?> answer)
+        => new(
             matcher,
-            (mock, arguments) => AsyncAnswer.Respond(matcher.ReturnType, answerType, () => answer(mock, arguments!))));
+            (mock, returnType, arguments) => AsyncAnswer.Respond(returnType, answerType, () => answer(mock, arguments!)));
 
     internal bool TryAnswer(MockHandle mock, MethodInfo method, object?[] arguments, out object? answer)
+        => TryAnswerWith(LatestMatching(method, arguments), mock, method, arguments, out answer);
+
+    internal bool TryAnswerByName(MockHandle mock, MethodInfo method, object?[] arguments, out object? answer)
+        => TryAnswerWith(LatestByName(method, arguments), mock, method, arguments, out answer);
+
+    private static bool TryAnswerWith(
+        CallSetup? setup, MockHandle mock, MethodInfo method, object?[] arguments, out object? answer)
     {
         answer = null;
-        if (LatestMatching(method, arguments) is not { } setup)
+        if (setup is null)
             return false;
 
         setup.Matcher.WriteOutArguments(arguments);
-        answer = setup.Respond(mock, arguments);
+        answer = setup.Respond(mock, method.ReturnType, arguments);
         return true;
     }
 
@@ -94,12 +105,15 @@ internal sealed class CallSetups(CallSetups? shared)
     }
 
     private CallSetup? LatestMatching(MethodInfo method, object?[] arguments)
-        => OwnLatestMatching(method, arguments) ?? shared?.LatestMatching(method, arguments);
+        => Latest(_setups, method, arguments) ?? shared?.LatestMatching(method, arguments);
 
-    private CallSetup? OwnLatestMatching(MethodInfo method, object?[] arguments)
-        => _setups.LastOrDefault(setup => setup.Matcher.Matches(method, arguments));
+    private CallSetup? LatestByName(MethodInfo method, object?[] arguments)
+        => Latest(_byName, method, arguments) ?? shared?.LatestByName(method, arguments);
 
-    private sealed record CallSetup(CallMatcher Matcher, Func<MockHandle, object?[], object?> Respond);
+    private static CallSetup? Latest(IEnumerable<CallSetup> setups, MethodInfo method, object?[] arguments)
+        => setups.LastOrDefault(setup => setup.Matcher.Matches(method, arguments));
+
+    private sealed record CallSetup(ICallMatcher Matcher, Func<MockHandle, Type, object?[], object?> Respond);
 
     private sealed record ChainedSetup(CallMatcher FirstStep, Action<CallSetups> SetUpChild);
 }

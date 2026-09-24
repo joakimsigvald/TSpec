@@ -14,7 +14,7 @@ public class WhenSetUpAProtectedMember : Spec<DispatchService, string>
     [Fact]
     public void ThenItAnswers()
     {
-        Given<Dispatcher>().ThatProtected<string>("SendAsync").Returns(() => "answered");
+        Given<Dispatcher>().That<string>("SendAsync").Returns(() => "answered");
         Then().Result.Is("answered");
         Specification.Is(
             """
@@ -28,7 +28,7 @@ public class WhenSetUpAProtectedMember : Spec<DispatchService, string>
     public void ThenItCanBeTapped()
     {
         var seen = string.Empty;
-        Given<Dispatcher>().ThatProtected<string>("SendAsync")
+        Given<Dispatcher>().That<string>("SendAsync")
             .Tap<string, int>((request, attempt) => seen = $"{request}/{attempt}")
             .Returns(() => "answered");
         Then().Result.Is("answered");
@@ -46,7 +46,7 @@ public class WhenSetUpAProtectedVoidMember : Spec<DispatchService>
     [Fact]
     public void ThenItCanBeTapped()
     {
-        Given<Dispatcher>().ThatProtected("Record").Tap<string>(note => _noted = note).Returns();
+        Given<Dispatcher>().That("Record").Tap<string>(note => _noted = note).Returns();
         Then().Completes();
         _noted.Is(The<string>());
     }
@@ -54,5 +54,5 @@ public class WhenSetUpAProtectedVoidMember : Spec<DispatchService>
     /// The default of nothing is nothing — this used to fail on any void call, named or not.
     [Fact]
     public void ThenItTakesReturnsDefault()
-        => Given<Dispatcher>().ThatProtected("Record").ReturnsDefault().Then().Completes();
+        => Given<Dispatcher>().That("Record").ReturnsDefault().Then().Completes();
 }

@@ -5,13 +5,13 @@ using TSpec.Internal.Specification;
 namespace TSpec.Internal.Mocking;
 
 /// Which calls a setup or a verification is about: one member of the mocked service, and what its arguments must be.
-internal sealed class CallMatcher
+internal sealed class CallMatcher : ICallMatcher
 {
     private readonly MethodInfo _method;
-    private readonly Func<object?, bool>[]? _arguments;
+    private readonly Func<object?, bool>[] _arguments;
     private readonly (int Index, object? Value)[] _outValues;
 
-    private CallMatcher(MethodInfo method, Func<object?, bool>[]? arguments, (int, object?)[] outValues)
+    private CallMatcher(MethodInfo method, Func<object?, bool>[] arguments, (int, object?)[] outValues)
     {
         _method = method;
         _arguments = arguments;
@@ -19,12 +19,6 @@ internal sealed class CallMatcher
     }
 
     internal MethodInfo Method => _method;
-
-    internal Type ReturnType => _method.ReturnType;
-
-    /// A member named because no expression can name it; a name states no arguments, so any match.
-    internal static CallMatcher For(MemberInfo member)
-        => new(member is PropertyInfo property ? property.GetMethod! : (MethodInfo)member, null, []);
 
     internal static CallMatcher Exactly(MethodInfo method, IReadOnlyList<object?> arguments)
         => new(method, [.. arguments.Select(ArgumentMatcher.EqualTo)], []);
@@ -44,12 +38,12 @@ internal sealed class CallMatcher
 
     internal bool Matches(MockInvocation invocation) => Matches(invocation.Method, invocation.Arguments);
 
-    internal bool Matches(MethodInfo method, IReadOnlyList<object?> arguments)
+    public bool Matches(MethodInfo method, IReadOnlyList<object?> arguments)
         => IsSameMethod(_method, method)
-        && (_arguments is null || _arguments.Select((matches, index) => matches(arguments[index])).All(matched => matched));
+        && _arguments.Select((matches, index) => matches(arguments[index])).All(matched => matched);
 
     /// A matching call hands back the out arguments the setup was written with.
-    internal void WriteOutArguments(object?[] arguments)
+    public void WriteOutArguments(object?[] arguments)
     {
         foreach (var (index, value) in _outValues)
             arguments[index] = value;

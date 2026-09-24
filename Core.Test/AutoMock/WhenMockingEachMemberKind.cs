@@ -297,7 +297,7 @@ public class WhenAnHttpMessageHandlerIsMocked : Spec<HttpService, string>
     [Fact]
     public void ThenItsProtectedSendCanBeSetUp()
         => When(_ => _.Send())
-            .Given<HttpMessageHandler>().ThatProtected<HttpResponseMessage>("SendAsync")
+            .Given<HttpMessageHandler>().That<HttpResponseMessage>("SendAsync")
             .Returns(() => new HttpResponseMessage(System.Net.HttpStatusCode.Accepted))
             .Then().Result.Is("Accepted");
 }

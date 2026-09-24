@@ -79,8 +79,8 @@ Given<IMyService>().That(_ => _.GetValueAsync())
 Given<IMyInterface>().That(_ => _.Get(An<int>())).Tap<int>(i => _captured = i).Returns(() => 42)
 // Default for every method returning a type Cart fits
 Given<ICartRepository>().Returns(A<Cart>)
-// Protected members only by name
-Given<HttpMessageHandler>().ThatProtected<HttpResponseMessage>("SendAsync").Returns(A<HttpResponseMessage>)
+// By name, whatever the arguments; That(name) where it returns nothing. A default: a specific setup wins over it
+Given<HttpMessageHandler>().That<HttpResponseMessage>("SendAsync").Returns(A<HttpResponseMessage>)
 ```
 
 - Interfaces, abstract classes and delegates are mocked; a class once the test sets it up with `Given<T>()`. Only a class's virtual members are mocked.

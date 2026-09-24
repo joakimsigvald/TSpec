@@ -452,12 +452,10 @@ A delegate starts a chain as a member does, so a factory the subject depends on 
 => Given<Func<int, IOrderStore>>().That(_ => _(2).Find(Any<int>())).Returns(A<Order>)
 ```
 
-A **protected** member can only be mocked by name:
+A member can also be mocked **by name**, whatever its arguments. State the type it returns, or none where it returns void, as in `That(nameof(IBookingStore.Save))`. A setup by name is a default: a setup of a specific call wins over it.
 
 ```csharp
-=> Given<HttpMessageHandler>()
-   .ThatProtected<HttpResponseMessage>("SendAsync")
-   .Returns(A<HttpResponseMessage>)
+=> Given<HttpMessageHandler>().That<HttpResponseMessage>("SendAsync").Returns(A<HttpResponseMessage>)
 ```
 
 ### 4.3 Mocking with arguments

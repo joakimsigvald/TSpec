@@ -36,11 +36,9 @@ internal class GivenThatReturnsContinuation<TSUT, TResult, TService, TReturns>
         Func<TReturns2> value,
         [CallerArgumentExpression(nameof(value))] string? valueExpr = null)
     {
-        if (!_target.IsFamily)
-            throw new SetupFailed(
-                $"A default is set up for every {typeof(TService).Alias()}, not for {_target.Name} alone. "
-                + $"Set it up with Given<{typeof(TService).Alias()}>().Returns(…)");
-
+        RefuseAfterOneMock(
+            $"A default is set up for every {Service}, not for {_target.Name} alone. "
+            + $"Set it up with Given<{Service}>().Returns(…)");
         return _serviceContinuation.Returns(value, valueExpr!);
     }
 
@@ -51,6 +49,34 @@ internal class GivenThatReturnsContinuation<TSUT, TResult, TService, TReturns>
 
     public IGivenThatContinuation<TSUT, TResult, TService, TReturns2> AndThat<TReturns2>(
         Expression<Func<TService, Task<TReturns2>>> call,
-        [CallerArgumentExpression(nameof(call))] string? callExpr = null) 
+        [CallerArgumentExpression(nameof(call))] string? callExpr = null)
         => _serviceContinuation.That(call, callExpr!);
+
+    public IGivenThatContinuation<TSUT, TResult, TService, TReturns2> AndThat<TReturns2>(string member)
+    {
+        RefuseByNameAfterOneMock();
+        return _serviceContinuation.That<TReturns2>(member);
+    }
+
+    public IGivenThatVoidContinuation<TSUT, TResult, TService> AndThat(string member)
+    {
+        RefuseByNameAfterOneMock();
+        return _serviceContinuation.That(member);
+    }
+
+    private static string Service => typeof(TService).Alias();
+
+    private void RefuseByNameAfterOneMock()
+        => RefuseAfterOneMock(
+            $"A setup by name applies to every {Service}, not to {_target.Name} alone. "
+            + $"Set it up with Given<{Service}>().That(…)");
+
+    /// What is set up for every mock of the type cannot continue a setup made on one of them.
+    private void RefuseAfterOneMock(string refusal)
+    {
+        if (_target.IsFamily)
+            return;
+
+        throw new SetupFailed(refusal);
+    }
 }

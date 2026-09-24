@@ -88,26 +88,41 @@ internal sealed class MockHandle : IMocked
     }
 
     /// <summary>
-    /// The latest setup matching a call answers it; a call no setup matches is answered once per
-    /// address and answers the same from then on, except one made while the instance is still being
-    /// constructed, which has no mock to be answered for yet and gets its type's default.
+    /// The latest setup matching a call answers it. Failing one, what was kept at the call's address —
+    /// a property's last set — answers it before a setup by name does, since a name is a default; a
+    /// call nothing answers is answered once per address and answers the same from then on. A call
+    /// made while the instance is still being constructed has no mock to be answered for yet, so
+    /// nothing is kept for it and it gets its type's default.
     /// </summary>
     private object? RespondToCall(MethodInfo method, object?[] arguments)
     {
         var returnType = method.ReturnType;
         if (Setups.TryAnswer(this, method, arguments, out var answer))
             return answer ?? DefaultOf(returnType);
-        if (returnType == typeof(void))
-            return null;
-        if (_instance is null)
-            return DefaultOf(returnType);
-        return KeptAnswer(CallAddress.Of(method, arguments), returnType);
+
+        var address = CallAddress.Of(method, arguments);
+        if (TryReadKept(returnType, address, out var kept))
+            return kept;
+
+        if (Setups.TryAnswerByName(this, method, arguments, out answer))
+            return answer ?? DefaultOf(returnType);
+
+        return Unanswered(returnType, address);
     }
 
-    private object? KeptAnswer(CallAddress address, Type returnType)
+    private bool TryReadKept(Type returnType, CallAddress address, out object? kept)
     {
-        if (_answers.TryRead(address, out var kept))
-            return kept;
+        kept = null;
+        return returnType != typeof(void) && _instance is not null && _answers.TryRead(address, out kept);
+    }
+
+    private object? Unanswered(Type returnType, CallAddress address)
+    {
+        if (returnType == typeof(void))
+            return null;
+
+        if (_instance is null)
+            return DefaultOf(returnType);
 
         var answer = _mocks.Defaults.GetDefaultValue(returnType, this, address) ?? DefaultOf(returnType);
         _answers.Write(address, answer);

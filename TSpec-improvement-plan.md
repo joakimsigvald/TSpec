@@ -93,11 +93,8 @@ no method name. `ReturnsDefault()` failed on a by-name void call where the expre
 unsupported kind of member. A non-virtual protected member failed with Moq's raw "Unsupported
 expression" text, never saying it must be virtual.
 
-**Decided.** Return type matches EXACTLY — so by-name and expression forms are NOT interchangeable
-where a method returns a subtype of what the test asks for, and that is accepted. A name covers every
-overload of it, as a type-wide `Returns` covers every method. A from-arguments `Returns` states a
-signature and narrows the name to the overload matching it. The rendering names the method and no
-arguments — "Given IChat.Complete returns …" — as a verification by name already reads.
+**Decided** — superseded on 2026-09-23: setup by name shipped in 3.3.0, as `MOQ-REPLACEMENT-PLAN.md` §4
+states it.
 
 #### Step 1 (item 4) — DONE in 2.6.0. Protected members only.
 `Given<TService>().ThatProtected<TReturns>(name)`, and `ThatProtected(name)` where the member answers

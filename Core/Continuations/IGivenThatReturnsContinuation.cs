@@ -47,6 +47,21 @@ public interface IGivenThatReturnsContinuation<TSUT, TResult, TService, TReturns
         [CallerArgumentExpression(nameof(call))] string? callExpr = null);
 
     /// <summary>
+    /// Mock another member of the same service by name, as Given&lt;TService&gt;().That&lt;TReturns&gt;(member) does
+    /// </summary>
+    /// <typeparam name="TReturns2">The type the member answers with; for an async member, the value inside the task</typeparam>
+    /// <param name="member">The name of the member to mock, e.g. nameof(IRoomStore.Find)</param>
+    /// <returns>A continuation for providing the result to mock</returns>
+    IGivenThatContinuation<TSUT, TResult, TService, TReturns2> AndThat<TReturns2>(string member);
+
+    /// <summary>
+    /// Mock another member of the same service, answering with nothing, by name, as Given&lt;TService&gt;().That(member) does
+    /// </summary>
+    /// <param name="member">The name of the member to mock, e.g. nameof(IRoomStore.Save)</param>
+    /// <returns>A continuation for providing the result to mock</returns>
+    IGivenThatVoidContinuation<TSUT, TResult, TService> AndThat(string member);
+
+    /// <summary>
     /// Returns a continuation for providing the next mocked result of a sequence of method invocations.
     /// </summary>
     /// <returns>A continuation for specifying the outcome of the next invocation in the sequence</returns>

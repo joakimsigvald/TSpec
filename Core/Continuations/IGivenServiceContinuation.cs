@@ -58,24 +58,42 @@ public interface IGivenServiceContinuation<TSUT, TResult, TService> : IGivenMock
         Func<Exception> expected, [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null);
 
     /// <summary>
-    /// Mock a PROTECTED member, naming it, because no expression can name one. The setup applies
-    /// whatever the member is passed. Prefer nameof where the test can see the name.
+    /// Mock a member by name, whatever its arguments. It is a default: a setup of a specific call wins
+    /// over it. Prefer nameof, so the compiler checks the name.
     /// </summary>
-    /// <typeparam name="TReturns">The member's own return type, stated exactly</typeparam>
-    /// <param name="member">The name of the protected member to mock, e.g. "SendAsync"</param>
+    /// <typeparam name="TReturns">The type the member answers with; for an async member, the value inside the task</typeparam>
+    /// <param name="member">The name of the member to mock, e.g. nameof(IRoomStore.Find)</param>
     /// <returns>A continuation for providing the result to mock</returns>
     /// <example>
     /// <code>
-    /// Given&lt;HttpMessageHandler&gt;().ThatProtected&lt;HttpResponseMessage&gt;("SendAsync").Returns(A&lt;HttpResponseMessage&gt;)
+    /// Given&lt;HttpMessageHandler&gt;().That&lt;HttpResponseMessage&gt;("SendAsync").Returns(A&lt;HttpResponseMessage&gt;)
     /// </code>
     /// </example>
+    IGivenThatContinuation<TSUT, TResult, TService, TReturns> That<TReturns>(string member);
+
+    /// <summary>
+    /// Mock a member answering with nothing — void, or a task carrying no value — by name, whatever its
+    /// arguments. It is a default: a setup of a specific call wins over it. Prefer nameof, so the
+    /// compiler checks the name.
+    /// </summary>
+    /// <param name="member">The name of the member to mock, e.g. nameof(IRoomStore.Save)</param>
+    /// <returns>A continuation for providing the result to mock</returns>
+    IGivenThatVoidContinuation<TSUT, TResult, TService> That(string member);
+
+    /// <summary>
+    /// Obsolete: That&lt;TReturns&gt;(member) reaches a protected member too.
+    /// </summary>
+    /// <typeparam name="TReturns">The type the member answers with</typeparam>
+    /// <param name="member">The name of the member to mock</param>
+    /// <returns>A continuation for providing the result to mock</returns>
+    [Obsolete("Use That<TReturns>(member), which reaches a protected member too")]
     IGivenThatContinuation<TSUT, TResult, TService, TReturns> ThatProtected<TReturns>(string member);
 
     /// <summary>
-    /// Mock a PROTECTED member that answers with nothing — void, or a task carrying no value —
-    /// naming it, because no expression can name one.
+    /// Obsolete: That(member) reaches a protected member too.
     /// </summary>
-    /// <param name="member">The name of the protected member to mock</param>
+    /// <param name="member">The name of the member to mock</param>
     /// <returns>A continuation for providing the result to mock</returns>
+    [Obsolete("Use That(member), which reaches a protected member too")]
     IGivenThatVoidContinuation<TSUT, TResult, TService> ThatProtected(string member);
 }

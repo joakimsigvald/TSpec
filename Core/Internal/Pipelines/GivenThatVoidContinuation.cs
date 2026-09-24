@@ -20,14 +20,20 @@ internal class GivenThatVoidContinuation<TSUT, TResult, TService>
         string callExpr)
         : base(spec, target, (setups, answer) => setups.AddVoid(call, answer), callExpr) { }
 
-    /// A member named because no expression can name it; the name is what the specification states.
-    internal GivenThatVoidContinuation(Spec<TSUT, TResult> spec, string member)
-        : base(
-            spec,
-            MockTarget<TService>.Family,
-            (setups, answer) => setups.Add(
-                ProtectedMember.Resolve<TService>(member, Answering), typeof(Continuations.Void), answer),
-            member) { }
+    private GivenThatVoidContinuation(
+        Spec<TSUT, TResult> spec,
+        Action<CallSetups, Func<IReadOnlyList<object>, object?>> answerCall,
+        string member,
+        Action guardArgumentReads)
+        : base(spec, MockTarget<TService>.Family, answerCall, member, guardArgumentReads) { }
 
-    private static Type[] Answering => [typeof(void), typeof(Task), typeof(ValueTask)];
+    /// Every call to a member of the name answering with nothing; the name is what the specification states.
+    internal static GivenThatVoidContinuation<TSUT, TResult, TService> ByName(Spec<TSUT, TResult> spec, string member)
+        => new(
+            spec,
+            (setups, answer) => setups.AddByName(typeof(TService), member, NothingToAnswer, answer),
+            member,
+            () => NamedMembers.AssertOne(typeof(TService), member, NothingToAnswer));
+
+    private static Type NothingToAnswer => typeof(Continuations.Void);
 }

@@ -29,7 +29,9 @@
 			* Set up one mock of several: Given(TheSecond&lt;IRule&gt;).That(…), Given(tag).That(…), And(TheSecond&lt;IRule&gt;)
 			* Verify one mock of several: Then(TheSecond&lt;IRule&gt;, _ =&gt; _.Passes(), Once), by name, by wasInvoked or by tag; a failure says when other mocks of the type were called
 			* AndReturnsDefault after a setup on one mock is refused: a default is set up for every mock of the type
+			* Set up every member of a name, whatever its arguments: Given&lt;IRoomStore&gt;().That&lt;Room&gt;(nameof(IRoomStore.Find)); a specific setup wins over it
 			CHANGED
+			* ThatProtected is obsolete: That(name) reaches a protected member too
 			* A mock reads as its type, IRule, until a mention names it: the second IRule
 			* A default after a call setup reads "and otherwise returns 5"
 			FIXED

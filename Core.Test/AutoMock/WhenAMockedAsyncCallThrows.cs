@@ -107,7 +107,7 @@ public class WhenAMockedAsyncCallThrows : Spec<AsyncCaller, string>
     [Fact]
     public void GivenAProtectedTaskThrows_ThenTheTaskFaults()
         => When(_ => _.Flush())
-            .Given<AsyncChannel>().ThatProtected("FlushAsync").Throws<ArgumentException>()
+            .Given<AsyncChannel>().That("FlushAsync").Throws<ArgumentException>()
             .Then().Result.Is("faulted ArgumentException");
 
     [Fact]

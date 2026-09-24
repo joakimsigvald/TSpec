@@ -13,8 +13,9 @@ internal class GivenThatNextContinuation<TSUT, TResult, TService, TReturns>
         string callExpr,
         IReadOnlyList<string>? tapExprs = null,
         MockCallSequence<TReturns>? sequence = null,
-        Action<IReadOnlyList<object>>? tap = null)
-        : base(spec, target, answerCall, callExpr, tapExprs, sequence, tap)
+        Action<IReadOnlyList<object>>? tap = null,
+        Action? guardArgumentReads = null)
+        : base(spec, target, answerCall, callExpr, tapExprs, sequence, tap, guardArgumentReads)
     {
     }
 }

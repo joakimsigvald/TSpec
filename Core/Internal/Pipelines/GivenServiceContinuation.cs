@@ -53,11 +53,17 @@ internal class GivenServiceContinuation<TSUT, TResult, TService> : IGivenService
         return new GivenTestPipeline<TSUT, TResult>(_spec);
     }
 
+    public IGivenThatContinuation<TSUT, TResult, TService, TReturns> That<TReturns>(string member)
+        => GivenThatContinuation<TSUT, TResult, TService, TReturns, TReturns>.ByName(_spec, member);
+
+    public IGivenThatVoidContinuation<TSUT, TResult, TService> That(string member)
+        => GivenThatVoidContinuation<TSUT, TResult, TService>.ByName(_spec, member);
+
     public IGivenThatContinuation<TSUT, TResult, TService, TReturns> ThatProtected<TReturns>(string member)
-        => new GivenThatContinuation<TSUT, TResult, TService, TReturns, TReturns>(_spec, member);
+        => That<TReturns>(member);
 
     public IGivenThatVoidContinuation<TSUT, TResult, TService> ThatProtected(string member)
-        => new GivenThatVoidContinuation<TSUT, TResult, TService>(_spec, member);
+        => That(member);
 
     public IGivenThatVoidContinuation<TSUT, TResult, TService> That(
         Expression<Action<TService>> call,
