@@ -10,7 +10,7 @@ rendered. An item belongs here when the specification is the reason for wanting 
 [TSpec-vision.md](TSpec-vision.md).
 
 **State:** 2.1.0 published 2026-08-08. Seven observations open (§4), all from the first `Core.Test`
-document, 2026-08-16 — **D1 is class 1**; twenty-three done or closed (§5); four queued (§6).
+document, 2026-08-16 — **D1 is class 1**; twenty-four done or closed (§5); four queued (§6).
 
 ## 1. Where the feedback comes from
 
@@ -197,6 +197,9 @@ Kept as one line each so nothing here is filed again.
   earlier setup could affect a later one is not worth its complexity.
 - **5.4** The same for `Having` steps, in the order they are written. PO's ruling 2026-09-25: the
   document keeps a test's order, so copying a statement from test to document never reverses one.
+- **Never empty an item** — dropped, PO's ruling 2026-09-25. Assertions never rise, so only a test
+  asserting nothing can be emptied, and it reads `TODO: Assert behaviour`. The rule held back what
+  its siblings shared and made its leftover clause read as its claim.
 
 ## 6. Carried in from 2.0.0
 

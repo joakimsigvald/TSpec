@@ -25,6 +25,7 @@
 			Improved specification generation:
 			CHANGED
 			* A branch that adds no requirement of its own shows only its heading
+			* A test that asserts nothing no longer stops shared clauses from rising
 			FIXED
 			* The specification no longer depends on the order tests finish in
 			* Setups of one member stay with each test where the tests make them in different orders

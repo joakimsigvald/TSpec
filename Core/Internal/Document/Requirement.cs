@@ -106,12 +106,9 @@ internal sealed record Requirement(
         if (requirements.Count == 0)
             return [];
 
-        var limit = requirements.Min(requirement => requirement.Clauses.Count) - 1;
         List<SpecificationClause> shared = [];
         foreach (var clause in requirements[0].Clauses)
         {
-            if (shared.Count == limit)
-                break;
             if (!acts && clause.Family == StepFamily.When)
                 continue;
             var taken = shared.Count(hoisted => hoisted.Matches(clause));

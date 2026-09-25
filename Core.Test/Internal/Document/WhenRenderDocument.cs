@@ -357,14 +357,31 @@ public class WhenRenderDocument : Spec
             .and.Contain("- **Thenc**\n  ```\n  Using other\n  Then c\n  ```\n");
     }
 
-    /// <summary>Hoisting must never empty a block, so a requirement that is only the opening blocks it.</summary>
+    /// <summary>
+    /// Assertions never rise, so hoisting can only empty the item of a requirement that asserts
+    /// nothing, which then says so rather than holding back what every requirement shares.
+    /// </summary>
     [Fact]
-    public void GivenARequirementIsNothingButTheSharedOpening_ThenLeaveTheOpeningInPlace()
+    public void GivenARequirementIsNothingButTheSharedOpening_ThenStillRaiseTheOpening()
     {
         var requirements = TwoSubjects()[..3];
         requirements[2] = requirements[2] with { Clauses = [Using("api")] };
-        Render(requirements).Does().Contain("-->\n\n## ");
+        Render(requirements).Does()
+            .Contain("-->\n`Using api`\n")
+            .and.Contain("- **Thenc** — *TODO: Assert behaviour*\n");
     }
+
+    /// Everything else a requirement states can rise; its assertion stays however many share it.
+    [Fact]
+    public void GivenEveryRequirementStatesTheSame_ThenStillStateTheAssertionInEach()
+        => Render(
+            Requirement("WhenGetRoom", "ThenA", Using("api"), Act("get"), Claim("then ok")),
+            Requirement("WhenGetRoom", "ThenB", Using("api"), Act("get"), Claim("then ok")))
+            .Does()
+            .Contain("-->\n`Using api`\n")
+            .and.Contain("## When get room\n`get`\n")
+            .and.Contain("- **a** — `ok`\n- **b** — `ok`\n")
+            .and.not.Contain("TODO");
 
     /// <summary>
     /// A clause is stated at a heading because every requirement below says it, not because it comes
