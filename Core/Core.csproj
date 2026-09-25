@@ -26,6 +26,7 @@
 			FIXED
 			* Drop the empty header before claims that sits right under the root folder
 			* An index after 'that' is stated rather than dropped: that[0].Is(82) reads "that [0] is 82"
+			* A call among other items keeps its shape: [Sum(1, 2), 3] no longer reads "[sum 1, 2, 3]"
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

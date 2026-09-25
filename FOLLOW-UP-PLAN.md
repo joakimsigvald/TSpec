@@ -28,7 +28,6 @@ Each waits for a real spec that is worse without it.
 |---|---|---|---|---|
 | D1 | **`A<T>()` before a vowel.** `o.Is().A<ApplicationException>()` reads `O is a ApplicationException`. `An<T>()` reads right; the article could instead follow the type name. | Trivial | Zero | 0 |
 | D3 | **`default(T)` of a nullable or generic type.** `default(DateTime?)` reads `default DateTime?)` and `default(List<int>)` reads `default list int`; `default(DateTime)` reads right. | Small | Small | 0 |
-| D4 | **A call inside a collection literal loses its parentheses**, so its arguments read as elements: `xs.Is().EqualTo([Sum(1, 2), 3])` reads `Xs is equal to [sum 1, 2, 3]`. | Small | Medium | 1 |
 | D5 | **A negation after `and` loses its verb.** `"abc".Does().Contain("a").and.not.Contain("x")` reads `and not contain "x"` rather than `and does not contain "x"`. | Small | Small | 0 |
 | D8 | **A run of digits splits apart.** `SplitWords` never advances `prev`, so every digit starts a word and only the acronym merge rejoins single ones: `Item10x` reads `item 1 0x`. Advancing it also turns `GivenX10` from `given x10` into `given x 10`. | Small | Small | 0 |
 | D11 | **A lone capital at the start of a title splits off.** `TSpec` reads `# T Spec`, `EShop` `# E Shop`. Fix it in `AsTitle` only, since `GivenASnake` must still read `given a snake` and `MyHTTPServer` `My HTTP Server`. | Small | Small | 0 |

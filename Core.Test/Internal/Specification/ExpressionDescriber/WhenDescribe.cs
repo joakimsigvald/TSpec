@@ -129,6 +129,12 @@ public class WhenDescribe : Spec<string>
     [InlineData("$$\"\"\"{ \"a\": {{The(x)}} }\"\"\"", "\"{ \"a\": {the X} }\"")]
     [InlineData("\"\"\"\"x\"\"\"\"", "\"x\"")]
     [InlineData("_.Foo($\"\"\"{The(x)}\"\"\", \"\"\"b\"\"\")", "_.Foo(\"{the X}\", \"b\")")]
+    // A call among other items keeps the shape of a call, since its arguments would read as theirs
+    [InlineData("[Sum(1, 2), 3]", "[Sum(1, 2), 3]")]
+    [InlineData("(Sum(1, 2), 3)", "(Sum(1, 2), 3)")]
+    [InlineData("Calc.Max(Sum(1, 2), 3)", "Calc.Max(Sum(1, 2), 3)")]
+    [InlineData("Max(Sum(1, 2), 3)", "max Sum(1, 2), 3")]
+    [InlineData("Sum(1, 2)", "sum 1, 2")]
     // Break-point markers are pinned separately in WhenPlaceBreakPoints; here the wording is.
     public void ThenReturnDescription(string? valueExpr, string expected)
     {

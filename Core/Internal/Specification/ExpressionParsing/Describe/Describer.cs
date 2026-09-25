@@ -18,7 +18,11 @@ internal abstract class Describer
     protected abstract string Render(Expr expr);
 
     protected static string DescribeAll(IEnumerable<Expr> exprs) =>
-        string.Join($", {Wrap.Point}", exprs.Select(Value.Describe));
+        string.Join($", {Wrap.Point}", exprs.Select(Item));
+
+    /// An item of a list keeps the shape of a call, since a phrase's own commas would read as the list's.
+    private static string Item(Expr expr)
+        => expr.WithoutNoise() is Call call ? Link(call) : Value.Describe(expr);
 
     /// An argument list is a nested construct: after the opening paren and after each comma the
     /// remainder may move to a continuation line, ranked one below the construct the call sits in.
