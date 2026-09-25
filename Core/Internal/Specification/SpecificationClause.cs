@@ -33,4 +33,20 @@ internal sealed class SpecificationClause(IReadOnlyList<SpecificationStep> steps
     /// Two clauses are the same expression when they were described identically. Steps are records
     /// over strings and enums, so this is a structural comparison.
     internal bool Matches(SpecificationClause other) => Steps.SequenceEqual(other.Steps);
+
+    /// <summary>
+    /// The member of a mock the clause sets up, whatever its arguments; null where it sets up none.
+    /// A default for every call on the mock is a member of its own.
+    /// </summary>
+    internal (string Mock, string Member)? SetsUp
+        => Head.MockService is { } mock
+            ? (mock, Head.IsMockDefault ? string.Empty : MemberOf(Head.Body))
+            : null;
+
+    /// The call's name: what comes before its arguments, or before the step a chain takes from it.
+    private static string MemberOf(string call)
+    {
+        var end = call.IndexOfAny(['(', '[', '.']);
+        return end < 0 ? call : call[..end];
+    }
 }

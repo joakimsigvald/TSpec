@@ -9,9 +9,8 @@ rendered. An item belongs here when the specification is the reason for wanting 
 `TODO.txt` when it is not. Laws and the stages past generation stay in
 [TSpec-vision.md](TSpec-vision.md).
 
-**State:** 2.1.0 published 2026-08-08. Eight observations open (§4), all from the first `Core.Test`
-document, 2026-08-16 — **D8 is class 1**; twenty-one done or closed (§5); five queued (§6), one of
-them (5.4) now superseded by D8.
+**State:** 2.1.0 published 2026-08-08. Seven observations open (§4), all from the first `Core.Test`
+document, 2026-08-16 — **D1 is class 1**; twenty-two done or closed (§5); five queued (§6).
 
 ## 1. Where the feedback comes from
 
@@ -137,33 +136,6 @@ Wanted:    `that Message is "…"` — which is what the same test renders when 
 Status:    open as a possible trim rule; **binding is a style rule for item 12 either way** — never
            chain `.that` onto the `When` that produced it.
 
-### D8 — two requirements that differ only in setup order are hoisted into one — **untrue**, `Core.Test`, seen 2026-08-16
-Rendered:
-```
-## When giving multiple setups for method
-Subject under test: MyValueIntService
-Given IMyValueIntRepo.Get(the MyValueInt) throws an ApplicationException
-  and Get(the MyValueInt) returns a string
-When GetValue(a MyValueInt), returns string
-
-- **use the latest if returns** — `Result is the string`
-- **use the latest if throws** — `throws ApplicationException`
-```
-From:      [WhenGivingMultipleSetupsForMethod.cs](Core.Test/AutoMock/WhenGivingMultipleSetupsForMethod.cs) —
-           two facts stating the same two `Given` clauses in *opposite* order, whose whole point is
-           that the later setup wins.
-Jarred:    both clauses are stated by both requirements, so both rise to the heading — in one order.
-           The document then claims that with `throws` declared first and `returns` second you get
-           `Result is the string` **and** `throws ApplicationException`. One of the two is false, and
-           the distinction the tests exist to draw has been erased. Which order rose used to follow
-           whichever test reported first; that half closed with report order, §5.
-Wanted:    setups of the same call stated in different orders do not rise: the later one wins, so
-           their order is part of the claim. Otherwise the same arrangement in another order is the
-           same arrangement, and rises. PO's direction, 2026-09-25.
-Status:    open. **This is §6's 5.4 — "setup order is lost across a hoist boundary", filed as
-           unreachable — now reached.** It was the standing argument for intake from a second
-           application; `Core.Test` supplied it.
-
 ### D7 — the outer act when the subject is a spec — **reads badly**, `Core.Test`, seen 2026-08-16
 Rendered:  `When when ++s.Counter.Until(_theCounterAfterTest = --s.Counter).Then().Result, returns int`
 Jarred:    see [SELF-HOSTING-PLAN.md](SELF-HOSTING-PLAN.md) §6b, which owns this item and costs it.
@@ -218,6 +190,11 @@ Kept as one line each so nothing here is filed again.
 - **Report order** (GitHub issue, 2026-09-25). The document no longer depends on the order tests
   finish in: entries are put in a fixed order before anything takes a first one, and a requirement
   every branch repeats always rises — the cap that kept one per branch let report order pick it.
+- **D8** Two facts setting up one mock member in opposite orders were stated once, in one order,
+  though the latest setup is the one that answers. Setups of a member now rise only as the run
+  every requirement makes first, in the same order; from the first difference they stay with each
+  test. PO's direction 2026-09-25: a heading reads as made first, and a rule working out which
+  earlier setup could affect a later one is not worth its complexity.
 
 ## 6. Carried in from 2.0.0
 
@@ -247,11 +224,10 @@ described text either; it needs the count word the plural came from, which that 
 `ASecond`… and no `The`, so an author who wants to name the value rather than introduce it has no
 way to write it. A pure addition; nothing re-pins.
 
-**5.4 is now reachable — see D8**, which is the same defect arriving through `Given` rather than
-`Having`, and which `Core.Test` reaches on its first generation. The original note stands as the
-description: `Having` steps run last-declared-first and consecutive setups render joined by "after"
-to say so — hoist one to the heading and leave the other in the item, and nothing relates them in
-time.
+**5.4** — D8 was the same defect arriving through mock setups, and is fixed for them (§5); what
+remains is `Having`. `Having` steps run last-declared-first and consecutive setups render joined by
+"after" to say so — hoist one to the heading and leave the other in the item, and nothing relates
+them in time.
 
 **5.7** is still not reachable in any suite we have: the word-drop rule that turns `## When get room`
 + `When get` into `get` cannot tell a family keyword from a class-name segment, so it eats the
@@ -292,7 +268,8 @@ a test when broken.
 **Hoisting.** Two things rise, and an assertion is neither of them on its own.
 
 *Arrangement*, clause by clause: what every requirement under a heading states is written once at
-that heading, whole clauses only, rising as often as the least-frequent entry states it. The act
+that heading, whole clauses only, rising as often as the least-frequent entry states it. Setups of
+one mock member rise only as the run every requirement makes first, in the same order (D8). The act
 stops at the subject heading naming the method. Both declared labels rise as far as they hold, the
 subject and the return type independently of each other (4.9).
 

@@ -22,10 +22,12 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
+			Improved specification generation:
 			CHANGED
 			* A branch that adds no requirement of its own shows only its heading
 			FIXED
 			* The specification no longer depends on the order tests finish in
+			* Setups of one member stay with each test where the tests make them in different orders
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

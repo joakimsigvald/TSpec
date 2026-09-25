@@ -138,6 +138,13 @@ public class WhenRenderDocument : Spec
     private static SpecificationClause Condition(string body)
         => Clause(StepLayout.SentenceOrPhrase, StepFamily.Having, body);
 
+    /// A call on a mocked IStore, and what it answers with.
+    private static SpecificationClause Setup(string call, string answer)
+        => new([
+            new SpecificationStep(StepLayout.SentenceOrPhrase)
+                { Family = StepFamily.Given, Body = call, MockService = "IStore", MockBinder = "." },
+            new SpecificationStep(StepLayout.Word) { Body = answer }]);
+
     private static SpecificationEntry Requirement(
         string subject, string name, params SpecificationClause[] clauses)
         => new(subject, "", name, clauses);
@@ -423,6 +430,49 @@ public class WhenRenderDocument : Spec
             .Does()
             .Contain("-->\n`Having load`\n")
             .and.not.Contain("## When get room\n`get`\n");
+
+    /// <summary>
+    /// A mock answers a call with the latest setup matching it, so two requirements setting up one
+    /// member in opposite orders claim opposite things, and each keeps its own order.
+    /// </summary>
+    [Fact]
+    public void GivenRequirementsSetUpAMemberInAnotherOrder_ThenLeaveTheSetupsInEach()
+        => Render(
+            Requirement("WhenGetRoom", "ThenA",
+                Setup("Get(1)", "returns a"), Setup("Get(1)", "throws b"), Act("get"), Claim("then a")),
+            Requirement("WhenGetRoom", "ThenB",
+                Setup("Get(1)", "throws b"), Setup("Get(1)", "returns a"), Act("get"), Claim("then b")))
+            .Does()
+            .Contain("## When get room\n`get`\n")
+            .and.Contain("- **a**\n  ```\n  Given IStore.Get(1) returns a\n    and Get(1) throws b\n")
+            .and.Contain("- **b**\n  ```\n  Given IStore.Get(1) throws b\n    and Get(1) returns a\n");
+
+    /// <summary>
+    /// What a heading states reads as made before what is stated below it. So the setups of a member
+    /// that every requirement makes first rise, and from the first that differs the rest stay — the
+    /// last one too, which wins by being last. Whatever its arguments, a call is of its member.
+    /// </summary>
+    [Fact]
+    public void GivenRequirementsSetUpAMemberAlikeAtFirst_ThenRaiseOnlyWhatComesBeforeTheDifference()
+    {
+        var document = Render(
+            Requirement("WhenGetRoom", "ThenA", Setup("Get(1)", "returns a"),
+                Setup("Get(any int)", "returns b"), Setup("Get(1)", "returns c"), Setup("Get(1)", "returns d"),
+                Claim("then a")),
+            Requirement("WhenGetRoom", "ThenB", Setup("Get(1)", "returns a"),
+                Setup("Get(1)", "returns c"), Setup("Get(any int)", "returns b"), Setup("Get(1)", "returns d"),
+                Claim("then b")));
+        document.Does().Contain("-->\n`Given IStore.Get(1) returns a`\n");
+        document.Split("returns d").Length.Is(3);
+    }
+
+    /// The same arrangement in another order is the same arrangement, where no two of it set up one member.
+    [Fact]
+    public void GivenRequirementsSetUpDifferentMembersInAnotherOrder_ThenStillStateThemOnce()
+        => Render(
+            Requirement("WhenGetRoom", "ThenA", Setup("Load()", "returns a"), Setup("Save(a)", "throws b"), Claim("then a")),
+            Requirement("WhenGetRoom", "ThenB", Setup("Save(a)", "throws b"), Setup("Load()", "returns a"), Claim("then b")))
+            .Does().Contain("- **a** — `a`\n").and.Contain("- **b** — `b`\n");
 
     // ----------- What the spec declares about the code, stated where it holds
 
