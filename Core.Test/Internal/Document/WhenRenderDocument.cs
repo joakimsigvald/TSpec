@@ -466,6 +466,31 @@ public class WhenRenderDocument : Spec
         document.Split("returns d").Length.Is(3);
     }
 
+    /// Having steps run one after another, so two requirements running them in opposite orders keep their own.
+    [Fact]
+    public void GivenRequirementsRunHavingStepsInAnotherOrder_ThenLeaveThemInEach()
+        => Render(
+            Requirement("WhenGetRoom", "ThenA", Condition("b"), Condition("x"), Act("get"), Claim("then a")),
+            Requirement("WhenGetRoom", "ThenB", Condition("x"), Condition("b"), Act("get"), Claim("then b")))
+            .Does()
+            .Contain("## When get room\n`get`\n")
+            .and.Contain("- **a**\n  ```\n  Having b\n    after x\n")
+            .and.Contain("- **b**\n  ```\n  Having x\n    after b\n");
+
+    /// <summary>
+    /// The document keeps Having steps in the order they are written, so what rises is how every
+    /// requirement starts them: b is written by both, but after x in one of them.
+    /// </summary>
+    [Fact]
+    public void GivenRequirementsWriteHavingStepsAlikeAtFirst_ThenRaiseOnlyWhatComesBeforeTheDifference()
+        => Render(
+            Requirement("WhenGetRoom", "ThenA", Condition("c"), Condition("x"), Condition("b"), Claim("then a")),
+            Requirement("WhenGetRoom", "ThenB", Condition("c"), Condition("b"), Claim("then b")))
+            .Does()
+            .Contain("-->\n`Having c`\n")
+            .and.Contain("- **a**\n  ```\n  Having x\n    after b\n")
+            .and.Contain("- **b**\n  ```\n  Having b\n  Then b\n");
+
     /// The same arrangement in another order is the same arrangement, where no two of it set up one member.
     [Fact]
     public void GivenRequirementsSetUpDifferentMembersInAnotherOrder_ThenStillStateThemOnce()

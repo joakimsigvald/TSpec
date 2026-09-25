@@ -10,7 +10,7 @@ rendered. An item belongs here when the specification is the reason for wanting 
 [TSpec-vision.md](TSpec-vision.md).
 
 **State:** 2.1.0 published 2026-08-08. Seven observations open (§4), all from the first `Core.Test`
-document, 2026-08-16 — **D1 is class 1**; twenty-two done or closed (§5); five queued (§6).
+document, 2026-08-16 — **D1 is class 1**; twenty-three done or closed (§5); four queued (§6).
 
 ## 1. Where the feedback comes from
 
@@ -195,6 +195,8 @@ Kept as one line each so nothing here is filed again.
   every requirement makes first, in the same order; from the first difference they stay with each
   test. PO's direction 2026-09-25: a heading reads as made first, and a rule working out which
   earlier setup could affect a later one is not worth its complexity.
+- **5.4** The same for `Having` steps, in the order they are written. PO's ruling 2026-09-25: the
+  document keeps a test's order, so copying a statement from test to document never reverses one.
 
 ## 6. Carried in from 2.0.0
 
@@ -206,7 +208,6 @@ retired.
 | 4.2c | a counted plural takes a singular verb — `is` branch only | untrue, **2.2.0** |
 | 5.5 | nullable return type renders as non-nullable | lost claim, **2.2.0 candidate** |
 | 4.2b | no `The` form when providing a value | surface, **2.2.0, no work yet** |
-| 5.4 | setup order is lost across a hoist boundary | lost claim, unreachable |
 | 5.7 | a block opening with `Given` loses that word under a `Given` heading | lost claim, unreachable |
 | 5.6 | one outlier costs its sibling group their hoist, no partial credit | reads badly, **pinned** |
 
@@ -223,11 +224,6 @@ described text either; it needs the count word the plural came from, which that 
 **4.2b** — split from 4.2, whose phrasing half is closed in §5. The arrange surface offers `A`, `An`,
 `ASecond`… and no `The`, so an author who wants to name the value rather than introduce it has no
 way to write it. A pure addition; nothing re-pins.
-
-**5.4** — D8 was the same defect arriving through mock setups, and is fixed for them (§5); what
-remains is `Having`. `Having` steps run last-declared-first and consecutive setups render joined by
-"after" to say so — hoist one to the heading and leave the other in the item, and nothing relates
-them in time.
 
 **5.7** is still not reachable in any suite we have: the word-drop rule that turns `## When get room`
 + `When get` into `get` cannot tell a family keyword from a class-name segment, so it eats the
@@ -268,9 +264,10 @@ a test when broken.
 **Hoisting.** Two things rise, and an assertion is neither of them on its own.
 
 *Arrangement*, clause by clause: what every requirement under a heading states is written once at
-that heading, whole clauses only, rising as often as the least-frequent entry states it. Setups of
-one mock member rise only as the run every requirement makes first, in the same order (D8). The act
-stops at the subject heading naming the method. Both declared labels rise as far as they hold, the
+that heading, whole clauses only, rising as often as the least-frequent entry states it. Where the
+order of a series decides what happens — the setups of one mock member, and the `Having` steps —
+only how every requirement starts it, in the order written, rises (D8, 5.4). The act stops at the
+subject heading naming the method. Both declared labels rise as far as they hold, the
 subject and the return type independently of each other (4.9).
 
 *Requirements*, whole: one that every branch under a heading repeats is listed once at that heading

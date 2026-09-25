@@ -117,31 +117,31 @@ internal sealed record Requirement(
             var taken = shared.Count(hoisted => hoisted.Matches(clause));
             if (clause.Phase != StepPhase.Assert
                 && requirements.All(requirement => requirement.Clauses.Count(clause.Matches) > taken)
-                && IsNextSetupInEvery(requirements, shared, clause))
+                && IsNextInEvery(requirements, shared, clause))
                 shared.Add(clause);
         }
         return shared;
     }
 
     /// <summary>
-    /// A mock answers a call with the latest setup matching it, and a heading reads as made before
-    /// what is below it. So a setup rises only as the next one every requirement makes of its member.
+    /// A heading reads as written before what is below it, so where the order of a series decides
+    /// what happens, a clause rises only as the next one every requirement writes of that series.
     /// </summary>
-    private static bool IsNextSetupInEvery(
+    private static bool IsNextInEvery(
         IReadOnlyList<Requirement> requirements, IReadOnlyList<SpecificationClause> shared,
         SpecificationClause clause)
     {
-        if (clause.SetsUp is null)
+        if (clause.Series is null)
             return true;
 
-        var place = shared.Count(hoisted => hoisted.SetsUp == clause.SetsUp);
-        return requirements.All(requirement => requirement.MakesSetup(clause, place));
+        var place = shared.Count(hoisted => hoisted.Series == clause.Series);
+        return requirements.All(requirement => requirement.Writes(clause, place));
     }
 
-    /// Whether this requirement's setups of the member, counted from its first, have this one at the place.
-    private bool MakesSetup(SpecificationClause setup, int place)
-        => Clauses.Where(clause => clause.SetsUp == setup.SetsUp).ElementAtOrDefault(place) is { } made
-            && made.Matches(setup);
+    /// Whether this requirement's clauses of the series, counted from its first, have this one at the place.
+    private bool Writes(SpecificationClause clause, int place)
+        => Clauses.Where(mine => mine.Series == clause.Series).ElementAtOrDefault(place) is { } written
+            && written.Matches(clause);
 
     /// <summary>
     /// Two requirements a reader cannot tell apart: the same name over the same statements, which is

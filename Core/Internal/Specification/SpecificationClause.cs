@@ -27,26 +27,31 @@ internal sealed class SpecificationClause(IReadOnlyList<SpecificationStep> steps
     };
 
     /// The step the clause is built around. Silent steps travel with it but never speak for it.
-    internal SpecificationStep Head { get; } =
-        steps.First(step => step.Layout != StepLayout.Silent);
+    internal SpecificationStep Head { get; } = HeadOf(steps);
+
+    /// <summary>
+    /// The series of clauses this one belongs to, where their order decides what happens: the setups
+    /// of one member of a mock, since the latest matching a call answers it, or the Having steps,
+    /// which run one after another. Null where the clause's place decides nothing.
+    /// </summary>
+    internal string? Series { get; } = SeriesOf(HeadOf(steps));
 
     /// Two clauses are the same expression when they were described identically. Steps are records
     /// over strings and enums, so this is a structural comparison.
     internal bool Matches(SpecificationClause other) => Steps.SequenceEqual(other.Steps);
 
-    /// <summary>
-    /// The member of a mock the clause sets up, whatever its arguments; null where it sets up none.
-    /// A default for every call on the mock is a member of its own.
-    /// </summary>
-    internal (string Mock, string Member)? SetsUp
-        => Head.MockService is { } mock
-            ? (mock, Head.IsMockDefault ? string.Empty : MemberOf(Head.Body))
+    private static SpecificationStep HeadOf(IReadOnlyList<SpecificationStep> steps)
+        => steps.First(step => step.Layout != StepLayout.Silent);
+
+    private static string? SeriesOf(SpecificationStep head)
+        => head.Family == StepFamily.Having ? head.Family.Keyword()
+            : head.MockService is { } mock ? $"{mock}.{SetUpMemberOf(head)}"
             : null;
 
-    /// The call's name: what comes before its arguments, or before the step a chain takes from it.
-    private static string MemberOf(string call)
-    {
-        var end = call.IndexOfAny(['(', '[', '.']);
-        return end < 0 ? call : call[..end];
-    }
+    /// <summary>
+    /// The member a mock setup is for, whatever its arguments: what comes before them, or before the
+    /// step a chain takes from it. A default for every call on the mock is a member of its own.
+    /// </summary>
+    private static string SetUpMemberOf(SpecificationStep head)
+        => head.IsMockDefault ? string.Empty : head.Body.Split(['(', '[', '.'])[0];
 }

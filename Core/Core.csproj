@@ -28,6 +28,7 @@
 			FIXED
 			* The specification no longer depends on the order tests finish in
 			* Setups of one member stay with each test where the tests make them in different orders
+			* Having steps stay with each test where the tests write them in different orders
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
