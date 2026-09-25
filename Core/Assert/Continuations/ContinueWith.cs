@@ -36,10 +36,9 @@ public class ContinueWith<TContinuation> where TContinuation : Constraint
             throw new SetupFailed("Cannot continue either with and or but, only with or");
         if (!isEither && conjunction == "or")
             throw new SetupFailed("Cannot continue or unless preceded with either");
-        return _continuation with 
-        { 
-            ActualExpr = string.Empty, 
-            AuxiliaryVerb = null, 
+        return _continuation with
+        {
+            AuxiliaryVerb = null,
             State = _continuation.State,
             Exception = _continuation.Exception
         };

@@ -54,6 +54,16 @@ public record IsObject : Constraint<object, IsObject>
         => Assert(Describe(expected), actual => NotSame(expected, actual), expectedExpr!).And();
 
     /// <summary>
+    /// Asserts that the object is the same reference as the given object
+    /// </summary>
+    /// <param name="expected">The object that actual is expected to be</param>
+    /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for making further assertions on the object</returns>
+    public ContinueWith<IsObject> SameAs(
+        object? expected, [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
+        => Assert(Describe(expected), actual => Same(expected, actual), expectedExpr!).And();
+
+    /// <summary>
     /// Asserts that the object is null
     /// </summary>
     /// <returns>A continuation for making further assertions on the object</returns>

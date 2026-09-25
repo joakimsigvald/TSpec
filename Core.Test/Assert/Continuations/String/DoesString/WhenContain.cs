@@ -23,4 +23,17 @@ public class WhenContain : StringSpec
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => text.Does().Contain(expected));
         ex.HasMessage($"Expected text to contain {Describe(expected)} but found {Describe(text)}", "Text contains expected");
     }
+
+    [Fact]
+    public void GivenAChainedAssertionFails_ThenNameWhatFailed()
+    {
+        var text = "abc";
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => text.Does().Contain("a").and.Contain("x"));
+        ex.HasMessage(
+            "Expected text to contain \"x\" but found \"abc\"",
+            """
+            Text contains "a"
+                and contains "x"
+            """);
+    }
 }

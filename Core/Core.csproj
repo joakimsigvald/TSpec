@@ -23,10 +23,13 @@
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			Improved specification generation:
+			ADDED
+			* Is().SameAs(obj) asserts that an object is the same reference
 			FIXED
 			* Drop the empty header before claims that sits right under the root folder
 			* An index after 'that' is stated rather than dropped: that[0].Is(82) reads "that [0] is 82"
 			* A call among other items keeps its shape: [Sum(1, 2), 3] no longer reads "[sum 1, 2, 3]"
+			* A failing assertion after 'and' names what failed: "Expected text to contain", not "Expected  to contain"
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

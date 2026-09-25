@@ -9,8 +9,6 @@
 
 | Id | Description | Effort | Value | Worth |
 |---|---|---|---|---|
-| B1 | **A failure after `and` leaves out what failed.** `"abc".Does().Contain("a").and.Contain("x")` fails with `Expected  to contain "x" but found "abc"`: the continuation blanks the actual's name so the specification does not repeat it, and the message reads the same field. | Small | Medium | 1 |
-| B2 | **No `SameAs` for an object.** `Is().SameAs(…)` exists for collections only, and `Is(x)` states equality, so reference identity cannot be asserted. | Small | Medium | 1 |
 | B3 | **`Like`, `LowerCase()` and `UpperCase()` use the machine's culture.** Decide whether they mean the user's culture or invariant. | Small | Small | 0 |
 
 ## C. Arrange
@@ -37,7 +35,6 @@ Each waits for a real spec that is worse without it.
 
 | Id | Description | Effort | Value | Worth |
 |---|---|---|---|---|
-| E1 | **The README opens by comparing TSpec with "plain xUnit with Moq".** Still true, as the alternative a reader knows; reword only if a better comparison turns up. | Trivial | Zero | 0 |
 
 ## F. Core.Test
 

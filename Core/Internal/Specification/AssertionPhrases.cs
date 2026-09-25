@@ -8,6 +8,8 @@
 /// </summary>
 internal class AssertionPhrases(SpecificationRecording recording)
 {
+    private bool _continuesClaim;
+
     internal void AddThen()
         => recording.Record(() => recording.Add(new(StepLayout.SentenceOrPhrase)
         {
@@ -25,8 +27,10 @@ internal class AssertionPhrases(SpecificationRecording recording)
     internal void AddAssert(string actual, string verb, string? expected)
         => recording.Record(() =>
         {
-            // actual is already described text, not source code — never re-parse it
-            recording.Claim(new(StepLayout.Word) { Body = actual });
+            // actual is already described text, not source code — never re-parse it. After a
+            // conjunction the claim goes on about the same actual, which is not said twice.
+            recording.Claim(new(StepLayout.Word) { Body = _continuesClaim ? string.Empty : actual });
+            _continuesClaim = false;
             AddWord(verb.AsWords());
             AddWord(expected.Describe());
         });
@@ -35,12 +39,16 @@ internal class AssertionPhrases(SpecificationRecording recording)
         => recording.Record(() => AddWord(assertName.AsWords()));
 
     internal void AddAssertConjunction(string conjunction)
-        => recording.Record(() => recording.Add(new(StepLayout.Phrase)
+        => recording.Record(() =>
         {
-            Body = conjunction,
-            Indentation = 2,
-            Introduces = true,
-        }));
+            recording.Add(new(StepLayout.Phrase)
+            {
+                Body = conjunction,
+                Indentation = 2,
+                Introduces = true,
+            });
+            _continuesClaim = true;
+        });
 
     internal void AddAssertThrows<TError>(string? binder)
         => recording.Record(() => recording.Add(new(StepLayout.Word)

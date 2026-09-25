@@ -114,7 +114,7 @@ Then(TheSecond<IRule>, _ => _.Passes(), Once)                            // one 
 Called directly on values; every assertion returns a continuation. Combinators are lowercase: `.and.`, `.not.`, `.either. ... .or.`, `.that.`, `.but.`.
 Works standalone in plain xUnit tests too.
 
-- Any value: `Is(x)`, `Is().Not(x)`, `Is().Null()`, `Is().Like(obj)` (structural), `Has(_ => _.Id == 3)`, `Is().A<T>().that` (asserts the type, exposes the value as `T`; `An<T>()` is a synonym).
+- Any value: `Is(x)`, `Is().Not(x)`, `Is().SameAs(obj)` (same reference), `Is().Null()`, `Is().Like(obj)` (structural), `Has(_ => _.Id == 3)`, `Is().A<T>().that` (asserts the type, exposes the value as `T`; `An<T>()` is a synonym).
 - Numeric: `Is().GreaterThan(x)`, `LessThan(x)`, `Around(x, tolerance)`, `Even()`, `OneOf(values)`, `True()`, `False()`.
 - Strings: `Is().Like("abc")` (case/whitespace-insensitive), `Empty()`, `NullOrEmpty()`, `NullOrWhitespace()`; `Does().Contain/StartWith/EndWith(s)` (optional `StringComparison`), `Does().Match(pattern)`; `Has().Length(n)`, `Has().Length().AtLeast/AtMost/InRange(...)`.
 - Time: `Is().Before/After(t)`, `CloseTo(t, tolerance)`; TimeSpan `Positive()`/`Negative()`.

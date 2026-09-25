@@ -29,7 +29,7 @@ public class WhenPlaceOrder : Spec<ShoppingService>
 ```
 
 The example highlights how TSpec reduces boilerplate by handling test data, dependency mocking, and interaction verification declaratively.
-In real-world usage, this typically yields substantially smaller and more readable tests than plain xUnit with Moq.
+In real-world usage, this typically yields substantially smaller and more readable tests than plain xUnit with a mocking library such as Moq or NSubstitute.
 
 **Using an AI coding agent?** A condensed reference optimized for agents is shipped with the package
 and available as [TSpec-agent-reference.md](https://github.com/joakimsigvald/TSpec/blob/main/TSpec-agent-reference.md).
@@ -642,6 +642,7 @@ Values of any type can be verified with the extension methods `Is` and `Has`
 | Equivalent — structural equality, for objects | `Result.Is().Like(new MyObject {Id = 3})` |
 | | `Result.Is().EquivalentTo(new MyObject {Id = 3})` |
 | Not equal | `Result.Is().Not(3)` |
+| SameAs — same reference | `Result.Is().SameAs(The<Order>())` |
 | Null | `Result.Is().Null()` |
 | A / An — asserts the type (subtypes accepted) and exposes the value, strongly typed, through `that` | `var enc = one.Is().A<EncounterComposition>().that;` |
 | | `var order = one.Is().An<Order>().that;` |
