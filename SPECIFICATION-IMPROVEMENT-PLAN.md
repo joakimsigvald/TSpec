@@ -9,7 +9,7 @@ rendered. An item belongs here when the specification is the reason for wanting 
 `TODO.txt` when it is not. Laws and the stages past generation stay in
 [TSpec-vision.md](TSpec-vision.md).
 
-**State:** 2.1.0 published 2026-08-08. Seven observations open (§4), all from the first `Core.Test`
+**State:** 3.3.1 published 2026-09-25. Seven observations open (§4), all from the first `Core.Test`
 document, 2026-08-16 — **D1 is class 1**; twenty-four done or closed (§5); four queued (§6).
 
 ## 1. Where the feedback comes from
@@ -245,9 +245,10 @@ should restate the clause in its own block instead of blocking the hoist for eve
   `SPECIFICATION.md` at once: major version.
 - **A pure addition** still moves pins, but a reader upgrading gains rather than re-pins.
 
-**A change to the rendered text ships as a minor** — PO's ruling, 2026-08-07. Major is reserved for
-format-level reflows and for breaking the surface. **2.1.0 published 2026-08-08**, carrying §5 down
-to and including 5.3; what is queued now is 2.2.0.
+**A change to the rendered text ships as a minor** — PO's ruling, 2026-08-07. One that moves only the
+generated document, and no pinned `Specification.Is(…)`, ships as a patch — PO's ruling 2026-09-25:
+the document is a minor detail to most users. Major is reserved for format-level reflows and for
+breaking the surface. **3.3.1 published 2026-09-25**, carrying §5 down to the never-empty rule.
 
 ## 8. Working rules
 
