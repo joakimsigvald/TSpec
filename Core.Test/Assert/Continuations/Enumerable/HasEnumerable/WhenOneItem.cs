@@ -23,6 +23,22 @@ public class WhenOneItem : Spec
     }
 
     [Fact]
+    public void GivenAnIndexAfterThat_ThenStateTheIndex()
+    {
+        int[][] arr = [[82]];
+        arr.Has().OneItem().that[0].Is(82);
+        Specification.Is("Arr has one item that [0] is 82");
+    }
+
+    [Fact]
+    public void GivenAMemberAfterTheIndex_ThenStateBoth()
+    {
+        string[][] arr = [["ab"]];
+        arr.Has().OneItem().that[0].Length.Is(2);
+        Specification.Is("Arr has one item that [0].Length is 2");
+    }
+
+    [Fact]
     public void GivenEmpty_ThenGetException()
     {
         int[] arr = Zero<int>();

@@ -53,12 +53,15 @@ internal sealed class ActualDescriber(string? subject = null) : Describer
         var cur = expr;
         // An indexer is no segment of its own — it belongs to whatever it indexes, which the walk
         // reaches later. So it waits here, to the right of the segment it will be written onto,
-        // and where the walk ends before reaching one, the root is what it was indexing.
+        // and where the walk ends before reaching one, the root is what it was indexing. A binding
+        // word is not written, so an index on it stands as a segment of its own.
         var indexers = string.Empty;
         while (true)
             switch (cur = cur.WithoutNoise())
             {
                 case Member m when IsBindingWord(m.Name):
+                    if (indexers.Length > 0)
+                        chain.Add(indexers);
                     return (Anchor.BindingWord, string.Empty);
                 case Member m:
                     chain.Add(m.Name + indexers);

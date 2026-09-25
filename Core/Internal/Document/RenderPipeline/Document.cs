@@ -89,16 +89,17 @@ internal sealed record Document(
             .ToArray();
         DocumentNode root = new(area.Key, title, RootLevel, shared,
             Requirement.SubjectOf(ofArea), Requirement.ReturnTypeOf(ofArea),
-            [.. groups.Select(group => ToGroup(group, heads: groups.Length > 1))],
+            [.. groups.Select(group => ToGroup(group, grouped: groups.Length > 1))],
             Requirements: []);
         return new(subject, specAssemblyName, name, root, sourceRoot);
     }
 
     private static string LastPart(string subjectName) => subjectName[(subjectName.LastIndexOf('.') + 1)..];
 
-    private static DocumentNode ToGroup(IGrouping<string, Requirement> group, bool heads)
+    private static DocumentNode ToGroup(IGrouping<string, Requirement> group, bool grouped)
     {
         var ofGroup = group.ToArray();
+        var heads = grouped && group.Key.Length > 0;
         var shared = heads ? Requirement.Shared(ofGroup, acts: false) : [];
         var subject = heads ? Requirement.SubjectOf(ofGroup) : null;
         var subjectLevel = heads ? GroupLevel + 1 : GroupLevel;

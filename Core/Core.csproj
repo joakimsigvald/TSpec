@@ -17,19 +17,15 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>3.3.1</PackageVersion>
+		<PackageVersion>3.3.2</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			Improved specification generation:
-			CHANGED
-			* A branch that adds no requirement of its own shows only its heading
-			* A test that asserts nothing no longer stops shared clauses from rising
 			FIXED
-			* The specification no longer depends on the order tests finish in
-			* Setups of one member stay with each test where the tests make them in different orders
-			* Having steps stay with each test where the tests write them in different orders
+			* Drop the empty header before claims that sits right under the root folder
+			* An index after 'that' is stated rather than dropped: that[0].Is(82) reads "that [0] is 82"
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

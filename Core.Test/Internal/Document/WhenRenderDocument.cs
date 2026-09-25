@@ -992,6 +992,20 @@ public class WhenRenderDocument : Spec
     }
 
     /// <summary>
+    /// A class in the folder itself sits in no namespace below it, so it has no group to name and
+    /// stays directly under the title while the folders beside it group.
+    /// </summary>
+    [Fact]
+    public void GivenAFolderHoldsClassesBesideItsSubfolders_ThenHeadOnlyTheSubfolders()
+        => Named(Files(
+            InNamespace("A.Orders", "WhenPlaceOrder", "ThenA"),
+            InNamespace("A.Orders.Refunds", "WhenRefund", "ThenB"),
+            InNamespace("A.Bookings", "WhenBook", "ThenC")), "Orders")
+            .Does().Contain("-->\n\n## When place order\n")
+            .and.Contain("\n## Refunds\n\n### When refund\n")
+            .and.not.Contain("\n## \n");
+
+    /// <summary>
     /// The file hoists like every heading: what everything in it declares is stated at its top.
     /// This is the level that earns it — one folder per class under test names one subject each.
     /// </summary>
