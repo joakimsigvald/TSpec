@@ -259,16 +259,35 @@ public class WhenRenderDocument : Spec
             .Does().Contain("### Given no such room\n\n- **respond with json** — `json`\n");
 
     /// <summary>
-    /// Hoisting must never empty a block, so a branch whose every requirement is repeated elsewhere
-    /// keeps one — a heading with nothing under it states less than the repetition cost.
+    /// A branch that adds no requirement of its own is left its heading alone, which still says what
+    /// case the requirements above it hold in.
     /// </summary>
     [Fact]
-    public void GivenABranchIsNothingButRepeatedRequirements_ThenLeaveThemInPlace()
-        => Render(
+    public void GivenABranchIsNothingButRepeatedRequirements_ThenLeaveItItsHeadingAlone()
+        => Outline(Render(
             new("WhenAddRoom", "GivenNoSuchRoom", "ThenRespondWithJson", [Act("post"), Claim("then json")]),
             new("WhenAddRoom", "GivenNoSuchRoom", "ThenRespondCreated", [Act("post"), Claim("then created")]),
-            new("WhenAddRoom", "GivenTheRoomExists", "ThenRespondWithJson", [Act("post"), Claim("then json")]))
-            .Does().Contain("## When add room\n`post`\n\n### Given ");
+            new("WhenAddRoom", "GivenTheRoomExists", "ThenRespondWithJson", [Act("post"), Claim("then json")])))
+            .Is().EqualTo([
+                "## When add room",
+                "- **respond with json**",
+                "### Given no such room",
+                "- **respond created**",
+                "### Given the room exists"]);
+
+    /// <summary>
+    /// Tests report in whatever order a parallel run finished them. The rows of a theory not fed by
+    /// InlineData carry no row index, so the two ThenA are told apart by what they state.
+    /// </summary>
+    [Fact]
+    public void GivenTheRequirementsReportInAnotherOrder_ThenWriteTheSameDocument()
+    {
+        SpecificationEntry[] reported = [
+            Requirement("WhenGetRoom", "ThenA", Using("api"), Using("db"), Act("get"), Claim("then a")),
+            Requirement("WhenGetRoom", "ThenA", Using("db"), Using("api"), Act("get"), Claim("then a")),
+            Requirement("WhenGetRoom", "ThenB", Using("db"), Using("api"), Act("get"), Claim("then b"))];
+        Render([.. Enumerable.Reverse(reported)]).Is(Render(reported));
+    }
 
     /// <summary>
     /// A requirement rises no higher than the heading naming the act it is about: two subjects that

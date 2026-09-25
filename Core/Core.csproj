@@ -17,27 +17,15 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>3.3.0</PackageVersion>
+		<PackageVersion>3.3.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			BREAKING - a passing test can turn red on upgrade
-			* Each mention of a mocked type is a mock of its own, and the subject's dependencies are others: hand one over with Using(The&lt;IRule&gt;) to arrange or verify what the subject holds
-			* Two dependencies of one type are two mocks; Given&lt;IRule&gt;() and Then&lt;IRule&gt;() reach them all
-			ADDED
-			* Set up one mock of several: Given(TheSecond&lt;IRule&gt;).That(…), Given(tag).That(…), And(TheSecond&lt;IRule&gt;)
-			* Verify one mock of several: Then(TheSecond&lt;IRule&gt;, _ =&gt; _.Passes(), Once), by name, by wasInvoked or by tag; a failure says when other mocks of the type were called
-			* AndReturnsDefault after a setup on one mock is refused: a default is set up for every mock of the type
-			* Set up every member of a name, whatever its arguments: Given&lt;IRoomStore&gt;().That&lt;Room&gt;(nameof(IRoomStore.Find)); a specific setup wins over it
 			CHANGED
-			* ThatProtected is obsolete: That(name) reaches a protected member too
-			* A mock reads as its type, IRule, until a mention names it: the second IRule
-			* A default after a call setup reads "and otherwise returns 5"
+			* A branch that adds no requirement of its own shows only its heading
 			FIXED
-			* A failure message relating to mock verification adds information that differentiates between mock instances of the same type ("the IChild" or "IChild from IParent.GetChild(1)" instead of just "IChild")
-			* AndReturnsDefault states its value in the specification instead of "value"
-			* An explicit test no longer stops the specification from being written
+			* The specification no longer depends on the order tests finish in
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

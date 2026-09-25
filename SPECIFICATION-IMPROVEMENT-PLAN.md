@@ -10,8 +10,8 @@ rendered. An item belongs here when the specification is the reason for wanting 
 [TSpec-vision.md](TSpec-vision.md).
 
 **State:** 2.1.0 published 2026-08-08. Eight observations open (§4), all from the first `Core.Test`
-document, 2026-08-16 — **D8 is class 1 and class 4 and blocks the diff gate**; twenty done or closed
-(§5); five queued (§6), one of them (5.4) now superseded by D8.
+document, 2026-08-16 — **D8 is class 1**; twenty-one done or closed (§5); five queued (§6), one of
+them (5.4) now superseded by D8.
 
 ## 1. Where the feedback comes from
 
@@ -137,7 +137,7 @@ Wanted:    `that Message is "…"` — which is what the same test renders when 
 Status:    open as a possible trim rule; **binding is a style rule for item 12 either way** — never
            chain `.that` onto the `When` that produced it.
 
-### D8 — two requirements that differ only in setup order are hoisted into one — **untrue** and **churn**, `Core.Test`, seen 2026-08-16
+### D8 — two requirements that differ only in setup order are hoisted into one — **untrue**, `Core.Test`, seen 2026-08-16
 Rendered:
 ```
 ## When giving multiple setups for method
@@ -155,17 +155,14 @@ From:      [WhenGivingMultipleSetupsForMethod.cs](Core.Test/AutoMock/WhenGivingM
 Jarred:    both clauses are stated by both requirements, so both rise to the heading — in one order.
            The document then claims that with `throws` declared first and `returns` second you get
            `Result is the string` **and** `throws ApplicationException`. One of the two is false, and
-           the distinction the tests exist to draw has been erased.
-           Worse, the surviving order is not deterministic: net8.0 and net10.0 write `throws` first,
-           **net9.0 writes `returns` first**. Run-to-run on one framework is stable; across
-           frameworks it is not, so `dotnet test && git diff --exit-code` fails depending on which
-           target framework ran. Verified 2026-08-16 by running all three and diffing.
-Wanted:    a clause set that two requirements state in different orders is not shared and must not
-           rise. Failing that, the tiebreak must be total so the churn half goes away.
+           the distinction the tests exist to draw has been erased. Which order rose used to follow
+           whichever test reported first; that half closed with report order, §5.
+Wanted:    setups of the same call stated in different orders do not rise: the later one wins, so
+           their order is part of the claim. Otherwise the same arrangement in another order is the
+           same arrangement, and rises. PO's direction, 2026-09-25.
 Status:    open. **This is §6's 5.4 — "setup order is lost across a hoist boundary", filed as
            unreachable — now reached.** It was the standing argument for intake from a second
-           application; `Core.Test` supplied it. Two classes fixed on one sighting, and it blocks
-           committing `Core.Test/SPECIFICATION.md` behind a diff gate.
+           application; `Core.Test` supplied it.
 
 ### D7 — the outer act when the subject is a spec — **reads badly**, `Core.Test`, seen 2026-08-16
 Rendered:  `When when ++s.Counter.Until(_theCounterAfterTest = --s.Counter).Then().Result, returns int`
@@ -218,6 +215,9 @@ Kept as one line each so nothing here is filed again.
   call and matching by position — wrong under overloads, and inventing what the test does not say.
 - **A `When…` class name is the heading.** Closed: whether `When book` should read `When book a
   room` is a naming choice in the suite, not a rendering rule.
+- **Report order** (GitHub issue, 2026-09-25). The document no longer depends on the order tests
+  finish in: entries are put in a fixed order before anything takes a first one, and a requirement
+  every branch repeats always rises — the cap that kept one per branch let report order pick it.
 
 ## 6. Carried in from 2.0.0
 
@@ -297,10 +297,11 @@ stops at the subject heading naming the method. Both declared labels rise as far
 subject and the return type independently of each other (4.9).
 
 *Requirements*, whole: one that every branch under a heading repeats is listed once at that heading
-— the shape a `[Fact]` on the outer class makes, since it runs in every branch below. Capped so no
-branch is emptied, and no higher than the subject heading, above which nothing names the act it is
-about. A single branch that heads nothing is not a level, so what it holds is held by the node
-above it.
+— the shape a `[Fact]` on the outer class makes, since it runs in every branch below. Never higher
+than the subject heading, above which nothing names the act it is about. Not capped: a branch that
+adds nothing of its own is left its heading alone — PO's ruling 2026-09-25, since the cap made
+report order pick which requirement stayed. A single branch that heads nothing is not a level, so
+what it holds is held by the node above it.
 
 Levels: document → area → (group, where an area holds more than one namespace below it) → subject →
 branch. Both are decided by repetition, a proxy for placement, since TSpec does not record which

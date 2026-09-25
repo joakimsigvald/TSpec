@@ -45,7 +45,7 @@ internal sealed record Requirement(
     /// difference between a theory stating its data and stating only its parameter names.
     /// </remarks>
     internal static IEnumerable<Requirement> From(IEnumerable<SpecificationEntry> entries)
-        => entries
+        => InFixedOrder(entries)
             .Select(entry => entry with { Clauses = Hole.Hollow(entry.Clauses) })
             .GroupBy(entry => (
                 entry.Namespace,
@@ -57,9 +57,18 @@ internal sealed record Requirement(
                 reported.First(), reported.First().Clauses, reported.Key.Signature,
                 RowsOf(reported)));
 
-    /// Declaration order, since rows report in whatever order a parallel run finished them.
+    /// Tests report in whatever order a parallel run finished them; nothing below may see it.
+    private static IEnumerable<SpecificationEntry> InFixedOrder(IEnumerable<SpecificationEntry> entries)
+        => entries
+            .OrderBy(entry => entry.Namespace, StringComparer.Ordinal)
+            .ThenBy(entry => entry.Subject, StringComparer.Ordinal)
+            .ThenBy(entry => entry.Branch, StringComparer.Ordinal)
+            .ThenBy(entry => entry.Requirement, StringComparer.Ordinal)
+            .ThenBy(entry => entry.Row?.Index)
+            .ThenBy(ToSignature, StringComparer.Ordinal);
+
     private static IReadOnlyList<TheoryRow> RowsOf(IEnumerable<SpecificationEntry> reported)
-        => [.. reported.Select(entry => entry.Row).OfType<TheoryRow>().OrderBy(row => row.Index)];
+        => [.. reported.Select(entry => entry.Row).OfType<TheoryRow>()];
 
     private static string ToSignature(SpecificationEntry entry)
         => string.Join('\n', entry.Clauses
@@ -125,15 +134,14 @@ internal sealed record Requirement(
 
     /// <summary>
     /// The requirements every branch repeats, to be listed once above them. One branch has nobody to
-    /// repeat anything with, and the take leaves every branch an item of its own.
+    /// repeat anything with.
     /// </summary>
     internal static IReadOnlyList<Requirement> Repeated(IReadOnlyList<DocumentNode> branches)
         => branches.Count < 2
             ? []
             : [.. branches[0].Requirements
                 .Where(candidate => branches.All(
-                    branch => branch.Requirements.Any(candidate.Restates)))
-                .Take(branches.Min(branch => branch.Requirements.Count) - 1)];
+                    branch => branch.Requirements.Any(candidate.Restates)))];
 
     internal Requirement Without(IReadOnlyList<SpecificationClause> hoisted)
     {
