@@ -39,6 +39,8 @@ Once it passes, refactor what you touched to clean code, keep the suite green, t
   in by `global.json` — without it, xunit.v3 4.x refuses `dotnet test` on the .NET 10 SDK. VSTest
   options such as `--logger` are refused.
 - The library multi-targets net8.0/net9.0/net10.0 — run the full suite on all three before a release.
+- `dotnet test Generator.Test` runs the source generator's specs, on net10.0 only: the generator
+  runs inside the compiler, so the test's runtime makes no difference.
 
 ## Releasing
 

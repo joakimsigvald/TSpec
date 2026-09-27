@@ -112,7 +112,23 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         YieldsResult = yieldsResult;
     }
 
-    internal TestResult<TSUT, TResult> TestResult => _result ??= Run();
+    internal TestResult<TSUT, TResult> TestResult => _result ??= RunOrShare();
+
+    private TestResult<TSUT, TResult> RunOrShare()
+        => SharedRuns.TryGetSpecClass(this, out var specClass) ? Share(specClass) : Run();
+
+    /// <summary>
+    /// Takes the run of the first shareable test in the class, with what that run specified, as if
+    /// it were this test's own. The test that makes the run takes it back the same way.
+    /// </summary>
+    private TestResult<TSUT, TResult> Share(Type specClass)
+    {
+        var run = SharedRuns.GetOrRun(specClass, RunToShare);
+        run.Specification.CopyTo(Specification);
+        return run.Outcome.SharedWith(_context);
+    }
+
+    private SharedRun<TSUT, TResult> RunToShare() => new(Run().SharedWith(_context), Specification.Copy());
 
     /// <summary>
     /// Marks a setup failure on its way out, so that a pipeline enclosing this one can tell it from

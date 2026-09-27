@@ -4,8 +4,8 @@ namespace TSpec.Internal.Specification;
 
 internal class SpecificationAssignments
 {
-    private readonly Dictionary<Type, Dictionary<int, object?>> _assignments = [];
-    private readonly Dictionary<Type, Dictionary<int, string>> _tagNames = [];
+    private Dictionary<Type, Dictionary<int, object?>> _assignments = [];
+    private Dictionary<Type, Dictionary<int, string>> _tagNames = [];
 
     internal void TagIndex(Type type, int index, string tagName)
     {
@@ -18,6 +18,12 @@ internal class SpecificationAssignments
         var typedAssignments = _assignments.TryGetValue(type, out var val) ? val : _assignments[type] = [];
         typedAssignments[index] = value;
     }
+
+    internal void CopyTo(SpecificationAssignments target)
+        => (target._assignments, target._tagNames) = (Clone(_assignments), Clone(_tagNames));
+
+    private static Dictionary<Type, Dictionary<int, T>> Clone<T>(Dictionary<Type, Dictionary<int, T>> dict)
+        => dict.ToDictionary(it => it.Key, it => it.Value.ToDictionary());
 
     internal string ListAssignments()
     {

@@ -29,6 +29,10 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
         _hasResult = hasResult;
     }
 
+    /// The outcome alone, for a test that takes this run as its own: not the subject that produced it.
+    internal TestResult<TSUT, TResult> SharedWith(Context context)
+        => new(default!, _result!, _error, context, _hasResult);
+
     /// <summary>
     /// Provide the return value of the tested method
     /// </summary>

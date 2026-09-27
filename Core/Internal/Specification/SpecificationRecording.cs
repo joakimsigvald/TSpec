@@ -10,8 +10,8 @@
 internal class SpecificationRecording
 {
     private readonly List<Action> _recordings = new(10);
-    private readonly List<List<SpecificationStep>> _clauses = new(10);
-    private readonly List<SpecificationStep> _pending = [];
+    private List<List<SpecificationStep>> _clauses = new(10);
+    private List<SpecificationStep> _pending = [];
     private IReadOnlyList<SpecificationClause>? _cachedClauses;
     private bool _isIntroduced;
     private int _suppressionCount;
@@ -87,6 +87,20 @@ internal class SpecificationRecording
         _because = reason;
     }
 
+    /// <summary>
+    /// Hands what has been recorded so far to another recording, which drops its own. Describing
+    /// the steps now rather than when the specification is observed is safe once the pipeline has
+    /// run, since a step waits only for the run to know what it says.
+    /// </summary>
+    internal void CopyTo(SpecificationRecording target)
+    {
+        DescribeRecorded();
+        target._recordings.Clear();
+        target._clauses = [.. _clauses.Select(clause => clause.ToList())];
+        target._pending = [.. _pending];
+        target._isIntroduced = _isIntroduced;
+    }
+
     internal void SuppressRecording() => _suppressionCount++;
 
     internal void InciteRecording() => _suppressionCount--;
@@ -103,9 +117,7 @@ internal class SpecificationRecording
             return;
 
         _isDescribed = true;
-        foreach (var describe in _recordings)
-            describe();
-        _recordings.Clear();
+        DescribeRecorded();
 
         // A silent step recorded last has no statement to wait for, so it joins the one before it.
         if (_pending.Count > 0 && _clauses.Count > 0)
@@ -116,6 +128,13 @@ internal class SpecificationRecording
         // anything. A bare Then is kept: there it is the whole assertion.
         if (_isIntroduced && _clauses.Count > 1 && SaysNothing(_clauses[^1]) && IsClaim(_clauses[^2]))
             _clauses.RemoveAt(_clauses.Count - 1);
+    }
+
+    private void DescribeRecorded()
+    {
+        foreach (var describe in _recordings)
+            describe();
+        _recordings.Clear();
     }
 
     private static bool SaysNothing(List<SpecificationStep> clause)
