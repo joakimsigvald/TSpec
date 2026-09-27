@@ -20,8 +20,9 @@ internal static class SharedRuns
     private static readonly ConcurrentDictionary<Type, object> _locks = new();
 
     /// <summary>
-    /// Whether the pipeline belongs to the running test and that test is listed as shareable. A spec
-    /// built inside the test, such as one its act runs, has a pipeline of its own and never shares.
+    /// Whether the pipeline belongs to the running test, that test is listed as shareable and sharing
+    /// is not turned off. A spec built inside the test, such as one its act runs, has a pipeline of its
+    /// own and never shares.
     /// </summary>
     internal static bool TryGetSpecClass<TSUT, TResult>(Pipeline<TSUT, TResult> pipeline, out Type specClass)
     {
@@ -30,8 +31,11 @@ internal static class SharedRuns
         return instance is Spec<TSUT, TResult> spec
             && ReferenceEquals(spec.Pipeline, pipeline)
             && TestContext.Current.TestMethod is IXunitTestMethod { Method: var method }
-            && IsShareable(method);
+            && IsShareable(method)
+            && !IsTurnedOff;
     }
+
+    private static bool IsTurnedOff => Environment.GetEnvironmentVariable("TSPEC_SHARING") is "off";
 
     /// Holding the lock while the run is made lets a test running in parallel wait for it instead of making its own.
     internal static TRun GetOrRun<TRun>(Type specClass, Func<TRun> run) where TRun : class
