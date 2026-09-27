@@ -17,18 +17,13 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>3.4.0</PackageVersion>
+		<PackageVersion>3.5.0-preview.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			ADDED
-			* Is().SameAs(obj) asserts that an object is the same reference
-			FIXED
-			* Drop the empty header before claims that sits right under the root folder
-			* An index after 'that' is stated rather than dropped: that[0].Is(82) reads "that [0] is 82"
-			* A call among other items keeps its shape: [Sum(1, 2), 3] no longer reads "[sum 1, 2, 3]"
-			* A failing assertion after 'and' names what failed: "Expected text to contain", not "Expected  to contain"
+			PERFORMANCE
+			* Multiple Then-methods that only assert on Result (like Result.Is(42)) now share a single pipeline run instead of each executing When separately. Automatic, no code changes needed. Applies to built-in Result types (int, string, DateTime, etc.) and enums.
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
