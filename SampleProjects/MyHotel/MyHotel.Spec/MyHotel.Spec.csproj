@@ -16,11 +16,11 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
+		<PackageReference Include="TSpec" Version="3.4.0" />
 		<PackageReference Include="xunit.v3" Version="4.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\Core\Core.csproj" />
 		<ProjectReference Include="..\Contract\Contract.csproj" />
 		<ProjectReference Include="..\MyHotel\MyHotel.csproj" />
 	</ItemGroup>

@@ -15,11 +15,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="TSpec" Version="3.4.0" />
 		<PackageReference Include="xunit.v3" Version="4.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\Core\Core.csproj" />
 		<ProjectReference Include="..\Core\Core.csproj" />
 	</ItemGroup>
 
