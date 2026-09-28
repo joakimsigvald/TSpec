@@ -50,9 +50,9 @@ Return type: Booking
 #### Given no such booking
 `IBookingStore.Load() returns zero Bookings`
 
-- **store nothing** — `IBookingStore.Save was not invoked`
 - **throw booking not found**\
   `throws BookingNotFound that Message contains "{the Booking's BookingNumber}"`
+- **store nothing** — `IBookingStore.Save was not invoked`
 
 #### Given the booking exists
 `IBookingStore.Load() returns one Booking`
@@ -126,12 +126,12 @@ IRoomStore.Load() returns [the Room]
   and IBookingStore.Load() returns zero Bookings
 ```
 
-- **store it** — `IBookingStore.Save was invoked once`
 - **return the booking with the number it was given**
   ```
   Result is new Booking(10001, the Room's RoomNumber, the string, new(2026, 8, 10),
       new(2026, 8, 12))
   ```
+- **store it** — `IBookingStore.Save was invoked once`
 
 #### Given the room exists, but is already booked
 ```

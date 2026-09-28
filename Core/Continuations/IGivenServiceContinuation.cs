@@ -79,21 +79,4 @@ public interface IGivenServiceContinuation<TSUT, TResult, TService> : IGivenMock
     /// <param name="member">The name of the member to mock, e.g. nameof(IRoomStore.Save)</param>
     /// <returns>A continuation for providing the result to mock</returns>
     IGivenThatVoidContinuation<TSUT, TResult, TService> That(string member);
-
-    /// <summary>
-    /// Obsolete: That&lt;TReturns&gt;(member) reaches a protected member too.
-    /// </summary>
-    /// <typeparam name="TReturns">The type the member answers with</typeparam>
-    /// <param name="member">The name of the member to mock</param>
-    /// <returns>A continuation for providing the result to mock</returns>
-    [Obsolete("Use That<TReturns>(member), which reaches a protected member too")]
-    IGivenThatContinuation<TSUT, TResult, TService, TReturns> ThatProtected<TReturns>(string member);
-
-    /// <summary>
-    /// Obsolete: That(member) reaches a protected member too.
-    /// </summary>
-    /// <param name="member">The name of the member to mock</param>
-    /// <returns>A continuation for providing the result to mock</returns>
-    [Obsolete("Use That(member), which reaches a protected member too")]
-    IGivenThatVoidContinuation<TSUT, TResult, TService> ThatProtected(string member);
 }

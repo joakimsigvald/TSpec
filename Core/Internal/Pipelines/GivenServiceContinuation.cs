@@ -59,12 +59,6 @@ internal class GivenServiceContinuation<TSUT, TResult, TService> : IGivenService
     public IGivenThatVoidContinuation<TSUT, TResult, TService> That(string member)
         => GivenThatVoidContinuation<TSUT, TResult, TService>.ByName(_spec, member);
 
-    public IGivenThatContinuation<TSUT, TResult, TService, TReturns> ThatProtected<TReturns>(string member)
-        => That<TReturns>(member);
-
-    public IGivenThatVoidContinuation<TSUT, TResult, TService> ThatProtected(string member)
-        => That(member);
-
     public IGivenThatVoidContinuation<TSUT, TResult, TService> That(
         Expression<Action<TService>> call,
         [CallerArgumentExpression(nameof(call))] string? callExpr = null)

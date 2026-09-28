@@ -1,13 +1,14 @@
 # TSpec — Agent Reference
 
-Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 3.4).
+Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 4.0).
 TSpec is a fluent Given–When–Then specification framework for .NET on top of xUnit v3.
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec#readme).
 
 ## Core model — read this first
 
 - A test class subclasses `Spec<TSUT, TResult>` (subject type, return type of the method under test). `Spec<T>` is `Spec<T, T>`, and also the spelling when the result is not asserted; non-generic `Spec` has neither subject nor result.
-- **Execution is deferred**: nothing runs until the first `Then()` or `Result`, and the pipeline runs **at most once** per test method. All arrangement must come before it.
+- **Execution is deferred**: nothing runs until the first `Then()` or `Result`, and the pipeline runs **at most once**. All arrangement must come before it.
+- **The Facts of a class share one run** when each reads the outcome before anything else. A Fact that sets up or mentions a value first, and each Theory row, runs alone. A Fact that changes what a later one reads (consumes a stream, changes the subject) affects it — give such a Fact a class of its own.
 - **Declaration order does not matter.** Execution is always `Given` → `Having` → `When` → `Until`. `Having` steps run in reverse declaration order; `Until` steps in declaration order, after the test method returns.
 - **Exactly one `When` per test.** Put the shared `When` in an abstract base constructor and vary preconditions in nested subclasses (see Recommended structure).
 - The subject is auto-constructed: its dependencies are mocked or generated (see Mocking). Provide your own with `Using(instance)`.
@@ -125,8 +126,8 @@ Works standalone in plain xUnit tests too.
 
 ## Lifecycle and ownership
 
-- After the test method: `Until` steps, then TSpec disposes the `IDisposable`/`IAsyncDisposable` objects **it created** for the subject graph (subject first).
-- Instances provided with `Using`, mocks and generated input are never disposed — unless provided with `owned: true`. Integration-test idiom: `Using(CreateClient, owned: true)` in the base constructor gives every test a fresh `HttpClient`, disposed after it.
+- After the test method, or a shared run's last Fact: `Until` steps, then TSpec disposes the `IDisposable`/`IAsyncDisposable` objects **it created** for the subject graph (subject first).
+- Instances provided with `Using`, mocks and generated input are never disposed — unless provided with `owned: true`. Integration-test idiom: `Using(CreateClient, owned: true)` in the base constructor gives each run a fresh `HttpClient`, disposed after it.
 
 ## Common errors → causes
 

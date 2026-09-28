@@ -119,12 +119,12 @@ Api.PostAsJsonAsync("/bookings",
 `Having Api.PostAsJsonAsync("/rooms", the Room)`
 
 - **respond created** — `Result.StatusCode is Created`
-- **point at the new booking** — `Result.Headers.Location.ToString() is "/bookings/10001"`
 - **return the booking with the seeded number**
   ```
   Result.Read<Booking>() is new Booking(10001, the Room's RoomNumber, the string,
       new(2026, 8, 10), new(2026, 8, 12))
   ```
+- **point at the new booking** — `Result.Headers.Location.ToString() is "/bookings/10001"`
 
 ### Given an adjacent booking
 ```

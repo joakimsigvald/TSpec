@@ -208,13 +208,14 @@ A thrown exception becomes the captured outcome and is asserted with `Then().Thr
 ### 2.3 Assertion
 
 Assertions consume the captured outcome or utilize the mocking framework for verifying execution paths. 
-The pipeline executes at most once per test method, regardless of the number of references to `Result` or `Then()`.
+The pipeline executes at most once, regardless of the number of references to `Result` or `Then()`,
+and the Facts of a class share that run where they can (see [2.6](#26-sharing-a-run)).
 Assertions are covered in depth in Chapter 5, and mock verification in Section 4.6.
 
 ### 2.4 Teardown
 
 Teardown steps are provided with `Until()`, as lambdas that take the subject under test as argument.
-Teardown is executed in order of declaration when the test class and pipeline are disposed, after the test method has run.
+Teardown is executed in order of declaration after the test method has run — for a shared run, after the class's last Fact.
 
 Example:
 `When(A).Until(B).Until(C)` will result in the execution order: A -> B -> C.
@@ -240,8 +241,7 @@ public abstract class ApiSpec<TResult> : Spec<MyApiClient, TResult>
 }
 ```
 
-The factory is invoked at most once per test (each test builds its own pipeline),
-and the created client is disposed when the test is torn down.
+The factory is invoked once per run, and the created client is disposed when the run is torn down.
 
 ### 2.5 Sync vs. Async Execution
 
@@ -254,6 +254,15 @@ Test methods themselves do not need to be `async`, but they may be — for insta
 A lambda that needs its own `async` body — or consists of a `throw` — may have to state its return type to be unambiguous,
 e.g. `When(async ValueTask (_) => ...)` or `Until(void (_) => throw ...)`. `Task` is resolved before `ValueTask`.
 
+### 2.6 Sharing a run
+
+The Facts of a test class that read the outcome before anything else share one run: the first of them
+runs the pipeline, and each asserts on it in turn, in the order they are declared — a base class's first.
+A Fact that sets up or mentions a value before reading the outcome runs alone, and so does each row of a Theory.
+
+A Fact that changes what a later one reads — consumes a stream, changes the subject — therefore affects it.
+When a Fact fails but passes when run alone, its test output says so: give it a class of its own.
+
 ## 3. Using Test Data
 
 TSpec provides helpers for referring to test data that can either be supplied explicitly or automatically generated (optionally with setups or transforms).
@@ -265,7 +274,7 @@ Two complementary mechanisms are provided:
 ### 3.1 Mentions
 
 Mentions are helper methods for generating and referring to up to five numbered values of a given type, as well as collections of up to five elements.
-Mentions are resolved per type and per test and always refer to the same value within a specification.
+Mentions are resolved per type and per run and always refer to the same value within a specification.
 
 **Single values**
 For a single generated value — all of these refer to the same one:
@@ -881,9 +890,8 @@ public abstract class WhenPlaceOrder : Spec<ShoppingService>
 ```
 
 Unit tests work best when they run *fast*. Write modular production code in line with best practices,
-so that each unit can be tested in isolation while mocking or ignoring the rest. Remember that the
-entire test pipeline is built and disposed for each test method — if a specification requires costly
-setup or execution, it can be reasonable to group *closely related* assertions into one test method.
+so that each unit can be tested in isolation while mocking or ignoring the rest. The Facts of a class
+share one run (see [2.6](#26-sharing-a-run)), so splitting assertions into test methods costs nothing.
 
 ### 6.2 Generating the specification
 

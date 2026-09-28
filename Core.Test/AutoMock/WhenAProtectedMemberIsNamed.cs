@@ -14,7 +14,7 @@ public class AwkwardService(Awkward awkward)
     public string Go() => awkward.ToString()!;
 }
 
-/// A name reaches a protected member as it reaches any other, so what ThatProtected refused is set up.
+/// A name reaches a protected member as it reaches any other.
 public class WhenAProtectedMemberIsNamed : Spec<AwkwardService, string>
 {
     public WhenAProtectedMemberIsNamed() => When(_ => _.Go());
@@ -44,15 +44,6 @@ public class WhenAProtectedMemberIsNamed : Spec<AwkwardService, string>
     public void GivenAProperty_ThenItIsSetUp()
     {
         Given<Awkward>().That<string>("Label").Returns(() => "labelled");
-        Then().Completes();
-    }
-
-    [Fact]
-    public void GivenThatProtected_ThenItSetsUpAsThatDoes()
-    {
-#pragma warning disable CS0618 // the obsolete form, kept working until it is removed
-        Given<Awkward>().ThatProtected<string>("Over").Returns(() => "x");
-#pragma warning restore CS0618
         Then().Completes();
     }
 }
