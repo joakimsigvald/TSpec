@@ -19,27 +19,21 @@ public abstract class WhenGetStateAfterSetStateWithHavingDelay : Spec<DelayedSta
 
     public class GivenWaitShorterThanDelay : WhenGetStateAfterSetStateWithHavingDelay
     {
-        private const int Delay = 200, Wait = 100;
-        private DelayedState _subject = null!;
+        private const int Delay = 500, Wait = 100;
 
-        public GivenWaitShorterThanDelay()
-        {
-            Given(_delay).Is(Delay).And(_wait).Is(Wait);
-            Using((DelayedState subject) => _subject = subject);
-        }
+        public GivenWaitShorterThanDelay() => Given(_delay).Is(Delay).And(_wait).Is(Wait);
 
         [Fact]
         public void ThenGetInitialState()
         {
             var state = Result;
-            Stall.SkipIfPast(_subject, Delay, Wait);
             state.Is(0);
         }
     }
 
     public class GivenWaitLongerThanDelay : WhenGetStateAfterSetStateWithHavingDelay
     {
-        public GivenWaitLongerThanDelay() => Given(_delay).Is(100).And(_wait).Is(200);
+        public GivenWaitLongerThanDelay() => Given(_delay).Is(100).And(_wait).Is(500);
         [Fact]
         public void ThenGetNewState()
         {
@@ -47,7 +41,7 @@ public abstract class WhenGetStateAfterSetStateWithHavingDelay : Spec<DelayedSta
             Specification.Is(
                 """
                 Using Delay
-                Given Wait is 200
+                Given Wait is 500
                   and Delay is 100
                 When State
                 Having waited the Wait ms
@@ -92,7 +86,6 @@ public abstract class WhenGetStateAfterSetStateWithAsyncTaskDelay : Spec<Delayed
         public void ThenGetInitialState()
         {
             var state = Result;
-            Stall.SkipIfPast(_subject, Delay, Wait);
             state.Is(0);
         }
     }

@@ -120,23 +120,25 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
 
     /// A Fact that used the pipeline before reading the outcome set it up, or holds values of its own.
     private TestResult<TSUT, TResult> RunOrShare()
-        => !_usedByTestMethod && SharedRuns.TryGetSpecClass(this, out var specClass) ? Share(specClass) : Run();
+        => !_usedByTestMethod && SharedRuns.TryGetTest(this, out var test) ? Share(test) : Run();
 
     /// <summary>
     /// Takes the run of the first Fact in the class to read the outcome first, with what that run
-    /// specified, as if it were this Fact's own. The Fact that makes the run takes it the same way.
+    /// specified and what its test's fields hold, as if it were this Fact's own. The Fact that makes
+    /// the run takes it the same way.
     /// </summary>
-    private TestResult<TSUT, TResult> Share(Type specClass)
+    private TestResult<TSUT, TResult> Share(object test)
     {
-        var run = SharedRuns.GetOrRun(specClass, RunToShare);
+        var run = SharedRuns.GetOrRun(test.GetType(), () => RunToShare(test));
         RanBefore = [.. run.Facts];
         run.Facts.Add(TestIdentity.Requirement);
         TakeOver(run.Maker);
         run.Specification.CopyTo(Specification);
+        TestFields.Copy(run.Test, test);
         return run.Outcome;
     }
 
-    private SharedRun<TSUT, TResult> RunToShare() => new(Run(), this, Specification.Copy());
+    private SharedRun<TSUT, TResult> RunToShare(object test) => new(Run(), this, Specification.Copy(), test);
 
     private Context Values()
     {

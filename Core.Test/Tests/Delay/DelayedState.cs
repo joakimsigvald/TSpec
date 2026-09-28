@@ -30,20 +30,3 @@ public class DelayedState(int delayMs)
         _currentState = newState;
     }
 }
-
-/// <summary>
-/// Skips the test when a busy machine stretched the wait past the delay it was meant to stay
-/// inside. Tests that wait longer than the delay don't need this — a wait can overrun, but never
-/// finishes early.
-/// </summary>
-internal static class Stall
-{
-    internal static void SkipIfPast(DelayedState subject, int delayMs, int waitMs)
-    {
-        if (subject.LastElapsedMs < delayMs)
-            return;
-        Xunit.Assert.Skip(
-            $"The machine stalled: {subject.LastElapsedMs:F0} ms passed for a {waitMs} ms wait, "
-            + $"which is past the {delayMs} ms delay this test needs to stay inside.");
-    }
-}

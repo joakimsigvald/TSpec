@@ -11,7 +11,7 @@ internal interface ISharedRun
 }
 
 internal sealed record SharedRun<TSUT, TResult>(
-    TestResult<TSUT, TResult> Outcome, Pipeline<TSUT, TResult> Maker, SpecificationContext Specification)
+    TestResult<TSUT, TResult> Outcome, Pipeline<TSUT, TResult> Maker, SpecificationContext Specification, object Test)
     : ISharedRun
 {
     internal List<string> Facts { get; } = [];
@@ -32,11 +32,10 @@ internal static class SharedRuns
     /// turned off. A spec built inside the test, such as one its act runs, has a pipeline of its own
     /// and never shares; each row of a Theory is a scenario of its own.
     /// </summary>
-    internal static bool TryGetSpecClass<TSUT, TResult>(Pipeline<TSUT, TResult> pipeline, out Type specClass)
+    internal static bool TryGetTest<TSUT, TResult>(Pipeline<TSUT, TResult> pipeline, out object test)
     {
-        var instance = TestContext.Current.TestClassInstance;
-        specClass = instance?.GetType()!;
-        return instance is Spec<TSUT, TResult> spec
+        test = TestContext.Current.TestClassInstance!;
+        return test is Spec<TSUT, TResult> spec
             && ReferenceEquals(spec.Pipeline, pipeline)
             && TestContext.Current.TestMethod is IXunitTestMethod { Method: var method }
             && !method.IsDefined(typeof(TheoryAttribute), inherit: true)

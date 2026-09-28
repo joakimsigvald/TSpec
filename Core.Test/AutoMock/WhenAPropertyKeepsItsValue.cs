@@ -8,11 +8,7 @@ public class WhenAPropertyKeepsItsValue : Spec<IdHolder, IIdSource>
 {
     private string? _read;
 
-    public WhenAPropertyKeepsItsValue() => When(_ =>
-    {
-        _read = _.Source.Name;
-        return _.Source;
-    });
+    public WhenAPropertyKeepsItsValue() => When(_ => _.Source).Having(_ => _read = _.Source.Name).Using("y");
 
     [Fact]
     public void GivenNoSet_ThenEveryReadAnswersTheSame()
@@ -24,7 +20,7 @@ public class WhenAPropertyKeepsItsValue : Spec<IdHolder, IIdSource>
 
     [Fact]
     public void GivenASetAfterARead_ThenItOverwritesWhatWasRead()
-        => (Result.Name = "x").Is(Result.Name).and.Not(_read);
+        => (Result.Name = "x").Is(Result.Name).and.Not(_read).And(_read).Is("y");
 
     [Fact]
     public void GivenTheGetterIsSetUp_ThenASetDoesNotChangeWhatItAnswers()
