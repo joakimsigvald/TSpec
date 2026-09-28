@@ -20,6 +20,4 @@
   </Folder>
   <Project Path="Core.Test/Core.Test.csproj" />
   <Project Path="Core/Core.csproj" />
-  <Project Path="Generator.Test/Generator.Test.csproj" />
-  <Project Path="Generator/Generator.csproj" />
 </Solution>

@@ -1,51 +1,30 @@
-# Performance Optimization: Pipeline Sharing
+# Pipeline sharing (4.0)
 
-**Status:** Completed and released as TSpec 3.5.0-preview.1
+The Facts of a class that don't set up share one run, set up in the constructor and acted on once,
+and check the outcome one after the other in declared order. A Fact that sets up, and each Theory
+row, runs alone. A separate run, or parallel execution, takes a separate class.
 
-## What it does
+Target: MyHotel.Spec ≥10–20% faster, preferably >50%, with <1% overhead where nothing is shared.
 
-Multiple Then-methods in the same test class that only assert on Result (like `Result.Is(42)`) now share a single pipeline run instead of each executing When separately. Automatic, no code changes needed. Applies only to built-in Result types (int, string, DateTime, etc.) and enums.
+Steps are done in order; delete one when it lands.
 
-## Implementation approach
-
-1. **Roslyn source generator** (`Generator/ShareableThenGenerator.cs`): Compile-time analysis to find eligible Then-methods and emit `[ShareableThen]` assembly attributes
-2. **Recognition logic** (`Generator/ShareableThen.cs`): Checks if a Then-method only asserts on Result with constant arguments and Result is a built-in type
-3. **Runtime coordination** (`Core/Internal/Pipelines/SharedRuns.cs`): Stores shared runs per test class, waits for parallel execution with lock per class
-4. **Pipeline methods** (`Core/Internal/Pipelines/Pipeline.cs`): `RunOrShare()` decides whether to share or run fresh, `Share()` takes shared outcome with copied specification
-5. **Specification copying** (`Core/Internal/Specification/`): Copy-on-write pattern — freeze Given/When at run time, copy to taking test's context to preserve VALUES
-
-## Key design decisions
-
-- **Copy-on-write instead of IL inspection:** Simpler, more maintainable, no reruns needed
-- **Built-in types only:** Prevents aliasing problems with complex types; proven by generator test
-- **Lock per class, not global:** Parallel tests wait instead of re-run; no contention across unrelated tests
-- **Specification context copying:** Prevents taking test from seeing stale VALUES when Given/When text references them
-
-## Files changed
-
-- Generator: `ShareableThenGenerator.cs`, `ShareableThen.cs`
-- Core: `ShareableThenAttribute.cs`, `SharedRuns.cs`, `Pipeline.cs` (RunOrShare, Share), SpecificationRecording.cs (CopyTo), SpecificationAssignments.cs (CopyTo), SpecificationContext.cs (Copy), TestResult.cs (SharedWith)
-- Tests: `Core.Test/Pipeline/WhenThensShareARun.cs`, `Generator.Test/WhenListShareableThens.cs` + 8 sample classes
-- Package: `Core/Core.csproj` version bumped to 3.5.0-preview.1
-
-## Testing
-
-- Full suite passes on net8.0, net9.0, net10.0
-- MyHotel.Spec and MyHotel.Core.Spec both pass with preview version
-
-## Release notes
-
-```
-PERFORMANCE
-* Multiple Then-methods that only assert on Result (like Result.Is(42)) now share a single pipeline run instead of each executing When separately. Automatic, no code changes needed. Applies to built-in Result types (int, string, DateTime, etc.) and enums.
-```
-
-## Performance target
-
-Goal was 10-20% for affected tests, preferably >50%. Implementation achieves <1% overhead for tests not using the optimization. Actual perf improvement on tests with multiple Result-only Thens TBD (MyHotel doesn't have tests matching this pattern).
-
-## Next steps
-
-- Publish final 3.5.0 release when ready (not preview)
-- Monitor user feedback on whether shared state exposure is a real problem
-- Consider TSpec 4.0 runner idea (share pipelines automatically across all Then methods, not just Result-only ones)
+1. **Facts that don't set up share one run.** Today `WhenGetRoom.GivenTheRoomExists` starts a host
+   and posts the room twice, once for `ThenRespondOk` and once for `ThenReturnTheRoom`. Each Fact
+   states the shared Given and When plus its own Then, and a later Fact's `The<Room>()` is the room
+   the run used. Inherited Facts count. A Fact that calls `Given` or `When` in its body runs alone,
+   so TSpec must tell a method's setup from its constructor's; roughly 545 Facts in Core.Test do
+   so. The environment variable `TSPEC_SHARING=off` turns sharing off, to compare.
+2. **The run's subject lives until the class's last Fact.** Today it is disposed when its test
+   ends; MyHotel's `Hotel` and anything provided with `owned: true` must outlive it.
+3. **Facts run in declared order.** xUnit's default order is stable but arbitrary. Inherited Facts,
+   such as `WhenListRooms.ThenRespondOk`, need a place in it.
+4. **Measure MyHotel.Spec** with and without `TSPEC_SHARING=off`.
+5. **A Fact that collides with an earlier one says so.** From `Dispose`, rerun a failed Fact that
+   took a shared run on a fresh instance of its class; if it passes, write to the test output that
+   it passes alone and name the Facts that ran before it. Output written there shows under the
+   failing test; a warning does not. The rerun's own `Dispose` must not rerun again, and an async
+   Fact is awaited.
+6. **Docs and release note.** The README says "the entire test pipeline is built and disposed for
+   each test method"; the agent reference says "at most once per test method" and "every test a
+   fresh `HttpClient`". The 4.0 release note names what breaks: a Fact that consumes or changes what
+   the next reads — a stream, a lazy enumerable, the subject.
