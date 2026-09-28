@@ -14,6 +14,8 @@ internal sealed record SharedRun<TSUT, TResult>(
     TestResult<TSUT, TResult> Outcome, Pipeline<TSUT, TResult> Maker, SpecificationContext Specification)
     : ISharedRun
 {
+    internal List<string> Facts { get; } = [];
+
     public void TearDown() => Maker.TearDownRun();
 }
 

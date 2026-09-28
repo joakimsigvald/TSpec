@@ -6,7 +6,13 @@ namespace TSpec.Test.AutoMock;
 /// A property keeps its value: a setup answers every read, else the last set, else the first read.
 public class WhenAPropertyKeepsItsValue : Spec<IdHolder, IIdSource>
 {
-    public WhenAPropertyKeepsItsValue() => When(_ => _.Source);
+    private string? _read;
+
+    public WhenAPropertyKeepsItsValue() => When(_ =>
+    {
+        _read = _.Source.Name;
+        return _.Source;
+    });
 
     [Fact]
     public void GivenNoSet_ThenEveryReadAnswersTheSame()
@@ -18,10 +24,7 @@ public class WhenAPropertyKeepsItsValue : Spec<IdHolder, IIdSource>
 
     [Fact]
     public void GivenASetAfterARead_ThenItOverwritesWhatWasRead()
-    {
-        var read = Result.Name;
-        (Result.Name = "x").Is(Result.Name).and.Not(read);
-    }
+        => (Result.Name = "x").Is(Result.Name).and.Not(_read);
 
     [Fact]
     public void GivenTheGetterIsSetUp_ThenASetDoesNotChangeWhatItAnswers()

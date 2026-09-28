@@ -62,6 +62,7 @@ public abstract partial class Spec<TSUT, TResult>
         if (checkClaims)
             Pipeline.AssertClaimed();
         Collect();
+        CollisionHint.WriteIfItPassesAlone(GetType(), Pipeline.RanBefore);
         GC.SuppressFinalize(this);
     }
 

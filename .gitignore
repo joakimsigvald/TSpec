@@ -8,3 +8,4 @@ lib/
 obj/
 /Core/html
 /Core/latex
+/.claude/settings.local.json

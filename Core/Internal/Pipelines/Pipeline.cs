@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using TSpec.Continuations;
+using TSpec.Internal.Document;
 using TSpec.Internal.Mocking;
 using TSpec.Internal.Specification;
 using TSpec.Internal.TestData;
@@ -115,6 +116,8 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
 
     internal TestResult<TSUT, TResult> TestResult => _result ??= RunOrShare();
 
+    internal IReadOnlyList<string> RanBefore { get; private set; } = [];
+
     /// A Fact that used the pipeline before reading the outcome set it up, or holds values of its own.
     private TestResult<TSUT, TResult> RunOrShare()
         => !_usedByTestMethod && SharedRuns.TryGetSpecClass(this, out var specClass) ? Share(specClass) : Run();
@@ -126,6 +129,8 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
     private TestResult<TSUT, TResult> Share(Type specClass)
     {
         var run = SharedRuns.GetOrRun(specClass, RunToShare);
+        RanBefore = [.. run.Facts];
+        run.Facts.Add(TestIdentity.Requirement);
         TakeOver(run.Maker);
         run.Specification.CopyTo(Specification);
         return run.Outcome;
