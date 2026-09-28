@@ -33,12 +33,15 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         return Claim;
     }
 
+    /// A subject handed over before the run may be one of the Fact's own fields, which only a run of
+    /// its own fills, so the Fact runs alone.
     internal TSubject Then<TSubject>(TSubject subject, string subjectExpr)
     {
         subjectExpr.AssertNoTrainwreck();
         HandedOverSubject.AssertIsNotALambda(subject, subjectExpr);
         HandedOverSubject.AssertIsNotACopyTakenBeforeTheRun<TSubject>(_phase.Current == Phase.Assert, subjectExpr);
         Specification.SetSubject(subjectExpr);
+        NoteUse();
         _ = Claim;
         return subject;
     }
@@ -203,10 +206,11 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
 
     private Command MethodUnderTest => _methodUnderTest ?? throw new SetupFailed("When must be called before Then or Result");
 
-    /// A spec that never provided a When is not driving this pipeline, and is left alone.
+    /// A spec that never provided a When is not driving this pipeline, and a test that failed is not
+    /// green for no reason, so both are left alone.
     internal void AssertClaimed()
     {
-        if (_methodUnderTest is not null)
+        if (_methodUnderTest is not null && !TestIdentity.Failed)
             Specification.AssertClaimed();
     }
 

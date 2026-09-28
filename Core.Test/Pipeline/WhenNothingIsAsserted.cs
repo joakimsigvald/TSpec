@@ -119,4 +119,26 @@ public class WhenNothingIsAsserted
         Xunit.Assert.Throws<SetupFailed>(() => spec.When(_ => 1).When(_ => 2));
         spec.Dispose();
     }
+
+    [Fact]
+    public async Task GivenTheTestFailedBeforeItsAssertion_ThenDoNotComplain()
+    {
+        var spec = new MySpec();
+        var other = "other";
+        spec.When(_ => 1).Then(other);
+        await DisposeAfterAFailure(spec);
+    }
+
+    /// xUnit disposes a test class once the test is over, in a context that tells whether it failed;
+    /// set in a flow of its own, so this test's context is left as it was.
+    private static Task DisposeAfterAFailure(IDisposable spec)
+    {
+        var test = TestContext.Current;
+        return Task.Run(() =>
+        {
+            TestContext.SetForTest(test.Test!, TestEngineStatus.CleaningUp, test.CancellationToken,
+                TestResultState.FromException(0, new Exception("the test failed")));
+            spec.Dispose();
+        }, test.CancellationToken);
+    }
 }

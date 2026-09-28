@@ -17,19 +17,14 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>4.0.0</PackageVersion>
+		<PackageVersion>4.0.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			BREAKING
-			* The Facts of a class that read the outcome before anything else share one run, in declared order. A Fact that sets up or mentions a value first, and each Theory row, still runs alone
-			* A Fact that changes what a later Fact reads — consumes a stream or a lazy enumerable, changes the subject — now affects it: give it a class of its own
-			* A shared run's Until steps and disposal happen after the class's last Fact
-			* The specification document lists a class's requirements in declared order
-			* ThatProtected is removed: That(member) reaches a protected member too
-			ADDED
-			* A Fact that fails on a shared run but passes alone says so in its test output
+			FIXED
+			* A Fact that starts with Then(field) runs alone, so it asserts on what its own act did rather than on an untouched field
+			* A Fact that throws before its assertion reports only that exception, not also that no assertion follows Then(x), and its test output says if it passes alone
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

@@ -23,6 +23,20 @@ public abstract class WhenTheActSetsAField : Spec<int>
     }
 }
 
+/// A field handed to Then is read before the run, so the Fact runs alone and sees what its own act added.
+public class WhenAFieldIsHandedToThen : Spec<int>
+{
+    private readonly List<int> _added = [];
+
+    public WhenAFieldIsHandedToThen() => When(() => _added.Add(42));
+
+    [Fact] public void ThenOneSeesWhatTheActAdded() => ThenItHoldsWhatTheActAdded();
+
+    [Fact] public void ThenAnotherSeesItToo() => ThenItHoldsWhatTheActAdded();
+
+    private void ThenItHoldsWhatTheActAdded() => Then(_added).Has().OneItem();
+}
+
 /// Each test is given an output of its own, and the Fact that takes the run keeps it.
 public class WhenATestTakesAnOutput : Spec<int>
 {
