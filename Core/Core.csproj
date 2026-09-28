@@ -17,18 +17,15 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>3.4.0</PackageVersion>
+		<PackageVersion>4.0.0-preview.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			ADDED
-			* Is().SameAs(obj) asserts that an object is the same reference
-			FIXED
-			* Drop the empty header before claims that sits right under the root folder
-			* An index after 'that' is stated rather than dropped: that[0].Is(82) reads "that [0] is 82"
-			* A call among other items keeps its shape: [Sum(1, 2), 3] no longer reads "[sum 1, 2, 3]"
-			* A failing assertion after 'and' names what failed: "Expected text to contain", not "Expected  to contain"
+			BREAKING
+			* The Facts of a class that read the outcome before anything else share one run, in declared order. A Fact that sets up or mentions a value first, and each Theory row, still runs alone
+			* A Fact that changes what a later Fact reads now affects it: move one of them to a class of its own
+			* The specification document lists a class's requirements in declared order
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

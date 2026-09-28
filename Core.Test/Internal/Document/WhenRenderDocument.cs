@@ -261,8 +261,10 @@ public class WhenRenderDocument : Spec
     [Fact]
     public void GivenOneBranchOnly_ThenLeaveItsRequirementsWhereTheyAre()
         => Render(
-            new("WhenAddRoom", "GivenNoSuchRoom", "ThenRespondWithJson", [Act("post"), Claim("then json")]),
-            new("WhenAddRoom", "GivenNoSuchRoom", "ThenRespondCreated", [Act("post"), Claim("then created")]))
+            new("WhenAddRoom", "GivenNoSuchRoom", "ThenRespondWithJson", [Act("post"), Claim("then json")],
+                Declared: (1, 1)),
+            new("WhenAddRoom", "GivenNoSuchRoom", "ThenRespondCreated", [Act("post"), Claim("then created")],
+                Declared: (1, 2)))
             .Does().Contain("### Given no such room\n\n- **respond with json** — `json`\n");
 
     /// <summary>
@@ -767,24 +769,24 @@ public class WhenRenderDocument : Spec
                 "### Given aaa",
                 "- **a**"]);
 
-    [Fact]
-    public void GivenOneRequirementArrangesMore_ThenPlaceTheSimplerFirst()
-        => Outline(Render(
-            new("WhenGetRoom", "GivenX", "ThenA", [Act("get"), Condition("post"), Claim("then a")]),
-            new("WhenGetRoom", "GivenX", "ThenB", [Act("get"), Claim("then b")])))
-            .Is().EqualTo(["## When get room", "### Given x", "- **b**", "- **a**"]);
-
     /// <summary>
-    /// Requirements that arrange alike are ordered by how much they claim, so a short status check
-    /// precedes one that inspects a whole value. Length only ever breaks a tie — it never overrides
-    /// arrangement, and it decides nothing above the leaf.
+    /// A class's requirements are listed as declared, which is the order they run in: the one
+    /// declared first leads though it arranges more, claims more and is named last.
     /// </summary>
     [Fact]
-    public void GivenTwoRequirementsArrangeAlike_ThenPlaceTheShorterClaimFirst()
+    public void GivenRequirementsOfOneClass_ThenListThemAsDeclared()
         => Outline(Render(
-            new("WhenGetRoom", "GivenX", "ThenA", [Act("get"), Claim("then the whole room is returned")]),
-            new("WhenGetRoom", "GivenX", "ThenB", [Act("get"), Claim("then ok")])))
-            .Is().EqualTo(["## When get room", "### Given x", "- **b**", "- **a**"]);
+            new("WhenGetRoom", "GivenX", "ThenZ",
+                [Act("get"), Condition("post"), Claim("then the whole room is returned")], Declared: (1, 1)),
+            new("WhenGetRoom", "GivenX", "ThenA", [Act("get"), Claim("then ok")], Declared: (1, 2))))
+            .Is().EqualTo(["## When get room", "### Given x", "- **z**", "- **a**"]);
+
+    [Fact]
+    public void GivenARequirementOfTheBaseClass_ThenListItFirst()
+        => Outline(Render(
+            new("WhenGetRoom", "GivenX", "ThenA", [Act("get"), Claim("then a")], Declared: (2, 1)),
+            new("WhenGetRoom", "GivenX", "ThenZ", [Act("get"), Claim("then z")], Declared: (1, 9))))
+            .Is().EqualTo(["## When get room", "### Given x", "- **z**", "- **a**"]);
 
     /// <summary>
     /// Assertions are not counted, and this is why: a suite grows by claiming more, and a document

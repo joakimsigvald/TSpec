@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using TSpec.Internal.Pipelines;
 using TSpec.Internal.Specification;
 
 namespace TSpec.Internal.Document;
@@ -21,6 +22,8 @@ internal static class TestIdentity
 
     internal static string Requirement
         => TestContext.Current.TestMethod?.MethodName ?? "(unknown)";
+
+    internal static (int Depth, int Token)? Declared => DeclaredOrder.Position(TestContext.Current.TestMethod);
 
     /// <summary>
     /// Splits the test class into the method under test and the branch of given-classes below it,

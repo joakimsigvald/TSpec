@@ -22,6 +22,8 @@ namespace TSpec.Internal.Document;
 /// apart — and the only thing the document can lay out as a table.</param>
 /// <param name="Source">Where the outermost test class is written, for its heading to link to;
 /// null when it is not known.</param>
+/// <param name="Declared">Where the test method is declared, as the run orders it: the depth of its
+/// class below the root of the hierarchy, then its place in that class; null when it is not known.</param>
 internal sealed record SpecificationEntry(
     string Subject,
     string Branch,
@@ -32,4 +34,5 @@ internal sealed record SpecificationEntry(
     string? ReturnType = null,
     string? Namespace = null,
     TheoryRow? Row = null,
-    SourceLocation? Source = null);
+    SourceLocation? Source = null,
+    (int Depth, int Token)? Declared = null);

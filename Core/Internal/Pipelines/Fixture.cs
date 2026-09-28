@@ -12,12 +12,14 @@ internal interface ISpecificationProvider
 
 internal abstract class Fixture<TSUT> : ISpecificationProvider
 {
-    private protected readonly Context _context = null!;
-    private protected readonly SpecFixture<TSUT> _fixture = null!;
+    private protected Context _context = null!;
+    private protected SpecFixture<TSUT> _fixture = null!;
     private protected readonly Arranger _arranger = new();
     private protected readonly DisposalTracker _disposalTracker = new();
-    private protected readonly PipelinePhase _phase = new();
+    private protected PipelinePhase _phase = new();
     private protected Command? _methodUnderTest;
+    private protected bool _usedByTestMethod;
+    private Fixture<TSUT>? _sharedRun;
 
     protected Fixture()
     {
@@ -32,19 +34,33 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
     {
         try
         {
+            TearDownOwn();
+        }
+        finally
+        {
+            Specification.Release();
+        }
+    }
+
+    /// A shared run is torn down when its class ends, so a Fact that took it disposes only what it created itself.
+    private void TearDownOwn()
+    {
+        if (_sharedRun is null)
+            TearDownRun();
+        else if (_sharedRun != this)
+            _disposalTracker.DisposeAll();
+    }
+
+    internal void TearDownRun()
+    {
+        try
+        {
             if (_phase.Current >= Phase.Act)
                 _fixture.Dispose();
         }
         finally
         {
-            try
-            {
-                _disposalTracker.DisposeAll();
-            }
-            finally
-            {
-                Specification.Release();
-            }
+            _disposalTracker.DisposeAll();
         }
     }
 
@@ -163,8 +179,28 @@ internal abstract class Fixture<TSUT> : ISpecificationProvider
         sequence._next = next;
     }
 
+    /// <summary>
+    /// Takes over the values, phase and subject of another pipeline's run, so that what this
+    /// pipeline mentions, verifies and tears down is that run's.
+    /// </summary>
+    private protected void TakeOver(Fixture<TSUT> run)
+    {
+        _sharedRun = run;
+        _context = run._context;
+        _phase = run._phase;
+        _fixture = run._fixture;
+    }
+
+    /// xUnit exposes the test class instance only once it is constructed, so use from then on is the test method's.
+    private protected void NoteUse()
+    {
+        if (TestContext.Current.TestClassInstance is not null)
+            _usedByTestMethod = true;
+    }
+
     private void AssertActHasNotBegun()
     {
+        NoteUse();
         if (_phase.Current >= Phase.Act)
             throw new SetupFailed("Cannot provide setup after pipeline is set up");
     }

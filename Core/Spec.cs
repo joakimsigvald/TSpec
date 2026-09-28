@@ -24,7 +24,9 @@ public abstract class Spec<TSUTorResult> : Spec<TSUTorResult, TSUTorResult>;
 /// </summary>
 /// <typeparam name="TSUT">The class to instantiate and execute the method-under-test on</typeparam>
 /// <typeparam name="TResult">The return type of the method-under-test</typeparam>
-public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>, IDisposable, IDependencySpec
+[TestMethodOrderer(typeof(DeclaredOrder))]
+public abstract partial class Spec<TSUT, TResult>
+    : ITestPipeline<TSUT, TResult>, IDisposable, IDependencySpec, IClassFixture<SharedRunScope>
 {
     private readonly Lazy<string> _lazySpecification = null!;
 
@@ -84,6 +86,7 @@ public abstract partial class Spec<TSUT, TResult> : ITestPipeline<TSUT, TResult>
         return new(subject, branch, TestIdentity.Requirement,
             Pipeline.Specification.Clauses, Pipeline.Specification.Because,
             declared?.SubjectUnderTest, declared?.ReturnType, testClass.Namespace,
-            TheoryRow.Read(), SourceLocations.Of(TestIdentity.Nesting(testClass)[0]));
+            TheoryRow.Read(), SourceLocations.Of(TestIdentity.Nesting(testClass)[0]),
+            TestIdentity.Declared);
     }
 }

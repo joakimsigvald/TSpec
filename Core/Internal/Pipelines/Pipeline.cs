@@ -55,9 +55,9 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         where TService : class
         => Claim.VerifyCall(target, call, wasInvoked, callExpr, wasInvokedExpr);
 
-    internal TValue Mention<TValue>(int? index = 0) => _context.Mention<TValue>(index);
+    internal TValue Mention<TValue>(int? index = 0) => Values().Mention<TValue>(index);
 
-    internal TValue Mention<TValue>(Tag<TValue> tag) => _context.Mention(tag);
+    internal TValue Mention<TValue>(Tag<TValue> tag) => Values().Mention(tag);
 
     internal TValue Assign<TValue>(Tag<TValue> tag, TValue value)
     {
@@ -71,7 +71,7 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         return _context.Apply(tag, mutation);
     }
 
-    internal TValue Create<TValue>(Action<TValue> setup) => _context.Create(setup);
+    internal TValue Create<TValue>(Action<TValue> setup) => Values().Create(setup);
 
     internal TValue Apply<TValue>(Mutation<TValue> mutation, int? index = null)
     {
@@ -86,13 +86,13 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
     }
 
     internal TValue[] MentionMany<TValue>(int count, int? minCount = null)
-        => _context.MentionMany<TValue>(count, minCount);
+        => Values().MentionMany<TValue>(count, minCount);
 
     internal TValue[] AssignMany<TValue>(TValue[] values)
-        => _context.AssignMany(values);
+        => Values().AssignMany(values);
 
     internal TValue[] ApplyMany<TValue>(Mutation<TValue> mutation, int count)
-        => _context.ApplyMany(mutation, count);
+        => Values().ApplyMany(mutation, count);
 
     /// <summary>
     /// Whether the act was given the subject, and whether it yields a result. Each <c>When</c>
@@ -105,6 +105,7 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
 
     internal void SetAction(Delegate act, string actExpr, bool actsOnSubject, bool yieldsResult)
     {
+        NoteUse();
         if (_methodUnderTest is not null)
             throw new SetupFailed("Cannot call When twice in the same pipeline");
         _methodUnderTest = new(act ?? throw new SetupFailed("Act cannot be null"), actExpr);
@@ -112,7 +113,31 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
         YieldsResult = yieldsResult;
     }
 
-    internal TestResult<TSUT, TResult> TestResult => _result ??= Run();
+    internal TestResult<TSUT, TResult> TestResult => _result ??= RunOrShare();
+
+    /// A Fact that used the pipeline before reading the outcome set it up, or holds values of its own.
+    private TestResult<TSUT, TResult> RunOrShare()
+        => !_usedByTestMethod && SharedRuns.TryGetSpecClass(this, out var specClass) ? Share(specClass) : Run();
+
+    /// <summary>
+    /// Takes the run of the first Fact in the class to read the outcome first, with what that run
+    /// specified, as if it were this Fact's own. The Fact that makes the run takes it the same way.
+    /// </summary>
+    private TestResult<TSUT, TResult> Share(Type specClass)
+    {
+        var run = SharedRuns.GetOrRun(specClass, RunToShare);
+        TakeOver(run.Maker);
+        run.Specification.CopyTo(Specification);
+        return run.Outcome;
+    }
+
+    private SharedRun<TSUT, TResult> RunToShare() => new(Run(), this, Specification.Copy());
+
+    private Context Values()
+    {
+        NoteUse();
+        return _context;
+    }
 
     /// <summary>
     /// Marks a setup failure on its way out, so that a pipeline enclosing this one can tell it from
@@ -180,6 +205,7 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
 
     private void AssertHasNotRun()
     {
+        NoteUse();
         if (_phase.Current > Phase.Act)
             throw new SetupFailed("Cannot provide setup after test pipeline was run");
     }

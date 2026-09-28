@@ -25,7 +25,7 @@ internal class SpecificationContext : IAssertSpecificationContext
     private readonly ActionPhrases _action;
     private readonly AssertionPhrases _assertion;
     private readonly SpecificationAssignments _assignments = new();
-    private readonly List<string> _setupWarnings = [];
+    private List<string> _setupWarnings = [];
     private string? _subjectDescription;
     private string? _subjectExpr;
     private string? _subjectProvider;
@@ -242,6 +242,17 @@ internal class SpecificationContext : IAssertSpecificationContext
         if (assignments.Length > 0)
             sections.AddRange([string.Empty, "=== VALUES ===", assignments]);
         return string.Join(Environment.NewLine, sections);
+    }
+
+    /// A detached copy of what has been specified so far, for a test that takes this run as its own.
+    internal SpecificationContext Copy() => CopyTo(new());
+
+    internal SpecificationContext CopyTo(SpecificationContext target)
+    {
+        _recording.CopyTo(target._recording);
+        _assignments.CopyTo(target._assignments);
+        target._setupWarnings = [.. _setupWarnings];
+        return target;
     }
 
     public void AddThen() => _assertion.AddThen();

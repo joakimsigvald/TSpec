@@ -27,13 +27,6 @@ internal sealed record Requirement(
     internal ComposedText Claim
         => SpecificationRenderer.Compose(Clauses, Entry.Because).Without(StepFamily.Then.Keyword());
 
-    internal int Size
-        => Clauses.Sum(clause =>
-        {
-            static int selector(SpecificationStep step) => step.Body.Length;
-            return clause.Steps.Sum(selector);
-        }) + (Entry.Because?.Length ?? 0);
-
     /// <summary>
     /// Where a theory filled a hole, the document leaves it open: the value is the row's, not the
     /// requirement's, and the table beneath states every row's. That is also what makes the rows

@@ -68,10 +68,10 @@ internal static class DocumentRenderer
         }
     }
 
+    /// As declared, which is the order they run in.
     private static IEnumerable<Requirement> InReadingOrder(IReadOnlyList<Requirement> requirements)
         => requirements
-            .OrderBy(requirement => requirement.ArrangementCount)
-            .ThenBy(requirement => requirement.Size)
+            .OrderBy(requirement => requirement.Entry.Declared)
             .ThenBy(requirement => requirement.Entry.Requirement, StringComparer.Ordinal)
             .ThenBy(requirement => requirement.Signature, StringComparer.Ordinal);
 

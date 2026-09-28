@@ -27,4 +27,12 @@ public class WhenReportARequirement : Spec
         using InnerSpec inner = new();
         Xunit.Assert.Null(inner.Reported().Row);
     }
+
+    [Fact]
+    public void ThenKeepWhereTheTestIsDeclared()
+    {
+        using InnerSpec inner = new();
+        var declared = GetType().GetMethod(nameof(ThenKeepWhereTheTestIsDeclared))!.MetadataToken;
+        Xunit.Assert.Equal(declared, inner.Reported().Declared?.Token);
+    }
 }
