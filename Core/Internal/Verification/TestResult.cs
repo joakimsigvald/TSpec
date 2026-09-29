@@ -86,6 +86,7 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
     {
         SpecificationContext.Current.AddAssertThrows<TError>("where");
         AssertError(assert);
+        SpecificationContext.Current.NoteAssertion();
         return And();
     }
 
@@ -102,6 +103,7 @@ internal class TestResult<TSUT, TResult> : ITestResultWithSUT<TSUT, TResult>
         var conditionSpec = conditionExpr!.Describe();
         SpecificationContext.Current.AddAssertThrows<TError>($"where {conditionSpec}");
         AssertError(condition, conditionSpec);
+        SpecificationContext.Current.NoteAssertion();
         return And();
     }
 
@@ -285,6 +287,7 @@ Try providing a function with the Spec's declared return type instead as paramet
             SpecificationContext.Current.AddVerify<TService>(target.Name, callExpr, timesExpr);
             var mocked = target.In(_context);
             var count = mocked.CountCalls(call, callExpr);
+            SpecificationContext.Current.NoteAssertion();
             if ((times ?? Times.AtLeastOnce).Allows(count))
                 return new AndVerify<TSUT, TResult>(this);
 

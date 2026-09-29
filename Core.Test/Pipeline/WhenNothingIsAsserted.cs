@@ -119,6 +119,52 @@ public class WhenNothingIsAsserted
         Xunit.Assert.Throws<SetupFailed>(spec.Dispose).Message.Is(ThatNotAsserted);
     }
 
+    [Fact]
+    public void GivenThatReadInsideAnAssertion_ThenDoNotComplain()
+    {
+        var spec = Throwing();
+        string Message() => spec.Then().Throws<InvalidOperationException>().that.Message;
+        new[] { "text" }.Has().All(it => it == Message());
+        spec.Dispose();
+    }
+
+    public interface IStore { void Save(string text); }
+
+    public class Saver(IStore store)
+    {
+        public string[] Save() { store.Save("text"); return ["text"]; }
+    }
+
+    private sealed class SaverSpec : Spec<Saver, string[]> { }
+
+    [Fact]
+    public void GivenThatReadInsideAVerification_ThenDoNotComplain()
+    {
+        var spec = new SaverSpec();
+        spec.When(_ => _.Save());
+        Func<string> saved = () => spec.Then().Result.Has().OneItem().that;
+        spec.Then<IStore>(_ => _.Save(saved()));
+        spec.Dispose();
+    }
+
+    [Fact]
+    public void GivenThatReadInsideAThrowsCondition_ThenDoNotComplain()
+    {
+        var spec = Throwing();
+        string Message() => spec.Then().Throws<InvalidOperationException>().that.Message;
+        spec.Then().Throws<InvalidOperationException>(ex => ex.Message == Message());
+        spec.Dispose();
+    }
+
+    [Fact]
+    public void GivenThatReadInsideAThrowsAssertion_ThenDoNotComplain()
+    {
+        var spec = Throwing();
+        string Message() => spec.Then().Throws<InvalidOperationException>().that.Message;
+        spec.Then().Throws<InvalidOperationException>(ex => Xunit.Assert.Equal(Message(), ex.Message));
+        spec.Dispose();
+    }
+
     private static MySpec Throwing()
     {
         var spec = new MySpec();

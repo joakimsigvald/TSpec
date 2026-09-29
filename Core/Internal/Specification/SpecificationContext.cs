@@ -120,7 +120,11 @@ internal class SpecificationContext : IAssertSpecificationContext
     /// </summary>
     internal void NoteSetupFailure() => _claims = Claims.SetupFailed;
 
-    private void NoteAssertion() => Claim(Claims.Made);
+    /// <summary>
+    /// Noted again once an assertion has run a lambda of the test's own: a that read inside it produced
+    /// part of what was asserted, however the lambda used it, so it is not left awaiting an assertion.
+    /// </summary>
+    public void NoteAssertion() => Claim(Claims.Made);
 
     private void Claim(Claims claims)
     {
@@ -211,6 +215,7 @@ internal class SpecificationContext : IAssertSpecificationContext
             _recording.SuppressRecording();
             assert();
             _recording.InciteRecording();
+            NoteAssertion();
         }
         catch (XunitException ex)
         {

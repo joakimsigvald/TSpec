@@ -17,13 +17,13 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>4.0.2</PackageVersion>
+		<PackageVersion>4.0.3</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			FIXED
-			* A Fact whose last .that has no assertion after it fails, rather than passing on a check such as .that.Message.Contains("x") that nothing verifies
+			* A .that read inside an assertion's lambda, such as Has().All(c => c.Data == TheResult.Data), no longer fails the Fact as having no assertion after it
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
