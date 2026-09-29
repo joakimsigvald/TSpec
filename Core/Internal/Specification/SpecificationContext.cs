@@ -40,6 +40,7 @@ internal class SpecificationContext : IAssertSpecificationContext
     {
         None,
         AwaitingAssertionOnSubject,
+        AwaitingAssertionOnThat,
         Made,
         SetupFailed
     }
@@ -99,6 +100,10 @@ internal class SpecificationContext : IAssertSpecificationContext
             case Claims.AwaitingAssertionOnSubject:
                 throw new SetupFailed(
                     $"{_subjectProvider}({_subjectExpr}) hands over a subject to be asserted on, but no assertion follows it");
+            case Claims.AwaitingAssertionOnThat:
+                throw new SetupFailed(
+                    "that hands over a subject to be asserted on, but no assertion follows it. Assert with Is() or Does(), "
+                    + "e.g. that.Message.Does().Contain(\"x\") rather than that.Message.Contains(\"x\")");
             case Claims.None:
                 throw new SetupFailed(
                     "Nothing was asserted. A test that provides When must assert on the result or a subject, "
@@ -257,7 +262,11 @@ internal class SpecificationContext : IAssertSpecificationContext
 
     public void AddThen() => _assertion.AddThen();
 
-    public void AddThat() => _assertion.AddThat();
+    public void AddThat()
+    {
+        _assertion.AddThat();
+        Claim(Claims.AwaitingAssertionOnThat);
+    }
 
     public void AddVerify<TService>(string mock, string expressionExpr, string? wasInvokedExpr)
     {

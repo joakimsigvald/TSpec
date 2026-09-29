@@ -71,6 +71,83 @@ public class WhenNothingIsAsserted
     }
 
     [Fact]
+    public void GivenThatCheckedByContains_ThenThrowSetupFailed()
+    {
+        var spec = Throwing();
+        _ = spec.Then().Throws<InvalidOperationException>().that.Message.Contains("text");
+        Xunit.Assert.Throws<SetupFailed>(spec.Dispose).Message.Is(ThatNotAsserted);
+    }
+
+    [Fact]
+    public void GivenThatCheckedByStartsWith_ThenThrowSetupFailed()
+    {
+        var spec = Throwing();
+        _ = spec.Then().Throws<InvalidOperationException>().that.Message.StartsWith("te");
+        Xunit.Assert.Throws<SetupFailed>(spec.Dispose).Message.Is(ThatNotAsserted);
+    }
+
+    [Fact]
+    public void GivenThatComparedWithEquals_ThenThrowSetupFailed()
+    {
+        var spec = Throwing();
+        _ = spec.Then().Throws<InvalidOperationException>().that.Message == "text";
+        Xunit.Assert.Throws<SetupFailed>(spec.Dispose).Message.Is(ThatNotAsserted);
+    }
+
+    [Fact]
+    public void GivenThatCheckedByXunit_ThenThrowSetupFailed()
+    {
+        var spec = Throwing();
+        Xunit.Assert.Contains("text", spec.Then().Throws<InvalidOperationException>().that.Message);
+        Xunit.Assert.Throws<SetupFailed>(spec.Dispose).Message.Is(ThatNotAsserted);
+    }
+
+    [Fact]
+    public void GivenThatOnlyRead_ThenThrowSetupFailed()
+    {
+        var spec = Throwing();
+        _ = spec.Then().Throws<InvalidOperationException>().that;
+        Xunit.Assert.Throws<SetupFailed>(spec.Dispose).Message.Is(ThatNotAsserted);
+    }
+
+    [Fact]
+    public void GivenAssertionThenALaterDanglingThat_ThenThrowSetupFailed()
+    {
+        var spec = Throwing();
+        spec.Then().Throws<InvalidOperationException>().that.Message.Does().Contain("text");
+        _ = spec.Then().Throws<InvalidOperationException>().that.Message.Contains("text");
+        Xunit.Assert.Throws<SetupFailed>(spec.Dispose).Message.Is(ThatNotAsserted);
+    }
+
+    private static MySpec Throwing()
+    {
+        var spec = new MySpec();
+        spec.When(_ => throw new InvalidOperationException("text"));
+        return spec;
+    }
+
+    [Fact]
+    public void GivenElementThatButNoAssertion_ThenThrowSetupFailed()
+    {
+        var spec = new MySpec();
+        _ = spec.When(_ => 1).Then().Result.Is(1).And(new[] { "text" }).Has().OneItem().that.Contains("x");
+        Xunit.Assert.Throws<SetupFailed>(spec.Dispose).Message.Is(ThatNotAsserted);
+    }
+
+    [Fact]
+    public void GivenAssertionOnThat_ThenDoNotComplain()
+    {
+        var spec = new MySpec();
+        spec.When(_ => throw new InvalidOperationException("text"))
+            .Then().Throws<InvalidOperationException>().that.Message.Does().Contain("text");
+        spec.Dispose();
+    }
+
+    private const string ThatNotAsserted =
+        "that hands over a subject to be asserted on, but no assertion follows it. "
+        + "Assert with Is() or Does(), e.g. that.Message.Does().Contain(\"x\") rather than that.Message.Contains(\"x\")";
+
+    [Fact]
     public void GivenAssertionOnResult_ThenDoNotComplain()
     {
         var spec = new MySpec();

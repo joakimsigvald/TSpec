@@ -17,14 +17,13 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>4.0.1</PackageVersion>
+		<PackageVersion>4.0.2</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			FIXED
-			* A Fact that starts with Then(field) runs alone, so it asserts on what its own act did rather than on an untouched field
-			* A Fact that throws before its assertion reports only that exception, not also that no assertion follows Then(x), and its test output says if it passes alone
+			* A Fact whose last .that has no assertion after it fails, rather than passing on a check such as .that.Message.Contains("x") that nothing verifies
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
