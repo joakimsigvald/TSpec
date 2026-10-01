@@ -17,13 +17,13 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>4.0.3</PackageVersion>
+		<PackageVersion>4.1.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			FIXED
-			* A .that read inside an assertion's lambda, such as Has().All(c => c.Data == TheResult.Data), no longer fails the Fact as having no assertion after it
+			NEW
+			* Architecture rules: Project.Dependencies.Is().Within(rules) checks the projects and packages each project depends on, and .not.Redundant() that none references what it already reaches through another
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

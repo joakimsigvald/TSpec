@@ -47,7 +47,8 @@ or https://raw.githubusercontent.com/joakimsigvald/TSpec/main/TSpec-agent-refere
 3. [Using Test Data](#3-using-test-data)  
 4. [Mocking & Auto-Mocking](#4-mocking--auto-mocking)  
 5. [Asserting Results](#5-asserting-results)  
-6. [Tests as specification](#6-tests-as-specification)
+6. [Tests as specification](#6-tests-as-specification)  
+7. [Architecture](#7-architecture)
 
 ## 1. Introduction
 
@@ -947,3 +948,44 @@ dotnet test && git diff --exit-code -- "**/_specification/*.md"
 
 If someone changed the tests without regenerating, that fails, and the diff is the error message.
 A file for a new folder is untracked and `git diff` does not see it; `git status --porcelain` does.
+
+## 7. Architecture
+
+`Project.Dependencies` is the graph the spec project was built with: every project its build reaches
+but the spec project itself, each with the projects and packages it references directly. Assert that it
+holds only what the architecture allows, and that no project references what it already reaches
+through another:
+
+```csharp
+using TSpec.Architecture;
+
+public class ProjectDependencies
+{
+    [Fact]
+    public void AreOnlyTheseAndNotRedundant()
+        => Project.Dependencies.Under("MyHotel").Is().Within(p => p switch
+        {
+            "." => ["Entry", "Infra", "P:Scalar.AspNetCore"],
+            "Entry" or "Core" => ["Contract"],
+            "Infra" => ["Core"],
+            _ => [],
+        }, _ => ["P:Microsoft.*"]).and.not.Redundant();
+}
+```
+
+- **Write it in the spec project of a deliverable** — a host, an app, a package — so the graph holds
+  everything shipped with it.
+- **Names are assembly names.** `Under(root)` shortens them: `MyHotel.Entry` is `Entry`, `MyHotel`
+  itself is `.`, and a project outside the root is `/` and its name. A package is `P:` and its name.
+- **Rules add up**: a dependency passes if any rule allows it, so a rule that ignores the project,
+  `_ => [...]`, allows its targets to every project.
+- **A target ending in `*`** allows every name that begins with what precedes it: `P:Microsoft.*`
+  allows `P:Microsoft.Extensions.Logging` but not `P:Microsoft`.
+- **`Within` allows; it does not require.** A dependency it lists that no project makes passes — the
+  compiler already demands the ones the code needs.
+- **`Redundant()` counts projects only**: a package a project also gets through another project is not
+  redundant.
+
+For rules on layers rather than projects, switch on a segment of the name: `p.Segment(0)` is the
+first, `p.Segment(^1)` the last and `p.Segment(..2)` the first two joined by a dot, as in
+`p => p.Segment(0) switch { "Data" => ["Domain.*"], _ => [] }`.

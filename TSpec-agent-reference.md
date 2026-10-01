@@ -1,6 +1,6 @@
 # TSpec — Agent Reference
 
-Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 4.0).
+Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 4.1).
 TSpec is a fluent Given–When–Then specification framework for .NET on top of xUnit v3.
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec#readme).
 
@@ -161,6 +161,27 @@ Opt in with one line in the spec project; a `_specification/` folder of markdown
 - **Written only when every test in the assembly that is neither skipped nor explicit passed** — a filtered or failing run leaves the files untouched. Run the whole suite before expecting a diff.
 - A `[Theory]` with `[InlineData]` renders as a table of its rows; more than 8 parameters throws `SetupFailed`.
 - Output is deterministic, so CI can check it: `dotnet test && git diff --exit-code -- "**/_specification/*.md"` (a new file is untracked; `git status --porcelain` sees it).
+
+## Architecture (`TSpec.Architecture`)
+
+`Project.Dependencies` is the graph the running spec project was built with — every project its build reaches but itself, with each one's direct project and package references. Put the test in the spec project of a deliverable; a plain `[Fact]` is enough.
+
+```csharp
+[Fact]
+public void AreOnlyTheseAndNotRedundant()
+    => Project.Dependencies.Under("MyHotel").Is().Within(p => p switch
+    {
+        "." => ["Entry", "Infra"],
+        "Entry" or "Core" => ["Contract"],
+        "Infra" => ["Core"],
+        _ => [],
+    }, _ => ["P:Microsoft.*"]).and.not.Redundant();
+```
+
+- Names are assembly names; with `Under(root)`: `root.X` → `X`, the root → `.`, other projects → `/Name`. Packages are always `P:Name`.
+- Rules add up: a dependency passes if any rule allows it; `_ => [...]` applies to every project. A trailing `*` matches the rest (`P:Moq.*` does not match `P:Moq`). `Within` allows, never requires.
+- `not.Redundant()`: no project references a project it already reaches through another; packages are exempt.
+- Layer rules: switch on `p.Segment(0)` (also `Segment(^1)`, `Segment(..2)`).
 
 ## Complete examples
 

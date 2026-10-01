@@ -19,6 +19,10 @@ plays Host, because the deployable is the application.
 a model that lives in Core there are two moves, both cheap: promote it to Contract, or duplicate it
 in Contract and map. Never add the reference.
 
+**`MyHotel.Spec/Architecture/ProjectDependencies.cs` states every reference the layers allow**,
+packages included. One it does not list fails the suite, so adding a reference is an architecture
+decision, made there.
+
 **Core is structured vertically** — subdomains that name their purpose (`Core/Rooms/`), not another
 horizontal layer inside. Beyond Contract, Core takes no dependency that would hurt its testability.
 
