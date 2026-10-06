@@ -19,8 +19,8 @@ plays Host, because the deployable is the application.
 a model that lives in Core there are two moves, both cheap: promote it to Contract, or duplicate it
 in Contract and map. Never add the reference.
 
-**`MyHotel.Spec/Architecture/ProjectDependencies.cs` states every reference the layers allow**,
-packages included. One it does not list fails the suite, so adding a reference is an architecture
+**`Architecture.Spec/ProjectDependencies.cs` states every reference the projects allow**, packages
+included. One it does not list fails the suite, so adding a reference is an architecture
 decision, made there.
 
 **Core is structured vertically** — subdomains that name their purpose (`Core/Rooms/`), not another
@@ -99,10 +99,14 @@ change is caught where it matters: in the committed files' diff.
   dotnet test SampleProjects/MyHotel/Core.Spec
   ```
 
+  ```bash
+  dotnet test SampleProjects/MyHotel/Architecture.Spec
+  ```
+
 - **`Microsoft.OpenApi` stays on the 2.x line.** `Microsoft.AspNetCore.OpenApi`'s source generator
   emits code that only compiles against 2.x's object model; 3.x breaks the build.
 - Update README.md's endpoint table whenever an endpoint is added, removed, or changes contract.
-- Each Spec project generates its own `_specification/` folder from a green run. Never hand-edit a file in it;
+- `MyHotel.Spec` and `Core.Spec` each generate their own `_specification/` folder from a green run. Never hand-edit a file in it;
   commit the regenerated files and read their diff as part of reviewing the change.
 - TSpec usage: [TSpec-agent-reference.md](../../TSpec-agent-reference.md) — referenced by project, so
   always the working copy.

@@ -15,9 +15,16 @@ public sealed class ProjectGraph
 
     private readonly Dictionary<string, IReadOnlyList<string>> _references;
 
-    internal ProjectGraph() : this([]) { }
+    // Under only shortens names where the user writes or reads them; checks that compare names, like A.B -> A, see them in full.
+    private readonly string? _root;
 
-    private ProjectGraph(Dictionary<string, IReadOnlyList<string>> references) => _references = references;
+    internal ProjectGraph() : this([], null) { }
+
+    private ProjectGraph(Dictionary<string, IReadOnlyList<string>> references, string? root)
+    {
+        _references = references;
+        _root = root;
+    }
 
     internal IReadOnlyList<string> this[string project]
     {
@@ -33,24 +40,12 @@ public sealed class ProjectGraph
     /// name. Packages keep their names
     /// </summary>
     /// <param name="root">The namespace the project names share</param>
-    public ProjectGraph Under(string root)
-        => new(_references.ToDictionary(
-            project => Relative(project.Key, root),
-            project => (IReadOnlyList<string>)[.. project.Value.Select(to => Relative(to, root)).Order(StringComparer.Ordinal)]));
-
-    private static string Relative(string name, string root)
-        => IsPackage(name) ? name
-        : name == root ? "."
-        : name.StartsWith($"{root}.", StringComparison.Ordinal) ? name[(root.Length + 1)..]
-        : $"/{name}";
+    public ProjectGraph Under(string root) => new(_references, root);
 
     internal IEnumerable<string> ReferencesOutside(IEnumerable<Func<string, IEnumerable<string>>> rules)
-        => References.Where(reference => !rules.Any(allowed => Allows(allowed(reference.From), reference.To)))
-            .Select(Describe);
+        => References.Where(reference => !rules.Any(rule => IsAllowedBy(rule, reference))).Select(Describe);
 
-    internal IEnumerable<string> RedundantReferences()
-        => References.Where(reference => !IsPackage(reference.To) && IsReachedThroughAnother(reference))
-            .Select(Describe);
+    internal IEnumerable<string> RedundantReferences() => References.Where(IsRedundant).Select(Describe);
 
     internal static ProjectGraph Parse(string depsJson, string specAssemblyName)
     {
@@ -58,7 +53,7 @@ public sealed class ProjectGraph
         var manifest = document.RootElement;
         return new(ProjectReferences.ProjectsIn(manifest)
             .Where(project => project != specAssemblyName)
-            .ToDictionary(project => project, project => ReferencesOf(manifest, project)));
+            .ToDictionary(project => project, project => ReferencesOf(manifest, project)), root: null);
     }
 
     internal static ProjectGraph ReadBuilt()
@@ -76,6 +71,15 @@ public sealed class ProjectGraph
 
     private static bool IsPackage(string name) => name.StartsWith(Package, StringComparison.Ordinal);
 
+    private bool IsAllowedBy(Func<string, IEnumerable<string>> rule, (string From, string To) reference)
+        => Allows(rule(AsWritten(reference.From)), AsWritten(reference.To));
+
+    private string AsWritten(string name)
+        => _root is null || IsPackage(name) ? name
+        : name == _root ? "."
+        : name.StartsWith($"{_root}.", StringComparison.Ordinal) ? name[(_root.Length + 1)..]
+        : $"/{name}";
+
     private static bool Allows(IEnumerable<string> targets, string name) => targets.Any(target => Matches(target, name));
 
     private static bool Matches(string target, string name)
@@ -83,6 +87,13 @@ public sealed class ProjectGraph
 
     private IEnumerable<(string From, string To)> References
         => Projects.SelectMany(project => this[project].Order(StringComparer.Ordinal).Select(to => (project, to)));
+
+    private bool IsRedundant((string From, string To) reference)
+        => !IsPackage(reference.To) && !IsToTheProjectItsNameExtends(reference) && IsReachedThroughAnother(reference);
+
+    // A spec project must reference the project it specifies directly, even when a shared spec project reaches it too.
+    private static bool IsToTheProjectItsNameExtends((string From, string To) reference)
+        => reference.From.Segment(..^1) == reference.To;
 
     private bool IsReachedThroughAnother((string From, string To) reference)
         => this[reference.From].Any(other => other != reference.To && ReachedFrom(other).Contains(reference.To));
@@ -98,5 +109,5 @@ public sealed class ProjectGraph
         return reached;
     }
 
-    private static string Describe((string From, string To) reference) => $"{reference.From} -> {reference.To}";
+    private string Describe((string From, string To) reference) => $"{AsWritten(reference.From)} -> {AsWritten(reference.To)}";
 }

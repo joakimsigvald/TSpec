@@ -951,10 +951,20 @@ A file for a new folder is untracked and `git diff` does not see it; `git status
 
 ## 7. Architecture
 
-`Project.Dependencies` is the graph the spec project was built with: every project its build reaches
-but the spec project itself, each with the projects and packages it references directly. Assert that it
-holds only what the architecture allows, and that no project references what it already reaches
-through another:
+Put the architecture tests in a spec project of their own, say `Architecture.Spec`, that references
+every project in the solution:
+
+```xml
+<ItemGroup>
+  <ProjectReference Include="..\**\*.csproj" Exclude="..\Architecture.Spec\**" />
+</ItemGroup>
+```
+
+`Project.Dependencies` is read from that project's build: every project the build reaches except
+`Architecture.Spec` itself, each with the projects and packages it references directly.
+
+Assert that the graph holds only what the architecture allows, and that no project references what it
+already reaches through another:
 
 ```csharp
 using TSpec.Architecture;
@@ -968,23 +978,23 @@ public class ProjectDependencies
             "." => ["Entry", "Infra", "P:Scalar.AspNetCore"],
             "Entry" or "Core" => ["Contract"],
             "Infra" => ["Core"],
+            "Spec" => ["."],
+            "Core.Spec" => ["Core"],
             _ => [],
-        }, _ => ["P:Microsoft.*"]).and.not.Redundant();
+        }, p => p.Segment(^1) == "Spec" ? ["P:*"] : ["P:Microsoft.*"]).and.not.Redundant();
 }
 ```
 
-- **Write it in the spec project of a deliverable** — a host, an app, a package — so the graph holds
-  everything shipped with it.
 - **Names are assembly names.** `Under(root)` shortens them: `MyHotel.Entry` is `Entry`, `MyHotel`
   itself is `.`, and a project outside the root is `/` and its name. A package is `P:` and its name.
-- **Rules add up**: a dependency passes if any rule allows it, so a rule that ignores the project,
-  `_ => [...]`, allows its targets to every project.
+- **Rules add up**: a dependency passes if any rule allows it, so `_ => [...]` allows its targets to
+  every project.
 - **A target ending in `*`** allows every name that begins with what precedes it: `P:Microsoft.*`
   allows `P:Microsoft.Extensions.Logging` but not `P:Microsoft`.
-- **`Within` allows; it does not require.** A dependency it lists that no project makes passes — the
-  compiler already demands the ones the code needs.
-- **`Redundant()` counts projects only**: a package a project also gets through another project is not
-  redundant.
+- **`Within` allows; it does not require** — the compiler already demands the references the code needs.
+- **`Redundant()` counts projects only**, and never a reference from `A.B` to `A`: `Core.Spec` must
+  reference the `Core` it specifies directly.
+- **A reference that produces no assembly**, such as one to an `.esproj`, is not in the graph.
 
 For rules on layers rather than projects, switch on a segment of the name: `p.Segment(0)` is the
 first, `p.Segment(^1)` the last and `p.Segment(..2)` the first two joined by a dot, as in

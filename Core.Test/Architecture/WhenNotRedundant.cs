@@ -42,4 +42,24 @@ public class WhenNotRedundant : Spec
 
     [Fact]
     public void GivenACycle_ThenCompletes() => new ProjectGraph { ["A"] = ["B"], ["B"] = ["A"] }.Is().not.Redundant();
+
+    [Fact]
+    public void GivenItReferencesTheProjectItsNameExtends_ThenCompletes()
+        => new ProjectGraph
+        {
+            ["Core.Spec"] = ["Common.Spec", "Core"],
+            ["Common.Spec"] = ["Core"],
+        }.Is().not.Redundant();
+
+    [Fact]
+    public void GivenItReferencesAProjectFurtherUpItsName_ThenGetException()
+    {
+        var dependencies = new ProjectGraph
+        {
+            ["Core.Rooms.Spec"] = ["Core.Rooms", "Core"],
+            ["Core.Rooms"] = ["Core"],
+        };
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => dependencies.Is().not.Redundant());
+        ex.HasMessage("""Expected dependencies to not be redundant but found ["Core.Rooms.Spec -> Core"]""");
+    }
 }

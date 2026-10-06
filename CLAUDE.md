@@ -53,8 +53,8 @@ Once it passes, refactor what you touched to clean code, keep the suite green, t
 
 `SampleProjects/MyHotel/` is the reference application TSpec is developed against, not part of the
 shipped package. It is layered per the Neat architecture — `MyHotel` (host), `Entry`, `Contract`,
-`Core`, `Infra` — with two spec projects, `MyHotel.Spec` (black-box, HTTP) and `Core.Spec` (domain
-rules). It has its own rules: read `SampleProjects/MyHotel/CLAUDE.md` before changing anything
+`Core`, `Infra` — with three spec projects, `MyHotel.Spec` (black-box, HTTP), `Core.Spec` (domain
+rules) and `Architecture.Spec` (the project graph). It has its own rules: read `SampleProjects/MyHotel/CLAUDE.md` before changing anything
 under it.
 
 Note `SampleProjects/MyHotel/Core/` is MyHotel's business layer and is unrelated to `Core/`, which

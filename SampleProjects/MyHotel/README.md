@@ -11,9 +11,10 @@ next: [BACKLOG.md](BACKLOG.md).
 
 Being layered per **Neat**: `Contract` is the public shape and references nothing, `Entry` holds the
 endpoints, `Core` holds the logic, and `MyHotel` is the host that wires them together. Entry and Core
-cannot see each other, so nothing internal can leak out through the API by accident. Two spec
-projects state different things: [`MyHotel.Spec`](MyHotel.Spec) the HTTP contract, and
-[`Core.Spec`](Core.Spec) the domain rules. Development rules are in [CLAUDE.md](CLAUDE.md).
+cannot see each other, so nothing internal can leak out through the API by accident. Three spec
+projects state different things: [`MyHotel.Spec`](MyHotel.Spec) the HTTP contract,
+[`Core.Spec`](Core.Spec) the domain rules, and [`Architecture.Spec`](Architecture.Spec) which
+project may reference which. Development rules are in [CLAUDE.md](CLAUDE.md).
 
 ## Running it
 

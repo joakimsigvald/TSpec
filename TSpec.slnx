@@ -10,6 +10,7 @@
   <Folder Name="/SampleProjects/MyHotel/">
     <File Path="SampleProjects/MyHotel/CLAUDE.md" />
     <File Path="SampleProjects/MyHotel/README.md" />
+    <Project Path="SampleProjects/MyHotel/Architecture.Spec/Architecture.Spec.csproj" />
     <Project Path="SampleProjects/MyHotel/Contract/Contract.csproj" />
     <Project Path="SampleProjects/MyHotel/Core.Spec/Core.Spec.csproj" />
     <Project Path="SampleProjects/MyHotel/Core/Core.csproj" />

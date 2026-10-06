@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-		<AssemblyName>MyHotel.Spec</AssemblyName>
-		<RootNamespace>MyHotel.Spec</RootNamespace>
+		<AssemblyName>MyHotel.Architecture.Spec</AssemblyName>
+		<RootNamespace>MyHotel.Architecture.Spec</RootNamespace>
 		<OutputType>Exe</OutputType>
 		<UseAppHost>true</UseAppHost>
 		<IsPackable>false</IsPackable>
@@ -16,7 +16,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="Castle.Core" Version="5.2.1" />
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
 		<PackageReference Include="xunit.v3" Version="4.0.1" />
 	</ItemGroup>
 
@@ -27,7 +26,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\MyHotel\MyHotel.csproj" />
+		<ProjectReference Include="..\**\*.csproj" Exclude="..\Architecture.Spec\**" />
 	</ItemGroup>
 
 </Project>

@@ -15,19 +15,24 @@ public class WhenUnder : Spec
 
     [Fact]
     public void ThenDropTheRootAndItsDotFromTheNamesUnderIt()
-        => _dependencies.Under("Host")["Entry"].Is().EqualTo(["/Other.Lib", "Contract"]);
+        => EveryReferenceAsReported(_dependencies.Under("Host")).Does().Contain("\"Entry -> Contract\"");
 
     [Fact]
-    public void ThenNameTheRootItselfDot() => _dependencies.Under("Host")["."].Is().EqualTo(["/HostTools", "Entry"]);
+    public void ThenNameTheRootItselfDot()
+        => EveryReferenceAsReported(_dependencies.Under("Host")).Does().Contain("\". -> Entry\"");
 
     [Fact]
     public void ThenMarkNamesOutsideTheRootWithASlash()
-        => _dependencies.Under("Host").Projects.Is().EqualTo([".", "/HostTools", "Contract", "Entry"]);
+        => EveryReferenceAsReported(_dependencies.Under("Host")).Does().Contain("\". -> /HostTools\"");
 
     [Fact]
     public void ThenKeepPackageNamesAsTheyAre()
-        => new ProjectGraph { ["Host.Entry"] = ["P:Host.Logging"] }.Under("Host")["Entry"]
-            .Is().EqualTo(["P:Host.Logging"]);
+        => EveryReferenceAsReported(new ProjectGraph { ["Host.Entry"] = ["P:Host.Logging"] }.Under("Host"))
+            .Does().Contain("\"Entry -> P:Host.Logging\"");
+
+    [Fact]
+    public void GivenARuleAllowsAPackageNamedLikeTheRoot_ThenCompletes()
+        => new ProjectGraph { ["Host.Entry"] = ["P:Host.Logging"] }.Under("Host").Is().Within(_ => ["P:Host.Logging"]);
 
     [Fact]
     public void GivenADependencyIsNotAllowed_ThenNameItAsTheSwitchDoes()
@@ -39,4 +44,19 @@ public class WhenUnder : Spec
                 _ => [],
             }))
             .Message.Does().EndWith("""but found ["Entry -> /Other.Lib"]""");
+
+    [Fact]
+    public void GivenARedundantReference_ThenNameItAsTheSwitchDoes()
+        => Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
+            () => new ProjectGraph { ["Host"] = ["Host.Entry", "Host.Contract"], ["Host.Entry"] = ["Host.Contract"] }
+                .Under("Host").Is().not.Redundant())
+            .Message.Does().EndWith("""but found [". -> Contract"]""");
+
+    [Fact]
+    public void GivenTheRootsSpecProjectAlsoReachesTheRootThroughAnother_ThenItIsNotRedundant()
+        => new ProjectGraph { ["Host.Spec"] = ["Host", "Host.TestHost"], ["Host.TestHost"] = ["Host"] }
+            .Under("Host").Is().not.Redundant();
+
+    private static string EveryReferenceAsReported(ProjectGraph dependencies)
+        => Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => dependencies.Is().Within(_ => [])).Message;
 }

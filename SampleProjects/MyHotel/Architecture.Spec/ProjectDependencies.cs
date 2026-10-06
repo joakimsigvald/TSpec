@@ -1,6 +1,6 @@
 using TSpec.Architecture;
 
-namespace MyHotel.Spec.Architecture;
+namespace MyHotel.Architecture.Spec;
 
 public class ProjectDependencies
 {
@@ -11,6 +11,8 @@ public class ProjectDependencies
             "." => ["Entry", "Infra", "P:Scalar.AspNetCore"],
             "Entry" or "Core" => ["Contract"],
             "Infra" => ["Core"],
+            "Spec" => ["."],
+            "Core.Spec" => ["Core"],
             _ => [],
-        }, _ => ["P:Microsoft.*"]).and.not.Redundant();
+        }, p => p.Segment(^1) == "Spec" ? ["P:*"] : ["P:Microsoft.*"]).and.not.Redundant();
 }

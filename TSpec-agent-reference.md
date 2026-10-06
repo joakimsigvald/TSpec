@@ -164,7 +164,7 @@ Opt in with one line in the spec project; a `_specification/` folder of markdown
 
 ## Architecture (`TSpec.Architecture`)
 
-`Project.Dependencies` is the graph the running spec project was built with — every project its build reaches but itself, with each one's direct project and package references. Put the test in the spec project of a deliverable; a plain `[Fact]` is enough.
+`Project.Dependencies` is the graph the running spec project was built with — every project its build reaches but itself, with each one's direct project and package references. Put the test in a spec project of its own that references every project — `<ProjectReference Include="..\**\*.csproj" Exclude="..\Architecture.Spec\**" />` — without `SpecificationDocument`; a plain `[Fact]` is enough.
 
 ```csharp
 [Fact]
@@ -174,13 +174,15 @@ public void AreOnlyTheseAndNotRedundant()
         "." => ["Entry", "Infra"],
         "Entry" or "Core" => ["Contract"],
         "Infra" => ["Core"],
+        "Spec" => ["."],
+        "Core.Spec" => ["Core"],
         _ => [],
-    }, _ => ["P:Microsoft.*"]).and.not.Redundant();
+    }, p => p.Segment(^1) == "Spec" ? ["P:*"] : ["P:Microsoft.*"]).and.not.Redundant();
 ```
 
-- Names are assembly names; with `Under(root)`: `root.X` → `X`, the root → `.`, other projects → `/Name`. Packages are always `P:Name`.
+- Names are assembly names; with `Under(root)`: `root.X` → `X`, the root → `.`, other projects → `/Name`. Packages are always `P:Name`. A reference that produces no assembly (an `.esproj`) is not in the graph.
 - Rules add up: a dependency passes if any rule allows it; `_ => [...]` applies to every project. A trailing `*` matches the rest (`P:Moq.*` does not match `P:Moq`). `Within` allows, never requires.
-- `not.Redundant()`: no project references a project it already reaches through another; packages are exempt.
+- `not.Redundant()`: no project references a project it already reaches through another; packages, and `A.B -> A` (`Core.Spec -> Core`), are exempt.
 - Layer rules: switch on `p.Segment(0)` (also `Segment(^1)`, `Segment(..2)`).
 
 ## Complete examples
