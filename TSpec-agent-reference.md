@@ -184,6 +184,7 @@ public void AreOnlyTheseAndNotRedundant()
 - Rules add up: a dependency passes if any rule allows it; `_ => [...]` applies to every project. A trailing `*` matches the rest (`P:Moq.*` does not match `P:Moq`). `Within` allows, never requires.
 - `not.Redundant()`: no project references a project it already reaches through another; packages, and `A.B -> A` (`Core.Spec -> Core`), are exempt.
 - Layer rules: switch on `p.Segment(0)` (also `Segment(^1)`, `Segment(..2)`).
+- Custom rules: `graph.Projects` and `graph["X"]` (direct references) read the graph, named as the rules see them.
 
 ## Complete examples
 

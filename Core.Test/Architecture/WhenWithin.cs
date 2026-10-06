@@ -37,7 +37,7 @@ public class WhenWithin : Spec
                 "Entry" => ["Contract"],
                 _ => [],
             }));
-        ex.HasMessage("""Expected _dependencies to be within what is allowed but found ["Core -> Contract"]""");
+        ex.HasMessage("""Expected _dependencies to be within what is allowed but found 1: ["Core -> Contract"]""");
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class WhenWithin : Spec
         var dependencies = new ProjectGraph { ["Entry"] = ["Common", "Infra"] };
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
             () => dependencies.Is().Within(p => p switch { _ => [] }, _ => ["Common"]));
-        ex.HasMessage("""Expected dependencies to be within what is allowed but found ["Entry -> Infra"]""");
+        ex.HasMessage("""Expected dependencies to be within what is allowed but found 1: ["Entry -> Infra"]""");
     }
 
     [Fact]
@@ -69,7 +69,23 @@ public class WhenWithin : Spec
     {
         var dependencies = new ProjectGraph { ["Core"] = ["P:Moq"] };
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => dependencies.Is().Within(_ => ["P:Moq.*"]));
-        ex.HasMessage("""Expected dependencies to be within what is allowed but found ["Core -> P:Moq"]""");
+        ex.HasMessage("""Expected dependencies to be within what is allowed but found 1: ["Core -> P:Moq"]""");
+    }
+
+    [Fact]
+    public void GivenMoreDependenciesNotAllowedThanShown_ThenCountThemAll()
+    {
+        var dependencies = new ProjectGraph { ["A"] = ["B", "C", "D", "E", "F", "G"] };
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => dependencies.Is().Within(_ => []));
+        ex.Message.Does().EndWith("""but found 6: ["A -> B", "A -> C", "A -> D", "A -> E", "A -> F", ...]""");
+    }
+
+    [Fact]
+    public void GivenALongName_ThenShowItInFull()
+    {
+        var dependencies = new ProjectGraph { ["Capabilities.Auth"] = ["P:Microsoft.IdentityModel.JsonWebTokens"] };
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => dependencies.Is().Within(_ => []));
+        ex.Message.Does().EndWith("""but found 1: ["Capabilities.Auth -> P:Microsoft.IdentityModel.JsonWebTokens"]""");
     }
 
     [Fact]

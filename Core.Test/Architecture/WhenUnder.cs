@@ -31,6 +31,14 @@ public class WhenUnder : Spec
             .Does().Contain("\"Entry -> P:Host.Logging\"");
 
     [Fact]
+    public void ThenListTheProjectsByTheirNamesUnderIt()
+        => _dependencies.Under("Host").Projects.Is().EqualTo([".", "/HostTools", "Contract", "Entry"]);
+
+    [Fact]
+    public void ThenGiveTheReferencesOfAProjectNamedUnderIt()
+        => _dependencies.Under("Host")["Entry"].Is().EqualTo(["/Other.Lib", "Contract"]);
+
+    [Fact]
     public void GivenARuleAllowsAPackageNamedLikeTheRoot_ThenCompletes()
         => new ProjectGraph { ["Host.Entry"] = ["P:Host.Logging"] }.Under("Host").Is().Within(_ => ["P:Host.Logging"]);
 
@@ -43,14 +51,14 @@ public class WhenUnder : Spec
                 "Entry" => ["Contract"],
                 _ => [],
             }))
-            .Message.Does().EndWith("""but found ["Entry -> /Other.Lib"]""");
+            .Message.Does().EndWith("""but found 1: ["Entry -> /Other.Lib"]""");
 
     [Fact]
     public void GivenARedundantReference_ThenNameItAsTheSwitchDoes()
         => Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
             () => new ProjectGraph { ["Host"] = ["Host.Entry", "Host.Contract"], ["Host.Entry"] = ["Host.Contract"] }
                 .Under("Host").Is().not.Redundant())
-            .Message.Does().EndWith("""but found [". -> Contract"]""");
+            .Message.Does().EndWith("""but found 1: [". -> Contract"]""");
 
     [Fact]
     public void GivenTheRootsSpecProjectAlsoReachesTheRootThroughAnother_ThenItIsNotRedundant()

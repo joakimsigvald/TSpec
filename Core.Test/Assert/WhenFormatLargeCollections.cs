@@ -18,11 +18,11 @@ public class WhenFormatLargeCollections
     }
 
     [Fact]
-    public void GivenElementWithLongToString_ThenCapAtFiftyCharacters()
+    public void GivenElementWithLongToString_ThenCapAtEightyCharacters()
     {
-        string[] arr = [new string('a', 60)];
+        string[] arr = [new string('a', 90)];
         var ex = Xunit.Assert.Throws<XunitException>(() => arr.Has().Count(2));
-        ex.Message.Is($"Expected arr to have count 2 but found 1: [\"{new string('a', 50)}...\"]");
+        ex.Message.Is($"Expected arr to have count 2 but found 1: [\"{new string('a', 80)}...\"]");
     }
 
     [Fact]
@@ -36,8 +36,8 @@ public class WhenFormatLargeCollections
     [Fact]
     public void GivenTupleElementWithLongToString_ThenCapWithEllipsis()
     {
-        (string Name, int Age)[] people = [(new string('a', 60), 36)];
+        (string Name, int Age)[] people = [(new string('a', 90), 36)];
         var ex = Xunit.Assert.Throws<XunitException>(() => people.Has().Count(2));
-        ex.Message.Is($"Expected people to have count 2 but found 1: [({new string('a', 49)}...]");
+        ex.Message.Is($"Expected people to have count 2 but found 1: [({new string('a', 79)}...]");
     }
 }

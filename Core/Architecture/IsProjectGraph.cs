@@ -35,7 +35,7 @@ public record IsProjectGraph : Constraint<ProjectGraph, IsProjectGraph>
         return Assert(Ignore.Me, _ => Xunit.Assert.NotEmpty(_found)).And();
     }
 
-    private protected override string Describe(ProjectGraph? value, string? methodName = null) => _found.FormatValue();
+    private protected override string Describe(ProjectGraph? value, string? methodName = null) => $"{_found.Count}: {_found.FormatValue()}";
 }
 
 /// <summary>

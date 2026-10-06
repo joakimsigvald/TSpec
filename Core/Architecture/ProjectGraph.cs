@@ -26,13 +26,20 @@ public sealed class ProjectGraph
         _root = root;
     }
 
-    internal IReadOnlyList<string> this[string project]
+    /// <summary>
+    /// The projects and packages the given project references directly, named as the rules see them
+    /// </summary>
+    /// <param name="project">The project, named as the rules see it</param>
+    public IReadOnlyList<string> this[string project]
     {
-        get => _references.TryGetValue(project, out var references) ? references : [];
-        init => _references[project] = value;
+        get => [.. ReferencesOf(FullName(project)).Select(AsWritten).Order(StringComparer.Ordinal)];
+        internal init => _references[project] = value;
     }
 
-    internal IReadOnlyList<string> Projects => [.. _references.Keys.Order(StringComparer.Ordinal)];
+    /// <summary>
+    /// Every project, named as the rules see it
+    /// </summary>
+    public IReadOnlyList<string> Projects => [.. _references.Keys.Select(AsWritten).Order(StringComparer.Ordinal)];
 
     /// <summary>
     /// The same dependencies, with projects named relative to the root: under "MyHotel",
@@ -74,6 +81,15 @@ public sealed class ProjectGraph
     private bool IsAllowedBy(Func<string, IEnumerable<string>> rule, (string From, string To) reference)
         => Allows(rule(AsWritten(reference.From)), AsWritten(reference.To));
 
+    private IReadOnlyList<string> ReferencesOf(string project)
+        => _references.TryGetValue(project, out var references) ? references : [];
+
+    private string FullName(string written)
+        => _root is null || IsPackage(written) ? written
+        : written == "." ? _root
+        : written.StartsWith('/') ? written[1..]
+        : $"{_root}.{written}";
+
     private string AsWritten(string name)
         => _root is null || IsPackage(name) ? name
         : name == _root ? "."
@@ -86,7 +102,8 @@ public sealed class ProjectGraph
         => target.EndsWith('*') ? name.StartsWith(target[..^1], StringComparison.Ordinal) : target == name;
 
     private IEnumerable<(string From, string To)> References
-        => Projects.SelectMany(project => this[project].Order(StringComparer.Ordinal).Select(to => (project, to)));
+        => _references.Keys.Order(StringComparer.Ordinal)
+            .SelectMany(project => ReferencesOf(project).Order(StringComparer.Ordinal).Select(to => (project, to)));
 
     private bool IsRedundant((string From, string To) reference)
         => !IsPackage(reference.To) && !IsToTheProjectItsNameExtends(reference) && IsReachedThroughAnother(reference);
@@ -96,14 +113,14 @@ public sealed class ProjectGraph
         => reference.From.Segment(..^1) == reference.To;
 
     private bool IsReachedThroughAnother((string From, string To) reference)
-        => this[reference.From].Any(other => other != reference.To && ReachedFrom(other).Contains(reference.To));
+        => ReferencesOf(reference.From).Any(other => other != reference.To && ReachedFrom(other).Contains(reference.To));
 
     private HashSet<string> ReachedFrom(string project)
     {
         HashSet<string> reached = [];
         Stack<string> pending = new([project]);
         while (pending.TryPop(out var current))
-            foreach (var next in this[current])
+            foreach (var next in ReferencesOf(current))
                 if (reached.Add(next))
                     pending.Push(next);
         return reached;

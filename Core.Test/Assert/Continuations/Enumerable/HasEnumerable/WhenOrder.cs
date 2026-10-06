@@ -111,7 +111,7 @@ public class WhenOrder : Spec
     {
         Patient[] patients = [new("Bertil", new(2026, 2, 1)), new("Adam", new(2026, 3, 1))];
         var ex = Xunit.Assert.Throws<XunitException>(() => patients.Has().Order(p => p.Name).Ascending());
-        ex.Message.Is("Expected patients to be ascending by p.Name but found [Patient { Name = Bertil, Admitted = 2026-02-01 00:..., Patient { Name = Adam, Admitted = 2026-03-01 00:00...]");
+        ex.Message.Is("Expected patients to be ascending by p.Name but found [Patient { Name = Bertil, Admitted = 2026-02-01 00:00:00 }, Patient { Name = Adam, Admitted = 2026-03-01 00:00:00 }]");
     }
 
     [Fact]

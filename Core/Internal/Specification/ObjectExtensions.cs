@@ -6,7 +6,7 @@ namespace TSpec.Internal.Specification;
 internal static class ObjectExtensions
 {
     private const int MaxElements = 5;
-    private const int MaxElementLength = 50;
+    private const int MaxElementLength = 80;
     private const string DatePattern = "yyyy-MM-dd";
     private const string TimePattern = "HH:mm:ss";
 

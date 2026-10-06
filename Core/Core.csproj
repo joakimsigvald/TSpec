@@ -17,13 +17,15 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>4.1.0</PackageVersion>
+		<PackageVersion>4.1.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			NEW
-			* Architecture rules: Project.Dependencies.Is().Within(rules) checks the projects and packages each project depends on, and .not.Redundant() that none references what it already reaches through another
+			IMPROVED
+			* Architecture: the dependency graph is exposed for custom rules - graph.Projects lists the projects, graph["X"] what X references directly
+			* Architecture: a failure counts every offending reference
+			* Failure messages cut a collection item at 80 characters instead of 50
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

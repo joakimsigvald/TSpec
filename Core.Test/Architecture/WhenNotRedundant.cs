@@ -20,7 +20,7 @@ public class WhenNotRedundant : Spec
     {
         var dependencies = new ProjectGraph { ["Host"] = ["Entry", "Contract"], ["Entry"] = ["Contract"] };
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => dependencies.Is().not.Redundant());
-        ex.HasMessage("""Expected dependencies to not be redundant but found ["Host -> Contract"]""");
+        ex.HasMessage("""Expected dependencies to not be redundant but found 1: ["Host -> Contract"]""");
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class WhenNotRedundant : Spec
             ["Core"] = ["Contract"],
         };
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => dependencies.Is().not.Redundant());
-        ex.HasMessage("""Expected dependencies to not be redundant but found ["Host -> Contract"]""");
+        ex.HasMessage("""Expected dependencies to not be redundant but found 1: ["Host -> Contract"]""");
     }
 
     [Fact]
@@ -60,6 +60,6 @@ public class WhenNotRedundant : Spec
             ["Core.Rooms"] = ["Core"],
         };
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => dependencies.Is().not.Redundant());
-        ex.HasMessage("""Expected dependencies to not be redundant but found ["Core.Rooms.Spec -> Core"]""");
+        ex.HasMessage("""Expected dependencies to not be redundant but found 1: ["Core.Rooms.Spec -> Core"]""");
     }
 }

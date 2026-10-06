@@ -999,3 +999,7 @@ public class ProjectDependencies
 For rules on layers rather than projects, switch on a segment of the name: `p.Segment(0)` is the
 first, `p.Segment(^1)` the last and `p.Segment(..2)` the first two joined by a dot, as in
 `p => p.Segment(0) switch { "Data" => ["Domain.*"], _ => [] }`.
+
+For a rule the assertions don't cover, read the graph and assert on what you compute:
+`Projects` lists every project and `graph["Data.Auth"]` gives what that project references
+directly, both named as the rules see them.
