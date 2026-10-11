@@ -21,6 +21,7 @@ public record HasDictionary<TKey, TValue>
             Actual = Actual,
             ActualExpr = ActualExpr,
             State = State | ConstraintState.Inverted,
+            Failures = Failures,
             AuxiliaryVerb = $"{AuxiliaryVerb} no"
         };
 

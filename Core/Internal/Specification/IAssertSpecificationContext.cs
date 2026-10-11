@@ -16,6 +16,9 @@ internal interface IAssertSpecificationContext
     void AddAssert([CallerMemberName] string? assertName = null);
     void AddAssertConjunction(string conjunction);
     void AddThat();
+    void OpenEither(string actual);
+    void CloseEither();
+    void Fix(Action decide);
     void NoteAssertion();
     void AddSetupWarning(string warning);
 }

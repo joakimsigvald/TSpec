@@ -148,6 +148,7 @@ public record HasEnumerable<TItem, TContinuation> : EnumerableConstraint<TItem, 
             ActualExpr = ActualExpr,
             AuxiliaryVerb = AuxiliaryVerb,
             State = State,
+            Failures = Failures,
         };
 
     /// <summary>
@@ -170,6 +171,7 @@ public record HasEnumerable<TItem, TContinuation> : EnumerableConstraint<TItem, 
             ActualExpr = ActualExpr,
             AuxiliaryVerb = AuxiliaryVerb,
             State = State,
+            Failures = Failures,
         };
 
     /// <summary>

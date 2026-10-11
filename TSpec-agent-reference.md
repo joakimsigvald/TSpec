@@ -1,6 +1,6 @@
 # TSpec — Agent Reference
 
-Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 4.1).
+Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 4.2).
 TSpec is a fluent Given–When–Then specification framework for .NET on top of xUnit v3.
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec#readme).
 
@@ -112,7 +112,7 @@ Then(TheSecond<IRule>, _ => _.Passes(), Once)                            // one 
 
 ## Assertions (`TSpec.Assert`)
 
-Called directly on values; every assertion returns a continuation. Combinators are lowercase: `.and.`, `.not.`, `.either. ... .or.`, `.that.`, `.but.`.
+Called directly on values; every assertion returns a continuation. Combinators are lowercase: `.and.`, `.not.`, `.either. … ._. … .or.` (alternatives, `or` before the last; equality is `EqualTo(x)` there), `.that.`, `.but.`. `.or.Fix("what to do", because: "why")` ends an either with a remedy the failure states.
 Works standalone in plain xUnit tests too.
 
 - Any value: `Is(x)`, `Is().Not(x)`, `Is().SameAs(obj)` (same reference), `Is().Null()`, `Is().Like(obj)` (structural), `Has(_ => _.Id == 3)`, `Is().A<T>().that` (asserts the type, exposes the value as `T`; `An<T>()` is a synonym).

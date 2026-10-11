@@ -9,6 +9,17 @@ namespace TSpec.Assert.Continuations.String;
 public record IsString : StringConstraint<IsStringContinuation>
 {
     /// <summary>
+    /// Asserts that the string is equal to the given string
+    /// </summary>
+    /// <param name="expected">The value that actual is expected to be</param>
+    /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for making further assertions on the string</returns>
+    public ContinueWith<IsStringContinuation> EqualTo(
+        string? expected,
+        [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
+        => Assert(Describe(expected), actual => Equal(expected, actual), expectedExpr!).And();
+
+    /// <summary>
     /// Asserts that the string is equivalent to expected, ignoring casing and leading or trailing whitespace
     /// </summary>
     /// <remarks>Synonymous with <see cref="EquivalentTo"/></remarks>

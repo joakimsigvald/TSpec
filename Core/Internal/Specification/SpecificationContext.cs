@@ -30,6 +30,7 @@ internal class SpecificationContext : IAssertSpecificationContext
     private string? _subjectExpr;
     private string? _subjectProvider;
     private Claims _claims;
+    private string? _openEither;
 
     /// <summary>
     /// What the test has claimed so far. A subject handed over by Then or And awaits an assertion
@@ -210,6 +211,18 @@ internal class SpecificationContext : IAssertSpecificationContext
     {
         NoteAssertion();
         _assertion.AddAssert(actual, verb, expected);
+        Run(assert);
+    }
+
+    /// The Fix ending an either decides it like an assertion, but the specification leaves it out.
+    public void Fix(Action decide)
+    {
+        _assertion.AddFix();
+        Run(decide);
+    }
+
+    private void Run(Action assert)
+    {
         try
         {
             _recording.SuppressRecording();
@@ -271,6 +284,21 @@ internal class SpecificationContext : IAssertSpecificationContext
     {
         _assertion.AddThat();
         Claim(Claims.AwaitingAssertionOnThat);
+    }
+
+    public void OpenEither(string actual)
+    {
+        _openEither = actual;
+        _assertion.OpenEither();
+    }
+
+    public void CloseEither() => _openEither = null;
+
+    /// An either holds its failures for the alternative after or, so without an or nothing decides it.
+    internal void AssertEitherClosed()
+    {
+        if (_openEither is not null && _claims != Claims.SetupFailed)
+            throw new SetupFailed($"either on {_openEither} has no or after it; write or before its last alternative");
     }
 
     public void AddVerify<TService>(string mock, string expressionExpr, string? wasInvokedExpr)

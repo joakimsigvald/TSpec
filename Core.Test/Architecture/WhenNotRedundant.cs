@@ -24,6 +24,15 @@ public class WhenNotRedundant : Spec
     }
 
     [Fact]
+    public void GivenItFollowsAPassingWithin_ThenGetException()
+    {
+        var dependencies = new ProjectGraph { ["Host"] = ["Entry", "Contract"], ["Entry"] = ["Contract"] };
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
+            () => dependencies.Is().Within(_ => ["*"]).and.not.Redundant());
+        ex.HasMessage("""Expected dependencies to not be redundant but found 1: ["Host -> Contract"]""");
+    }
+
+    [Fact]
     public void GivenItIsReachedThroughSeveralProjects_ThenGetException()
     {
         var dependencies = new ProjectGraph

@@ -39,6 +39,7 @@ public record HasString : HasEnumerable<char, HasStringContinuation>
             ActualExpr = ActualExpr,
             AuxiliaryVerb = AuxiliaryVerb,
             State = State,
+            Failures = Failures,
         };
 
     internal HasStringContinuation ContinueString()

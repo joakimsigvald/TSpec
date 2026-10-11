@@ -25,22 +25,49 @@ public class ContinueWith<TContinuation> where TContinuation : Constraint
     [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Special convention of binding words")]
     public TContinuation but => Continue();
 
+    /// <summary>
+    /// Get a continuation to make the last alternative of an either
+    /// </summary>
     [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Special convention of binding words")]
-    internal TContinuation or => Continue();
+    public TContinuation or => Continue();
 
-    private TContinuation Continue([CallerMemberName] string? conjunction = null) 
+    /// <summary>
+    /// Get a continuation to make another alternative of an either, ahead of the last one after or
+    /// </summary>
+    [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Special convention of binding words")]
+    public TContinuation _ => Continue();
+
+    private TContinuation Continue([CallerMemberName] string? conjunction = null)
     {
         var isEither = _continuation.State.HasFlag(ConstraintState.Either);
+        var isAlternative = conjunction is "or" or "_";
         SpecificationContext.Current.AddAssertConjunction(conjunction!);
-        if (isEither && conjunction != "or")
-            throw new SetupFailed("Cannot continue either with and or but, only with or");
-        if (!isEither && conjunction == "or")
-            throw new SetupFailed("Cannot continue or unless preceded with either");
-        return _continuation with
+        if (isEither && !isAlternative)
+            throw new SetupFailed(
+                "Cannot continue either with and or but: separate its alternatives with _ and put or before the last");
+        if (!isEither && isAlternative)
+            throw new SetupFailed($"Cannot continue {conjunction} unless preceded with either");
+        return conjunction switch
         {
-            AuxiliaryVerb = null,
-            State = _continuation.State,
-            Exception = _continuation.Exception
+            "or" => LastAlternative(),
+            "_" => AnotherAlternative(),
+            _ => NextAssertion(),
         };
     }
+
+    private TContinuation LastAlternative()
+    {
+        SpecificationContext.Current.CloseEither();
+        return Alternative(_continuation.State & ~ConstraintState.Either);
+    }
+
+    private TContinuation AnotherAlternative() => Alternative(_continuation.State);
+
+    // An alternative keeps what the earlier ones decided, but a not before one of them is not its own.
+    private TContinuation Alternative(ConstraintState state)
+        => _continuation with { AuxiliaryVerb = null, State = state & ~ConstraintState.Inverted, WasInverted = false };
+
+    // The next assertion stands on its own: the outcome and negation of the one before it do not carry over.
+    private TContinuation NextAssertion()
+        => _continuation with { AuxiliaryVerb = null, State = default, Failures = [], WasInverted = false };
 }

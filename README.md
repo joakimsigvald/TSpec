@@ -629,9 +629,14 @@ When you want to combine more than one assertion, all of which must pass
 ```
 
 #### 5.1.2 Either - Or
-When you want to combine two assertions, one of which must pass
+When you want to combine alternatives, one of which must pass: separate them with `_` and put `or` before the last
 ```csharp
-3.Is().either.GreaterThan(4).or.LessThan(4);
+x.Is().either.LessThan(-10)._.GreaterThan(10).or.EqualTo(0);
+```
+
+End an either with `Fix` for its failure to say what to do, and why. The specification leaves it out.
+```csharp
+todos.Is().either.Empty().or.Fix("resolve them", because: "a release has no open todos");
 ```
 
 #### 5.1.3 Not

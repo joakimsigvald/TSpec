@@ -12,7 +12,7 @@ public class WhenEitherIsGreaterThanOrLessThan : Spec<int>
         .GreaterThan(1).or.LessThan(5);
         Specification.Is("""
             When 3
-            Then Result is either greater than 1
+            Then Result is greater than 1
                 or less than 5
             """);
     }
@@ -24,10 +24,10 @@ public class WhenEitherIsGreaterThanOrLessThan : Spec<int>
             () => When(_ => 7)
         .Then().Result.Is().either
         .GreaterThan(10).or.LessThan(5));
-        ex.HasMessage("Expected Result to be greater than 10 but found 7",
+        ex.HasMessage("Expected Result to be greater than 10 or be less than 5 but found 7",
             """
             When 7
-            Then Result is either greater than 10
+            Then Result is greater than 10
                 or less than 5
             """);
     }
@@ -58,9 +58,42 @@ public class WhenEitherIsGreaterThanOrLessThan : Spec<int>
         .GreaterThan(10).or.LessThan(10).and.LessThan(9);
         Specification.Is("""
             When 7
-            Then Result is either greater than 10
+            Then Result is greater than 10
                 or less than 10
                 and less than 9
+            """);
+    }
+
+    [Fact]
+    public void AndContinueWithAnotherAnd_ThenTheAndIsAsserted()
+    {
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
+            () => When(_ => 7)
+        .Then().Result.Is().either
+        .GreaterThan(10).or.LessThan(10).and.LessThan(5));
+        ex.HasMessage("Expected Result to be less than 5 but found 7");
+    }
+
+    [Fact]
+    public void AndFirstIsTrueAndContinueWithAnd_ThenTheAndIsAsserted()
+    {
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
+            () => When(_ => 3)
+        .Then().Result.Is().either
+        .LessThan(4).or.GreaterThan(5).and.LessThan(2));
+        ex.HasMessage("Expected Result to be less than 2 but found 3");
+    }
+
+    [Fact]
+    public void AndFirstIsNegated_ThenTheSecondIsNot()
+    {
+        When(_ => 3)
+        .Then().Result.Is().either
+        .not.LessThan(5).or.LessThan(4);
+        Specification.Is("""
+            When 3
+            Then Result is not less than 5
+                or less than 4
             """);
     }
 
@@ -74,29 +107,51 @@ public class WhenEitherIsGreaterThanOrLessThan : Spec<int>
     }
 }
 
-public class WhenEitherWithoutOr : Spec<int>
+public class WhenEitherWithoutOr
 {
+    private sealed class MySpec : Spec<int> { }
+
+    private const string NoOr = "either on Result has no or after it; write or before its last alternative";
+
     [Fact]
-    public void AndIsTrue()
+    public void AndIsTrue_ThenThrowSetupFailed()
     {
-        When(_ => 3)
-        .Then().Result.Is().either
-        .GreaterThan(1);
-        Specification.Is("""
-            When 3
-            Then Result is either greater than 1
-            """);
+        var spec = new MySpec();
+        spec.When(_ => 3).Then().Result.Is().either.GreaterThan(1);
+        Xunit.Assert.Throws<SetupFailed>(spec.Dispose).Message.Is(NoOr);
     }
 
     [Fact]
-    public void AndIsFalse_ThenCompletes()
+    public void AndIsFalse_ThenThrowSetupFailed()
     {
-        When(_ => 3)
-        .Then().Result.Is().either
-        .GreaterThan(10);
-        Specification.Is("""
-            When 3
-            Then Result is either greater than 10
-            """);
+        var spec = new MySpec();
+        spec.When(_ => 3).Then().Result.Is().either.GreaterThan(10);
+        Xunit.Assert.Throws<SetupFailed>(spec.Dispose).Message.Is(NoOr);
+    }
+
+    [Fact]
+    public void AndNoWhen_ThenThrowSetupFailed()
+    {
+        var spec = new MySpec();
+        var three = 3;
+        three.Is().either.GreaterThan(10);
+        Xunit.Assert.Throws<SetupFailed>(spec.Dispose).Message.Is(
+            "either on three has no or after it; write or before its last alternative");
+    }
+
+    [Fact]
+    public void AndUnderscoreButNoOr_ThenThrowSetupFailed()
+    {
+        var spec = new MySpec();
+        spec.When(_ => 3).Then().Result.Is().either.GreaterThan(1)._.LessThan(1);
+        Xunit.Assert.Throws<SetupFailed>(spec.Dispose).Message.Is(NoOr);
+    }
+
+    [Fact]
+    public void AndAnOrFollows_ThenDisposeCompletes()
+    {
+        var spec = new MySpec();
+        spec.When(_ => 3).Then().Result.Is().either.GreaterThan(1).or.LessThan(1);
+        spec.Dispose();
     }
 }

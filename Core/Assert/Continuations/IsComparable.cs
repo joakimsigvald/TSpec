@@ -12,6 +12,16 @@ public abstract record IsComparable<TActual, TContinuation> : Constraint<TActual
     where TActual : IComparable<TActual>
 {
     /// <summary>
+    /// Asserts that the value is equal to the given value
+    /// </summary>
+    /// <param name="expected">The value that actual is expected to be</param>
+    /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for making further assertions on the value</returns>
+    public ContinueWith<TContinuation> EqualTo(
+        TActual expected, [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
+        => Assert(expected, actual => Xunit.Assert.Equal(expected, actual), expectedExpr!).And();
+
+    /// <summary>
     /// Asserts that the value is not equal to the given value
     /// </summary>
     /// <param name="expected">The value that actual is expected not to be</param>

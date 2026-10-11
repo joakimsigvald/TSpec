@@ -29,6 +29,19 @@ public class WhenWithin : Spec
         });
 
     [Fact]
+    public void GivenADependencyIsNotAllowedAndAFix_ThenTheFailureSaysWhatToDo()
+    {
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
+            () => _dependencies.Is().either.Within(_ => []).or.Fix(
+                "remove the reference, or allow it if the architecture changed",
+                because: "only an architecture decision changes the graph"));
+        ex.HasMessage("""
+            Expected _dependencies to be within what is allowed but found 2: ["Core -> Contract", "Entry -> Contract"]
+            Fix: remove the reference, or allow it if the architecture changed, because only an architecture decision changes the graph
+            """);
+    }
+
+    [Fact]
     public void GivenADependencyIsNotAllowed_ThenGetException()
     {
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(

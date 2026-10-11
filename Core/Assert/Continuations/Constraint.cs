@@ -7,8 +7,8 @@ namespace TSpec.Assert.Continuations;
 /// <summary>
 /// The four independent facts about an assertion in a chain. They combine freely — name no
 /// combinations here; every consumer tests one flag at a time with HasFlag.
-/// Either is spent by the first failure (see DoAssert), which is what limits either/or to two
-/// alternatives: assertions evaluate eagerly, so the deferral has to be consumed by the last one.
+/// Either lasts from either to or: assertions evaluate eagerly, so an alternative can hold its failure
+/// only while it is known that another follows, and the one after or decides.
 /// </summary>
 [Flags]
 internal enum ConstraintState
@@ -28,7 +28,7 @@ public record Constraint
     internal string ActualExpr { get; set; } = "!UNDESCRIBED!";
     internal string? AuxiliaryVerb { get; set; }
     internal ConstraintState State { get; set; } = default;
-    internal Exception? Exception { get; set; }
+    internal IReadOnlyList<Failure> Failures { get; set; } = [];
     internal bool WasInverted { get; set; }
 }
 
@@ -52,6 +52,7 @@ public abstract record Constraint<TActual, TContinuation>
             Actual = Actual,
             ActualExpr = ActualExpr,
             State = State | ConstraintState.Inverted,
+            Failures = Failures,
             AuxiliaryVerb = $"{AuxiliaryVerb} not"
         };
 
@@ -70,8 +71,8 @@ public abstract record Constraint<TActual, TContinuation>
             expectedExpr!).And();
 
     /// <summary>
-    /// Used to provide two assertions, separated by 'or', one of which has to pass for the test to pass.
-    /// Exactly two — a further 'or' compiles but cannot rescue the chain.
+    /// Used to provide alternatives, one of which has to pass for the test to pass: separated by '_',
+    /// with 'or' before the last
     /// </summary>
     [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Special convention of binding words")]
     public TContinuation either
@@ -80,14 +81,52 @@ public abstract record Constraint<TActual, TContinuation>
         {
             if (State.HasFlag(ConstraintState.Inverted))
                 throw new SetupFailed("Either-or cannot be used after not");
+            SpecificationContext.Current.OpenEither(ActualExpr);
+            // or.either is _ written out: one more alternative before the last.
+            if (FollowsAnAlternative)
+                SpecificationContext.Current.AddAssertConjunction("_");
             return new()
             {
                 Actual = Actual,
                 ActualExpr = ActualExpr,
                 State = State | ConstraintState.Either,
-                AuxiliaryVerb = $"{AuxiliaryVerb} either",
+                Failures = Failures,
+                AuxiliaryVerb = AuxiliaryVerb,
             };
         }
+    }
+
+    // Right after or, an earlier alternative has been decided, which an assertion after and never has.
+    private bool FollowsAnAlternative
+        => State.HasFlag(ConstraintState.Succeeded) || State.HasFlag(ConstraintState.Failed);
+
+    /// <summary>
+    /// Ends an either with what to do when none of its alternatives holds, for the failure to say. It ends the
+    /// test too, and the specification leaves it out
+    /// </summary>
+    /// <param name="what">What to do to make the test pass</param>
+    /// <param name="because">Why it matters, phrased to read after the word "because"</param>
+    /// <example>
+    /// <code>
+    /// files.Is().either.Empty().or.Fix("move the file into its module", because: "a host only composes");
+    /// </code>
+    /// </example>
+    public void Fix(string what, string? because = null)
+    {
+        if (!IsAfterOr)
+            throw new SetupFailed("Fix is the last alternative of an either: write it after or");
+
+        SpecificationContext.Current.Fix(() => Decide(because is null ? what : $"{what}, because {because}"));
+    }
+
+    // After or the either is closed and an earlier alternative decided; after _ it is still open.
+    private bool IsAfterOr
+        => FollowsAnAlternative && !State.HasFlag(ConstraintState.Either) && !State.HasFlag(ConstraintState.Inverted);
+
+    private void Decide(string fix)
+    {
+        if (!State.HasFlag(ConstraintState.Succeeded))
+            throw Failure.Of(ActualExpr, Failures, fix);
     }
 
     internal static TContinuation Create(TActual? actual, string actualExpr)
@@ -142,31 +181,31 @@ public abstract record Constraint<TActual, TContinuation>
                     || State.HasFlag(ConstraintState.Either))
                     return;
 
-                throw Exception!;
+                throw Failure.Of(ActualExpr, Failures);
             }, methodName!, expectedExpr, isInverted ? VerbalizationStrategy.None : verbalizationStrategy);
 
         void DoAssert()
         {
-            Xunit.Sdk.XunitException? xuex = null;
-            if (State.HasFlag(ConstraintState.Failed))
-                State &= ~ConstraintState.Either;
+            var holds = Holds(out var xuex);
+            State |= holds ? ConstraintState.Succeeded : ConstraintState.Failed;
+            if (!holds)
+                Failures = [.. Failures, new(GetExpectation(), Describe(Actual, methodName!), xuex)];
+        }
+
+        bool Holds(out Xunit.Sdk.XunitException? xuex)
+        {
+            xuex = null;
             try
             {
                 assert(Actual);
-                State |= isInverted ? ConstraintState.Failed : ConstraintState.Succeeded;
+                return !isInverted;
             }
             catch (Exception ex)
             {
-                State |= isInverted ? ConstraintState.Succeeded : ConstraintState.Failed;
                 xuex = ex as Xunit.Sdk.XunitException;
+                return isInverted;
             }
-            if (State.HasFlag(ConstraintState.Failed))
-                Exception ??= GetException(xuex);
         }
-
-        Xunit.Sdk.XunitException GetException(Xunit.Sdk.XunitException? innerEx)
-            => new($"Expected {ActualExpr} to {GetExpectation()} but found {Describe(Actual, methodName!)}"
-                .StripWrapMarkers().Filled(), innerEx);
 
         string GetExpectation() => $"{GetVerb()} {expected.InvariantText()}".Trim();
 
@@ -180,10 +219,19 @@ public abstract record Constraint<TActual, TContinuation>
 
     private protected virtual string Describe(TActual? value, string? methodName = null) => value.FormatValue();
 
-    internal ContinueWith<TContinuation> And() => new(Continue());
+    internal ContinueWith<TContinuation> And() => new(Continued());
     internal ContinueWithThat<TContinuation, TThat> AndThat<TThat>(TThat that)
-        => new(Continue(), that, WasInverted || State.HasFlag(ConstraintState.Inverted));
+        => new(Continued(), that, WasInverted || State.HasFlag(ConstraintState.Inverted));
     internal virtual TContinuation Continue() => (TContinuation)this;
+
+    // Strings, collections and counts continue on a new instance, which must carry an either's state on to its or.
+    private TContinuation Continued()
+    {
+        var continuation = Continue();
+        continuation.State = State;
+        continuation.Failures = Failures;
+        return continuation;
+    }
 
     private protected TContinuation Assert(
         Action assert,
@@ -193,7 +241,7 @@ public abstract record Constraint<TActual, TContinuation>
     {
         var verb = $"{AuxiliaryVerb} {methodName.AsWords(verbalizationStrategy)}".Trim();
         SpecificationContext.Current.Assert(assert, ActualExpr, expected, verb);
-        var continuation = Continue();
+        var continuation = Continued();
         continuation.WasInverted = State.HasFlag(ConstraintState.Inverted);
         return continuation;
     }

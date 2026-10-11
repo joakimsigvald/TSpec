@@ -206,11 +206,16 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
 
     private Command MethodUnderTest => _methodUnderTest ?? throw new SetupFailed("When must be called before Then or Result");
 
-    /// A spec that never provided a When is not driving this pipeline, and a test that failed is not
-    /// green for no reason, so both are left alone.
+    /// A test that failed is not green for no reason, so it is left alone. A spec that never provided a
+    /// When is not driving this pipeline and what it asserts is its own business, but an either it left
+    /// open is wrong in any test.
     internal void AssertClaimed()
     {
-        if (_methodUnderTest is not null && !TestIdentity.Failed)
+        if (TestIdentity.Failed)
+            return;
+
+        Specification.AssertEitherClosed();
+        if (_methodUnderTest is not null)
             Specification.AssertClaimed();
     }
 
