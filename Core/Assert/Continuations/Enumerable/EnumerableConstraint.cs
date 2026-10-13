@@ -8,12 +8,14 @@ namespace TSpec.Assert.Continuations.Enumerable;
 public abstract record EnumerableConstraint<TItem, TContinuation> : Constraint<IEnumerable<TItem>, TContinuation>
     where TContinuation : EnumerableConstraint<TItem, TContinuation>, new()
 {
-    static readonly string[] _methodsWithCount = ["Single", "Count", "Length", "OneItem", "TwoItems", "ThreeItems", "FourItems", "FiveItems"];
+    static readonly string[] _methodsWithCount = ["Count", "Length", "OneItem", "TwoItems", "ThreeItems", "FourItems", "FiveItems"];
 
-    private protected override string Describe(IEnumerable<TItem>? value, string? methodName = null)
-        => value is not null && _methodsWithCount.Contains(methodName)
-            ? $"{value.Count()}: {value.FormatValue()}"
-            : value.FormatValue();
+    private protected override string Found(IEnumerable<TItem>? actual, string? methodName)
+        => actual is not null && IsCounted(actual, methodName) ? Counted(actual.Count(), actual) : actual.FormatValue();
+
+    // A deferred sequence is counted only where the assertion has counted it: an infinite one never ends.
+    private static bool IsCounted(IEnumerable<TItem> actual, string? methodName)
+        => actual is ICollection<TItem> or IReadOnlyCollection<TItem> || _methodsWithCount.Contains(methodName);
 
     /// <summary>
     /// A named value says both what it is called and what it was: the name alone would not say

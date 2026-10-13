@@ -189,7 +189,7 @@ public abstract record Constraint<TActual, TContinuation>
             var holds = Holds(out var xuex);
             State |= holds ? ConstraintState.Succeeded : ConstraintState.Failed;
             if (!holds)
-                Failures = [.. Failures, new(GetExpectation(), Describe(Actual, methodName!), xuex)];
+                Failures = [.. Failures, new(GetExpectation(), Found(Actual, methodName), xuex)];
         }
 
         bool Holds(out Xunit.Sdk.XunitException? xuex)
@@ -217,7 +217,11 @@ public abstract record Constraint<TActual, TContinuation>
             .TrimEnd();
     }
 
-    private protected virtual string Describe(TActual? value, string? methodName = null) => value.FormatValue();
+    private protected static string Describe(TActual? value) => value.FormatValue();
+
+    private protected virtual string Found(TActual? actual, string? methodName) => actual.FormatValue();
+
+    private protected static string Counted(int count, object items) => $"{count}: {items.FormatValue()}";
 
     internal ContinueWith<TContinuation> And() => new(Continued());
     internal ContinueWithThat<TContinuation, TThat> AndThat<TThat>(TThat that)

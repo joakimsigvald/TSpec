@@ -49,4 +49,17 @@ public class WhenDeferredEnumerable
             }
         }
     }
+
+    [Fact]
+    public void GivenInfiniteSequence_ThenAFailureShowsNoCount()
+    {
+        var ex = Xunit.Assert.Throws<XunitException>(() => Naturals().Is().Empty());
+        ex.Message.Is("Expected Naturals() to be empty but found [0, 1, 2, 3, 4, ...]");
+
+        static IEnumerable<int> Naturals()
+        {
+            for (var i = 0; ; i++)
+                yield return i;
+        }
+    }
 }

@@ -17,21 +17,13 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>4.2.0</PackageVersion>
+		<PackageVersion>4.2.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			NEW
-			* Either takes any number of alternatives: either.A()._.B().or.C()
-			* Fix ends an either with what to do and why, for the failure to say: either.Empty().or.Fix("...", because: "...")
-			* Is().EqualTo(x) on every type, for equality within an either
 			IMPROVED
-			* A failed either names every alternative, not only the first
-			FIXED
-			* After a passing assertion, the one after and/but was skipped on numbers, objects, dates, bools and project graphs
-			* Either-or works on strings and collections, and or is public
-			* An either with no or passed silently; in a Spec it now fails at teardown
+			* A failure counts the items of a collection, Empty() included
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

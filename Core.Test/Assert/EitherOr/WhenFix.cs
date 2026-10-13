@@ -92,7 +92,7 @@ public class WhenFixAnArchitectureRule
                 "move the file into the module that owns its logic",
                 because: "a host is a pure composition root"));
         ex.HasMessage("""
-            Expected filesBesideProgramCs to be empty but found ["Host.Query: Startup.cs"]
+            Expected filesBesideProgramCs to be empty but found 1: ["Host.Query: Startup.cs"]
             Fix: move the file into the module that owns its logic, because a host is a pure composition root
             """);
     }

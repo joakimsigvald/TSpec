@@ -32,6 +32,6 @@ public class WhenEitherOnCollection
     public void GivenNoneHolds_ThenEachIsNamed()
     {
         var ex = Xunit.Assert.Throws<XunitException>(() => _one.Is().either.Empty().or.EqualTo([2]));
-        ex.HasMessage("Expected _one to be empty or be equal to [2] but found [1]");
+        ex.HasMessage("Expected _one to be empty or be equal to [2] but found 1: [1]");
     }
 }

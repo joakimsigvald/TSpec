@@ -21,7 +21,7 @@ public class WhenValueForKey : Spec
     {
         var dict = Dict;
         var ex = Xunit.Assert.Throws<XunitException>(() => dict.Has("c"));
-        ex.Message.Is("Expected dict to have value for key \"c\" but found [[a, 1], [b, 2]]");
+        ex.Message.Is("Expected dict to have value for key \"c\" but found 2: [[a, 1], [b, 2]]");
     }
 
     [Fact]

@@ -20,7 +20,7 @@ public class WhenKey : Spec
     {
         var dict = Dict;
         var ex = Xunit.Assert.Throws<XunitException>(() => dict.Has().Key("c"));
-        ex.Message.Is("Expected dict to have key \"c\" but found [[a, 1], [b, 2]]");
+        ex.Message.Is("Expected dict to have key \"c\" but found 2: [[a, 1], [b, 2]]");
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class WhenKey : Spec
     {
         var dict = Dict;
         var ex = Xunit.Assert.Throws<XunitException>(() => dict.Has().no.Key("a"));
-        ex.Message.Is("Expected dict to not have key \"a\" but found [[a, 1], [b, 2]]");
+        ex.Message.Is("Expected dict to not have key \"a\" but found 2: [[a, 1], [b, 2]]");
     }
 
     [Fact]

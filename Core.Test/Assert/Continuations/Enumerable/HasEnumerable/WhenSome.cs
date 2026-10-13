@@ -9,7 +9,7 @@ public class WhenSome : Spec
     public void GivenEmpty_ThenGetException()
     {
         var ex = Xunit.Assert.Throws<XunitException>(() => Zero<int>().Has().Some(it => it > 3));
-        ex.HasMessage($"Expected zero ints to have some element satisfying the condition but found []", "Zero ints has some it > 3");
+        ex.HasMessage($"Expected zero ints to have some element satisfying the condition but found 0: []", "Zero ints has some it > 3");
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class WhenSome : Spec
     {
         int[] arr = [1, 3];
         var ex = Xunit.Assert.Throws<XunitException>(() => arr.Has().Some(it => it > 3));
-        ex.HasMessage($"Expected arr to have some element satisfying the condition but found [1, 3]", "Arr has some it > 3");
+        ex.HasMessage($"Expected arr to have some element satisfying the condition but found 2: [1, 3]", "Arr has some it > 3");
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class WhenSome : Spec
     {
         int[] arr = [2, 3];
         var ex = Xunit.Assert.Throws<XunitException>(() => arr.Has().Some((it, i) => it == i + 1));
-        ex.HasMessage($"Expected arr to have some element satisfying the condition but found [2, 3]",
+        ex.HasMessage($"Expected arr to have some element satisfying the condition but found 2: [2, 3]",
             "Arr has some (it, i) => it == i + 1");
     }
 }

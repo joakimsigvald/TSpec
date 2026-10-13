@@ -15,7 +15,7 @@ public class WhenIsNotArray : Spec<int[]>
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(()
             => When(_ => arr).Then().Result.Is().Not(arr));
         ex.HasMessage(
-            "Expected Result to not be [1, 2] but found [1, 2]",
+            "Expected Result to not be [1, 2] but found 2: [1, 2]",
             """
             Using int[1, 2, 3] for Input
             When arr

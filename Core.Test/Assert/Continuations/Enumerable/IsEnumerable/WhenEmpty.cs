@@ -12,6 +12,14 @@ public class WhenEmpty : Spec
     {
         int[] arr = [1];
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => arr.Is().Empty());
-        ex.HasMessage($"Expected arr to be empty but found [1]", "Arr is empty");
+        ex.HasMessage($"Expected arr to be empty but found 1: [1]", "Arr is empty");
+    }
+
+    [Fact]
+    public void GivenMoreThanFiveItems_ThenTheFailureSaysHowMany()
+    {
+        int[] arr = [1, 2, 3, 4, 5, 6, 7];
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => arr.Is().Empty());
+        ex.HasMessage("Expected arr to be empty but found 7: [1, 2, 3, 4, 5, ...]", "Arr is empty");
     }
 }

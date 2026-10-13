@@ -113,7 +113,7 @@ public class WhenRenderFailureOutput : Spec<int>
         => AssertOutput(
             () => { int[] arr = [1, 3]; arr.Has().All(it => it.Is().LessThan(3)); },
             """
-            Expected arr to have all elements satisfying the assertion but found [1, 3]
+            Expected arr to have all elements satisfying the assertion but found 2: [1, 3]
             Expected it to be less than 3 but found 3
             """,
             """
@@ -126,7 +126,7 @@ public class WhenRenderFailureOutput : Spec<int>
         => AssertOutput(
             () => Two<int>().Has().All(it => it.Is().LessThan(2)),
             """
-            Expected two ints to have all elements satisfying the assertion but found [1, 2]
+            Expected two ints to have all elements satisfying the assertion but found 2: [1, 2]
             Expected it to be less than 2 but found 2
             """,
             """
@@ -145,7 +145,7 @@ public class WhenRenderFailureOutput : Spec<int>
         => AssertOutput(
             () => { Any<Fussy>(); int[] arr = [1, 3]; arr.Has().All(it => it.Is().LessThan(3)); },
             """
-            Expected arr to have all elements satisfying the assertion but found [1, 3]
+            Expected arr to have all elements satisfying the assertion but found 2: [1, 3]
             Expected it to be less than 3 but found 3
             """,
             $"""
@@ -161,7 +161,7 @@ public class WhenRenderFailureOutput : Spec<int>
         => AssertOutput(
             () => { Any<Fussy>(); Two<int>().Has().All(it => it.Is().LessThan(2)); },
             """
-            Expected two ints to have all elements satisfying the assertion but found [2, 3]
+            Expected two ints to have all elements satisfying the assertion but found 2: [2, 3]
             Expected it to be less than 2 but found 2
             """,
             $"""

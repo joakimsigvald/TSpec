@@ -6,11 +6,6 @@ assemblies and PDBs beside it — with no new dependency.
 
 ## Steps, in order
 
-1. **A failure lists every finding.** A failed `Is().Empty()` shows the first five findings and `...`, not
-   how many there are, each cut at 80 characters, on one line; `Within` and `Redundant` give the count but
-   cut the same way. The CDR's leaf rule would show `Domain.Terminology could dissolve into Formats.Fhir
-   (every consumer may referenc...`. The cap and the cut are `FormatValue`'s, which also writes theory rows
-   and mentions into the document: change the failure only.
 2. **What a project reaches.** `ProjectGraph` walks the graph for `Redundant()` but keeps the walk private
    (`ReachedFrom`); the CDR copies it to compare each host's closure with its solution filter, and to find
    the hosts that ship a store.

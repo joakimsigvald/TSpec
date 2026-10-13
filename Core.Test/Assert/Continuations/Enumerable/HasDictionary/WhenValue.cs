@@ -20,7 +20,7 @@ public class WhenValue : Spec
     {
         var dict = Dict;
         var ex = Xunit.Assert.Throws<XunitException>(() => dict.Has().Value(3));
-        ex.Message.Is("Expected dict to have value 3 but found [[a, 1], [b, 2]]");
+        ex.Message.Is("Expected dict to have value 3 but found 2: [[a, 1], [b, 2]]");
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class WhenValue : Spec
     {
         var dict = Dict;
         var ex = Xunit.Assert.Throws<XunitException>(() => dict.Has().no.Value(1));
-        ex.Message.Is("Expected dict to not have value 1 but found [[a, 1], [b, 2]]");
+        ex.Message.Is("Expected dict to not have value 1 but found 2: [[a, 1], [b, 2]]");
     }
 
     [Fact]
