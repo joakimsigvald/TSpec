@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/Assets/">
+    <File Path="ARCHITECTURE-PLAN.md" />
     <File Path="CLAUDE.md" />
     <File Path="FOLLOW-UP-PLAN.md" />
     <File Path="icon.png" />
