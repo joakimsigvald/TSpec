@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Reflection.Metadata;
@@ -36,14 +37,19 @@ internal static class SourceLocations
     }
 
     private static DebugInformation? Open(Module module)
+        => TryOpenDebugInformation(module.Assembly.Location, out var provider) ? new(provider) : null;
+
+    /// The debug information beside an assembly, or embedded in it, read from the file rather than a
+    /// loaded module, so an assembly no test has loaded can be read too.
+    internal static bool TryOpenDebugInformation(
+        string assembly, [NotNullWhen(true)] out MetadataReaderProvider? provider)
     {
-        var path = module.Assembly.Location;
-        if (string.IsNullOrEmpty(path) || !File.Exists(path))
-            return null;
-        using var image = new PEReader(File.OpenRead(path));
-        return image.TryOpenAssociatedPortablePdb(path, File.OpenRead, out var provider, out _)
-            ? new(provider!)
-            : null;
+        provider = null;
+        if (string.IsNullOrEmpty(assembly) || !File.Exists(assembly))
+            return false;
+
+        using var image = new PEReader(File.OpenRead(assembly));
+        return image.TryOpenAssociatedPortablePdb(assembly, File.OpenRead, out provider, out _);
     }
 
     private sealed class DebugInformation(MetadataReaderProvider provider)

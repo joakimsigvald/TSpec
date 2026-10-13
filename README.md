@@ -966,8 +966,9 @@ every project in the solution:
 </ItemGroup>
 ```
 
-`Project.Dependencies` is read from that project's build: every project the build reaches except
-`Architecture.Spec` itself, each with the projects and packages it references directly.
+`Source.Projects` is read from that project's build: every project the build reaches, each with the
+projects and packages it references directly. `Architecture.Spec` itself is among them as
+`Source.Projects.CurrentSpec`, and the assertions below leave it out, since it references every project.
 
 Assert that the graph holds only what the architecture allows, and that no project references what it
 already reaches through another:
@@ -979,7 +980,7 @@ public class ProjectDependencies
 {
     [Fact]
     public void AreOnlyTheseAndNotRedundant()
-        => Project.Dependencies.Under("MyHotel").Is().Within(p => p switch
+        => Source.Projects.Under("MyHotel").Is().Within(p => p switch
         {
             "." => ["Entry", "Infra", "P:Scalar.AspNetCore"],
             "Entry" or "Core" => ["Contract"],
@@ -1006,6 +1007,42 @@ For rules on layers rather than projects, switch on a segment of the name: `p.Se
 first, `p.Segment(^1)` the last and `p.Segment(..2)` the first two joined by a dot, as in
 `p => p.Segment(0) switch { "Data" => ["Domain.*"], _ => [] }`.
 
-For a rule the assertions don't cover, read the graph and assert on what you compute:
-`Projects` lists every project and `graph["Data.Auth"]` gives what that project references
-directly, both named as the rules see them.
+For a rule the assertions don't cover, read the projects and assert on what you compute:
+`Source.Projects` lists every project and `Source.Projects["Data.Auth"]` gives one; each has its `Name`
+and `Dependencies` as the rules see them. A name that is no project of the build throws `SetupFailed`.
+
+A project's `Files` are those it compiles from its own folder, leaving out what the build
+generates under `obj/` and files linked in from elsewhere. A file has its `Path` in the project,
+written with `/`, its `Lines` and its `Raw` text, and a failure names it by project and path:
+`Data.Auth/Stores/UserStore.cs`. Its `Types` are those declared at its top level, a nested type
+staying with its owner, each with its `Name` (`Repository`), its `FullName` (`Data.Repository<T>`),
+`Namespace`, `Kind`, `IsPublic` and the `Files` it is declared in, several for a partial type; a
+failure names a type by its full name. A rule of one public type per file, adopted with today's
+breaches listed in `Allowed`:
+
+```csharp
+[Fact]
+public void Only_the_listed_files_declare_more_than_one_public_type()
+    => Source.Projects.SelectMany(project => project.Files)
+        .Select(file => (file.ToString(), Public: file.Types.Count(type => type.IsPublic)))
+        .Where(file => file.Public > 1)
+        .Are(Allowed);
+```
+
+A file is the same object every time, so an analysis TSpec doesn't have can be added to it as an
+extension member that keeps what it computes per file:
+
+```csharp
+static class RoslynFiles
+{
+    private static readonly ConditionalWeakTable<SourceFile, SyntaxTree> _trees = new();
+
+    extension(SourceFile file)
+    {
+        public SyntaxNode Root => _trees.GetValue(file, f => CSharpSyntaxTree.ParseText(f.Raw)).GetRoot();
+    }
+}
+```
+
+`Project.Dependencies` and its `ProjectGraph` are obsolete: `graph["X"]` there is
+`Source.Projects["X"].Dependencies`, and its `Projects` are names, the running spec project's left out.

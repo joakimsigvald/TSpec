@@ -5,13 +5,13 @@ namespace TSpec.Test.Architecture;
 
 public class WhenUnder : Spec
 {
-    private static readonly ProjectGraph _dependencies = new()
+    private static readonly SourceProjects _dependencies = new(new()
     {
         ["Host"] = ["Host.Entry", "HostTools"],
         ["Host.Entry"] = ["Host.Contract", "Other.Lib"],
         ["Host.Contract"] = [],
         ["HostTools"] = [],
-    };
+    });
 
     [Fact]
     public void ThenDropTheRootAndItsDotFromTheNamesUnderIt()
@@ -27,20 +27,20 @@ public class WhenUnder : Spec
 
     [Fact]
     public void ThenKeepPackageNamesAsTheyAre()
-        => EveryReferenceAsReported(new ProjectGraph { ["Host.Entry"] = ["P:Host.Logging"] }.Under("Host"))
+        => EveryReferenceAsReported(new SourceProjects(new() { ["Host.Entry"] = ["P:Host.Logging"] }).Under("Host"))
             .Does().Contain("\"Entry -> P:Host.Logging\"");
 
     [Fact]
     public void ThenListTheProjectsByTheirNamesUnderIt()
-        => _dependencies.Under("Host").Projects.Is().EqualTo([".", "/HostTools", "Contract", "Entry"]);
+        => _dependencies.Under("Host").Select(project => project.Name).Is().EqualTo([".", "/HostTools", "Contract", "Entry"]);
 
     [Fact]
-    public void ThenGiveTheReferencesOfAProjectNamedUnderIt()
-        => _dependencies.Under("Host")["Entry"].Is().EqualTo(["/Other.Lib", "Contract"]);
+    public void ThenGiveTheDependenciesOfAProjectNamedUnderIt()
+        => _dependencies.Under("Host")["Entry"].Dependencies.Is().EqualTo(["/Other.Lib", "Contract"]);
 
     [Fact]
     public void GivenARuleAllowsAPackageNamedLikeTheRoot_ThenCompletes()
-        => new ProjectGraph { ["Host.Entry"] = ["P:Host.Logging"] }.Under("Host").Is().Within(_ => ["P:Host.Logging"]);
+        => new SourceProjects(new() { ["Host.Entry"] = ["P:Host.Logging"] }).Under("Host").Is().Within(_ => ["P:Host.Logging"]);
 
     [Fact]
     public void GivenADependencyIsNotAllowed_ThenNameItAsTheSwitchDoes()
@@ -56,15 +56,15 @@ public class WhenUnder : Spec
     [Fact]
     public void GivenARedundantReference_ThenNameItAsTheSwitchDoes()
         => Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
-            () => new ProjectGraph { ["Host"] = ["Host.Entry", "Host.Contract"], ["Host.Entry"] = ["Host.Contract"] }
+            () => new SourceProjects(new() { ["Host"] = ["Host.Entry", "Host.Contract"], ["Host.Entry"] = ["Host.Contract"] })
                 .Under("Host").Is().not.Redundant())
             .Message.Does().EndWith("""but found 1: [". -> Contract"]""");
 
     [Fact]
     public void GivenTheRootsSpecProjectAlsoReachesTheRootThroughAnother_ThenItIsNotRedundant()
-        => new ProjectGraph { ["Host.Spec"] = ["Host", "Host.TestHost"], ["Host.TestHost"] = ["Host"] }
+        => new SourceProjects(new() { ["Host.Spec"] = ["Host", "Host.TestHost"], ["Host.TestHost"] = ["Host"] })
             .Under("Host").Is().not.Redundant();
 
-    private static string EveryReferenceAsReported(ProjectGraph dependencies)
+    private static string EveryReferenceAsReported(SourceProjects dependencies)
         => Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => dependencies.Is().Within(_ => [])).Message;
 }

@@ -5,11 +5,11 @@ namespace TSpec.Test.Architecture;
 
 public class WhenWithin : Spec
 {
-    private static readonly ProjectGraph _dependencies = new()
+    private static readonly SourceProjects _dependencies = new(new()
     {
         ["Entry"] = ["Contract"],
         ["Core"] = ["Contract"],
-    };
+    });
 
     [Fact]
     public void GivenEveryDependencyIsAllowed_ThenCompletes()
@@ -55,7 +55,7 @@ public class WhenWithin : Spec
 
     [Fact]
     public void GivenAnotherRuleAllowsTheDependency_ThenCompletes()
-        => new ProjectGraph { ["Entry"] = ["Common", "Contract"], ["Core"] = ["Common"] }.Is().Within(
+        => new SourceProjects(new() { ["Entry"] = ["Common", "Contract"], ["Core"] = ["Common"] }).Is().Within(
             p => p switch
             {
                 "Entry" => ["Contract"],
@@ -66,7 +66,7 @@ public class WhenWithin : Spec
     [Fact]
     public void GivenNoRuleAllowsTheDependency_ThenGetException()
     {
-        var dependencies = new ProjectGraph { ["Entry"] = ["Common", "Infra"] };
+        var dependencies = new SourceProjects(new() { ["Entry"] = ["Common", "Infra"] });
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
             () => dependencies.Is().Within(p => p switch { _ => [] }, _ => ["Common"]));
         ex.HasMessage("""Expected dependencies to be within what is allowed but found 1: ["Entry -> Infra"]""");
@@ -74,13 +74,13 @@ public class WhenWithin : Spec
 
     [Fact]
     public void GivenATargetEndingInStar_ThenAllowEveryNameItBegins()
-        => new ProjectGraph { ["Core"] = ["P:Microsoft.Extensions.Logging", "P:Microsoft.Extensions.Options"] }
+        => new SourceProjects(new() { ["Core"] = ["P:Microsoft.Extensions.Logging", "P:Microsoft.Extensions.Options"] })
             .Is().Within(_ => ["P:Microsoft.*"]);
 
     [Fact]
     public void GivenATargetEndingInDotStar_ThenNotAllowTheNameBeforeTheDot()
     {
-        var dependencies = new ProjectGraph { ["Core"] = ["P:Moq"] };
+        var dependencies = new SourceProjects(new() { ["Core"] = ["P:Moq"] });
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => dependencies.Is().Within(_ => ["P:Moq.*"]));
         ex.HasMessage("""Expected dependencies to be within what is allowed but found 1: ["Core -> P:Moq"]""");
     }
@@ -88,7 +88,7 @@ public class WhenWithin : Spec
     [Fact]
     public void GivenMoreDependenciesNotAllowedThanShown_ThenCountThemAll()
     {
-        var dependencies = new ProjectGraph { ["A"] = ["B", "C", "D", "E", "F", "G"] };
+        var dependencies = new SourceProjects(new() { ["A"] = ["B", "C", "D", "E", "F", "G"] });
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => dependencies.Is().Within(_ => []));
         ex.Message.Does().EndWith("""but found 6: ["A -> B", "A -> C", "A -> D", "A -> E", "A -> F", ...]""");
     }
@@ -96,10 +96,21 @@ public class WhenWithin : Spec
     [Fact]
     public void GivenALongName_ThenShowItInFull()
     {
-        var dependencies = new ProjectGraph { ["Capabilities.Auth"] = ["P:Microsoft.IdentityModel.JsonWebTokens"] };
+        var dependencies = new SourceProjects(new() { ["Capabilities.Auth"] = ["P:Microsoft.IdentityModel.JsonWebTokens"] });
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => dependencies.Is().Within(_ => []));
         ex.Message.Does().EndWith("""but found 1: ["Capabilities.Auth -> P:Microsoft.IdentityModel.JsonWebTokens"]""");
     }
+
+    /// The running spec project references every project to read the build: no rule need allow it.
+    [Fact]
+    public void GivenTheRunningSpecProject_ThenLeaveItOut()
+        => SourceProjects.Parse(MyHotelBuild.DepsJson, "MyHotel.Spec").Under("MyHotel").Is().Within(p => p switch
+        {
+            "." => ["Entry", "Infra", "P:Scalar.AspNetCore"],
+            "Entry" or "Core" => ["Contract"],
+            "Infra" => ["Core"],
+            _ => [],
+        }, _ => ["P:Microsoft.*"]);
 
     [Fact]
     public void GivenWithinAndNotRedundant_ThenCompletes()

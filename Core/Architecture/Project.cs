@@ -3,13 +3,12 @@ namespace TSpec.Architecture;
 /// <summary>
 /// The projects the running spec project was built with
 /// </summary>
+[Obsolete(Source.UseProjects)]
 public static class Project
 {
-    private static readonly Lazy<ProjectGraph> _dependencies = new(ProjectGraph.ReadBuilt);
-
     /// <summary>
-    /// Every project the running spec project reaches, but itself, with the projects and packages it
-    /// references directly, as its build resolved them
+    /// The projects, their indexer giving a project's direct references and their Projects their names
     /// </summary>
-    public static ProjectGraph Dependencies => _dependencies.Value;
+    [Obsolete(Source.UseProjects)]
+    public static ProjectGraph Dependencies => new(Source.Projects);
 }

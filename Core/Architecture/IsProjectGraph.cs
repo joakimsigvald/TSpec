@@ -6,7 +6,7 @@ namespace TSpec.Architecture;
 /// <summary>
 /// Continuation that allows assertions to be made on the dependencies between projects
 /// </summary>
-public record IsProjectGraph : Constraint<ProjectGraph, IsProjectGraph>
+public record IsProjectGraph : Constraint<SourceProjects, IsProjectGraph>
 {
     private IReadOnlyList<string> _found = [];
 
@@ -34,7 +34,7 @@ public record IsProjectGraph : Constraint<ProjectGraph, IsProjectGraph>
         return Assert(Ignore.Me, _ => Xunit.Assert.NotEmpty(_found)).And();
     }
 
-    private protected override string Found(ProjectGraph? actual, string? methodName) => Counted(_found.Count, _found);
+    private protected override string Found(SourceProjects? actual, string? methodName) => Counted(_found.Count, _found);
 }
 
 /// <summary>
@@ -50,8 +50,22 @@ public static class AssertionExtensionsArchitecture
     /// <param name="actualExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making assertions on the dependencies</returns>
     public static IsProjectGraph Is(
-        this ProjectGraph? actual,
+        this SourceProjects? actual,
         Ignore _ = default,
         [CallerArgumentExpression(nameof(actual))] string? actualExpr = null)
         => IsProjectGraph.Create(actual, actualExpr!);
+
+    /// <summary>
+    /// Get available assertions for the dependencies between projects
+    /// </summary>
+    /// <param name="actual">The dependencies to assert on</param>
+    /// <param name="_">Ignore this parameter — it exists only to distinguish overloads</param>
+    /// <param name="actualExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for making assertions on the dependencies</returns>
+    [Obsolete(Source.UseProjects)]
+    public static IsProjectGraph Is(
+        this ProjectGraph? actual,
+        Ignore _ = default,
+        [CallerArgumentExpression(nameof(actual))] string? actualExpr = null)
+        => IsProjectGraph.Create(actual?.Graph, actualExpr!);
 }

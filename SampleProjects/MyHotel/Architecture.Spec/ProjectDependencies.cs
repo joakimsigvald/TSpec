@@ -6,7 +6,7 @@ public class ProjectDependencies
 {
     [Fact]
     public void AreOnlyTheseAndNotRedundant()
-        => Project.Dependencies.Under("MyHotel").Is().Within(p => p switch
+        => Source.Projects.Under("MyHotel").Is().Within(p => p switch
         {
             "." => ["Entry", "Infra", "P:Scalar.AspNetCore"],
             "Entry" or "Core" => ["Contract"],

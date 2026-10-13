@@ -34,12 +34,12 @@ internal static class ProjectDirectory
         + $"build output at '{baseDirectory}'.";
 
     /// <summary>
-    /// The project most of the spec classes are written under. A file compiled in from somewhere
+    /// The project most of the given files are written under. A file compiled in from somewhere
     /// else — a linked file, a shared project — is outvoted rather than followed, and the
-    /// outermost project wins a tie so the answer does not turn on which class was read first.
+    /// outermost project wins a tie so the answer does not turn on which file was read first.
     /// </summary>
-    private static string? Holding(IReadOnlyCollection<string> specSources)
-        => specSources
+    internal static string? Holding(IReadOnlyCollection<string> sources)
+        => sources
             .Select(file => Above(Path.GetDirectoryName(file)))
             .OfType<string>()
             .GroupBy(project => project, StringComparer.OrdinalIgnoreCase)
