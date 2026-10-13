@@ -1,6 +1,6 @@
 # TSpec — Agent Reference
 
-Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 4.2).
+Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 4.3).
 TSpec is a fluent Given–When–Then specification framework for .NET on top of xUnit v3.
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec#readme).
 
@@ -119,7 +119,7 @@ Works standalone in plain xUnit tests too.
 - Numeric: `Is().GreaterThan(x)`, `LessThan(x)`, `Around(x, tolerance)`, `Even()`, `OneOf(values)`, `True()`, `False()`.
 - Strings: `Is().Like("abc")` (case/whitespace-insensitive), `Empty()`, `NullOrEmpty()`, `NullOrWhitespace()`; `Does().Contain/StartWith/EndWith(s)` (optional `StringComparison`), `Does().Match(pattern)`; `Has().Length(n)`, `Has().Length().AtLeast/AtMost/InRange(...)`.
 - Time: `Is().Before/After(t)`, `CloseTo(t, tolerance)`; TimeSpan `Positive()`/`Negative()`.
-- Collections: `Is().EqualTo(list)` (same order), `Like(list)` (any order), `SameAs(list)`, `Empty()`, `Distinct()`; `Does().Contain(x)`; `Has().Count(n)`, `Count().AtLeast/AtMost/InRange(...)`, `Count(predicate).At(n)`, `Order().Ascending()/Descending()`, `Order(it => it.Key)`, `All/Some/None(predicate)`, `OneItem()` … `FiveItems()` (asserts the count and returns the items: `list.Has().OneItem().that.Age.Is(3)`).
+- Collections: `Is().EqualTo(list)` (same order), `Are(list)` or `Is().Like(list)` (any order, nothing more), `SameAs(list)`, `Empty()`, `Distinct()`; `Does().Contain(x)`; `Has().Count(n)`, `Count().AtLeast/AtMost/InRange(...)`, `Count(predicate).At(n)`, `Order().Ascending()/Descending()`, `Order(it => it.Key)`, `All/Some/None(predicate)`, `OneItem()` … `FiveItems()` (asserts the count and returns the items: `list.Has().OneItem().that.Age.Is(3)`).
 - Dictionaries: `Has().Key(k)`, `Has().Value(v)`, `Has().no.Key(k)`, `Has(key).that.Is(v)`. These bind to `IReadOnlyDictionary`; a variable declared `IDictionary` gets only the collection assertions.
 - `that` after a negated assertion (`not.OneItem().that`) throws `SetupFailed`.
 - **No trainwrecks in `Then` subjects**: `Then(x.A.B)` throws `SetupFailed`; write `Then(x).A.B`.

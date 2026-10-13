@@ -17,13 +17,17 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>4.2.1</PackageVersion>
+		<PackageVersion>4.3.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
+			NEW
+			* Are for collections: items.Are(expected) asserts the same items in any order, and nothing more
 			IMPROVED
 			* A failure counts the items of a collection, Empty() included
+			FIXED
+			* EquivalentTo and Like passed when the actual held more than expected; now they fail
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

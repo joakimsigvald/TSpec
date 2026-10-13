@@ -734,6 +734,7 @@ assertions (such as `Does().Contain`) work even on infinite sequences.
 | EqualTo — equal elements in the same order | `list.Is().EqualTo(otherList)` |
 | Like / EquivalentTo — equal elements, order may differ | `list.Is().Like(otherList)` |
 | | `list.Is().EquivalentTo(otherList)` |
+| | `list.Are(otherList)` |
 | SameAs — same reference | `list.Is().SameAs(otherList)` |
 | Empty | `list.Is().Empty()` |
 | Distinct — all elements are different, optionally by a given property | `list.Is().Distinct()` |

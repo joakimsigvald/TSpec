@@ -10,6 +10,7 @@
 | Id | Description | Effort | Value | Worth |
 |---|---|---|---|---|
 | B3 | **`Like`, `LowerCase()` and `UpperCase()` use the machine's culture.** Decide whether they mean the user's culture or invariant. | Small | Small | 0 |
+| B4 | **A lenient `Are`.** `Are` and `EquivalentTo` are exact; a lenient form beside them could read well, but its slack is ambiguous: xUnit's non-strict lets the actual hold more, while `guests.Are(invited)` reads as the actual holding less (an invited guest who did not come). | Small | Small | 0 |
 
 ## C. Arrange
 

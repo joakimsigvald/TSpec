@@ -26,6 +26,23 @@ public static class AssertionExtensionsEnumerable
         => actual.Is(actualExpr: actualExpr!).SameAs(expected, expectedExpr!);
 
     /// <summary>
+    /// Verify that the enumerable holds the expected items, in any order and nothing more
+    /// </summary>
+    /// <typeparam name="TItem">The type of the elements in the enumerable</typeparam>
+    /// <param name="actual">The value to assert on</param>
+    /// <param name="expected">The expected items</param>
+    /// <param name="actualExpr">Captured automatically by the compiler — do not provide</param>
+    /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for making further assertions on the value</returns>
+    public static ContinueWith<IsEnumerableContinuation<TItem>> Are<TItem>(
+        this IEnumerable<TItem>? actual,
+        IEnumerable<TItem> expected,
+        [CallerArgumentExpression(nameof(actual))] string? actualExpr = null,
+        [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
+        => (actual.Is(actualExpr: actualExpr) with { AuxiliaryVerb = "are" })
+            .EquivalentTo(expected, expectedExpr, methodName: string.Empty);
+
+    /// <summary>
     /// Get available assertions for the given enumerable
     /// </summary>
     /// <typeparam name="TItem">The type of the elements in the enumerable</typeparam>

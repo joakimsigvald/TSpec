@@ -79,7 +79,7 @@ public record IsEnumerable<TItem> : EnumerableConstraint<TItem, IsEnumerableCont
     public ContinueWith<IsEnumerableContinuation<TItem>> EqualTo(
         IEnumerable<TItem> expected,
         [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
-        => Assert(Describe(expected), actual => Xunit.Assert.Equal(expected, actual), expectedExpr!).And();
+        => Assert(Describe(expected), actual => Xunit.Assert.Equal(expected, actual), expectedExpr).And();
 
     /// <summary>
     /// Asserts that both enumerables has equal elements in any order
@@ -90,7 +90,7 @@ public record IsEnumerable<TItem> : EnumerableConstraint<TItem, IsEnumerableCont
     public ContinueWith<IsEnumerableContinuation<TItem>> Like(
         IEnumerable<TItem> expected,
         [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
-        => Assert(Describe(expected), actual => Xunit.Assert.Equivalent(expected, actual), expectedExpr!).And();
+        => EquivalentTo(expected, expectedExpr, nameof(Like));
 
     /// <summary>
     /// Asserts that both enumerables has equal elements in any order
@@ -101,7 +101,13 @@ public record IsEnumerable<TItem> : EnumerableConstraint<TItem, IsEnumerableCont
     public ContinueWith<IsEnumerableContinuation<TItem>> EquivalentTo(
         IEnumerable<TItem> expected,
         [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
-        => Assert(Describe(expected), actual => Xunit.Assert.Equivalent(expected, actual), expectedExpr!).And();
+        => EquivalentTo(expected, expectedExpr, nameof(EquivalentTo));
+
+    // The method name is what the specification reads after the verb: Are(expected) leaves it out.
+    internal ContinueWith<IsEnumerableContinuation<TItem>> EquivalentTo(
+        IEnumerable<TItem> expected, string? expectedExpr, string methodName)
+        => Assert(Describe(expected), actual => StrictlyEquivalent(expected, actual), expectedExpr, methodName: methodName)
+            .And();
 
     /// <summary>
     /// Asserts that both enumerables are the same instance
@@ -112,7 +118,7 @@ public record IsEnumerable<TItem> : EnumerableConstraint<TItem, IsEnumerableCont
     public ContinueWith<IsEnumerableContinuation<TItem>> SameAs(
         IEnumerable<TItem>? expected,
         [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
-        => Assert(Describe(expected), actual => Xunit.Assert.Same(expected, actual), expectedExpr!, methodName: string.Empty).And();
+        => Assert(Describe(expected), actual => Xunit.Assert.Same(expected, actual), expectedExpr, methodName: string.Empty).And();
 
     internal override IsEnumerableContinuation<TItem> Continue() => Create(Actual, ActualExpr);
 }

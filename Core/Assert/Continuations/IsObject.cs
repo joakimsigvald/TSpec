@@ -100,7 +100,7 @@ public record IsObject : Constraint<object, IsObject>
     public ContinueWith<IsObject> Like(
         object expected,
         [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
-        => Assert(Describe(expected), actual => Equivalent(expected, actual), expectedExpr!).And();
+        => Assert(Describe(expected), actual => StrictlyEquivalent(expected, actual), expectedExpr!).And();
 
     /// <summary>
     /// Asserts that the object is equivalent to the given object with respect to public fields and properties, but ignoring type
@@ -113,5 +113,5 @@ public record IsObject : Constraint<object, IsObject>
     public ContinueWith<IsObject> EquivalentTo(
         object expected,
         [CallerArgumentExpression(nameof(expected))] string? expectedExpr = null)
-        => Assert(Describe(expected), actual => Equivalent(expected, actual), expectedExpr!).And();
+        => Assert(Describe(expected), actual => StrictlyEquivalent(expected, actual), expectedExpr!).And();
 }
