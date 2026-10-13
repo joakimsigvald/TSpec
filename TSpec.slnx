@@ -5,6 +5,7 @@
     <File Path="icon.png" />
     <File Path="README.md" />
     <File Path="TSpec-agent-reference.md" />
+    <File Path="TSpec-vision.md" />
   </Folder>
   <Folder Name="/SampleProjects/" />
   <Folder Name="/SampleProjects/MyHotel/">
