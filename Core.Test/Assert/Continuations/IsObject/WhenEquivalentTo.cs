@@ -9,6 +9,10 @@ public class WhenEquivalentTo : Spec
         => new MyRecord("abc").Is().EquivalentTo(new MyOtherRecord("abc")).and.not.Null();
 
     [Fact]
+    public void GivenTheActualHasMoreProperties_ThenCompletes()
+        => new MyRecordWithAge("abc", 3).Is().EquivalentTo(new MyOtherRecord("abc"));
+
+    [Fact]
     public void GivenNotEquivalentTo_ThenGetException()
     {
         var actual = new MyRecord("abc");

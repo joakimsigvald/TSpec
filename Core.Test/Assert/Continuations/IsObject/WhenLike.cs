@@ -9,6 +9,10 @@ public class WhenLike : Spec
         => new MyRecord("abc").Is().Like(new MyOtherRecord("abc")).and.not.Null();
 
     [Fact]
+    public void GivenTheActualHasMoreProperties_ThenCompletes()
+        => new MyRecordWithAge("abc", 3).Is().Like(new MyOtherRecord("abc"));
+
+    [Fact]
     public void GivenNotLike_ThenGetException()
     {
         var actual = new MyRecord("abc");

@@ -654,7 +654,7 @@ Values of any type can be verified with the extension methods `Is` and `Has`
 |---|---|
 | Equal | `Result.Is(3)` |
 | | `Result.Is().EqualTo(3)` |
-| Equivalent — structural equality, for objects | `Result.Is().Like(new MyObject {Id = 3})` |
+| Equivalent — structural, for objects; the actual may have more properties | `Result.Is().Like(new MyObject {Id = 3})` |
 | | `Result.Is().EquivalentTo(new MyObject {Id = 3})` |
 | Not equal | `Result.Is().Not(3)` |
 | SameAs — same reference | `Result.Is().SameAs(The<Order>())` |

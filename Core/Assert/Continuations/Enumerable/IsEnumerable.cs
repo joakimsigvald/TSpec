@@ -137,6 +137,10 @@ public record IsEnumerable<TItem> : EnumerableConstraint<TItem, IsEnumerableCont
         return difference.IsEmpty ? base.Outcome(actual, methodName) : difference.ToString();
     }
 
+    // Equivalent is the same items in any order and nothing more; xUnit's default lets the actual hold more.
+    private static void StrictlyEquivalent(object? expected, object? actual)
+        => Xunit.Assert.Equivalent(expected, actual, strict: true);
+
     /// <summary>
     /// Asserts that both enumerables are the same instance
     /// </summary>

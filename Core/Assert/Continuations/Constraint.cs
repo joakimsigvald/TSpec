@@ -146,10 +146,6 @@ public abstract record Constraint<TActual, TContinuation>
             assert(actual);
         };
 
-    // Equivalent is the same items in any order and nothing more; xUnit's default lets the actual hold more.
-    private protected static void StrictlyEquivalent(object? expected, object? actual)
-        => Xunit.Assert.Equivalent(expected, actual, strict: true);
-
     private protected Action<TActual?> AssertNot(Action<TActual?> assert)
         => actual =>
         {
