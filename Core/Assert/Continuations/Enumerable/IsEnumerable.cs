@@ -9,6 +9,8 @@ namespace TSpec.Assert.Continuations.Enumerable;
 /// <typeparam name="TItem">The type of the elements in the enumerable</typeparam>
 public record IsEnumerable<TItem> : EnumerableConstraint<TItem, IsEnumerableContinuation<TItem>>
 {
+    private ComparedItems<TItem>? _compared;
+
     /// <summary>
     /// Asserts that the enumerable is empty
     /// </summary>
@@ -106,8 +108,34 @@ public record IsEnumerable<TItem> : EnumerableConstraint<TItem, IsEnumerableCont
     // The method name is what the specification reads after the verb: Are(expected) leaves it out.
     internal ContinueWith<IsEnumerableContinuation<TItem>> EquivalentTo(
         IEnumerable<TItem> expected, string? expectedExpr, string methodName)
-        => Assert(Describe(expected), actual => StrictlyEquivalent(expected, actual), expectedExpr, methodName: methodName)
+    {
+        _compared = Actual is null ? null : Read(expected, expectedExpr);
+        return Assert(
+                expectedExpr.Describe(),
+                NotNullAnd(_ => StrictlyEquivalent(_compared!.Expected, _compared.Actual)),
+                expectedExpr,
+                methodName: methodName)
             .And();
+    }
+
+    private ComparedItems<TItem> Read(IEnumerable<TItem> expected, string? expectedExpr)
+    {
+        if (!ComparedItems<TItem>.TryRead(expected, Actual!, out var compared))
+            throw new SetupFailed(
+                $"Neither {ActualExpr} nor {expectedExpr.Describe()} is a collection, so either may never end: make one of them a list or an array");
+
+        return compared;
+    }
+
+    // Where no item differs, as when not fails, the failure shows what it found.
+    private protected override string Outcome(IEnumerable<TItem>? actual, string? methodName)
+    {
+        if (_compared is null)
+            return base.Outcome(actual, methodName);
+
+        var difference = _compared.Difference(StrictlyEquivalent);
+        return difference.IsEmpty ? base.Outcome(actual, methodName) : difference.ToString();
+    }
 
     /// <summary>
     /// Asserts that both enumerables are the same instance

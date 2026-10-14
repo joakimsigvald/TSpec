@@ -193,7 +193,7 @@ public abstract record Constraint<TActual, TContinuation>
             var holds = Holds(out var xuex);
             State |= holds ? ConstraintState.Succeeded : ConstraintState.Failed;
             if (!holds)
-                Failures = [.. Failures, new(GetExpectation(), Found(Actual, methodName), xuex)];
+                Failures = [.. Failures, new(GetExpectation(), Outcome(Actual, methodName), xuex)];
         }
 
         bool Holds(out Xunit.Sdk.XunitException? xuex)
@@ -222,6 +222,8 @@ public abstract record Constraint<TActual, TContinuation>
     }
 
     private protected static string Describe(TActual? value) => value.FormatValue();
+
+    private protected virtual string Outcome(TActual? actual, string? methodName) => $" but found {Found(actual, methodName)}";
 
     private protected virtual string Found(TActual? actual, string? methodName) => actual.FormatValue();
 

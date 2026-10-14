@@ -78,7 +78,7 @@ internal static class ObjectExtensions
         return $"[{string.Join(", ", elements)}]";
     }
 
-    private static string FormatElement(object? element)
+    internal static string FormatElement(this object? element)
         => element switch
         {
             null => "null",

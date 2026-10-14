@@ -25,12 +25,16 @@
 			NEW
 			* Are for collections: items.Are(expected) asserts the same items in any order, and nothing more
 			* Source.Projects for custom architecture rules: each project's dependencies and source files, with their lines and the types they declare
-			OBSOLETE
-			* Project.Dependencies: Source.Projects takes its place, and graph["X"] is Source.Projects["X"].Dependencies
 			IMPROVED
 			* A failure counts the items of a collection, Empty() included
+			* A failed Are, Like or EquivalentTo on a collection names the missing and the extra items
 			FIXED
 			* EquivalentTo and Like passed when the actual held more than expected; now they fail
+			* Like and EquivalentTo never returned on an endless sequence compared with a collection
+			OBSOLETE
+			* Project.Dependencies: Source.Projects takes its place, and graph["X"] is Source.Projects["X"].Dependencies
+			BREAKING - a passing test can turn red on upgrade
+			* Like and EquivalentTo fail at setup when neither side is a collection, since either may never end
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

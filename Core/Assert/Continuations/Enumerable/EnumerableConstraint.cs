@@ -15,7 +15,7 @@ public abstract record EnumerableConstraint<TItem, TContinuation> : Constraint<I
 
     // A deferred sequence is counted only where the assertion has counted it: an infinite one never ends.
     private static bool IsCounted(IEnumerable<TItem> actual, string? methodName)
-        => actual is ICollection<TItem> or IReadOnlyCollection<TItem> || _methodsWithCount.Contains(methodName);
+        => actual.IsCollection() || _methodsWithCount.Contains(methodName);
 
     /// <summary>
     /// A named value says both what it is called and what it was: the name alone would not say

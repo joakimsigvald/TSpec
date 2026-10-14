@@ -100,9 +100,13 @@ public static class AssertionExtensionsEnumerable
     /// elements, while short-circuiting assertions still work on infinite sequences.
     /// Already-materialized collections are passed through by reference, preserving SameAs semantics.
     private static IEnumerable<TItem>? Stabilize<TItem>(IEnumerable<TItem>? actual)
-        => actual is null or ICollection<TItem> or IReadOnlyCollection<TItem>
+        => actual is null || actual.IsCollection()
             ? actual
             : new CachedSequence<TItem>(actual);
+
+    // Any other sequence may be deferred, and may never end.
+    internal static bool IsCollection<TItem>(this IEnumerable<TItem> items)
+        => items is ICollection<TItem> or IReadOnlyCollection<TItem>;
 
     private sealed class CachedSequence<TItem>(IEnumerable<TItem> source) : IEnumerable<TItem>
     {
