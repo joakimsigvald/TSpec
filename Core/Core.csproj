@@ -41,8 +41,8 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Castle.Core" Version="5.2.1" />
-		<PackageReference Include="xunit.v3.extensibility.core" Version="4.0.1" />
-		<PackageReference Include="xunit.v3.assert" Version="4.0.1" />
+		<PackageReference Include="xunit.v3.extensibility.core" Version="4.0.2" />
+		<PackageReference Include="xunit.v3.assert" Version="4.0.2" />
 		<None Include="..\README.md" Pack="true" PackagePath="\" />
 		<None Include="..\TSpec-agent-reference.md" Pack="true" PackagePath="\" />
 		<None Include="..\icon.png" Pack="true" PackagePath="\" />

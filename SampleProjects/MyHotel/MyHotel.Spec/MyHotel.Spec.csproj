@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
@@ -16,8 +16,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="Castle.Core" Version="5.2.1" />
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
-		<PackageReference Include="xunit.v3" Version="4.0.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.13" />
+		<PackageReference Include="xunit.v3" Version="4.0.2" />
 	</ItemGroup>
 
 	<!-- TSpec's working copy, built into ..\lib, until 4.1.0 is published with the Architecture namespace. -->

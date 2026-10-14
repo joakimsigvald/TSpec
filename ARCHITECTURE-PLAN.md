@@ -41,31 +41,6 @@ internal static class M5Files
 
 ## Steps, in order
 
-### 2. A failed `Are` names what differs
-
-An allow list asserted with `Are` fails with the entries that are wrong, not with the first five of each side.
-
-```text
-Today, with one of M5's 63 NestingDepth entries changed from 9 to 8:
-Expected Sources.Files.Select(...).Where(file => file.Depth > Limit) to be [(Application.Spec/Assistant/
-AssistantContextBuilder/WhenCurrentReport.cs, 8), ..., ...] but found [(Application/Assistant/Assistant.cs, 7), ...]
-```
-
-- *Requirement:* a failed `Are` says which items it found that were not expected, and which expected items
-  it did not find.
-- *Motivation:* the M5 trial (2026-10-13) moved `NestingDepth` (63 entries) and `TypesPerFile` (19) onto
-  `Are`: exact rather than a ceiling, and the facts that each listed file still exists went. But the failure
-  lists at most five items of each side, cut with "...", so the wrong entry is nowhere in it; and it gives
-  no count, since the actual is a deferred `Where`. The rule it replaced said
-  `Core.Spec/.../WhenCompileAnXAxis.cs 9 levels, 8 allowed`. An allow list is where `Are` earns its place,
-  and it is long by nature.
-- *Solution:* the failure names the unexpected and the missing items, as many as there are.
-- *Design:* in the failure `Are` shares with `Is().Like` and `EquivalentTo`, counting duplicates, so an item
-  listed twice and found once is one missing. Tests in `WhenAre`. A rendering change: before and after for
-  the PO first.
-- *To decide:* the wording; whether the two sides are still listed; whether `Like` and `EquivalentTo` change
-  with it; whether a deferred actual is counted, since `Are` has enumerated it by then.
-
 ### 3. Every use of a type, and the file that writes it
 
 Which types each file's code uses — what steps 4–6 are built on.
