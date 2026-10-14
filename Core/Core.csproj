@@ -33,6 +33,8 @@
 			* Like and EquivalentTo never returned on an endless sequence compared with a collection
 			OBSOLETE
 			* Project.Dependencies: Source.Projects takes its place, and graph["X"] is Source.Projects["X"].Dependencies
+			CHANGED
+			* Requires xunit.v3 4.0.2 or later
 			BREAKING - a passing test can turn red on upgrade
 			* Like and EquivalentTo fail at setup when neither side is a collection, since either may never end
 		</PackageReleaseNotes>
