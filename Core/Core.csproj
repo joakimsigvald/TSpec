@@ -17,13 +17,17 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>4.3.2</PackageVersion>
+		<PackageVersion>5.0.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			FIXED
-			* A test name written as a sentence, A_method_takes_two_arguments, reads as one; only an underscore before a capital starts a new clause
+			BREAKING
+			* A project's Files, SourceFile, DeclaredType and DeclaredKind moved to the package TSpec.Architecture.CSharp, in its namespace of the same name
+			NEW
+			* SourceProject.AssemblyName, in full where Name is shortened by a root
+			* An extension package can throw SetupFailed
+			* TSpec.Extensibility.Build, for an extension package: a project's debug information and the folder its sources are in
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

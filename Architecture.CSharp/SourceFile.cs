@@ -1,4 +1,4 @@
-namespace TSpec.Architecture;
+namespace TSpec.Architecture.CSharp;
 
 /// <summary>
 /// A source file of a project, named by its project and its path in it
@@ -12,13 +12,9 @@ public sealed class SourceFile
     {
         Project = project;
         Path = path;
-        Location = location;
         _raw = new(() => File.ReadAllText(location));
         _lines = new(() => LinesOf(Raw));
     }
-
-    // Where the debug information says the file is, which is how its types find it.
-    internal string Location { get; }
 
     /// <summary>
     /// The project the file is compiled into, named as the rules see it

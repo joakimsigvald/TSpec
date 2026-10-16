@@ -1,5 +1,3 @@
-using TSpec.Architecture.Internal;
-
 namespace TSpec.Architecture;
 
 /// <summary>
@@ -7,13 +5,11 @@ namespace TSpec.Architecture;
 /// </summary>
 public sealed class SourceProject
 {
-    private readonly string _assembly;
-
-    internal SourceProject(string name, IReadOnlyList<string> dependencies, string assembly)
+    internal SourceProject(string name, IReadOnlyList<string> dependencies, string assemblyName)
     {
         Name = name;
         Dependencies = dependencies;
-        _assembly = assembly;
+        AssemblyName = assemblyName;
     }
 
     /// <summary>
@@ -27,11 +23,9 @@ public sealed class SourceProject
     public IReadOnlyList<string> Dependencies { get; }
 
     /// <summary>
-    /// The source files the project compiles from its own folder, in the ordinal order of their paths
-    /// in it: what the build generates under obj/, and a file linked in from elsewhere, are left out.
-    /// The same files every time, so an extension member can keep what it computes per file
+    /// The name of the assembly the project builds, in full where <see cref="Name"/> is shortened by a root
     /// </summary>
-    public IReadOnlyList<SourceFile> Files => ProjectSources.Of(Name, _assembly);
+    public string AssemblyName { get; }
 
     /// <summary>
     /// The project as a failure names it: its name

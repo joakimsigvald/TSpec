@@ -1,6 +1,6 @@
 # TSpec — Agent Reference
 
-Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 4.3).
+Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 5.0).
 TSpec is a fluent Given–When–Then specification framework for .NET on top of xUnit v3.
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec#readme).
 
@@ -184,7 +184,7 @@ public void AreOnlyTheseAndNotRedundant()
 - Rules add up: a dependency passes if any rule allows it; `_ => [...]` applies to every project. A trailing `*` matches the rest (`P:Moq.*` does not match `P:Moq`). `Within` allows, never requires.
 - `not.Redundant()`: no project references a project it already reaches through another; packages, and `A.B -> A` (`Core.Spec -> Core`), are exempt.
 - Layer rules: switch on `p.Segment(0)` (also `Segment(^1)`, `Segment(..2)`).
-- Custom rules: `Source.Projects` (every project) and `Source.Projects["X"]` (one; an unknown name throws `SetupFailed`) give `SourceProject`s with `Name` and `Dependencies` (direct references), named as the rules see them, and `Files`: the files X compiles (not `obj/` or linked ones), each with `Path` in the project (with `/`), `Lines`, `Raw` and `Types` (declared at its top level: `Name` without type parameters, `FullName` with namespace and type parameters, `Namespace`, `Kind` as `DeclaredKind`, `IsPublic`, `Files`, several for a partial type); a failure names a file `X/Path`, a type by its full name. The same file objects every time: add an analysis as a C# extension member that caches per file in a `ConditionalWeakTable<SourceFile, T>`. `Project.Dependencies`/`ProjectGraph` are obsolete: their `graph["X"]` is `Source.Projects["X"].Dependencies`.
+- Custom rules: `Source.Projects` (every project) and `Source.Projects["X"]` (one; an unknown name throws `SetupFailed`) give `SourceProject`s with `Name` and `Dependencies` (direct references), named as the rules see them. The package `TSpec.Architecture.CSharp` (`using TSpec.Architecture.CSharp;`) adds `Files`: the files X compiles (not `obj/` or linked ones), each with `Path` in the project (with `/`), `Lines`, `Raw` and `Types` (declared at its top level: `Name` without type parameters, `FullName` with namespace and type parameters, `Namespace`, `Kind` as `DeclaredKind`, `IsPublic`, `Files`, several for a partial type); a failure names a file `X/Path`, a type by its full name. The same file objects every time: add an analysis as a C# extension member that caches per file in a `ConditionalWeakTable<SourceFile, T>`. `Project.Dependencies`/`ProjectGraph` are obsolete: their `graph["X"]` is `Source.Projects["X"].Dependencies`.
 
 ## Complete examples
 

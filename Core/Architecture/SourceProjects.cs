@@ -128,8 +128,7 @@ public sealed class SourceProjects : IReadOnlyList<SourceProject>
         => [.. _references.Keys.Select(ProjectOf).OrderBy(project => project.Name, StringComparer.Ordinal)];
 
     private SourceProject ProjectOf(string name)
-        => new(AsWritten(name), [.. ReferencesOf(name).Select(AsWritten).Order(StringComparer.Ordinal)],
-            Path.Combine(AppContext.BaseDirectory, $"{name}.dll"));
+        => new(AsWritten(name), [.. ReferencesOf(name).Select(AsWritten).Order(StringComparer.Ordinal)], name);
 
     private string FullName(string written)
         => _root is null || IsPackage(written) ? written

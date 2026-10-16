@@ -1,4 +1,4 @@
-namespace TSpec.Architecture;
+namespace TSpec.Architecture.CSharp;
 
 /// <summary>
 /// What a declared type is

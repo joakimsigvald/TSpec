@@ -1,4 +1,4 @@
-namespace TSpec.Test.Architecture.Declared;
+namespace TSpec.Architecture.CSharp.Test.Declared;
 
 public partial class APartial
 {

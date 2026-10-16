@@ -1,8 +1,8 @@
-using TSpec.Architecture.Internal;
+using TSpec.Architecture.CSharp.Internal;
 using TSpec.Assert;
 using TSpec.Test.Internal.Document;
 
-namespace TSpec.Test.Architecture.Internal;
+namespace TSpec.Architecture.CSharp.Test.Internal;
 
 /// <summary>
 /// A project's sources picked from the files its debug information lists, which name the whole
@@ -49,13 +49,4 @@ public class WhenReadProjectSources : Spec
         => Xunit.Assert.Throws<SetupFailed>(() => ProjectSources.From("Entry", ["/_/Entry/RoomEndpoints.cs"]))
             .Message.Is("TSpec could not read the sources of 'Entry': they are not where its debug information says, "
                 + "as when a build maps source paths.");
-
-    [Fact]
-    public void GivenNoDebugInformation_ThenRefuse()
-    {
-        using var project = new TempProject("Entry");
-        var assembly = Path.Combine(project.BaseDirectory, "Entry.dll");
-        Xunit.Assert.Throws<SetupFailed>(() => ProjectSources.Of("Entry", assembly))
-            .Message.Is($"TSpec could not read the sources of 'Entry': there is no debug information for '{assembly}'.");
-    }
 }

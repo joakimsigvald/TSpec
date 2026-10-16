@@ -7,7 +7,11 @@ namespace TSpec;
 /// </summary>
 public class SetupFailed : ApplicationException
 {
-    internal SetupFailed(string message) : base(message)
+    /// <summary>
+    /// A setup the test cannot run with, such as a build an extension package cannot read
+    /// </summary>
+    /// <param name="message">What is wrong with the setup, and how to put it right</param>
+    public SetupFailed(string message) : base(message)
         => SpecificationContext.NoteSetupFailureInCurrent();
 
     internal SetupFailed(string message, Exception innerException)

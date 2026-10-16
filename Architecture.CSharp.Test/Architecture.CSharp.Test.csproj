@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<AssemblyName>TSpec.Architecture.CSharp.Test</AssemblyName>
+		<RootNamespace>TSpec.Architecture.CSharp.Test</RootNamespace>
+		<OutputType>Exe</OutputType>
+		<UseAppHost>true</UseAppHost>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="xunit.v3" Version="4.0.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Architecture.CSharp\Architecture.CSharp.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Include="..\Core.Test\Internal\Document\TempProject.cs" Link="TempProject.cs" />
+	</ItemGroup>
+
+</Project>

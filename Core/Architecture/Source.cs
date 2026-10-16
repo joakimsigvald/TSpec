@@ -12,7 +12,7 @@ public static class Source
 
     /// <summary>
     /// Every project the running spec project was built with, itself too, each with the projects and
-    /// packages it references directly, as the build resolved them, and the files it compiles
+    /// packages it references directly, as the build resolved them
     /// </summary>
     public static SourceProjects Projects => _projects.Value;
 }

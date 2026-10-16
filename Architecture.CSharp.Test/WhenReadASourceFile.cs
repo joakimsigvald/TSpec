@@ -2,7 +2,7 @@ using TSpec.Architecture;
 using TSpec.Assert;
 using TSpec.Test.Internal.Document;
 
-namespace TSpec.Test.Architecture;
+namespace TSpec.Architecture.CSharp.Test;
 
 public class WhenReadASourceFile : Spec
 {

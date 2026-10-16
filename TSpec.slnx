@@ -23,6 +23,8 @@
   </Folder>
   <Project Path="Analyzers.Test/Analyzers.Test.csproj" />
   <Project Path="Analyzers/Analyzers.csproj" />
+  <Project Path="Architecture.CSharp.Test/Architecture.CSharp.Test.csproj" />
+  <Project Path="Architecture.CSharp/Architecture.CSharp.csproj" />
   <Project Path="Core.Test/Core.Test.csproj" />
   <Project Path="Core/Core.csproj" />
 </Solution>

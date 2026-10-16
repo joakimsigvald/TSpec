@@ -41,6 +41,11 @@ Once it passes, refactor what you touched to clean code, keep the suite green, t
 - The library multi-targets net8.0/net9.0/net10.0 — run the full suite on all three before a release.
 - `dotnet test Analyzers.Test` runs the specs of the analyzers shipped in the package, on net10.0
   only: they run inside the compiler, so the test's runtime makes no difference.
+- `dotnet test Architecture.CSharp.Test` runs the specs of the package `TSpec.Architecture.CSharp` on
+  all three frameworks. The package reaches TSpec through its public API only, as any extension package
+  would — never `InternalsVisibleTo`; what it lacks, TSpec adds as public API, in `TSpec.Extensibility`
+  where only an extension package needs it. It references TSpec from NuGet, so an extension point it
+  needs is released in TSpec first.
 
 ## Releasing
 
@@ -48,6 +53,11 @@ Once it passes, refactor what you touched to clean code, keep the suite green, t
    reference's "covers TSpec x.y" line — it ships inside the package and had gone four minor
    versions stale by 1.5.0.
 2. Run the full suite on all three target frameworks.
+
+`TSpec.Architecture.CSharp` is released on its own, slower cadence and version: update the same two
+properties in `Architecture.CSharp/Architecture.CSharp.csproj` and run its suite on all three
+frameworks. TSpec keeps its public API, `TSpec.Extensibility` included, stable within a major
+version, or the package breaks on a TSpec minor.
 
 ## MyHotel
 

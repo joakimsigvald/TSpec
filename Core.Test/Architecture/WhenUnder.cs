@@ -39,6 +39,10 @@ public class WhenUnder : Spec
         => _dependencies.Under("Host")["Entry"].Dependencies.Is().EqualTo(["/Other.Lib", "Contract"]);
 
     [Fact]
+    public void ThenGiveTheAssemblyOfAProjectNamedUnderIt()
+        => _dependencies.Under("Host")["Entry"].AssemblyName.Is("Host.Entry");
+
+    [Fact]
     public void GivenARuleAllowsAPackageNamedLikeTheRoot_ThenCompletes()
         => new SourceProjects(new() { ["Host.Entry"] = ["P:Host.Logging"] }).Under("Host").Is().Within(_ => ["P:Host.Logging"]);
 

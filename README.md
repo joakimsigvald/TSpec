@@ -1011,8 +1011,9 @@ For a rule the assertions don't cover, read the projects and assert on what you 
 `Source.Projects` lists every project and `Source.Projects["Data.Auth"]` gives one; each has its `Name`
 and `Dependencies` as the rules see them. A name that is no project of the build throws `SetupFailed`.
 
-A project's `Files` are those it compiles from its own folder, leaving out what the build
-generates under `obj/` and files linked in from elsewhere. A file has its `Path` in the project,
+With the package `TSpec.Architecture.CSharp` and `using TSpec.Architecture.CSharp;`, a project's
+`Files` are those it compiles from its own folder, leaving out what the build generates under `obj/`
+and files linked in from elsewhere. A file has its `Path` in the project,
 written with `/`, its `Lines` and its `Raw` text, and a failure names it by project and path:
 `Data.Auth/Stores/UserStore.cs`. Its `Types` are those declared at its top level, a nested type
 staying with its owner, each with its `Name` (`Repository`), its `FullName` (`Data.Repository<T>`),

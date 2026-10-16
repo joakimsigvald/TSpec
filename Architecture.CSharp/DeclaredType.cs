@@ -1,4 +1,4 @@
-namespace TSpec.Architecture;
+namespace TSpec.Architecture.CSharp;
 
 /// <summary>
 /// A type declared at the top level of its files; a nested type stays with its owner

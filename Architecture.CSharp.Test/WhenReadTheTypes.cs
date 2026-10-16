@@ -1,10 +1,10 @@
 using TSpec.Architecture;
 using TSpec.Assert;
 
-namespace TSpec.Test.Architecture;
+namespace TSpec.Architecture.CSharp.Test;
 
 /// <summary>
-/// The types a file declares, read from the build: the declarations are in Architecture/Declared.
+/// The types a file declares, read from the build: the declarations are in Declared.
 /// </summary>
 public class WhenReadTheTypes : Spec
 {
@@ -33,31 +33,41 @@ public class WhenReadTheTypes : Spec
 
     [Fact]
     public void ThenGiveItsFullNameWithItsNamespace()
-        => Declared("Kinds.cs").Types[0].FullName.Is("TSpec.Test.Architecture.Declared.AClass");
+        => Declared("Kinds.cs").Types[0].FullName.Is("TSpec.Architecture.CSharp.Test.Declared.AClass");
 
     [Fact]
     public void GivenAGenericType_ThenItsFullNameHasItsTypeParameters()
         => Declared("Kinds.cs").Types.Single(type => type.Name == "AGeneric").FullName
-            .Is("TSpec.Test.Architecture.Declared.AGeneric<TKey, TValue>");
+            .Is("TSpec.Architecture.CSharp.Test.Declared.AGeneric<TKey, TValue>");
 
     [Fact]
     public void ThenTellItsNamespace()
-        => Declared("Kinds.cs").Types[0].Namespace.Is("TSpec.Test.Architecture.Declared");
+        => Declared("Kinds.cs").Types[0].Namespace.Is("TSpec.Architecture.CSharp.Test.Declared");
 
     [Fact]
     public void GivenAPartialType_ThenListEachOfItsFiles()
         => Declared("APartial.cs").Types.Single().Files.Select(file => file.Path)
-            .Is().EqualTo(["Architecture/Declared/APartial.More.cs", "Architecture/Declared/APartial.cs"]);
+            .Is().EqualTo(["Declared/APartial.More.cs", "Declared/APartial.cs"]);
 
     [Fact]
     public void GivenAPartialType_ThenItIsTheSameTypeOnEachFile()
         => Declared("APartial.cs").Types.Single().Is().SameAs(Declared("APartial.More.cs").Types.Single());
 
     [Fact]
+    public void GivenADeclarationTheBuildLeftOut_ThenLeaveItOut()
+        => Declared("Conditional.cs").Types.Select(type => type.Name).Is().EqualTo([Compiled]);
+
+    [Fact]
     public void GivenAFailure_ThenNameEachTypeByItsFullName()
         => Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => Declared("APartial.cs").Types.Is().Empty())
-            .Message.Does().EndWith("but found 1: [TSpec.Test.Architecture.Declared.APartial]");
+            .Message.Does().EndWith("but found 1: [TSpec.Architecture.CSharp.Test.Declared.APartial]");
+
+#if DEBUG
+    private const string Compiled = "ADebugType";
+#else
+    private const string Compiled = "AReleaseType";
+#endif
 
     private static SourceFile Declared(string file)
-        => Source.Projects["TSpec.Test"].Files.Single(source => source.Path == $"Architecture/Declared/{file}");
+        => Source.Projects["TSpec.Architecture.CSharp.Test"].Files.Single(source => source.Path == $"Declared/{file}");
 }
