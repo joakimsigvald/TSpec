@@ -1,4 +1,6 @@
-﻿namespace TSpec.Internal.Specification;
+﻿using System.Text.RegularExpressions;
+
+namespace TSpec.Internal.Specification;
 
 internal static class StringExtensions
 {
@@ -51,8 +53,9 @@ internal static class StringExtensions
     private static bool IsVowel(char c) => "aeiouAEIOU".Contains(c);
 
     /// <summary>
-    /// Breaks an identifier into words. An underscore separates clauses rather than words, so
-    /// <c>GivenASnake_WithWings</c> reads "given a snake, with wings".
+    /// Breaks an identifier into words. An underscore before a capital separates clauses, so
+    /// <c>GivenASnake_WithWings</c> reads "given a snake, with wings"; any other underscore separates
+    /// words, so <c>A_method_takes_two_arguments</c> reads as the sentence it was written as.
     /// </summary>
     internal static string[] ToWords(this string str)
     {
@@ -60,14 +63,23 @@ internal static class StringExtensions
             return [string.Empty];
 
         List<string> words = [];
-        foreach (var clause in str.Split('_', StringSplitOptions.RemoveEmptyEntries))
+        foreach (var clause in Clauses(str))
         {
             if (words.Count > 0)
                 words[^1] += ",";
-            words.AddRange(MergeAcronyms(SplitWords(clause)).Select(Normalize));
+            words.AddRange(WordsOf(clause));
         }
         return [.. words];
     }
+
+    private static IEnumerable<string> Clauses(string str)
+        => Regex.Split(str, @"_+(?=\p{Lu})").Where(clause => clause.Trim('_').Length > 0);
+
+    /// Acronyms are merged within each underscore-separated part, so <c>Point_x_y</c> keeps x and y apart.
+    private static IEnumerable<string> WordsOf(string clause)
+        => clause.Split('_', StringSplitOptions.RemoveEmptyEntries)
+            .SelectMany(part => MergeAcronyms(SplitWords(part)))
+            .Select(Normalize);
 
     /// <summary>
     /// Splitting at every capital tears an acronym into letters, so a run of them is put back

@@ -22,11 +22,14 @@ public class WhenSplitIdentifierIntoWords : Spec<string>
     [InlineData("GivenHTTP", "given HTTP")]
     [InlineData("ThenRespondOK", "then respond OK")]
     [InlineData("ThenRespondOk", "then respond ok")]
-    // An underscore separates clauses, not words
+    // An underscore before a capital separates clauses, not words
     [InlineData("GivenASnake_WithWings", "given a snake, with wings")]
     [InlineData("GivenA_GivenB_GivenC", "given a, given b, given c")]
     [InlineData("GivenNumber123", "given number 123")]
     [InlineData("_leading", "leading")]
+    // Before anything else it separates words, so a name can be written as a sentence
+    [InlineData("A_method_takes_at_most_the_ceilings_arguments", "a method takes at most the ceilings arguments")]
+    [InlineData("GivenASnake_with_wings", "given a snake with wings")]
     public void ThenReadAsWords(string identifier, string expected)
         => When(_ => identifier.AsWords()).Then().Result.Is(expected);
 
@@ -39,6 +42,7 @@ public class WhenSplitIdentifierIntoWords : Spec<string>
     [Theory]
     [InlineData("GivenNoSuchRoom", "Given no such room")]
     [InlineData("GivenASnake_WithWings", "Given a snake, with wings")]
+    [InlineData("A_method_takes_at_most_the_ceilings_arguments", "A method takes at most the ceilings arguments")]
     // A branch path is dotted, and reads as one sentence: a nested given refines the one above it
     // rather than stating something new, which is what an underscore says within one name too
     [InlineData("GivenCartExists.WithItems", "Given cart exists, with items")]

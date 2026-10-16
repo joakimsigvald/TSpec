@@ -17,13 +17,13 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>4.3.1</PackageVersion>
+		<PackageVersion>4.3.2</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			FIXED
-			* Like and EquivalentTo on an object again accept an actual with more properties than expected; only a collection must hold nothing more
+			* A test name written as a sentence, A_method_takes_two_arguments, reads as one; only an underscore before a capital starts a new clause
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
