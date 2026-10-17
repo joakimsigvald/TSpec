@@ -4,22 +4,23 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-public class CoreSpecLayout : TSpec.Spec
+public class CoreSpecs : TSpec.Spec
 {
     private static readonly SourceProjects _projects = Source.Projects.Under("MyHotel");
 
     [Fact]
     public void EachSpecSitsInTheFolderOfTheClassItSpecifies()
-        => Specs.Where(file => !CoreClassFolders.Contains(FolderOf(file))).Is().Empty();
+        => CoreSpecFiles.Where(file => !CoreClassFolders.Contains(FolderOf(file))).Is().Empty();
 
     [Fact]
-    public void EachSpecFileDeclaresOnlyWhenClasses()
-        => Specs.SelectMany(file => file.Types)
-            .Where(type => !type.Name.StartsWith("When", StringComparison.Ordinal)).Is().Empty();
+    public void EachSpecFileDeclaresOneSpec()
+        => CoreSpecFiles.Where(file => file.Types.Count != 1).Is().Empty();
 
-    // The files at the root, such as Global.cs, set the project up and specify nothing.
-    private static IEnumerable<SourceFile> Specs
-        => _projects["Core.Spec"].Files.Where(file => file.Path.Contains('/'));
+    private static IEnumerable<SourceFile> CoreSpecFiles
+        => _projects["Core.Spec"].Files.Where(file => file.Types.Any(IsSpec));
+
+    // A spec derives from Spec, but a declared type has no base type to tell it by; MyHotel names every spec When….
+    private static bool IsSpec(DeclaredType type) => type.Name.StartsWith("When", StringComparison.Ordinal);
 
     private static HashSet<string> CoreClassFolders
     {
@@ -34,5 +35,5 @@ public class CoreSpecLayout : TSpec.Spec
     private static string FolderOf(DeclaredType type, string root)
         => string.Join('/', [.. type.Namespace[root.Length..].Split('.', StringSplitOptions.RemoveEmptyEntries), type.Name]);
 
-    private static string FolderOf(SourceFile file) => file.Path[..file.Path.LastIndexOf('/')];
+    private static string FolderOf(SourceFile file) => string.Join('/', file.Path.Split('/')[..^1]);
 }

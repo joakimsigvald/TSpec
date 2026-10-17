@@ -24,6 +24,7 @@
 		<PackageReleaseNotes>
 			NEW
 			* ArchitectureDocument: an architecture spec project writes _specification.md, a diagram of the solution's projects and their references, after a fully green run
+			* The architecture page lists every architecture test, rendered as any specification renders a test
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

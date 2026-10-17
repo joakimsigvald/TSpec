@@ -45,5 +45,5 @@ public sealed class ArchitectureDocument : IDisposable
     private void Write(string directory)
         => PendingSpecification.Write(
             Path.Combine(directory, ArchitectureRenderer.FileName),
-            ArchitectureRenderer.Render(Source.Projects, _specAssembly.GetName().Name!));
+            ArchitectureRenderer.Render(Source.Projects, _specAssembly.GetName().Name!, SpecificationCollector.Entries));
 }

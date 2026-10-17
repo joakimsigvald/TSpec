@@ -25,12 +25,21 @@ internal static class DocumentRenderer
             .. documents.Select(document => new SpecificationFile(document.Name, document.Layout().Render()))];
     }
 
-    private static DocumentSegment[] Layout(this Document _document)
+    /// What the documents say below their titles, for a page that is headed by its own.
+    internal static IEnumerable<DocumentSegment> Bodies(
+        SpecificationSubject subject, string specAssemblyName, IEnumerable<SpecificationEntry> entries)
+        => Document.Of(subject, specAssemblyName, [.. Requirement.From(entries)], sourceRoot: null)
+            .SelectMany(document => document.Body());
+
+    private static DocumentSegment[] Layout(this Document document)
+        => [new TitleSegment(document.Title),
+            CommentSegment.Generated(document.Subject.Version, document.GeneratedFrom),
+            .. document.Body()];
+
+    private static DocumentSegment[] Body(this Document _document)
     {
         List<DocumentSegment> _segments = [];
         var root = _document.Root;
-        Add(new TitleSegment(_document.Title));
-        Add(CommentSegment.Generated(_document.Subject.Version, _document.GeneratedFrom));
         Add(new CodeSegment(root.SubjectUnderTest, root.ReturnType, root.Shared, Stated: null));
         foreach (var section in Order(root.Children))
             AddNode(section, root.SubjectUnderTest, root.ReturnType);

@@ -1,5 +1,6 @@
 using TSpec.Architecture;
 using TSpec.Assert;
+using TSpec.Internal.Document;
 using TSpec.Internal.Document.RenderPipeline;
 using TSpec.Internal.Specification;
 
@@ -18,7 +19,7 @@ public class WhenRenderTheArchitectureDocument : Spec
 
     [Fact]
     public void ThenTitleAndDrawTheProjectsUnderTheNamespaceTheyShare()
-        => ArchitectureRenderer.Render(_hotel, "Hotel.Architecture.Spec").Is(
+        => ArchitectureRenderer.Render(_hotel, "Hotel.Architecture.Spec", []).Is(
             """
             # Hotel
 
@@ -41,16 +42,24 @@ public class WhenRenderTheArchitectureDocument : Spec
             """.NormalizeLineEndings());
 
     [Fact]
+    public void GivenTests_ThenRenderThemBelowTheGraphAsAnyTestIsRendered()
+        => ArchitectureRenderer.Render(_hotel, "Hotel.Architecture.Spec", [
+            new("Layers", "", "InfraDeclaresNoInterface",
+                [new([new SpecificationStep(StepLayout.Sentence) { Family = StepFamily.None, Body = "types of Infra is empty" }])],
+                Namespace: "Hotel.Architecture.Spec")])
+            .Does().EndWith("```\n\n## Layers\n\n- **Infra declares no interface** — `Types of Infra is empty`\n");
+
+    [Fact]
     public void GivenAProjectReachesTSpecThroughAnother_ThenDrawItAsASpecProject()
         => ArchitectureRenderer.Render(new(new()
         {
             ["Hotel"] = [],
             ["Hotel.Spec"] = ["Hotel", "Hotel.Testing"],
             ["Hotel.Testing"] = ["P:TSpec"],
-        }), "Hotel.Architecture.Spec").Does().Contain("    Hotel_Spec[\"Hotel.Spec\"]:::spec\n");
+        }), "Hotel.Architecture.Spec", []).Does().Contain("    Hotel_Spec[\"Hotel.Spec\"]:::spec\n");
 
     [Fact]
     public void GivenTheProjectsShareNoNamespace_ThenTitleItAsTheSpecProject()
-        => ArchitectureRenderer.Render(new(new() { ["Hotel"] = [], ["Tools"] = [] }), "Hotel.Architecture.Spec")
+        => ArchitectureRenderer.Render(new(new() { ["Hotel"] = [], ["Tools"] = [] }), "Hotel.Architecture.Spec", [])
             .Does().StartWith("# Hotel Architecture Spec\n");
 }

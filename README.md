@@ -1012,7 +1012,8 @@ For a rule the assertions don't cover, read the projects and assert on what you 
 and `Dependencies` as the rules see them. A name that is no project of the build throws `SetupFailed`.
 
 Opt in with `[assembly: AssemblyFixture(typeof(ArchitectureDocument))]`, and a clean full run writes
-`_specification.md` to the spec project: a diagram of the solution's projects and their references.
+`_specification.md` to the spec project: a diagram of the solution's projects and their references,
+and the architecture tests below it.
 
 With the package `TSpec.Architecture.CSharp` and `using TSpec.Architecture.CSharp;`, a project's
 `Files` are those it compiles from its own folder, leaving out what the build generates under `obj/`

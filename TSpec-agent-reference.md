@@ -190,7 +190,7 @@ public void AreOnlyTheseAndNotRedundant()
 - The package `TSpec.Architecture.CSharp`, namespace of the same name, adds a project's `Files` (not `obj/` or linked ones), each with `Path` (with `/`), `Lines`, `Raw` and its top-level `Types`.
 - A type has `Name` (no type parameters), `FullName`, `Namespace`, `Kind`, `IsPublic` and `Files`. A failure names a file `X/Path` and a type by its full name.
 - To add an analysis, cache it per file in a `ConditionalWeakTable<SourceFile, T>` behind an extension member; a file is the same object every time.
-- The architecture page: `[assembly: AssemblyFixture(typeof(ArchitectureDocument))]` writes `_specification.md`, a diagram of the projects, on a clean full run. Only `Spec` classes count, so derive the test classes from `Spec`.
+- The architecture page: `[assembly: AssemblyFixture(typeof(ArchitectureDocument))]` writes `_specification.md`, a diagram of the projects and the tests below it, on a clean full run. Only `Spec` classes count, so derive the test classes from `Spec`.
 - `Project.Dependencies` is obsolete: use `Source.Projects["X"].Dependencies`.
 
 ## Complete examples
