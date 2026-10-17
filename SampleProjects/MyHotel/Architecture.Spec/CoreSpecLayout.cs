@@ -4,7 +4,7 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-public class CoreSpecLayout
+public class CoreSpecLayout : TSpec.Spec
 {
     private static readonly SourceProjects _projects = Source.Projects.Under("MyHotel");
 

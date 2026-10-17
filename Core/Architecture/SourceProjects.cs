@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json;
 using TSpec.Internal.Document;
@@ -86,6 +87,32 @@ public sealed class SourceProjects : IReadOnlyList<SourceProject>
         return name == _spec ? [] : [.. ReferencesOf(name).Select(AsWritten).Order(StringComparer.Ordinal)];
     }
 
+    internal string? Root => _root;
+
+    // The leading segments every project's name shares, the running spec project aside.
+    internal string? SharedNamespace
+    {
+        get
+        {
+            var names = _references.Keys.Where(name => name != _spec).Select(name => name.Split('.')).ToArray();
+            var shared = string.Join('.', names.FirstOrDefault([])
+                .TakeWhile((segment, at) => names.All(name => at < name.Length && name[at] == segment)));
+            return shared.Length == 0 ? null : shared;
+        }
+    }
+
+    // A spec project reaches TSpec, directly or through a project its specs share.
+    internal bool IsSpecProject(string project) => ReachedFrom(FullName(project)).Contains($"{Package}TSpec");
+
+    // A spec project is named for the project it specifies and references it: MyHotel.Spec for MyHotel.
+    internal bool TryGetTheProjectItsNameExtends(string project, [NotNullWhen(true)] out string? extended)
+    {
+        var name = FullName(project);
+        var parent = name.Segment(..^1);
+        extended = ReferencesOf(name).Contains(parent) ? AsWritten(parent) : null;
+        return extended is not null;
+    }
+
     internal IReadOnlyList<string> NamesButTheSpec
         => [.. _references.Keys.Where(name => name != _spec).Select(AsWritten).Order(StringComparer.Ordinal)];
 
@@ -116,7 +143,7 @@ public sealed class SourceProjects : IReadOnlyList<SourceProject>
             .Concat(ProjectReferences.PackagesOf(manifest, project).Select(package => $"{Package}{package}"))
             .Order(StringComparer.Ordinal)];
 
-    private static bool IsPackage(string name) => name.StartsWith(Package, StringComparison.Ordinal);
+    internal static bool IsPackage(string name) => name.StartsWith(Package, StringComparison.Ordinal);
 
     private bool IsAllowedBy(Func<string, IEnumerable<string>> rule, (string From, string To) reference)
         => Allows(rule(AsWritten(reference.From)), AsWritten(reference.To));

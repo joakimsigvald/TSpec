@@ -1,6 +1,6 @@
 # TSpec — Agent Reference
 
-Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 5.0).
+Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 5.1).
 TSpec is a fluent Given–When–Then specification framework for .NET on top of xUnit v3.
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec#readme).
 
@@ -164,7 +164,9 @@ Opt in with one line in the spec project; a `_specification/` folder of markdown
 
 ## Architecture (`TSpec.Architecture`)
 
-`Source.Projects` lists the projects the running spec project was built with — every project its build reaches, itself too as `Source.Projects.CurrentSpec`, which `Within` and `Redundant` leave out — each with its direct project and package references. Put the test in a spec project of its own that references every project — `<ProjectReference Include="..\**\*.csproj" Exclude="..\Architecture.Spec\**" />` — without `SpecificationDocument`; a plain `[Fact]` is enough.
+Put the tests in a spec project of their own that references every project: `<ProjectReference Include="..\**\*.csproj" Exclude="..\Architecture.Spec\**" />`.
+
+`Source.Projects` lists every project its build reaches, with their direct project and package references. The spec project itself is `Source.Projects.CurrentSpec`; `Within` and `Redundant` leave it out.
 
 ```csharp
 [Fact]
@@ -184,7 +186,12 @@ public void AreOnlyTheseAndNotRedundant()
 - Rules add up: a dependency passes if any rule allows it; `_ => [...]` applies to every project. A trailing `*` matches the rest (`P:Moq.*` does not match `P:Moq`). `Within` allows, never requires.
 - `not.Redundant()`: no project references a project it already reaches through another; packages, and `A.B -> A` (`Core.Spec -> Core`), are exempt.
 - Layer rules: switch on `p.Segment(0)` (also `Segment(^1)`, `Segment(..2)`).
-- Custom rules: `Source.Projects` (every project) and `Source.Projects["X"]` (one; an unknown name throws `SetupFailed`) give `SourceProject`s with `Name` and `Dependencies` (direct references), named as the rules see them. The package `TSpec.Architecture.CSharp` (`using TSpec.Architecture.CSharp;`) adds `Files`: the files X compiles (not `obj/` or linked ones), each with `Path` in the project (with `/`), `Lines`, `Raw` and `Types` (declared at its top level: `Name` without type parameters, `FullName` with namespace and type parameters, `Namespace`, `Kind` as `DeclaredKind`, `IsPublic`, `Files`, several for a partial type); a failure names a file `X/Path`, a type by its full name. The same file objects every time: add an analysis as a C# extension member that caches per file in a `ConditionalWeakTable<SourceFile, T>`. `Project.Dependencies`/`ProjectGraph` are obsolete: their `graph["X"]` is `Source.Projects["X"].Dependencies`.
+- Custom rules: `Source.Projects["X"]` (an unknown name throws `SetupFailed`) is a `SourceProject` with `Name` and `Dependencies`, named as the rules see them.
+- The package `TSpec.Architecture.CSharp`, namespace of the same name, adds a project's `Files` (not `obj/` or linked ones), each with `Path` (with `/`), `Lines`, `Raw` and its top-level `Types`.
+- A type has `Name` (no type parameters), `FullName`, `Namespace`, `Kind`, `IsPublic` and `Files`. A failure names a file `X/Path` and a type by its full name.
+- To add an analysis, cache it per file in a `ConditionalWeakTable<SourceFile, T>` behind an extension member; a file is the same object every time.
+- The architecture page: `[assembly: AssemblyFixture(typeof(ArchitectureDocument))]` writes `_specification.md`, a diagram of the projects, on a clean full run. Only `Spec` classes count, so derive the test classes from `Spec`.
+- `Project.Dependencies` is obsolete: use `Source.Projects["X"].Dependencies`.
 
 ## Complete examples
 

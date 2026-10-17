@@ -17,17 +17,13 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>5.0.0</PackageVersion>
+		<PackageVersion>5.1.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			BREAKING
-			* A project's Files, SourceFile, DeclaredType and DeclaredKind moved to the package TSpec.Architecture.CSharp, in its namespace of the same name
 			NEW
-			* SourceProject.AssemblyName, in full where Name is shortened by a root
-			* An extension package can throw SetupFailed
-			* TSpec.Extensibility.Build, for an extension package: a project's debug information and the folder its sources are in
+			* ArchitectureDocument: an architecture spec project writes _specification.md, a diagram of the solution's projects and their references, after a fully green run
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

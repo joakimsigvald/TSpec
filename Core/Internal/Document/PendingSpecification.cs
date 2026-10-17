@@ -55,7 +55,7 @@ internal sealed record PendingSpecification(
     /// Keeping the line endings the file already has, so a checkout that holds them as carriage
     /// returns does not report every regenerated file as modified.
     /// </summary>
-    private static void Write(string path, string content)
+    internal static void Write(string path, string content)
         => File.WriteAllText(
             path, File.Exists(path) ? content.WithLineEndingsOf(File.ReadAllText(path)) : content);
 }

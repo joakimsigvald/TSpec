@@ -2,7 +2,7 @@ using TSpec.Architecture;
 
 namespace MyHotel.Architecture.Spec;
 
-public class ProjectDependencies
+public class ProjectDependencies : TSpec.Spec
 {
     [Fact]
     public void AreOnlyTheseAndNotRedundant()

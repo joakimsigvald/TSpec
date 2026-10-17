@@ -7,61 +7,41 @@ open.
 
 ## Steps, in order
 
-### 7. The architecture document
+### 7. The rules on the architecture page
 
-An architecture spec writes a readable page: its rules, and a diagram of the project graph.
+Since 5.1, `ArchitectureDocument` writes `_specification.md`: the solution's name and its built graph
+as a diagram. The page does not yet say what the architecture allows.
 
-```csharp
-[assembly: AssemblyFixture(typeof(ArchitectureDocument))]
-```
-
-MyHotel's page would begin:
+MyHotel's page would go on, below the diagram:
 
 ````markdown
-# MyHotel architecture
-
 ## Project dependencies
 
 - **are only these and not redundant**
 
 | Project | May reference |
 |---|---|
-| . | Entry, Infra, P:Scalar.AspNetCore, P:Microsoft.* |
+| MyHotel | Entry, Infra, P:Scalar.AspNetCore, P:Microsoft.* |
 | Contract | P:Microsoft.* |
 | Core | Contract, P:Microsoft.* |
 | Core.Spec | Core, P:* |
 | Entry | Contract, P:Microsoft.* |
 | Infra | Core, P:Microsoft.* |
-| Spec | ., P:* |
-
-```mermaid
-flowchart TD
-    Root["."] --> Entry & Infra
-    Entry --> Contract
-    Infra --> Core --> Contract
-    Spec --> Root
-    CoreSpec["Core.Spec"] --> Core
-```
+| MyHotel.Spec | MyHotel, P:* |
 ````
 
-- *Requirement:* an architecture spec writes a document of its own into `_specification/` on every green
-  run: its rules in words, and the graph they hold over as a diagram.
-- *Motivation:* architecture rules are the claims a human owns, and a claim that reaches no document is
-  second-class next to the examples. Today a reviewer sees an architecture change only as a diff of a
-  switch expression. An architecture spec writes nothing: the document's subject is derived from the spec
-  project's name, `Architecture` for M5's, which no project is, so M5 leaves `_specification/` out; and the
-  document is built only from `Spec` classes, while architecture tests are plain classes.
-- *Solution:* a page derived from what the architecture tests asserted: the built graph as a Mermaid
-  diagram, and for each `Within`, what its rules allow each project — a rule is a function of the project,
-  so it can be evaluated for every one. The test names state the rules in words, as in the other
-  documents. M5's page would show its projects and the sub-domains of `Application`.
-- *Design:* `Within` and `Redundant` record the graph, its root and the evaluated rules in the run, as a
-  `Spec` records its requirements; a renderer beside `DocumentRenderer` writes the page with nodes and
-  edges in ordinal order, so it diffs line by line; written only on a full green run, as now. Needs a
-  design session and its own breakdown before code.
-- *To decide:* how an architecture spec opts in without a subject; one page or one per test class; the
-  built graph, the allowed graph or both; whether packages appear in the diagram; how a custom rule, a
-  plain `Is().Empty()` over computed findings, reaches the page.
+- *Requirement:* the page states the architecture rules in words, and what each project may reference.
+- *Motivation:* the diagram shows what the build is, not what the architecture allows; a reviewer still
+  sees a rule change only as a diff of a switch expression.
+- *Solution:* the test names state the rules in words, as in the other documents; for each `Within`, a
+  table of what its rules allow each project — a rule is a function of the project, so it can be
+  evaluated for every one. M5's page would show the sub-domains of `Application`.
+- *Design:* the architecture tests are `Spec` classes, so the collector already holds their requirements
+  when the page is written. `Within` records its evaluated rules in the run, as a `Spec` records its
+  requirements, and the renderer adds them under the diagram in ordinal order. Needs a design session.
+- *To decide:* one page or one per test class; names in the table as the rules see them (`.`, `Spec`) or
+  as the diagram shows them; how a custom rule, a plain `Is().Empty()` over computed findings, reaches the
+  page; whether `Redundant` does.
 
 ### 8. What a project reaches
 

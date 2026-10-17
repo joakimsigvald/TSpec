@@ -976,7 +976,7 @@ already reaches through another:
 ```csharp
 using TSpec.Architecture;
 
-public class ProjectDependencies
+public class ProjectDependencies : Spec
 {
     [Fact]
     public void AreOnlyTheseAndNotRedundant()
@@ -1010,6 +1010,9 @@ first, `p.Segment(^1)` the last and `p.Segment(..2)` the first two joined by a d
 For a rule the assertions don't cover, read the projects and assert on what you compute:
 `Source.Projects` lists every project and `Source.Projects["Data.Auth"]` gives one; each has its `Name`
 and `Dependencies` as the rules see them. A name that is no project of the build throws `SetupFailed`.
+
+Opt in with `[assembly: AssemblyFixture(typeof(ArchitectureDocument))]`, and a clean full run writes
+`_specification.md` to the spec project: a diagram of the solution's projects and their references.
 
 With the package `TSpec.Architecture.CSharp` and `using TSpec.Architecture.CSharp;`, a project's
 `Files` are those it compiles from its own folder, leaving out what the build generates under `obj/`

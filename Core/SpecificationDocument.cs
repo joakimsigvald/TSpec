@@ -29,7 +29,7 @@ public sealed class SpecificationDocument : IDisposable
     /// </summary>
     public SpecificationDocument()
     {
-        _specAssembly = FindSpecAssembly();
+        _specAssembly = CompleteRun.SpecAssemblyDeclaring(typeof(SpecificationDocument));
         _specification = PendingSpecification.Prepare(
             ReadName(_specAssembly), AppContext.BaseDirectory, SpecClasses.SourcesOf(_specAssembly));
         if (_specification is null)
@@ -49,37 +49,14 @@ public sealed class SpecificationDocument : IDisposable
     {
         if (_specification is null)
             return;
-        SpecificationCollector.IsActive = false;
-        var missing = SpecificationCollector.Missing(ExpectedRequirements.Of(_specAssembly));
+        var missing = CompleteRun.Missing(_specAssembly);
         if (missing.Length == 0)
             _specification.Write(SpecificationCollector.Entries);
         else
-            Console.Error.WriteLine(Report(missing));
+            Console.Error.WriteLine(CompleteRun.Report($"{FolderName}/", missing));
     }
-
-    private static string Report(string[] missing)
-        => $"TSpec: {FolderName}/ left unchanged — {missing.Length} requirement(s) did not report a pass, "
-        + "so the specification would be incomplete. Run the whole suite green to regenerate it."
-        + string.Concat(missing.Take(10).Select(requirement => $"\n  - {requirement}"))
-        + (missing.Length > 10 ? $"\n  ... and {missing.Length - 10} more" : string.Empty);
 
     private static string ReadName(Assembly assembly)
         => assembly.GetName().Name
         ?? throw new SetupFailed("TSpec could not read the name of the spec assembly.");
-
-    private static Assembly FindSpecAssembly()
-    {
-        var candidates = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(Declares)
-            .ToArray();
-        return candidates.Length == 1
-            ? candidates[0]
-            : throw new SetupFailed(
-                $"TSpec expected exactly one assembly declaring [assembly: AssemblyFixture(typeof({nameof(SpecificationDocument)}))], "
-                + $"but found {candidates.Length}.");
-    }
-
-    private static bool Declares(Assembly assembly)
-        => assembly.GetCustomAttributes<AssemblyFixtureAttribute>()
-            .Any(attribute => attribute.AssemblyFixtureType == typeof(SpecificationDocument));
 }

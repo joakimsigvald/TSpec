@@ -12,10 +12,12 @@
 		<UseAppHost>true</UseAppHost>
 		<IsPackable>false</IsPackable>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<!-- POC: TSpec's working copy, packed into ..\lib as 5.1.0-poc, for the architecture document. -->
+		<RestoreAdditionalProjectSources>$(MSBuildThisFileDirectory)..\lib</RestoreAdditionalProjectSources>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="TSpec" Version="5.0.0" />
+		<PackageReference Include="TSpec" Version="5.1.0-poc" />
 		<PackageReference Include="TSpec.Architecture.CSharp" Version="1.0.0" />
 		<PackageReference Include="xunit.v3" Version="4.0.2" />
 	</ItemGroup>
