@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using TSpec.Internal.Document;
 using TSpec.Internal.Document.RenderPipeline;
@@ -21,10 +22,9 @@ public sealed class ArchitectureDocument : IDisposable
     public ArchitectureDocument()
     {
         _specAssembly = CompleteRun.SpecAssemblyDeclaring(typeof(ArchitectureDocument));
-        if (ProjectDirectory.TryLocate(SpecClasses.SourcesOf(_specAssembly), AppContext.BaseDirectory, out _directory))
-            SpecificationCollector.IsActive = true;
-        else
-            Console.Error.WriteLine(ProjectDirectory.Unlocatable(AppContext.BaseDirectory));
+        CompleteRun.Begin(
+            ArchitectureRenderer.FileName,
+            located: ProjectDirectory.TryLocate(SpecClasses.SourcesOf(_specAssembly), AppContext.BaseDirectory, out _directory));
     }
 
     /// <summary>
@@ -32,18 +32,34 @@ public sealed class ArchitectureDocument : IDisposable
     /// </summary>
     public void Dispose()
     {
-        if (_directory is null)
+        var directory = _directory;
+        if (directory is null)
             return;
 
-        var missing = CompleteRun.Missing(_specAssembly);
-        if (missing.Length == 0)
-            Write(_directory);
-        else
-            Console.Error.WriteLine(CompleteRun.Report(ArchitectureRenderer.FileName, missing));
+        CompleteRun.End(ArchitectureRenderer.FileName, _specAssembly, () => Write(directory));
     }
 
     private void Write(string directory)
         => PendingSpecification.Write(
             Path.Combine(directory, ArchitectureRenderer.FileName),
-            ArchitectureRenderer.Render(Source.Projects, _specAssembly.GetName().Name!, SpecificationCollector.Entries));
+            ArchitectureRenderer.Render(
+                Source.Projects, _specAssembly.GetName().Name!, SpecificationCollector.Entries, Indexes(directory)));
+
+    // Each spec project's own index, by the spec project, as linked from this page.
+    private static Dictionary<string, string> Indexes(string directory)
+    {
+        Dictionary<string, string> indexes = [];
+        foreach (var project in Source.Projects)
+            if (TryFindIndex(project, out var index))
+                indexes[project.AssemblyName] = Path.GetRelativePath(directory, index).Replace('\\', '/');
+        return indexes;
+    }
+
+    private static bool TryFindIndex(SourceProject project, [NotNullWhen(true)] out string? index)
+    {
+        index = ProjectFolder.TryFind(project, out var folder)
+            ? Path.Combine(folder, SpecificationDocument.FolderName, $"{IndexRenderer.Name}.md")
+            : null;
+        return File.Exists(index);
+    }
 }

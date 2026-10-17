@@ -20,13 +20,26 @@ internal static class CompleteRun
                 + $"but found {candidates.Length}.");
     }
 
-    internal static string[] Missing(Assembly specAssembly)
+    // The document is a by-product of the run and no test claims it, so where it cannot go nothing fails over it.
+    internal static void Begin(string document, bool located)
     {
-        SpecificationCollector.IsActive = false;
-        return SpecificationCollector.Missing(ExpectedRequirements.Of(specAssembly));
+        if (located)
+            SpecificationCollector.IsActive = true;
+        else
+            Console.Error.WriteLine(ProjectDirectory.Unlocatable(document, AppContext.BaseDirectory));
     }
 
-    internal static string Report(string document, string[] missing)
+    internal static void End(string document, Assembly specAssembly, Action write)
+    {
+        SpecificationCollector.IsActive = false;
+        var missing = SpecificationCollector.Missing(ExpectedRequirements.Of(specAssembly));
+        if (missing.Length == 0)
+            write();
+        else
+            Console.Error.WriteLine(Report(document, missing));
+    }
+
+    private static string Report(string document, string[] missing)
         => $"TSpec: {document} left unchanged — {missing.Length} requirement(s) did not report a pass, "
         + "so the specification would be incomplete. Run the whole suite green to regenerate it."
         + string.Concat(missing.Take(10).Select(requirement => $"\n  - {requirement}"))

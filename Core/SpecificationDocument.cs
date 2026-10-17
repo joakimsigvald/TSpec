@@ -18,6 +18,8 @@ public sealed class SpecificationDocument : IDisposable
 {
     internal const string FolderName = "_specification";
 
+    private const string Written = $"{FolderName}/";
+
     private readonly PendingSpecification? _specification;
     private readonly Assembly _specAssembly;
 
@@ -32,10 +34,7 @@ public sealed class SpecificationDocument : IDisposable
         _specAssembly = CompleteRun.SpecAssemblyDeclaring(typeof(SpecificationDocument));
         _specification = PendingSpecification.Prepare(
             ReadName(_specAssembly), AppContext.BaseDirectory, SpecClasses.SourcesOf(_specAssembly));
-        if (_specification is null)
-            Console.Error.WriteLine(ProjectDirectory.Unlocatable(AppContext.BaseDirectory));
-        else
-            SpecificationCollector.IsActive = true;
+        CompleteRun.Begin(Written, located: _specification is not null);
     }
 
     /// <summary>
@@ -49,11 +48,8 @@ public sealed class SpecificationDocument : IDisposable
     {
         if (_specification is null)
             return;
-        var missing = CompleteRun.Missing(_specAssembly);
-        if (missing.Length == 0)
-            _specification.Write(SpecificationCollector.Entries);
-        else
-            Console.Error.WriteLine(CompleteRun.Report($"{FolderName}/", missing));
+
+        CompleteRun.End(Written, _specAssembly, () => _specification.Write(SpecificationCollector.Entries));
     }
 
     private static string ReadName(Assembly assembly)

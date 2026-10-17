@@ -17,23 +17,23 @@ internal static class DocumentRenderer
         IEnumerable<SpecificationEntry> entries, string? sourceRoot = null)
     {
         Requirement[] requirements = [.. Requirement.From(entries)];
-        var documents = Document.Of(subject, specAssemblyName, requirements, sourceRoot);
+        var documents = Document.Of(subject.Name, specAssemblyName, requirements, sourceRoot);
         if (documents.Count == 0)
             return [];
         return [
             new(IndexRenderer.Name, IndexRenderer.Render(subject, specAssemblyName, requirements, documents)),
-            .. documents.Select(document => new SpecificationFile(document.Name, document.Layout().Render()))];
+            .. documents.Select(document => new SpecificationFile(document.Name, document.Layout(subject.Version).Render()))];
     }
 
     /// What the documents say below their titles, for a page that is headed by its own.
     internal static IEnumerable<DocumentSegment> Bodies(
-        SpecificationSubject subject, string specAssemblyName, IEnumerable<SpecificationEntry> entries)
-        => Document.Of(subject, specAssemblyName, [.. Requirement.From(entries)], sourceRoot: null)
+        string subjectName, string specAssemblyName, IEnumerable<SpecificationEntry> entries)
+        => Document.Of(subjectName, specAssemblyName, [.. Requirement.From(entries)], sourceRoot: null)
             .SelectMany(document => document.Body());
 
-    private static DocumentSegment[] Layout(this Document document)
+    private static DocumentSegment[] Layout(this Document document, string version)
         => [new TitleSegment(document.Title),
-            CommentSegment.Generated(document.Subject.Version, document.GeneratedFrom),
+            CommentSegment.Generated(version, document.GeneratedFrom),
             .. document.Body()];
 
     private static DocumentSegment[] Body(this Document _document)

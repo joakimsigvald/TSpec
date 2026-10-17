@@ -17,9 +17,20 @@ public class WhenRenderTheArchitectureDocument : Spec
         ["Company.Hotel.Entry.Spec"] = ["Company.Hotel.Entry", "P:TSpec"],
     });
 
+    private static readonly Dictionary<string, string> _noIndexes = [];
+
+    [Fact]
+    public void GivenAProjectHasASpecification_ThenLinkItsNodeToTheIndex()
+        => ArchitectureRenderer.Render(_hotel, "Hotel.Architecture.Spec", [],
+            new Dictionary<string, string> { ["Company.Hotel.Spec"] = "../Hotel.Spec/_specification/README.md" })
+            .Does().Contain(
+                "    Hotel_Spec -.-> Hotel\n"
+                + "    click Hotel \"../Hotel.Spec/_specification/README.md\"\n"
+                + "    classDef spec");
+
     [Fact]
     public void ThenTitleAndDrawTheProjectsUnderTheNamespaceTheyShare()
-        => ArchitectureRenderer.Render(_hotel, "Hotel.Architecture.Spec", []).Is(
+        => ArchitectureRenderer.Render(_hotel, "Hotel.Architecture.Spec", [], _noIndexes).Is(
             """
             # Hotel
 
@@ -46,7 +57,7 @@ public class WhenRenderTheArchitectureDocument : Spec
         => ArchitectureRenderer.Render(_hotel, "Hotel.Architecture.Spec", [
             new("Layers", "", "InfraDeclaresNoInterface",
                 [new([new SpecificationStep(StepLayout.Sentence) { Family = StepFamily.None, Body = "types of Infra is empty" }])],
-                Namespace: "Hotel.Architecture.Spec")])
+                Namespace: "Hotel.Architecture.Spec")], _noIndexes)
             .Does().EndWith("```\n\n## Layers\n\n- **Infra declares no interface** — `Types of Infra is empty`\n");
 
     [Fact]
@@ -56,10 +67,10 @@ public class WhenRenderTheArchitectureDocument : Spec
             ["Hotel"] = [],
             ["Hotel.Spec"] = ["Hotel", "Hotel.Testing"],
             ["Hotel.Testing"] = ["P:TSpec"],
-        }), "Hotel.Architecture.Spec", []).Does().Contain("    Hotel_Spec[\"Hotel.Spec\"]:::spec\n");
+        }), "Hotel.Architecture.Spec", [], _noIndexes).Does().Contain("    Hotel_Spec[\"Hotel.Spec\"]:::spec\n");
 
     [Fact]
     public void GivenTheProjectsShareNoNamespace_ThenTitleItAsTheSpecProject()
-        => ArchitectureRenderer.Render(new(new() { ["Hotel"] = [], ["Tools"] = [] }), "Hotel.Architecture.Spec", [])
+        => ArchitectureRenderer.Render(new(new() { ["Hotel"] = [], ["Tools"] = [] }), "Hotel.Architecture.Spec", [], _noIndexes)
             .Does().StartWith("# Hotel Architecture Spec\n");
 }

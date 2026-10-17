@@ -27,8 +27,8 @@ internal static class ProjectDirectory
     /// Said when neither answers, in the shape the incomplete-run report uses: the specification
     /// is a by-product of the run and no test claims it, so nothing fails over it.
     /// </summary>
-    internal static string Unlocatable(string baseDirectory)
-        => $"TSpec: {SpecificationDocument.FolderName}/ not written — TSpec could not locate the spec "
+    internal static string Unlocatable(string document, string baseDirectory)
+        => $"TSpec: {document} not written — TSpec could not locate the spec "
         + "project directory. Its source files are not where the debug information says they are (a "
         + "build that maps source paths, or one that wrote none), and no .csproj file sits above the "
         + $"build output at '{baseDirectory}'.";

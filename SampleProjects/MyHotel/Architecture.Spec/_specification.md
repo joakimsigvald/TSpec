@@ -18,6 +18,8 @@ flowchart TD
     Entry --> Contract
     Infra --> Core
     MyHotel_Spec -.-> MyHotel
+    click MyHotel "../MyHotel.Spec/_specification/README.md"
+    click Core "../Core.Spec/_specification/README.md"
     classDef spec fill:none,stroke-dasharray:4 3,opacity:0.8
 ```
 

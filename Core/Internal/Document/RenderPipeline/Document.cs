@@ -8,7 +8,6 @@ namespace TSpec.Internal.Document.RenderPipeline;
 /// is stated once at its top, and the root node holds that along with the groups below it.
 /// </summary>
 internal sealed record Document(
-    SpecificationSubject Subject,
     string SpecAssemblyName,
     string Name,
     DocumentNode Root,
@@ -46,13 +45,13 @@ internal sealed record Document(
     /// other.
     /// </summary>
     internal static IReadOnlyList<Document> Of(
-        SpecificationSubject subject, string specAssemblyName,
+        string subjectName, string specAssemblyName,
         IReadOnlyList<Requirement> requirements, string? sourceRoot)
     {
         var rootDepth = RootDepth(requirements, specAssemblyName);
         var documents = requirements
             .GroupBy(requirement => AreaOf(requirement.Entry.Namespace, rootDepth))
-            .Select(area => ToDocument(area, rootDepth, subject, specAssemblyName, sourceRoot))
+            .Select(area => ToDocument(area, rootDepth, subjectName, specAssemblyName, sourceRoot))
             .OrderBy(document => document.Name, StringComparer.Ordinal)
             .ToArray();
         var clash = documents.Select(document => document.Name)
@@ -76,11 +75,11 @@ internal sealed record Document(
 
     private static Document ToDocument(
         IGrouping<string, Requirement> area, int rootDepth,
-        SpecificationSubject subject, string specAssemblyName, string? sourceRoot)
+        string subjectName, string specAssemblyName, string? sourceRoot)
     {
         var ofArea = area.ToArray();
         var atRoot = area.Key.Length == 0;
-        var name = atRoot ? LastPart(subject.Name) : area.Key;
+        var name = atRoot ? LastPart(subjectName) : area.Key;
         var title = atRoot ? name.AsTitle() : area.Key.AsHeading();
         var shared = Requirement.Shared(ofArea, acts: false);
         var groups = ofArea
@@ -91,7 +90,7 @@ internal sealed record Document(
             Requirement.SubjectOf(ofArea), Requirement.ReturnTypeOf(ofArea),
             [.. groups.Select(group => ToGroup(group, grouped: groups.Length > 1))],
             Requirements: []);
-        return new(subject, specAssemblyName, name, root, sourceRoot);
+        return new(specAssemblyName, name, root, sourceRoot);
     }
 
     private static string LastPart(string subjectName) => subjectName[(subjectName.LastIndexOf('.') + 1)..];
