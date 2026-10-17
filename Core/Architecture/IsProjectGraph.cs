@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using TSpec.Assert.Continuations;
+using TSpec.Internal.Specification;
 
 namespace TSpec.Architecture;
 
@@ -8,6 +9,8 @@ namespace TSpec.Architecture;
 /// </summary>
 public record IsProjectGraph : Constraint<SourceProjects, IsProjectGraph>
 {
+    private const string WhatIsAllowed = "what is allowed";
+
     private IReadOnlyList<string> _found = [];
 
     /// <summary>
@@ -21,7 +24,8 @@ public record IsProjectGraph : Constraint<SourceProjects, IsProjectGraph>
     public ContinueWith<IsProjectGraph> Within(params Func<string, IEnumerable<string>>[] rules)
     {
         _found = [.. Actual!.ReferencesOutside(rules)];
-        return Assert("what is allowed", _ => Xunit.Assert.Empty(_found)).And();
+        SpecificationContext.Current.AddTable(Actual.AllowedBy(rules));
+        return Assert(WhatIsAllowed, _ => Xunit.Assert.Empty(_found), WhatIsAllowed).And();
     }
 
     /// <summary>

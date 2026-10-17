@@ -1,4 +1,5 @@
 using System.Collections;
+using TSpec.Internal.Specification;
 
 namespace TSpec.Architecture;
 
@@ -85,6 +86,17 @@ public sealed class SourceProjects : IReadOnlyList<SourceProject>
 
     internal IEnumerable<string> RedundantReferences() => Graph.References.Where(Graph.IsRedundant).Select(Describe);
 
+    // What each project may reference and use: a rule is a function of the project, so it is called for every one.
+    internal SpecificationTable AllowedBy(IReadOnlyList<Func<string, IEnumerable<string>>> rules)
+        => new(["Project", "May reference", "May use"],
+            [.. Graph.ProjectsButTheSpec.OrderBy(AsWritten, StringComparer.Ordinal).Select(project => AllowedOf(project, rules))]);
+
+    // To the rules the root is "." and its spec project "Spec", which read as nothing on a page.
+    internal string Shown(string name)
+        => Graph.TryGetTheProjectItsNameExtends(name, out var extended) ? $"{Shown(extended)}.{name.Segment(^1)}"
+        : name == Root ? name.Segment(^1)
+        : AsWritten(name);
+
     internal static SourceProjects Parse(string depsJson, string specAssemblyName)
         => new(BuildGraph.Parse(depsJson, specAssemblyName), root: null);
 
@@ -109,6 +121,21 @@ public sealed class SourceProjects : IReadOnlyList<SourceProject>
 
     private IReadOnlyList<string> WrittenReferencesOf(string name)
         => [.. Graph.ReferencesOf(name).Select(AsWritten).Order(StringComparer.Ordinal)];
+
+    private IReadOnlyList<string> AllowedOf(string project, IReadOnlyList<Func<string, IEnumerable<string>>> rules)
+    {
+        string[] targets = [.. rules.SelectMany(rule => rule(AsWritten(project))).Distinct()];
+        return [
+            Shown(project),
+            NamesOrNothing(targets.Where(target => !BuildGraph.IsPackage(target)).Select(ShownTarget)),
+            NamesOrNothing(targets.Where(BuildGraph.IsPackage).Select(BuildGraph.PackageName))];
+    }
+
+    // Beside "*" for any, an empty cell would read as undecided rather than as nothing.
+    private static string NamesOrNothing(IEnumerable<string> names) => names.Any() ? string.Join(", ", names) : "-";
+
+    // A wildcard names no one project, so it stays as the rule wrote it.
+    private string ShownTarget(string target) => target.EndsWith('*') ? target : Shown(FullName(target));
 
     private bool IsAllowedBy(Func<string, IEnumerable<string>> rule, (string From, string To) reference)
         => Allows(rule(AsWritten(reference.From)), AsWritten(reference.To));

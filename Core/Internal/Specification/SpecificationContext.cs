@@ -143,6 +143,7 @@ internal class SpecificationContext : IAssertSpecificationContext
     /// </summary>
     internal IReadOnlyList<SpecificationClause> Clauses => _recording.Clauses;
     internal string? Because => _recording.Because;
+    internal SpecificationTable? Table => _recording.Table;
 
     internal void AddWhen(string actExpr) => _action.AddWhen(actExpr);
 
@@ -202,6 +203,8 @@ internal class SpecificationContext : IAssertSpecificationContext
     internal void Assign(Type type, int index, object? value) => _assignments.Assign(type, index, value);
 
     internal void AddBecause(string reason) => _recording.SetBecause(reason);
+
+    public void AddTable(SpecificationTable table) => _recording.SetTable(table);
 
     public void Assert(
     Action assert,

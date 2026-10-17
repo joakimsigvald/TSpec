@@ -21,4 +21,5 @@ internal interface IAssertSpecificationContext
     void Fix(Action decide);
     void NoteAssertion();
     void AddSetupWarning(string warning);
+    void AddTable(SpecificationTable table);
 }

@@ -1,5 +1,6 @@
 using TSpec.Architecture;
 using TSpec.Assert;
+using TSpec.Internal.Specification;
 
 namespace TSpec.Test.Architecture;
 
@@ -119,4 +120,42 @@ public class WhenWithin : Spec
             "Entry" or "Core" => ["Contract"],
             _ => [],
         }).and.not.Redundant();
+
+    [Fact]
+    public void ThenSpecifyItAsWithinWhatIsAllowed()
+    {
+        _dependencies.Is().Within(project => project switch
+        {
+            "Entry" or "Core" => ["Contract"],
+            _ => [],
+        });
+        Specification.Is("_dependencies is within what is allowed");
+    }
+
+    [Fact]
+    public void ThenTableWhatEachProjectMayReferenceAndUse()
+    {
+        new SourceProjects(new()
+        {
+            ["Host"] = ["Host.Entry", "P:Scalar"],
+            ["Host.Entry"] = ["Host.Contract"],
+            ["Host.Contract"] = [],
+            ["Host.Spec"] = ["Host", "P:xunit"],
+        }).Under("Host").Is().Within(p => p switch
+        {
+            "." => ["Entry", "P:Scalar"],
+            "Entry" => ["Contract"],
+            "Spec" => ["."],
+            _ => [],
+        }, p => p.Segment(^1) == "Spec" ? ["P:*"] : ["P:Microsoft.*"]);
+        Lines(Reported().Table!).Is().EqualTo([
+            "Project | May reference | May use",
+            "Host | Entry | Scalar, Microsoft.*",
+            "Contract | - | Microsoft.*",
+            "Entry | Contract | Microsoft.*",
+            "Host.Spec | Host | *"]);
+    }
+
+    private static string[] Lines(SpecificationTable table)
+        => [string.Join(" | ", table.Headers), .. table.Rows.Select(row => string.Join(" | ", row))];
 }

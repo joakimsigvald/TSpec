@@ -61,6 +61,20 @@ public class WhenRenderTheArchitectureDocument : Spec
             .Does().EndWith("```\n\n## Layers\n\n- **Infra declares no interface** — `Types of Infra is empty`\n");
 
     [Fact]
+    public void GivenATestTablesWhatIsAllowed_ThenRenderTheTableUnderItsBullet()
+        => ArchitectureRenderer.Render(_hotel, "Hotel.Architecture.Spec", [
+            new("ProjectDependencies", "", "AreOnlyThese",
+                [new([new SpecificationStep(StepLayout.Sentence) { Family = StepFamily.None, Body = "projects is within" }])],
+                Namespace: "Hotel.Architecture.Spec",
+                Table: new(["Project", "May reference", "May use"], [["Hotel", "Entry", "Scalar"]]))], _noIndexes)
+            .Does().Contain(
+                "- **Are only these** — `Projects is within`\n"
+                + "\n"
+                + "  | Project | May reference | May use |\n"
+                + "  | ------- | ------------- | ------- |\n"
+                + "  | Hotel   | Entry         | Scalar  |\n");
+
+    [Fact]
     public void GivenAProjectReachesTSpecThroughAnother_ThenDrawItAsASpecProject()
         => ArchitectureRenderer.Render(new(new()
         {

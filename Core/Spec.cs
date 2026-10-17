@@ -88,6 +88,7 @@ public abstract partial class Spec<TSUT, TResult>
             Pipeline.Specification.Clauses, Pipeline.Specification.Because,
             declared?.SubjectUnderTest, declared?.ReturnType, testClass.Namespace,
             TheoryRow.Read(), SourceLocations.Of(TestIdentity.Nesting(testClass)[0]),
-            TestIdentity.Declared);
+            TestIdentity.Declared,
+            Pipeline.Specification.Table);
     }
 }

@@ -56,6 +56,8 @@ internal sealed class BuildGraph(Dictionary<string, IReadOnlyList<string>> refer
 
     internal static bool IsPackage(string name) => name.StartsWith(Package, StringComparison.Ordinal);
 
+    internal static string PackageName(string name) => name[Package.Length..];
+
     internal static BuildGraph Parse(string depsJson, string specAssemblyName)
     {
         using var document = JsonDocument.Parse(depsJson);

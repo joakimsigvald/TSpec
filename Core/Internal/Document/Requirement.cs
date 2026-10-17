@@ -27,6 +27,10 @@ internal sealed record Requirement(
     internal ComposedText Claim
         => SpecificationRenderer.Compose(Clauses, Entry.Because).Without(StepFamily.Then.Keyword());
 
+    /// A theory's rows, or what an assertion stated as a table.
+    internal SpecificationTable? Table
+        => Rows.Count > 0 ? new(Rows[0].Headers, [.. Rows.Select(row => row.Values)]) : Entry.Table;
+
     /// <summary>
     /// Where a theory filled a hole, the document leaves it open: the value is the row's, not the
     /// requirement's, and the table beneath states every row's. That is also what makes the rows
@@ -140,6 +144,7 @@ internal sealed record Requirement(
     internal bool Restates(Requirement other)
         => Entry.Requirement == other.Entry.Requirement
             && Entry.Because == other.Entry.Because
+            && (Entry.Table is null ? other.Entry.Table is null : Entry.Table.Matches(other.Entry.Table))
             && Clauses.Count == other.Clauses.Count
             && Clauses.Zip(other.Clauses).All(pair => pair.First.Matches(pair.Second));
 

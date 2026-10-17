@@ -73,7 +73,7 @@ internal static class DocumentRenderer
         {
             Add(new NewLineSegment());
             foreach (var requirement in InReadingOrder(requirements))
-                Add(new ListItemSegment(requirement.Name, requirement.Claim, requirement.Rows));
+                Add(new ListItemSegment(requirement.Name, requirement.Claim, requirement.Table));
         }
     }
 

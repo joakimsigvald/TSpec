@@ -1,15 +1,17 @@
+using TSpec.Internal.Specification;
+
 namespace TSpec.Internal.Document.RenderPipeline;
 
 /// <summary>
-/// A theory's rows, tabled under the requirement they all state. The claim above says what holds
-/// for every row; each row says what it filled the requirement's holes with.
+/// A table under the requirement. For a theory, the claim above says what holds for every row, and
+/// each row says what it filled the requirement's holes with.
 /// </summary>
 /// <remarks>
 /// A table cannot wrap the way prose does — a broken row stops being a row — so instead of laying
 /// the text out to a width, the columns divide the width between them and a value too long for its
 /// share is cut.
 /// </remarks>
-internal sealed record TableSegment(IReadOnlyList<TheoryRow> Rows) : DocumentSegment
+internal sealed record TableSegment(SpecificationTable Table) : DocumentSegment
 {
     private const int Indentation = 2;
 
@@ -27,9 +29,9 @@ internal sealed record TableSegment(IReadOnlyList<TheoryRow> Rows) : DocumentSeg
 
     internal override string Render()
     {
-        Fits(Rows[0].Headers);
-        string[][] cells = [Escaped(Rows[0].Headers), .. Rows.Select(row => Escaped(row.Values))];
-        var widths = Widths(cells, Rows[0].Headers.Count);
+        Fits(Table.Headers);
+        string[][] cells = [Escaped(Table.Headers), .. Table.Rows.Select(Escaped)];
+        var widths = Widths(cells, Table.Headers.Count);
         return "\n"
             + Line(cells[0], widths)
             + Line([.. widths.Select(width => new string('-', width))], widths)

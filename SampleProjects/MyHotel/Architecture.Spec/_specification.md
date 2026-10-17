@@ -7,17 +7,17 @@ flowchart TD
     MyHotel
     Contract
     Core
-    Core_Spec["Core.Spec"]:::spec
+    Core_Spec["Core.Spec"]
     Entry
     Infra
-    MyHotel_Spec["MyHotel.Spec"]:::spec
+    MyHotel_Spec["MyHotel.Spec"]
     MyHotel --> Entry
     MyHotel --> Infra
     Core --> Contract
-    Core_Spec -.-> Core
+    Core_Spec --> Core
     Entry --> Contract
     Infra --> Core
-    MyHotel_Spec -.-> MyHotel
+    MyHotel_Spec --> MyHotel
     click MyHotel "../MyHotel.Spec/_specification/README.md"
     click Core "../Core.Spec/_specification/README.md"
     classDef spec fill:none,stroke-dasharray:4 3,opacity:0.8
@@ -33,12 +33,23 @@ flowchart TD
 
 - **Contract declares only public types** — `Types of "Contract" has all type.IsPublic`
 - **Infra declares no interface**\
-  `Types of "Infra" has not some type.Kind == DeclaredKind.Interface`
+  `Types of "Infra" has none type.Kind == DeclaredKind.Interface`
 
 ## Project dependencies
 
 - **Are only these and not redundant**
+
+  | Project      | May reference | May use                        |
+  | ------------ | ------------- | ------------------------------ |
+  | MyHotel      | Entry, Infra  | Scalar.AspNetCore, Microsoft.* |
+  | Contract     | -             | Microsoft.*                    |
+  | Core         | Contract      | Microsoft.*                    |
+  | Core.Spec    | Core          | *                              |
+  | Entry        | Contract      | Microsoft.*                    |
+  | Infra        | Core          | Microsoft.*                    |
+  | MyHotel.Spec | MyHotel       | *                              |
+
   ```
-  Source.Projects.Under("MyHotel") is within
+  Source.Projects.Under("MyHotel") is within what is allowed
       and not redundant
   ```

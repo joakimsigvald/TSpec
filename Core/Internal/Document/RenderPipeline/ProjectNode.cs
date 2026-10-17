@@ -14,7 +14,7 @@ internal sealed record ProjectNode(string Id, string Label, bool IsSpec, IReadOn
             .OrderBy(projects.AsWritten, StringComparer.Ordinal)
             .Select(project => new ProjectNode(
                 IdOf(projects, project),
-                LabelOf(projects, project),
+                projects.Shown(project),
                 graph.IsSpecProject(project),
                 [.. graph.ReferencesOf(project)
                     .Where(reference => !BuildGraph.IsPackage(reference))
@@ -32,14 +32,7 @@ internal sealed record ProjectNode(string Id, string Label, bool IsSpec, IReadOn
         return specified;
     }
 
-    // To the rules the root is "." and its spec project "Spec", which read as nothing in a diagram.
-    private static string LabelOf(SourceProjects projects, string project)
-        => projects.Graph.TryGetTheProjectItsNameExtends(project, out var extended)
-            ? $"{LabelOf(projects, extended)}.{project.Segment(^1)}"
-        : project == projects.Root ? project.Segment(^1)
-        : projects.AsWritten(project);
-
-    // A Mermaid id is letters, digits and underscores; the label keeps the name as written.
+    // A Mermaid id is letters, digits and underscores; the label keeps the name as shown.
     private static string IdOf(SourceProjects projects, string project)
-        => new([.. LabelOf(projects, project).Select(c => char.IsLetterOrDigit(c) ? c : '_')]);
+        => new([.. projects.Shown(project).Select(c => char.IsLetterOrDigit(c) ? c : '_')]);
 }

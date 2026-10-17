@@ -17,6 +17,7 @@ internal class SpecificationRecording
     private int _suppressionCount;
     private bool _isDescribed;
     private string? _because;
+    private SpecificationTable? _table;
     private string? _cachedSpecification;
 
     /// <summary>
@@ -35,6 +36,8 @@ internal class SpecificationRecording
 
     /// The reason given for the requirement, rendered after the last step.
     internal string? Because => _because;
+
+    internal SpecificationTable? Table => _table;
 
     public override string ToString()
         => _cachedSpecification ??= SpecificationRenderer
@@ -74,6 +77,12 @@ internal class SpecificationRecording
     {
         if (_suppressionCount == 0)
             _recordings.Add(describe);
+    }
+
+    internal void SetTable(SpecificationTable table)
+    {
+        if (_suppressionCount == 0)
+            _table = table;
     }
 
     internal void SetBecause(string reason)

@@ -24,6 +24,7 @@ namespace TSpec.Internal.Document;
 /// null when it is not known.</param>
 /// <param name="Declared">Where the test method is declared, as the run orders it: the depth of its
 /// class below the root of the hierarchy, then its place in that class; null when it is not known.</param>
+/// <param name="Table">What an assertion stated as a table, laid out under the requirement; null for most.</param>
 internal sealed record SpecificationEntry(
     string Subject,
     string Branch,
@@ -35,4 +36,5 @@ internal sealed record SpecificationEntry(
     string? Namespace = null,
     TheoryRow? Row = null,
     SourceLocation? Source = null,
-    (int Depth, int Token)? Declared = null);
+    (int Depth, int Token)? Declared = null,
+    SpecificationTable? Table = null);
