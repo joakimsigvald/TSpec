@@ -28,6 +28,21 @@ Two properties make this different from an LLM summarising a codebase:
 
 Readability can be faked by a language model. Determinism cannot. That is the moat.
 
+The bar is not a perfect specification. Derived from tests, it can never carry the intent a
+hand-written one does. It has to be good enough that anyone who wants to understand the
+system, human or agent, reads it rather than the code.
+
+It rests on two assumptions, of different strength:
+
+- **Tests read better than code, and cover what matters.** The first half holds: a test
+  states the outcome someone expected, while code states a procedure. The second half is the
+  author's discipline, which TSpec cannot supply, but comparing the specification with the
+  requirements checks it (§5).
+- **A specification generated from the tests reads better than the tests.** It does as long
+  as rendering removes only mechanism. Readability can rise only as far as faithfulness
+  allows: a page that reads better than its test by claiming more than the test checks is a
+  page that lies.
+
 ---
 
 ## 2. Principles
@@ -132,6 +147,12 @@ can. An architecture spec writes a document of its own — its rules in words, a
 they hold over as a diagram. That is the system-wide view: above the per-subject documents,
 never a concatenation of them.
 
+The diagram is drawn from the build itself, not from what the tests assert, so it is
+complete by construction and needs neither assumption of §1: the most literal case of code
+describing itself. It is also where wish and truth (§5) compare most easily. A table of
+which project may reference which, written before the code, is the wish; the diagram is
+the truth, in the same vocabulary.
+
 **Laws** are the behavioural kind. Classify them by the execution shape they demand, because
 that classification determines the whole combinator library and will otherwise leak into
 every part of the design.
@@ -174,7 +195,7 @@ layer, so an arrangement that contradicts a contract can fail as `SetupFailed`.
 
 ---
 
-## 5. Descriptive and bound
+## 5. Wish and truth
 
 Spec-driven development tools produce specifications that are **prescriptive and unbound** —
 authored first, in natural language, with no mechanical link to the code, so they drift
@@ -182,13 +203,27 @@ silently. TSpec produces one that is **descriptive and bound** — derived from 
 tests, unable to drift, but describing only what is covered. Neither is complete:
 requirements live outside the code, and no analysis of a test suite recovers them.
 
+The first is the wish, the second the truth, and the value lies in comparing them. Side by
+side, they show deviations at the level of requirements, before anyone runs the system to
+find them:
+
+- a requirement with nothing in the truth: the behaviour is missing, or its test is;
+- a claim that contradicts a requirement: the code does something other than what was asked;
+- a claim with no requirement: behaviour nobody asked for, or a requirement nobody wrote down.
+
+This is the feasible form of the gap detection §6 rules out, because the wish supplies what
+matters and no analysis of code can. TSpec's part is to make the truth comparable: regular,
+deterministic, and in the Given/When/Then shape requirements are often written in. The
+comparison is made by whoever holds both, a reviewer or an agent given the requirements.
+
 ---
 
 ## 6. Out of scope
 
 - **Gap detection from code alone.** Not feasible, and a patchy version is worse than none.
   Three of five enum values specified may be entirely correct; forcing the user to state
-  things they do not care about produces noise, and noise trains readers to skim.
+  things they do not care about produces noise, and noise trains readers to skim. Against
+  the wish it is feasible; see §5.
 - **Naming lint.** The package cannot know what naming convention suits a given domain.
   Document best practice; let the rendered output supply the feedback.
 - **Anything that flags a non-issue.** See the principles.
