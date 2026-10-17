@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using TSpec.Internal.Specification;
 
 namespace TSpec.Assert.Continuations.Enumerable;
 
@@ -12,6 +13,9 @@ namespace TSpec.Assert.Continuations.Enumerable;
 public record HasEnumerable<TItem, TContinuation> : EnumerableConstraint<TItem, TContinuation>
     where TContinuation : HasEnumerable<TItem, TContinuation>, new()
 {
+    // What breaks an All or a None, which its failure lists instead of the whole enumerable.
+    private string? _breaches;
+
     /// <summary>
     /// Asserts that the enumerable contains exactly one item
     /// </summary>
@@ -204,12 +208,11 @@ public record HasEnumerable<TItem, TContinuation> : EnumerableConstraint<TItem, 
     /// <returns>A continuation for making further assertions on the enumerable</returns>
     public ContinueWith<TContinuation> All(
         Func<TItem, int, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
-        => Assert("elements satisfying the condition",
-            NotNullAnd(actual => Xunit.Assert.DoesNotContain(actual
-                .Select((it, i) => (it, i)), t => !condition(t.it, t.i))),
+        => Assert(
+            expectedExpr.Describe(),
+            NotNullAnd(actual => ExpectNone(Indexed(actual).Where(at => !condition(at.Item, at.Index)).Select(at => at.Item), "that does not")),
             expectedExpr!,
-            "have")
-        .And();
+            "have").And();
 
     /// <summary>
     /// Asserts that all the items of the enumerable satisfy the given condition.
@@ -221,8 +224,8 @@ public record HasEnumerable<TItem, TContinuation> : EnumerableConstraint<TItem, 
     public ContinueWith<TContinuation> All(
         Func<TItem, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
         => Assert(
-            "elements satisfying the condition",
-            NotNullAnd(actual => Xunit.Assert.DoesNotContain(actual, it => !condition(it))),
+            expectedExpr.Describe(),
+            NotNullAnd(actual => ExpectNone(actual.Where(it => !condition(it)), "that does not")),
             expectedExpr!,
             "have").And();
 
@@ -293,20 +296,40 @@ public record HasEnumerable<TItem, TContinuation> : EnumerableConstraint<TItem, 
     /// <returns>A continuation for making further assertions on the enumerable</returns>
     public ContinueWith<TContinuation> None(
         Func<TItem, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
-        => not.Some(condition, expectedExpr);
+        => Assert(
+            expectedExpr.Describe(),
+            NotNullAnd(actual => ExpectNone(actual.Where(condition), "that does")),
+            expectedExpr!,
+            "have").And();
 
     /// <summary>
-    /// Asserts that some item of the enumerable satisfies the given indexed condition.
-    /// Fail if empty.
+    /// Asserts that no item of the enumerable satisfies the given indexed condition.
+    /// Pass if empty.
     /// </summary>
     /// <param name="condition">The condition that the value is expected to satisfy</param>
     /// <param name="expectedExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making further assertions on the enumerable</returns>
     public ContinueWith<TContinuation> None(
         Func<TItem, int, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
-        => not.Some(condition, expectedExpr);
+        => Assert(
+            expectedExpr.Describe(),
+            NotNullAnd(actual => ExpectNone(Indexed(actual).Where(at => condition(at.Item, at.Index)).Select(at => at.Item), "that does")),
+            expectedExpr!,
+            "have").And();
 
     internal override TContinuation Continue() => Create(Actual, ActualExpr);
+
+    private protected override string Found(IEnumerable<TItem>? actual, string? methodName)
+        => _breaches ?? base.Found(actual, methodName);
+
+    private void ExpectNone(IEnumerable<TItem> breaches, string relation)
+    {
+        TItem[] found = [.. breaches];
+        _breaches = found.Length == 0 ? null : $"{found.Length} {relation}: {found.FormatValue()}";
+        Xunit.Assert.Empty(found);
+    }
+
+    private static IEnumerable<(TItem Item, int Index)> Indexed(IEnumerable<TItem> items) => items.Select((item, index) => (item, index));
 }
 
 /// <summary>

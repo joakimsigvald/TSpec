@@ -10,7 +10,7 @@ public class WhenNone : Spec
     public void GivenEmpty_ThenCompletes()
     {
         Zero<int>().Has().None(it => it > 3);
-        Specification.Is("Zero ints has not some it > 3");
+        Specification.Is("Zero ints has none it > 3");
     }
 
     [Fact]
@@ -18,7 +18,7 @@ public class WhenNone : Spec
     {
         int[] arr = [1, 4];
         var ex = Xunit.Assert.Throws<XunitException>(() => arr.Has().None(it => it > 3));
-        ex.HasMessage($"Expected arr to not have some element satisfying the condition but found {arr.Length}: {arr.FormatValue()}", "Arr has not some it > 3");
+        ex.HasMessage("Expected arr to have none it > 3 but found 1 that does: [4]", "Arr has none it > 3");
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class WhenNone : Spec
     {
         int[] arr = [1, 3];
         var ex = Xunit.Assert.Throws<XunitException>(() => arr.Has().None((it, i) => it == i + 1));
-        ex.HasMessage($"Expected arr to not have some element satisfying the condition but found {arr.Length}: {arr.FormatValue()}", "Arr has not some (it, i) => it == i + 1");
+        ex.HasMessage("Expected arr to have none (it, i) => it == i + 1 but found 1 that does: [1]", "Arr has none (it, i) => it == i + 1");
     }
 
     [Fact]

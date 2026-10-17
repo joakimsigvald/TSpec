@@ -20,6 +20,6 @@ public class WhenAllCondition : Spec
     {
         int[] arr = [1, 3];
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => arr.Has().All(it => it < 3));
-        ex.HasMessage($"Expected arr to have all elements satisfying the condition but found 2: [1, 3]", "Arr has all it < 3");
+        ex.HasMessage("Expected arr to have all it < 3 but found 1 that does not: [3]", "Arr has all it < 3");
     }
 }

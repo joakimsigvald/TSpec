@@ -17,15 +17,14 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>5.1.0</PackageVersion>
+		<PackageVersion>5.1.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			NEW
-			* ArchitectureDocument: an architecture spec project writes _specification.md, a diagram of the solution's projects and their references, after a fully green run
-			* The architecture page lists every architecture test, rendered as any specification renders a test
-			* In the architecture diagram, a project with a specification links to that specification's index
+			FIXED
+			* A failing Has().All or Has().None states its condition and lists only the items that break it
+			* Has().None reads "has none", not "has not some", in failures and in the specification
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

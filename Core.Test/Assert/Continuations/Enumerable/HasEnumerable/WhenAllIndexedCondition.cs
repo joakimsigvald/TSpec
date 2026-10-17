@@ -21,7 +21,7 @@ public class WhenAllIndexedCondition : Spec
     {
         int[] arr = [1, 3];
         var ex = Xunit.Assert.Throws<XunitException>(() => arr.Has().All((it, i) => it == i + 1));
-        ex.HasMessage($"Expected arr to have all elements satisfying the condition but found 2: [1, 3]",
+        ex.HasMessage("Expected arr to have all (it, i) => it == i + 1 but found 1 that does not: [3]",
             "Arr has all (it, i) => it == i + 1");
     }
 }

@@ -10,11 +10,11 @@ public class CoreSpecs : TSpec.Spec
 
     [Fact]
     public void EachSpecSitsInTheFolderOfTheClassItSpecifies()
-        => CoreSpecFiles.Where(file => !CoreClassFolders.Contains(FolderOf(file))).Is().Empty();
+        => CoreSpecFiles.Has().All(file => CoreClassFolders.Contains(FolderOf(file)));
 
     [Fact]
     public void EachSpecFileDeclaresOneSpec()
-        => CoreSpecFiles.Where(file => file.Types.Count != 1).Is().Empty();
+        => CoreSpecFiles.Has().All(file => file.Types.Count == 1);
 
     private static IEnumerable<SourceFile> CoreSpecFiles
         => _projects["Core.Spec"].Files.Where(file => file.Types.Any(IsSpec));

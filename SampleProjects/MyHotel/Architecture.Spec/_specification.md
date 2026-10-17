@@ -26,16 +26,14 @@ flowchart TD
 ## Core specs
 
 - **Each spec sits in the folder of the class it specifies**\
-  `CoreSpecFiles.Where(file => !CoreClassFolders.Contains(FolderOf(file))) is empty`
-- **Each spec file declares one spec**\
-  `CoreSpecFiles.Where(file => file.Types.Count != 1) is empty`
+  `CoreSpecFiles has all CoreClassFolders.Contains(FolderOf(file))`
+- **Each spec file declares one spec** — `CoreSpecFiles has all file.Types.Count == 1`
 
 ## Layers
 
-- **Contract declares only public types**\
-  `TypesOf("Contract").Where(type => !type.IsPublic) is empty`
+- **Contract declares only public types** — `Types of "Contract" has all type.IsPublic`
 - **Infra declares no interface**\
-  `TypesOf("Infra").Where(type => type.Kind == DeclaredKind.Interface) is empty`
+  `Types of "Infra" has not some type.Kind == DeclaredKind.Interface`
 
 ## Project dependencies
 
