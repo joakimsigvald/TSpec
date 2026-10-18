@@ -11,8 +11,6 @@
 		<OutputType>Exe</OutputType>
 		<UseAppHost>true</UseAppHost>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-		<!-- TEMPORARY: the local feed holding TSpec 5.3.0-local.3, which the package references. -->
-		<RestoreAdditionalProjectSources>$(MSBuildThisFileDirectory)..\Architecture.CSharp\bin\LocalFeed</RestoreAdditionalProjectSources>
 	</PropertyGroup>
 
 	<ItemGroup>

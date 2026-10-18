@@ -26,13 +26,10 @@
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-		<!-- TEMPORARY: the local feed holding TSpec 5.3.0-local.3. -->
-		<RestoreAdditionalProjectSources>$(MSBuildThisFileDirectory)bin\LocalFeed</RestoreAdditionalProjectSources>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
-		<!-- TEMPORARY: TSpec's DependencyGraph from a local build until TSpec 5.3.0 is released. -->
-		<PackageReference Include="TSpec" Version="5.3.0-local.3" PrivateAssets="none" />
+		<PackageReference Include="TSpec" Version="5.3.0" PrivateAssets="none" />
 		<InternalsVisibleTo Include="TSpec.Architecture.CSharp.Test" />
 		<None Include="README.md" Pack="true" PackagePath="\" />
 		<None Include="..\icon.png" Pack="true" PackagePath="\" />
