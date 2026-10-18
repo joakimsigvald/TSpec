@@ -24,16 +24,12 @@ internal sealed class BuildGraph(Dictionary<string, IReadOnlyList<string>> refer
     internal IEnumerable<(string From, string To)> References
         => ProjectsButTheSpec.SelectMany(project => ReferencesOf(project).Order(StringComparer.Ordinal).Select(to => (project, to)));
 
-    // The leading segments every project's name shares, the running spec project aside.
-    internal string? SharedNamespace
+    // The longest leading part of the running spec project's name that another project's name shares:
+    // the shortest would root the names at a prefix every solution of a company shares.
+    internal bool TryGetRoot([NotNullWhen(true)] out string? root)
     {
-        get
-        {
-            var names = ProjectsButTheSpec.Select(name => name.Split('.')).ToArray();
-            var shared = string.Join('.', names.FirstOrDefault([])
-                .TakeWhile((segment, at) => names.All(name => at < name.Length && name[at] == segment)));
-            return shared.Length == 0 ? null : shared;
-        }
+        root = spec is null ? null : LeadingParts(spec).FirstOrDefault(IsShared);
+        return root is not null;
     }
 
     internal bool Contains(string project) => references.ContainsKey(project);
@@ -84,10 +80,16 @@ internal sealed class BuildGraph(Dictionary<string, IReadOnlyList<string>> refer
     private static bool IsToTheProjectItsNameExtends((string From, string To) reference)
         => reference.From.Segment(..^1) == reference.To;
 
+    private static IEnumerable<string> LeadingParts(string name)
+        => Enumerable.Range(1, name.Split('.').Length - 1).Select(dropped => name.Segment(..^dropped));
+
+    private bool IsShared(string part)
+        => ProjectsButTheSpec.Any(project => project == part || project.StartsWith($"{part}.", StringComparison.Ordinal));
+
     private bool IsReachedThroughAnother((string From, string To) reference)
         => ReferencesOf(reference.From).Any(other => other != reference.To && ReachedFrom(other).Contains(reference.To));
 
-    private HashSet<string> ReachedFrom(string project)
+    internal IReadOnlySet<string> ReachedFrom(string project)
     {
         HashSet<string> reached = [];
         Stack<string> pending = new([project]);

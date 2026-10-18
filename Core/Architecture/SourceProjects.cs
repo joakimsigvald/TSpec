@@ -11,7 +11,10 @@ namespace TSpec.Architecture;
 /// </summary>
 public sealed class SourceProjects : IReadOnlyList<SourceProject>
 {
-    internal SourceProjects(Dictionary<string, IReadOnlyList<string>> references) : this(new BuildGraph(references, spec: null), root: null) { }
+    internal SourceProjects(Dictionary<string, IReadOnlyList<string>> references, string? spec = null)
+        : this(new BuildGraph(references, spec)) { }
+
+    private SourceProjects(BuildGraph graph) : this(graph, graph.TryGetRoot(out var root) ? root : null) { }
 
     private SourceProjects(BuildGraph graph, string? root)
     {
@@ -21,7 +24,7 @@ public sealed class SourceProjects : IReadOnlyList<SourceProject>
 
     internal BuildGraph Graph { get; }
 
-    // Under only shortens names where the user writes or reads them; checks that compare names, like A.B -> A, see them in full.
+    // The root only shortens names where the user writes or reads them; checks that compare names, like A.B -> A, see them in full.
     internal string? Root { get; }
 
     /// <summary>
@@ -66,10 +69,12 @@ public sealed class SourceProjects : IReadOnlyList<SourceProject>
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     /// <summary>
-    /// The same projects, named relative to the root: under "MyHotel", "MyHotel.Entry" is "Entry",
-    /// "MyHotel" itself is "." and a project outside it is "/" and its name. Packages keep their names
+    /// The same projects, named relative to another root than the one the spec project's name shares
+    /// with them: under "MyHotel", "MyHotel.Entry" is "Entry", "MyHotel" itself is "." and a project
+    /// outside it is "/" and its name. Packages keep their names
     /// </summary>
     /// <param name="root">The namespace the project names share</param>
+    [Obsolete(Source.NoOtherRoot)]
     public SourceProjects Under(string root) => new(Graph, root);
 
     // ProjectGraph's view, where the running spec project is no project and a name that is none gives nothing.
@@ -97,10 +102,12 @@ public sealed class SourceProjects : IReadOnlyList<SourceProject>
         : name == Root ? name.Segment(^1)
         : AsWritten(name);
 
-    internal static SourceProjects Parse(string depsJson, string specAssemblyName)
-        => new(BuildGraph.Parse(depsJson, specAssemblyName), root: null);
+    internal static SourceProjects Parse(string depsJson, string specAssemblyName) => new(BuildGraph.Parse(depsJson, specAssemblyName));
 
-    internal static SourceProjects ReadBuilt() => new(BuildGraph.ReadBuilt(), root: null);
+    internal static SourceProjects ReadBuilt() => new(BuildGraph.ReadBuilt());
+
+    // The obsolete ProjectGraph named projects in full unless told a root, and still does.
+    internal SourceProjects WithFullNames => new(Graph, root: null);
 
     internal string AsWritten(string name)
         => Root is null || BuildGraph.IsPackage(name) ? name
@@ -117,10 +124,13 @@ public sealed class SourceProjects : IReadOnlyList<SourceProject>
     private IReadOnlyList<SourceProject> Listed
         => [.. Graph.Projects.Select(ProjectOf).OrderBy(project => project.Name, StringComparer.Ordinal)];
 
-    private SourceProject ProjectOf(string name) => new(AsWritten(name), WrittenReferencesOf(name), name);
+    private SourceProject ProjectOf(string name) => new(AsWritten(name), WrittenReferencesOf(name), WrittenReachOf(name), name);
 
     private IReadOnlyList<string> WrittenReferencesOf(string name)
         => [.. Graph.ReferencesOf(name).Select(AsWritten).Order(StringComparer.Ordinal)];
+
+    private IReadOnlyList<string> WrittenReachOf(string name)
+        => [.. Graph.ReachedFrom(name).Select(AsWritten).Order(StringComparer.Ordinal)];
 
     private IReadOnlyList<string> AllowedOf(string project, IReadOnlyList<Func<string, IEnumerable<string>>> rules)
     {

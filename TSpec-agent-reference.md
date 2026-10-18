@@ -1,6 +1,6 @@
 # TSpec — Agent Reference
 
-Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 5.1).
+Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 5.2).
 TSpec is a fluent Given–When–Then specification framework for .NET on top of xUnit v3.
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec#readme).
 
@@ -171,7 +171,7 @@ Put the tests in a spec project of their own that references every project: `<Pr
 ```csharp
 [Fact]
 public void AreOnlyTheseAndNotRedundant()
-    => Source.Projects.Under("MyHotel").Is().Within(p => p switch
+    => Source.Projects.Is().Within(p => p switch
     {
         "." => ["Entry", "Infra"],
         "Entry" or "Core" => ["Contract"],
@@ -182,11 +182,11 @@ public void AreOnlyTheseAndNotRedundant()
     }, p => p.Segment(^1) == "Spec" ? ["P:*"] : ["P:Microsoft.*"]).and.not.Redundant();
 ```
 
-- Names are assembly names; with `Under(root)`: `root.X` → `X`, the root → `.`, other projects → `/Name`. Packages are always `P:Name`. A reference that produces no assembly (an `.esproj`) is not in the graph.
+- Names are assembly names under a common root within the solution. `root.X` → `X`, the root → `.`, other projects → `/Name`. Packages are always `P:Name`. A reference that produces no assembly (an `.esproj`) is not in the graph.
 - Rules add up: a dependency passes if any rule allows it; `_ => [...]` applies to every project. A trailing `*` matches the rest (`P:Moq.*` does not match `P:Moq`). `Within` allows, never requires.
 - `not.Redundant()`: no project references a project it already reaches through another; packages, and `A.B -> A` (`Core.Spec -> Core`), are exempt.
 - Layer rules: switch on `p.Segment(0)` (also `Segment(^1)`, `Segment(..2)`).
-- Custom rules: `Source.Projects["X"]` (an unknown name throws `SetupFailed`) is a `SourceProject` with `Name` and `Dependencies`, named as the rules see them.
+- Custom rules: `Source.Projects["X"]` (an unknown name throws `SetupFailed`) is a `SourceProject` with `Name`, `Dependencies` and `Reaches` (directly or through other projects, packages included), named as the rules see them.
 - The package `TSpec.Architecture.CSharp`, namespace of the same name, adds a project's `Files` (not `obj/` or linked ones), each with `Path` (with `/`), `Lines`, `Raw` and its top-level `Types`.
 - A type has `Name` (no type parameters), `FullName`, `Namespace`, `Kind`, `IsPublic` and `Files`. A failure names a file `X/Path` and a type by its full name.
 - To add an analysis, cache it per file in a `ConditionalWeakTable<SourceFile, T>` behind an extension member; a file is the same object every time.

@@ -10,5 +10,5 @@ public static class Project
     /// The projects, their indexer giving a project's direct references and their Projects their names
     /// </summary>
     [Obsolete(Source.UseProjects)]
-    public static ProjectGraph Dependencies => new(Source.Projects);
+    public static ProjectGraph Dependencies => new(Source.Projects.WithFullNames);
 }

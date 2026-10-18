@@ -50,6 +50,7 @@ flowchart TD
   | MyHotel.Spec | MyHotel       | *                              |
 
   ```
-  Source.Projects.Under("MyHotel") is within what is allowed
+  Source.Projects is within what is allowed
       and not redundant
   ```
+- **Entry never reaches core** — `Source.Projects["Entry"].Reaches does not contain "Core"`

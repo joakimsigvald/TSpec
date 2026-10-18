@@ -15,7 +15,7 @@ public class WhenRenderTheArchitectureDocument : Spec
         ["Company.Hotel.Contract"] = [],
         ["Company.Hotel.Spec"] = ["Company.Hotel", "P:TSpec", "P:xunit.v3"],
         ["Company.Hotel.Entry.Spec"] = ["Company.Hotel.Entry", "P:TSpec"],
-    });
+    }, spec: "Company.Hotel.Architecture.Spec");
 
     private static readonly Dictionary<string, string> _noIndexes = [];
 
@@ -29,7 +29,7 @@ public class WhenRenderTheArchitectureDocument : Spec
                 + "    classDef spec");
 
     [Fact]
-    public void ThenTitleAndDrawTheProjectsUnderTheNamespaceTheyShare()
+    public void ThenTitleAndDrawTheProjectsUnderTheirRoot()
         => ArchitectureRenderer.Render(_hotel, "Hotel.Architecture.Spec", [], _noIndexes).Is(
             """
             # Hotel
@@ -84,7 +84,7 @@ public class WhenRenderTheArchitectureDocument : Spec
         }), "Hotel.Architecture.Spec", [], _noIndexes).Does().Contain("    Hotel_Spec[\"Hotel.Spec\"]:::spec\n");
 
     [Fact]
-    public void GivenTheProjectsShareNoNamespace_ThenTitleItAsTheSpecProject()
+    public void GivenNoRoot_ThenTitleItAsTheSpecProject()
         => ArchitectureRenderer.Render(new(new() { ["Hotel"] = [], ["Tools"] = [] }), "Hotel.Architecture.Spec", [], _noIndexes)
             .Does().StartWith("# Hotel Architecture Spec\n");
 }

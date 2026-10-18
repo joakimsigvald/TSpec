@@ -105,7 +105,7 @@ public class WhenWithin : Spec
     /// The running spec project references every project to read the build: no rule need allow it.
     [Fact]
     public void GivenTheRunningSpecProject_ThenLeaveItOut()
-        => SourceProjects.Parse(MyHotelBuild.DepsJson, "MyHotel.Spec").Under("MyHotel").Is().Within(p => p switch
+        => SourceProjects.Parse(MyHotelBuild.DepsJson, "MyHotel.Spec").Is().Within(p => p switch
         {
             "." => ["Entry", "Infra", "P:Scalar.AspNetCore"],
             "Entry" or "Core" => ["Contract"],
@@ -141,7 +141,7 @@ public class WhenWithin : Spec
             ["Host.Entry"] = ["Host.Contract"],
             ["Host.Contract"] = [],
             ["Host.Spec"] = ["Host", "P:xunit"],
-        }).Under("Host").Is().Within(p => p switch
+        }, spec: "Host.Architecture.Spec").Is().Within(p => p switch
         {
             "." => ["Entry", "P:Scalar"],
             "Entry" => ["Contract"],

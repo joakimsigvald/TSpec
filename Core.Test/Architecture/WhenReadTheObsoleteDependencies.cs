@@ -7,7 +7,7 @@ namespace TSpec.Test.Architecture;
 
 public class WhenReadTheObsoleteDependencies : Spec
 {
-    private static ProjectGraph Dependencies => new(SourceProjects.Parse(MyHotelBuild.DepsJson, "MyHotel.Spec"));
+    private static ProjectGraph Dependencies => new(SourceProjects.Parse(MyHotelBuild.DepsJson, "MyHotel.Spec").WithFullNames);
 
     [Fact]
     public void ThenListTheProjectsByName()

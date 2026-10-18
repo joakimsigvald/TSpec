@@ -6,8 +6,6 @@ namespace MyHotel.Architecture.Spec;
 
 public class CoreSpecs : TSpec.Spec
 {
-    private static readonly SourceProjects _projects = Source.Projects.Under("MyHotel");
-
     [Fact]
     public void EachSpecSitsInTheFolderOfTheClassItSpecifies()
         => CoreSpecFiles.Has().All(file => CoreClassFolders.Contains(FolderOf(file)));
@@ -17,7 +15,7 @@ public class CoreSpecs : TSpec.Spec
         => CoreSpecFiles.Has().All(file => file.Types.Count == 1);
 
     private static IEnumerable<SourceFile> CoreSpecFiles
-        => _projects["Core.Spec"].Files.Where(file => file.Types.Any(IsSpec));
+        => Source.Projects["Core.Spec"].Files.Where(file => file.Types.Any(IsSpec));
 
     // A spec derives from Spec, but a declared type has no base type to tell it by; MyHotel names every spec When….
     private static bool IsSpec(DeclaredType type) => type.Name.StartsWith("When", StringComparison.Ordinal);
@@ -26,7 +24,7 @@ public class CoreSpecs : TSpec.Spec
     {
         get
         {
-            var core = _projects["Core"];
+            var core = Source.Projects["Core"];
             return [.. core.Files.SelectMany(file => file.Types).Select(type => FolderOf(type, core.AssemblyName))];
         }
     }

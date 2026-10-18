@@ -5,10 +5,11 @@ namespace TSpec.Architecture;
 /// </summary>
 public sealed class SourceProject
 {
-    internal SourceProject(string name, IReadOnlyList<string> dependencies, string assemblyName)
+    internal SourceProject(string name, IReadOnlyList<string> dependencies, IReadOnlyList<string> reaches, string assemblyName)
     {
         Name = name;
         Dependencies = dependencies;
+        Reaches = reaches;
         AssemblyName = assemblyName;
     }
 
@@ -21,6 +22,12 @@ public sealed class SourceProject
     /// The projects and packages the project references directly, named as the rules see them
     /// </summary>
     public IReadOnlyList<string> Dependencies { get; }
+
+    /// <summary>
+    /// The projects and packages the project depends on, directly or through other projects, named as
+    /// the rules see them
+    /// </summary>
+    public IReadOnlyList<string> Reaches { get; }
 
     /// <summary>
     /// The name of the assembly the project builds, in full where <see cref="Name"/> is shortened by a root

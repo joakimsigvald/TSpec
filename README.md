@@ -980,7 +980,7 @@ public class ProjectDependencies : Spec
 {
     [Fact]
     public void AreOnlyTheseAndNotRedundant()
-        => Source.Projects.Under("MyHotel").Is().Within(p => p switch
+        => Source.Projects.Is().Within(p => p switch
         {
             "." => ["Entry", "Infra", "P:Scalar.AspNetCore"],
             "Entry" or "Core" => ["Contract"],
@@ -992,7 +992,7 @@ public class ProjectDependencies : Spec
 }
 ```
 
-- **Names are assembly names.** `Under(root)` shortens them: `MyHotel.Entry` is `Entry`, `MyHotel`
+- **Names are assembly names, under a common root within the solution. For `MyHotel.Architecture.Spec`, `MyHotel.Entry` is `Entry`, `MyHotel`
   itself is `.`, and a project outside the root is `/` and its name. A package is `P:` and its name.
 - **Rules add up**: a dependency passes if any rule allows it, so `_ => [...]` allows its targets to
   every project.
@@ -1008,8 +1008,9 @@ first, `p.Segment(^1)` the last and `p.Segment(..2)` the first two joined by a d
 `p => p.Segment(0) switch { "Data" => ["Domain.*"], _ => [] }`.
 
 For a rule the assertions don't cover, read the projects and assert on what you compute:
-`Source.Projects` lists every project and `Source.Projects["Data.Auth"]` gives one; each has its `Name`
-and `Dependencies` as the rules see them. A name that is no project of the build throws `SetupFailed`.
+`Source.Projects` lists every project and `Source.Projects["Data.Auth"]` gives one; each has its `Name`,
+its `Dependencies` and what it `Reaches`, directly or through other projects, as the rules see them. A
+name that is no project of the build throws `SetupFailed`.
 
 Opt in with `[assembly: AssemblyFixture(typeof(ArchitectureDocument))]`, and a clean full run writes
 `_specification.md` to the spec project: a diagram of the solution's projects and their references,

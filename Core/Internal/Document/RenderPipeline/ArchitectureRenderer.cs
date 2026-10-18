@@ -12,8 +12,8 @@ internal static class ArchitectureRenderer
     internal static string Render(
         SourceProjects projects, string specAssemblyName, IEnumerable<SpecificationEntry> entries,
         IReadOnlyDictionary<string, string> indexes)
-        => projects.Graph.SharedNamespace is { } shared
-            ? Render(projects.Under(shared), shared.Segment(^1), specAssemblyName, entries, indexes)
+        => projects.Root is { } root
+            ? Render(projects, root.Segment(^1), specAssemblyName, entries, indexes)
             : Render(projects, specAssemblyName, specAssemblyName, entries, indexes);
 
     private static string Render(

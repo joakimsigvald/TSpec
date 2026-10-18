@@ -10,7 +10,7 @@ public class WhenReadTheBuild : Spec
     [Fact]
     public void GivenAProjectOfTheBuild_ThenOpenItsDebugInformation()
     {
-        Build.TryOpenDebugInformation(Source.Projects["TSpec"], out var provider).Is().True();
+        Build.TryOpenDebugInformation(Source.Projects["."], out var provider).Is().True();
         provider!.Dispose();
     }
 
