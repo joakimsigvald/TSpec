@@ -68,13 +68,10 @@ public abstract partial class Spec<TSUT, TResult>
 
     private void Collect()
     {
-        if (!SpecificationCollector.IsActive)
+        if (SpecificationCollector.Current is not { } collector || TestIdentity.Result is not { } result)
             return;
-        var identity = ExpectedRequirements.Identity(GetType(), TestIdentity.Requirement);
-        if (TestIdentity.Passed)
-            SpecificationCollector.Record(identity, Reported());
-        else if (TestIdentity.Skipped)
-            SpecificationCollector.Skipped(identity);
+
+        collector.Add(ExpectedRequirements.Identity(GetType(), TestIdentity.Requirement), result, Reported);
     }
 
     /// What this run hands to the document, whether or not one is being written.

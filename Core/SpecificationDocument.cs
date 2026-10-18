@@ -49,7 +49,7 @@ public sealed class SpecificationDocument : IDisposable
         if (_specification is null)
             return;
 
-        CompleteRun.End(Written, _specAssembly, () => _specification.Write(SpecificationCollector.Entries));
+        CompleteRun.End(Written, _specAssembly, _specification.Write);
     }
 
     private static string ReadName(Assembly assembly)

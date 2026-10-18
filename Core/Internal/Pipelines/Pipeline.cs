@@ -211,7 +211,7 @@ internal class Pipeline<TSUT, TResult> : Fixture<TSUT>
     /// open is wrong in any test.
     internal void AssertClaimed()
     {
-        if (TestIdentity.Failed)
+        if (TestIdentity.Result is Xunit.TestResult.Failed)
             return;
 
         Specification.AssertEitherClosed();

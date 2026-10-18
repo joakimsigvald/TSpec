@@ -34,7 +34,7 @@ public class WhenListExpectedRequirements : Spec
 
     [Fact]
     public void GivenNothingReported_ThenEveryRequirementIsMissing()
-        => SpecificationCollector.Missing(new HashSet<string> { "A.b", "A.a" }).Is().EqualTo(["A.a", "A.b"]);
+        => new SpecificationCollector().Missing(new HashSet<string> { "A.b", "A.a" }).Is().EqualTo(["A.a", "A.b"]);
 
     /// <summary>
     /// A test skipped while it ran — Assert.Skip in the body, or a mapped SkipException — reports
@@ -45,18 +45,40 @@ public class WhenListExpectedRequirements : Spec
     [Fact]
     public void GivenATestSkippedWhileItRan_ThenItIsNotMissing()
     {
-        SpecificationCollector.Skipped("A.SkippedWhileItRan");
-        SpecificationCollector.Missing(new HashSet<string> { "A.SkippedWhileItRan" }).Is().Empty();
+        SpecificationCollector collector = new();
+        collector.Add("A.SkippedWhileItRan", TestResult.Skipped, AnEntry);
+        collector.Missing(new HashSet<string> { "A.SkippedWhileItRan" }).Is().Empty();
     }
 
     /// <summary>A skip excuses itself and nothing else: a run that fell short is still short.</summary>
     [Fact]
     public void GivenATestSkippedWhileItRan_ThenTheRestAreStillMissing()
     {
-        SpecificationCollector.Skipped("A.AlsoSkipped");
-        SpecificationCollector.Missing(new HashSet<string> { "A.AlsoSkipped", "A.NeverRan" })
-            .Is().EqualTo(["A.NeverRan"]);
+        SpecificationCollector collector = new();
+        collector.Add("A.AlsoSkipped", TestResult.Skipped, AnEntry);
+        collector.Missing(new HashSet<string> { "A.AlsoSkipped", "A.NeverRan" }).Is().EqualTo(["A.NeverRan"]);
     }
+
+    /// <summary>A theory's rows share one requirement, so a row that passed does not excuse one that failed.</summary>
+    [Fact]
+    public void GivenATheoryRowFailedAfterAnotherPassed_ThenItIsMissing()
+    {
+        SpecificationCollector collector = new();
+        collector.Add("A.Theory", TestResult.Passed, AnEntry);
+        collector.Add("A.Theory", TestResult.Failed, AnEntry);
+        collector.Missing(new HashSet<string> { "A.Theory" }).Is().EqualTo(["A.Theory"]);
+    }
+
+    [Fact]
+    public void GivenATheoryRowFailedBeforeAnotherPassed_ThenItIsMissing()
+    {
+        SpecificationCollector collector = new();
+        collector.Add("A.Theory", TestResult.Failed, AnEntry);
+        collector.Add("A.Theory", TestResult.Passed, AnEntry);
+        collector.Missing(new HashSet<string> { "A.Theory" }).Is().EqualTo(["A.Theory"]);
+    }
+
+    private static SpecificationEntry AnEntry() => new("A", "", "Requirement", []);
 
     public class SkippedSample : Spec
     {

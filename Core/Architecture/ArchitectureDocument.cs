@@ -36,14 +36,13 @@ public sealed class ArchitectureDocument : IDisposable
         if (directory is null)
             return;
 
-        CompleteRun.End(ArchitectureRenderer.FileName, _specAssembly, () => Write(directory));
+        CompleteRun.End(ArchitectureRenderer.FileName, _specAssembly, entries => Write(directory, entries));
     }
 
-    private void Write(string directory)
+    private void Write(string directory, IReadOnlyCollection<SpecificationEntry> entries)
         => PendingSpecification.Write(
             Path.Combine(directory, ArchitectureRenderer.FileName),
-            ArchitectureRenderer.Render(
-                Source.Projects, _specAssembly.GetName().Name!, SpecificationCollector.Entries, Indexes(directory)));
+            ArchitectureRenderer.Render(Source.Projects, _specAssembly.GetName().Name!, entries, Indexes(directory)));
 
     // Each spec project's own index, by the spec project, as linked from this page.
     private static Dictionary<string, string> Indexes(string directory)

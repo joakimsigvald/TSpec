@@ -24,17 +24,17 @@ internal static class CompleteRun
     internal static void Begin(string document, bool located)
     {
         if (located)
-            SpecificationCollector.IsActive = true;
+            SpecificationCollector.Open();
         else
             Console.Error.WriteLine(ProjectDirectory.Unlocatable(document, AppContext.BaseDirectory));
     }
 
-    internal static void End(string document, Assembly specAssembly, Action write)
+    internal static void End(string document, Assembly specAssembly, Action<IReadOnlyCollection<SpecificationEntry>> write)
     {
-        SpecificationCollector.IsActive = false;
-        var missing = SpecificationCollector.Missing(ExpectedRequirements.Of(specAssembly));
+        var collector = SpecificationCollector.Close();
+        var missing = collector.Missing(ExpectedRequirements.Of(specAssembly));
         if (missing.Length == 0)
-            write();
+            write(collector.Entries);
         else
             Console.Error.WriteLine(Report(document, missing));
     }

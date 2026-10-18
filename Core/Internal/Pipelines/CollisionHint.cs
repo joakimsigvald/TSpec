@@ -13,7 +13,7 @@ internal static class CollisionHint
 {
     internal static void WriteIfItPassesAlone(Type testClass, IReadOnlyList<string> ranBefore)
     {
-        if (ranBefore.Count == 0 || !TestIdentity.Failed)
+        if (ranBefore.Count == 0 || TestIdentity.Result is not TestResult.Failed)
             return;
 
         if (TestContext.Current.TestMethod is IXunitTestMethod { Method: var method } && PassesAlone(testClass, method))

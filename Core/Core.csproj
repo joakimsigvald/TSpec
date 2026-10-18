@@ -17,22 +17,13 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>5.2.0</PackageVersion>
+		<PackageVersion>5.2.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			NEW
-			* Within tables what each project may reference and use, under its test in the specification
-			* SourceProject.Reaches: what a project depends on, directly or through other projects
-			CHANGED
-			* Source.Projects names projects under the root its spec project's name shares
 			FIXED
-			* A failing Has().All or Has().None states its condition and lists only the items that break it
-			* Has().None reads "has none", not "has not some", in failures and in the specification
-			* Within reads "is within what is allowed", not "is within", in the specification
-			OBSOLETE
-			* Under(root): the root is the one the spec project's name shares with the projects
+			* A theory with a failing row leaves the specification unchanged, even when its other rows passed
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
