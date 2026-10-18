@@ -187,11 +187,18 @@ public void AreOnlyTheseAndNotRedundant()
 - `not.Redundant()`: no project references a project it already reaches through another; packages, and `A.B -> A` (`Core.Spec -> Core`), are exempt.
 - Layer rules: switch on `p.Segment(0)` (also `Segment(^1)`, `Segment(..2)`).
 - Custom rules: `Source.Projects["X"]` (an unknown name throws `SetupFailed`) is a `SourceProject` with `Name`, `Dependencies` and `Reaches` (directly or through other projects, packages included), named as the rules see them.
-- The package `TSpec.Architecture.CSharp`, namespace of the same name, adds a project's `Files` (not `obj/` or linked ones), each with `Path` (with `/`), `Lines`, `Raw` and its top-level `Types`.
-- A type has `Name` (no type parameters), `FullName`, `Namespace`, `Kind`, `IsPublic` and `Files`. A failure names a file `X/Path` and a type by its full name.
-- To add an analysis, cache it per file in a `ConditionalWeakTable<SourceFile, T>` behind an extension member; a file is the same object every time.
 - The architecture page: `[assembly: AssemblyFixture(typeof(ArchitectureDocument))]` writes `_specification.md`, a diagram of the projects and the tests below it, on a clean full run. Only `Spec` classes count, so derive the test classes from `Spec`.
 - `Project.Dependencies` is obsolete: use `Source.Projects["X"].Dependencies`.
+
+## C# code (package `TSpec.Architecture.CSharp`)
+
+- A package of its own: `using TSpec.Architecture.CSharp;`.
+- A project's `Files` are the source files it compiles from its own folder, leaving out what the build generates under `obj/` and files linked in from elsewhere.
+- A file has its `Path` in the project (written with `/`), its `Lines`, its `Raw` text and the `Types` declared at its top level.
+- A file's `Root` is its Roslyn syntax as the build parsed it, so code under an `#if` the build left out is not in it. `file.Line(node)` is the line a node starts on, counted from 1.
+- A project's `Types` are those of all its files, a partial type once.
+- A type has `Name` (no type parameters), `FullName`, `Namespace`, `Kind`, `IsPublic` and `Files`. A failure names a file `X/Path` and a type by its full name.
+- To add an analysis, cache it per file in a `ConditionalWeakTable<SourceFile, T>` behind an extension member; a file is the same object every time.
 
 ## Complete examples
 

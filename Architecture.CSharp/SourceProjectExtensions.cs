@@ -16,5 +16,13 @@ public static class SourceProjectExtensions
         /// </summary>
         public IReadOnlyList<SourceFile> Files
             => ProjectSources.Of(project);
+
+        /// <summary>
+        /// The types the project's files declare at their top level, in the ordinal order of their full
+        /// names: a partial type once, though several of its files declare it
+        /// </summary>
+        public IReadOnlyList<DeclaredType> Types
+            => [.. project.Files.SelectMany(file => file.Types).Distinct()
+                .OrderBy(type => type.FullName, StringComparer.Ordinal)];
     }
 }

@@ -1,3 +1,7 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 namespace TSpec.Architecture.CSharp;
 
 /// <summary>
@@ -7,13 +11,15 @@ public sealed class SourceFile
 {
     private readonly Lazy<string> _raw;
     private readonly Lazy<IReadOnlyList<string>> _lines;
+    private readonly Lazy<CompilationUnitSyntax> _root;
 
-    internal SourceFile(string project, string path, string location)
+    internal SourceFile(string project, string path, string location, CSharpParseOptions options)
     {
         Project = project;
         Path = path;
         _raw = new(() => File.ReadAllText(location));
         _lines = new(() => LinesOf(Raw));
+        _root = new(() => CSharpSyntaxTree.ParseText(Raw, options).GetCompilationUnitRoot());
     }
 
     /// <summary>
@@ -28,8 +34,8 @@ public sealed class SourceFile
 
     /// <summary>
     /// The file's text as it is written, for an analysis TSpec does not have. Add one to the file as an
-    /// extension property, such as a syntax tree parsed with Roslyn, and keep what is costly to compute
-    /// in a <c>ConditionalWeakTable</c> keyed by the file itself: TSpec hands out the same file every time
+    /// extension property, and keep what is costly to compute in a <c>ConditionalWeakTable</c> keyed by
+    /// the file itself: TSpec hands out the same file every time
     /// </summary>
     public string Raw => _raw.Value;
 
@@ -44,6 +50,17 @@ public sealed class SourceFile
     /// type stays with its owner
     /// </summary>
     public IReadOnlyList<DeclaredType> Types { get; internal set; } = [];
+
+    /// <summary>
+    /// The file's syntax as the build parsed it, in the project's language version and with the symbols
+    /// its <c>#if</c> directives test, so code the build left out is not in it
+    /// </summary>
+    public CompilationUnitSyntax Root => _root.Value;
+
+    /// <summary>
+    /// The line a node or token of the file starts on, counted from 1
+    /// </summary>
+    public int Line(SyntaxNodeOrToken node) => Root.SyntaxTree.GetLineSpan(node.Span).StartLinePosition.Line + 1;
 
     /// <summary>
     /// The file as a failure names it: its project and its path in it

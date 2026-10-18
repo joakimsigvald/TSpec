@@ -10,14 +10,14 @@ namespace TSpec.Architecture.CSharp.Internal;
 /// </summary>
 internal static class TypeDeclarations
 {
-    internal static IEnumerable<DeclaredType> In(IReadOnlyList<SourceFile> files, CSharpParseOptions options)
+    internal static IEnumerable<DeclaredType> In(IReadOnlyList<SourceFile> files)
         => files
-            .SelectMany(file => PartsIn(file, options))
+            .SelectMany(PartsIn)
             .GroupBy(part => part.Identity)
             .Select(Declared);
 
-    private static IEnumerable<Part> PartsIn(SourceFile file, CSharpParseOptions options)
-        => CSharpSyntaxTree.ParseText(file.Raw, options).GetRoot()
+    private static IEnumerable<Part> PartsIn(SourceFile file)
+        => file.Root
             .DescendantNodes(IsNamespaceScope)
             .Select(node => PartOf(node, file))
             .OfType<Part>();

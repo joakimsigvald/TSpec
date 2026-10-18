@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.CSharp;
 using TSpec.Extensibility;
 
 namespace TSpec.Architecture.CSharp.Internal;
@@ -17,7 +19,8 @@ internal static class ProjectSources
     internal static IReadOnlyList<SourceFile> Of(SourceProject project)
         => _files.GetOrAdd((project.Name, project.AssemblyName), _ => Read(project));
 
-    internal static IReadOnlyList<SourceFile> From(string project, IReadOnlyCollection<string> documents)
+    internal static IReadOnlyList<SourceFile> From(
+        string project, IReadOnlyCollection<string> documents, CSharpParseOptions options)
     {
         if (!Build.TryFindProjectFolder(documents, out var folder))
             throw new SetupFailed(
@@ -28,7 +31,7 @@ internal static class ProjectSources
             .Select(document => (Location: document, Path: InProject(folder, document)))
             .Where(file => IsInside(file.Path) && !IsGenerated(file.Path))
             .OrderBy(file => file.Path, StringComparer.Ordinal)
-            .Select(file => new SourceFile(project, file.Path, file.Location))];
+            .Select(file => new SourceFile(project, file.Path, file.Location, options))];
     }
 
     private static IReadOnlyList<SourceFile> Read(SourceProject project)
@@ -40,11 +43,14 @@ internal static class ProjectSources
         using (provider)
         {
             var debug = provider.GetMetadataReader();
-            var files = From(project.Name, [.. debug.Documents.Select(document => debug.GetString(debug.GetDocument(document).Name))]);
-            Declare(TypeDeclarations.In(files, CompilationOptions.ParseOptionsOf(project.Name, debug)), files);
+            var files = From(project.Name, DocumentsOf(debug), CompilationOptions.ParseOptionsOf(project.Name, debug));
+            Declare(TypeDeclarations.In(files), files);
             return files;
         }
     }
+
+    private static string[] DocumentsOf(MetadataReader debug)
+        => [.. debug.Documents.Select(document => debug.GetString(debug.GetDocument(document).Name))];
 
     // One object per type, so a partial type is the same type on each of its files.
     private static void Declare(IEnumerable<DeclaredType> declared, IReadOnlyList<SourceFile> files)

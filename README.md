@@ -1016,39 +1016,9 @@ Opt in with `[assembly: AssemblyFixture(typeof(ArchitectureDocument))]`, and a c
 `_specification.md` to the spec project: a diagram of the solution's projects and their references,
 and the architecture tests below it.
 
-With the package `TSpec.Architecture.CSharp` and `using TSpec.Architecture.CSharp;`, a project's
-`Files` are those it compiles from its own folder, leaving out what the build generates under `obj/`
-and files linked in from elsewhere. A file has its `Path` in the project,
-written with `/`, its `Lines` and its `Raw` text, and a failure names it by project and path:
-`Data.Auth/Stores/UserStore.cs`. Its `Types` are those declared at its top level, a nested type
-staying with its owner, each with its `Name` (`Repository`), its `FullName` (`Data.Repository<T>`),
-`Namespace`, `Kind`, `IsPublic` and the `Files` it is declared in, several for a partial type; a
-failure names a type by its full name. A rule of one public type per file, adopted with today's
-breaches listed in `Allowed`:
-
-```csharp
-[Fact]
-public void Only_the_listed_files_declare_more_than_one_public_type()
-    => Source.Projects.SelectMany(project => project.Files)
-        .Select(file => (file.ToString(), Public: file.Types.Count(type => type.IsPublic)))
-        .Where(file => file.Public > 1)
-        .Are(Allowed);
-```
-
-A file is the same object every time, so an analysis TSpec doesn't have can be added to it as an
-extension member that keeps what it computes per file:
-
-```csharp
-static class RoslynFiles
-{
-    private static readonly ConditionalWeakTable<SourceFile, SyntaxTree> _trees = new();
-
-    extension(SourceFile file)
-    {
-        public SyntaxNode Root => _trees.GetValue(file, f => CSharpSyntaxTree.ParseText(f.Raw)).GetRoot();
-    }
-}
-```
+For rules on the code inside a project — its source files, the types they declare and their syntax —
+add the package `TSpec.Architecture.CSharp`, described in
+[its README](https://github.com/joakimsigvald/TSpec/blob/main/Architecture.CSharp/README.md).
 
 `Project.Dependencies` and its `ProjectGraph` are obsolete: `graph["X"]` there is
 `Source.Projects["X"].Dependencies`, and its `Projects` are names, the running spec project's left out.

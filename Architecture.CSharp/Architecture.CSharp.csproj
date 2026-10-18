@@ -16,13 +16,15 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>1.0.0</PackageVersion>
+		<PackageVersion>1.1.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			NEW
-			* Each project's source files and the types they declare, moved here from TSpec 5.0
+			* A project's Types: the top-level types its files declare, a partial type listed once
+			* A file's Root: its Roslyn syntax tree, parsed with the build's language version and #if symbols
+			* A file's Line(node): the line a syntax node starts on
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
@@ -31,7 +33,7 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
 		<PackageReference Include="TSpec" Version="5.2.0" PrivateAssets="none" />
 		<InternalsVisibleTo Include="TSpec.Architecture.CSharp.Test" />
-		<None Include="..\README.md" Pack="true" PackagePath="\" />
+		<None Include="README.md" Pack="true" PackagePath="\" />
 		<None Include="..\icon.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
