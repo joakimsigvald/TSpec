@@ -195,9 +195,17 @@ public void AreOnlyTheseAndNotRedundant()
 - A package of its own: `using TSpec.Architecture.CSharp;`.
 - A project's `Files` are the source files it compiles from its own folder, leaving out what the build generates under `obj/` and files linked in from elsewhere.
 - A file has its `Path` in the project (written with `/`), its `Lines`, its `Raw` text and the `Types` declared at its top level.
-- A file's `Root` is its Roslyn syntax as the build parsed it, so code under an `#if` the build left out is not in it. `file.Line(node)` is the line a node starts on, counted from 1.
+- A file's `Root` is its Roslyn syntax as the build parsed it, so code under an `#if` the build left out is not in it. `file.SpanOf(node)` is where a node or token starts and ends: a `Start` and an `End`, each a `Line` and `Column` counted from 1.
 - A project's `Types` are those of all its files, a partial type once.
 - A type has `Name` (no type parameters), `FullName`, `Namespace`, `Kind`, `IsPublic` and `Files`. A failure names a file `X/Path` and a type by its full name.
+- A file's `Uses`: the build's types its code uses, through a member too (an extension call, a constant). A nested type counts as its outermost.
+- A type's `Exposes`: the build's types named in its signature that other assemblies see, itself included.
+- `Uses` and `Exposes` compile the project once a run; reflection is not seen.
+- A project's `OpensInternalsTo`: the projects its `InternalsVisibleTo` names.
+- A file's `Members`: those it declares, nested types' and local functions too. A project's: all its files'.
+- A record's positional parameters are its constructor's and its properties.
+- A member's `Accessibility` is in effect: no more than the types around it allow. Its `Type` and `Parameters` are syntax, as written.
+- A failure names a member `X/Path:line Name`.
 - To add an analysis, cache it per file in a `ConditionalWeakTable<SourceFile, T>` behind an extension member; a file is the same object every time.
 
 ## Complete examples

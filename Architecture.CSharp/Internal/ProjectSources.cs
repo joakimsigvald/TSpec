@@ -13,11 +13,13 @@ namespace TSpec.Architecture.CSharp.Internal;
 /// </summary>
 internal static class ProjectSources
 {
-    private static readonly ConcurrentDictionary<(string Project, string Assembly), IReadOnlyList<SourceFile>> _files = new();
+    private static readonly ConcurrentDictionary<(string Project, string Assembly), ProjectSource> _sources = new();
+
+    internal static IReadOnlyList<SourceFile> Of(SourceProject project) => SourceOf(project).Files;
 
     // The same files every time: an extension member keeps what it computes against the file it was given.
-    internal static IReadOnlyList<SourceFile> Of(SourceProject project)
-        => _files.GetOrAdd((project.Name, project.AssemblyName), _ => Read(project));
+    internal static ProjectSource SourceOf(SourceProject project)
+        => _sources.GetOrAdd((project.Name, project.AssemblyName), _ => Read(project));
 
     internal static IReadOnlyList<SourceFile> From(
         string project, IReadOnlyCollection<string> documents, CSharpParseOptions options)
@@ -34,7 +36,7 @@ internal static class ProjectSources
             .Select(file => new SourceFile(project, file.Path, file.Location, options))];
     }
 
-    private static IReadOnlyList<SourceFile> Read(SourceProject project)
+    private static ProjectSource Read(SourceProject project)
     {
         if (!Build.TryOpenDebugInformation(project, out var provider))
             throw new SetupFailed(
@@ -43,9 +45,11 @@ internal static class ProjectSources
         using (provider)
         {
             var debug = provider.GetMetadataReader();
-            var files = From(project.Name, DocumentsOf(debug), CompilationOptions.ParseOptionsOf(project.Name, debug));
+            var documents = DocumentsOf(debug);
+            var options = CompilationOptions.ParseOptionsOf(project.Name, debug);
+            var files = From(project.Name, documents, options);
             Declare(TypeDeclarations.In(files), files);
-            return files;
+            return new(files, [.. documents.Except(files.Select(file => file.Location))], options);
         }
     }
 

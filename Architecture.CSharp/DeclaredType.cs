@@ -1,3 +1,5 @@
+using TSpec.Architecture.CSharp.Internal;
+
 namespace TSpec.Architecture.CSharp;
 
 /// <summary>
@@ -6,6 +8,7 @@ namespace TSpec.Architecture.CSharp;
 public sealed class DeclaredType
 {
     private readonly IReadOnlyList<string> _typeParameters;
+    private readonly Lazy<IReadOnlyList<DeclaredType>> _exposes;
 
     internal DeclaredType(
         string name, IReadOnlyList<string> typeParameters, string @namespace, DeclaredKind kind, bool isPublic,
@@ -17,6 +20,7 @@ public sealed class DeclaredType
         Kind = kind;
         IsPublic = isPublic;
         Files = files;
+        _exposes = new(() => BuildTypes.ExposedBy(this));
     }
 
     /// <summary>
@@ -52,6 +56,16 @@ public sealed class DeclaredType
     /// partial type
     /// </summary>
     public IReadOnlyList<SourceFile> Files { get; }
+
+    /// <summary>
+    /// The types of the build the type's signature names where other assemblies see it, in the ordinal
+    /// order of their full names: its base type, interfaces and constraints, and the types of its public
+    /// and protected members; itself too, when one of its members names it. None for a type other
+    /// assemblies do not see. Its project is compiled to find out, once in a run
+    /// </summary>
+    public IReadOnlyList<DeclaredType> Exposes => _exposes.Value;
+
+    internal int Arity => _typeParameters.Count;
 
     /// <summary>
     /// The type as a failure names it: its full name

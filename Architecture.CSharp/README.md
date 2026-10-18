@@ -29,16 +29,46 @@ public void Only_the_listed_files_declare_more_than_one_public_type()
 ```
 
 A file's `Root` is its Roslyn syntax as the build parsed it, so code under an `#if` the build left
-out is not in it, and `Line(node)` is the line a node starts on:
+out is not in it, and `SpanOf(node)` is where a node or token starts and ends, its lines and columns
+counted from 1:
+
+```csharp
+[Fact]
+public void No_arrow_starts_a_line()
+    => Source.Projects.SelectMany(project => project.Files)
+        .SelectMany(file => file.Root.DescendantTokens()
+            .Where(token => token.IsKind(SyntaxKind.EqualsGreaterThanToken))
+            .Where(arrow => file.SpanOf(arrow).Start.Line > file.SpanOf(arrow.GetPreviousToken()).End.Line)
+            .Select(arrow => $"{file}:{file.SpanOf(arrow).Start.Line}"))
+        .Is().Empty();
+```
+
+A file's `Members` are those it declares, a nested type's and local functions too, and a project's are
+those of all its files. A record's positional parameters are its constructor's and its properties. A
+member's `Accessibility` is the one it has in effect, no more than the types around it allow: a public
+member of an internal class is internal. Its `Type` and `Parameters` are syntax, as written, and a
+failure names it by file, line and name: `Data.Auth/Stores/UserStore.cs:12 Find`.
 
 ```csharp
 [Fact]
 public void No_method_name_ends_in_Async()
-    => Source.Projects.SelectMany(project => project.Files)
-        .SelectMany(file => file.Root.DescendantNodes().OfType<MethodDeclarationSyntax>()
-            .Where(method => method.Identifier.Text.EndsWith("Async"))
-            .Select(method => $"{file}:{file.Line(method)}"))
-        .Is().Empty();
+    => Source.Projects.SelectMany(project => project.Members)
+        .Where(member => member.Kind == MemberKind.Method)
+        .Has().None(method => method.Name.EndsWith("Async"));
+```
+
+A file's `Uses` are the build's types its code uses: those it names, and those whose members it names,
+such as an extension method's class or a constant's type; a nested type counts as its outermost one. A
+type `Exposes` the build's types its signature names where other assemblies see it: its base type,
+interfaces and constraints, and the types of its public and protected members, itself included. Both
+compile the project with Roslyn, once in a run, and a use by reflection is not one the compiler sees. A
+project `OpensInternalsTo` the projects its `InternalsVisibleTo` names.
+
+```csharp
+[Fact]
+public void The_domain_uses_nothing_of_persistence()
+    => Source.Projects["Core"].Files.Where(file => file.Path.StartsWith("Domain/"))
+        .Has().None(file => file.Uses.Any(type => type.Namespace.EndsWith(".Persistence")));
 ```
 
 A file is the same object every time, so an analysis TSpec doesn't have can be added to it as an

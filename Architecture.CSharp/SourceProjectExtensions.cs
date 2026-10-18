@@ -24,5 +24,19 @@ public static class SourceProjectExtensions
         public IReadOnlyList<DeclaredType> Types
             => [.. project.Files.SelectMany(file => file.Types).Distinct()
                 .OrderBy(type => type.FullName, StringComparer.Ordinal)];
+
+        /// <summary>
+        /// The members the project's files declare, file by file in the order of their paths
+        /// </summary>
+        public IReadOnlyList<DeclaredMember> Members
+            => [.. project.Files.SelectMany(file => file.Members)];
+
+        /// <summary>
+        /// The projects of the build its <c>InternalsVisibleTo</c> names, named as the rules see them, in
+        /// ordinal order
+        /// </summary>
+        public IReadOnlyList<string> OpensInternalsTo
+            => [.. Source.Projects.Where(other => CompiledProject.Of(project).Friends.Contains(other.AssemblyName))
+                .Select(other => other.Name).Order(StringComparer.Ordinal)];
     }
 }

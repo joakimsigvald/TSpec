@@ -1,6 +1,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+using TSpec.Architecture.CSharp.Internal;
 
 namespace TSpec.Architecture.CSharp;
 
@@ -12,14 +14,19 @@ public sealed class SourceFile
     private readonly Lazy<string> _raw;
     private readonly Lazy<IReadOnlyList<string>> _lines;
     private readonly Lazy<CompilationUnitSyntax> _root;
+    private readonly Lazy<IReadOnlyList<DeclaredMember>> _members;
+    private readonly Lazy<IReadOnlyList<DeclaredType>> _uses;
 
     internal SourceFile(string project, string path, string location, CSharpParseOptions options)
     {
         Project = project;
         Path = path;
+        Location = location;
         _raw = new(() => File.ReadAllText(location));
         _lines = new(() => LinesOf(Raw));
         _root = new(() => CSharpSyntaxTree.ParseText(Raw, options).GetCompilationUnitRoot());
+        _members = new(() => MemberDeclarations.In(this));
+        _uses = new(() => BuildTypes.UsedIn(this));
     }
 
     /// <summary>
@@ -31,6 +38,8 @@ public sealed class SourceFile
     /// The file's path in its project, written with '/': "Rooms/RoomService.cs"
     /// </summary>
     public string Path { get; }
+
+    internal string Location { get; }
 
     /// <summary>
     /// The file's text as it is written, for an analysis TSpec does not have. Add one to the file as an
@@ -58,14 +67,33 @@ public sealed class SourceFile
     public CompilationUnitSyntax Root => _root.Value;
 
     /// <summary>
-    /// The line a node or token of the file starts on, counted from 1
+    /// Where a node or token of the file starts and ends
     /// </summary>
-    public int Line(SyntaxNodeOrToken node) => Root.SyntaxTree.GetLineSpan(node.Span).StartLinePosition.Line + 1;
+    public SourceSpan SpanOf(SyntaxNodeOrToken node) => SpanOf(Root.SyntaxTree.GetLineSpan(node.Span));
+
+    /// <summary>
+    /// The members the file declares, in the order they are written: a nested type's and local functions
+    /// too
+    /// </summary>
+    public IReadOnlyList<DeclaredMember> Members => _members.Value;
+
+    /// <summary>
+    /// The types of the build the file's code uses, in the ordinal order of their full names: those it
+    /// names, and those whose members it names, such as an extension method's class or a constant's type.
+    /// A nested type counts as the type it is nested in. The file's project is compiled to find out, once
+    /// in a run
+    /// </summary>
+    public IReadOnlyList<DeclaredType> Uses => _uses.Value;
 
     /// <summary>
     /// The file as a failure names it: its project and its path in it
     /// </summary>
     public override string ToString() => $"{Project}/{Path}";
+
+    private static SourceSpan SpanOf(FileLinePositionSpan span)
+        => new(PositionOf(span.StartLinePosition), PositionOf(span.EndLinePosition));
+
+    private static SourcePosition PositionOf(LinePosition position) => new(position.Line + 1, position.Character + 1);
 
     private static IReadOnlyList<string> LinesOf(string text) => text.Length == 0 ? [""] : [.. ReadLines(new StringReader(text))];
 

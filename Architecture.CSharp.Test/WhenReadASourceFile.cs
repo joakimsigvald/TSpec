@@ -1,7 +1,8 @@
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using TSpec.Architecture;
 using TSpec.Assert;
 using TSpec.Test.Internal.Document;
+using static TSpec.Architecture.CSharp.Test.WrittenFiles;
 
 namespace TSpec.Architecture.CSharp.Test;
 
@@ -43,17 +44,18 @@ public class WhenReadASourceFile : Spec
     }
 
     [Fact]
-    public void ThenTellTheLineANodeStartsOn()
+    public void ThenTellWhereANodeStartsAndEnds_CountingLinesAndColumnsFromOne()
     {
         using var project = new TempProject("Entry");
-        var file = Written(project, "class A;\r\n\nclass B;\n");
-        file.Line(file.Root.Members[1]).Is(3);
+        var file = Written(project, "class A;\r\n\nclass B\n{\n}\n");
+        file.SpanOf(file.Root.Members[1]).Is(new SourceSpan(new(3, 1), new(5, 2)));
     }
 
-    private static SourceFile Written(TempProject project, string text)
+    [Fact]
+    public void GivenAToken_ThenTellWhereItStartsAndEnds()
     {
-        var location = project.AddSource("Rooms", "RoomEndpoints.cs");
-        File.WriteAllText(location, text);
-        return new("Entry", "Rooms/RoomEndpoints.cs", location, CSharpParseOptions.Default);
+        using var project = new TempProject("Entry");
+        var file = Written(project, "class Room;");
+        file.SpanOf(((ClassDeclarationSyntax)file.Root.Members[0]).Identifier).Is(new SourceSpan(new(1, 7), new(1, 11)));
     }
 }
