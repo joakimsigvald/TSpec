@@ -156,6 +156,17 @@ public class WhenWithin : Spec
             "Host.Spec | Host | *"]);
     }
 
+    [Fact]
+    public void ThenDrawNothingAboveTheTable_SinceTheGraphAtTheTopDrawsTheProjects()
+    {
+        _dependencies.Is().Within(project => project switch
+        {
+            "Entry" or "Core" => ["Contract"],
+            _ => [],
+        });
+        Reported().Table!.Arrows.Is().Null();
+    }
+
     private static string[] Lines(SpecificationTable table)
         => [string.Join(" | ", table.Headers), .. table.Rows.Select(row => string.Join(" | ", row))];
 }

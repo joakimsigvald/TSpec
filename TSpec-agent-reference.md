@@ -1,6 +1,6 @@
 # TSpec — Agent Reference
 
-Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 5.2).
+Condensed reference for AI coding agents writing tests with TSpec (covers TSpec 5.3).
 TSpec is a fluent Given–When–Then specification framework for .NET on top of xUnit v3.
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec#readme).
 
@@ -188,6 +188,8 @@ public void AreOnlyTheseAndNotRedundant()
 - Layer rules: switch on `p.Segment(0)` (also `Segment(^1)`, `Segment(..2)`).
 - Custom rules: `Source.Projects["X"]` (an unknown name throws `SetupFailed`) is a `SourceProject` with `Name`, `Dependencies` and `Reaches` (directly or through other projects, packages included), named as the rules see them.
 - The architecture page: `[assembly: AssemblyFixture(typeof(ArchitectureDocument))]` writes `_specification.md`, a diagram of the projects and the tests below it, on a clean full run. Only `Spec` classes count, so derive the test classes from `Spec`.
+- A graph of your own: `new DependencyGraph("Namespace", dependencies)`, each node's name and the names it depends on; the first argument heads the table. `Is().Within(...)` takes the same rules.
+- A `DependencyGraph`'s test draws what the rules allow above its table in the generated specification. A target ending in `*` draws no arrow.
 - `Project.Dependencies` is obsolete: use `Source.Projects["X"].Dependencies`.
 
 ## C# code (package `TSpec.Architecture.CSharp`)
@@ -202,6 +204,7 @@ public void AreOnlyTheseAndNotRedundant()
 - A type's `Exposes`: the build's types named in its signature that other assemblies see, itself included.
 - `Uses` and `Exposes` compile the project once a run; reflection is not seen.
 - A project's `OpensInternalsTo`: the projects its `InternalsVisibleTo` names.
+- A project's `Folders`: a `DependencyGraph` of the folders directly in its own, each with the folders whose types its files use. A file at the project's root is in no folder. Assert with `Folders.Is().Within(...)`.
 - A file's `Members`: those it declares, nested types' and local functions too. A project's: all its files'.
 - A record's positional parameters are its constructor's and its properties.
 - A member's `Accessibility` is in effect: no more than the types around it allow. Its `Type` and `Parameters` are syntax, as written.

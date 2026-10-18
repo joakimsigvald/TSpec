@@ -1016,8 +1016,14 @@ Opt in with `[assembly: AssemblyFixture(typeof(ArchitectureDocument))]`, and a c
 `_specification.md` to the spec project: a diagram of the solution's projects and their references,
 and the architecture tests below it.
 
-For rules on the code inside a project — its source files, the types they declare and their syntax —
-add the package `TSpec.Architecture.CSharp`, described in
+A graph of your own takes the same rules: a `DependencyGraph` holds each node's name and the names it
+depends on, as in `new DependencyGraph("Namespace", dependencies)`, where the first argument names what
+a node is, and `Is().Within(...)` asserts on it as on the projects. In the generated specification, its
+test draws what the rules allow above the table of what each may use: an arrow for each target written
+in full, while a target ending in `*` is stated in the table only.
+
+For rules on the code inside a project — its source files and folders, the types they declare and their
+syntax — add the package `TSpec.Architecture.CSharp`, described in
 [its README](https://github.com/joakimsigvald/TSpec/blob/main/Architecture.CSharp/README.md).
 
 `Project.Dependencies` and its `ProjectGraph` are obsolete: `graph["X"]` there is

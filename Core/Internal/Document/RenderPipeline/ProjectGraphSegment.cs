@@ -13,11 +13,16 @@ internal sealed record ProjectGraphSegment(IReadOnlyList<ProjectNode> Nodes) : D
     internal static ProjectGraphSegment Of(SourceProjects projects, IReadOnlyDictionary<string, string> indexes)
         => new(ProjectNode.All(projects, indexes));
 
-    internal override string Render()
-        => $"\n```mermaid\nflowchart TD\n{string.Concat(Lines.Select(line => $"    {line}\n"))}```\n";
+    internal override string Render() => $"\n{Flowchart([.. Drawn(Nodes), .. Nodes.SelectMany(Link), SpecStyle])}\n";
 
-    private IEnumerable<string> Lines
-        => [.. Nodes.Select(Declaration), .. Nodes.SelectMany(Edges), .. Nodes.SelectMany(Link), SpecStyle];
+    // The nodes and arrows alone, as drawn under a test that allows them.
+    internal static string Plain(IReadOnlyList<ProjectNode> nodes) => Flowchart(Drawn(nodes));
+
+    private static string Flowchart(IEnumerable<string> lines)
+        => $"```mermaid\nflowchart TD\n{string.Concat(lines.Select(line => $"    {line}\n"))}```";
+
+    private static IEnumerable<string> Drawn(IReadOnlyList<ProjectNode> nodes)
+        => [.. nodes.Select(Declaration), .. nodes.SelectMany(Edges)];
 
     private static string Declaration(ProjectNode node) => node.IsSpec ? $"{Shape(node)}:::spec" : Shape(node);
 

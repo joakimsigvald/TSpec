@@ -75,6 +75,29 @@ public class WhenRenderTheArchitectureDocument : Spec
                 + "  | Hotel   | Entry         | Scalar  |\n");
 
     [Fact]
+    public void GivenATestDrawsWhatIsAllowed_ThenDrawItAboveTheTable()
+        => ArchitectureRenderer.Render(_hotel, "Hotel.Architecture.Spec", [
+            new("SubdomainDependencies", "", "AreOnlyThese",
+                [new([new SpecificationStep(StepLayout.Sentence) { Family = StepFamily.None, Body = "folders is within" }])],
+                Namespace: "Hotel.Architecture.Spec",
+                Table: new(["Folder", "May use"],
+                    [["Billing", "Rooms"], ["Rooms", "-"], ["Rooms.Cleaning", "Rooms"]],
+                    Arrows: [("Billing", "Rooms"), ("Rooms.Cleaning", "Rooms")]))], _noIndexes)
+            .Does().Contain(
+                "- **Are only these** — `Folders is within`\n"
+                + "\n"
+                + "  ```mermaid\n"
+                + "  flowchart TD\n"
+                + "      Billing\n"
+                + "      Rooms\n"
+                + "      Rooms_Cleaning[\"Rooms.Cleaning\"]\n"
+                + "      Billing --> Rooms\n"
+                + "      Rooms_Cleaning --> Rooms\n"
+                + "  ```\n"
+                + "\n"
+                + "  | Folder         | May use |\n");
+
+    [Fact]
     public void GivenAProjectReachesTSpecThroughAnother_ThenDrawItAsASpecProject()
         => ArchitectureRenderer.Render(new(new()
         {

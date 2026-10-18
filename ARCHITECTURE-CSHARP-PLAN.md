@@ -28,9 +28,9 @@ public void A_subdomain_uses_only_what_the_graph_draws_below_it()
     });
 ```
 
-The architecture page draws it as it draws the project graph, with the table of what each may use.
-
-- *Serves:* SubdomainDependencies, both facts in effect: a folder no rule places may use nothing. Built
-  on `Uses`, and `Within` over a graph that is not the project graph: TSpec public API, in
-  `TSpec.Extensibility`, released first.
-- *To decide:* folders or namespaces as the unit.
+- *Serves:* SubdomainDependencies, both facts in effect: a folder no rule places may use nothing.
+- *Decided:* folders, not namespaces. TSpec asserts on a graph and draws it; the package reads C# and
+  produces graphs. A `DependencyGraph`'s `Within` draws its table under its test; a project `Within`
+  does not, the graph at the top of the page draws the projects. A wildcard target draws no arrow.
+- *Left:* docs and release notes for both; TSpec 5.3.0 released, then the package 1.2.0 on it; the
+  TEMPORARY local feeds in the package, its specs and M5 reverted.

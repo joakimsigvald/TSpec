@@ -1,8 +1,8 @@
 # TSpec.Architecture.CSharp
 
 Architecture rules on the code inside the projects of a [TSpec](https://github.com/joakimsigvald/TSpec#readme)
-build: their source files, the types those declare and their Roslyn syntax. The projects and their
-references are TSpec's own, in [its README's Architecture section](https://github.com/joakimsigvald/TSpec#7-architecture).
+build: their source files and folders, the types those declare and their Roslyn syntax. The projects
+and their references are TSpec's own, in [its README's Architecture section](https://github.com/joakimsigvald/TSpec#7-architecture).
 
 Install the package in your architecture spec project:
 ```shell
@@ -69,6 +69,22 @@ project `OpensInternalsTo` the projects its `InternalsVisibleTo` names.
 public void The_domain_uses_nothing_of_persistence()
     => Source.Projects["Core"].Files.Where(file => file.Path.StartsWith("Domain/"))
         .Has().None(file => file.Uses.Any(type => type.Namespace.EndsWith(".Persistence")));
+```
+
+A project's `Folders` are the folders directly in its own that hold its files, each with the others it
+uses: one of its files uses a type a file of the other declares. A file at the project's root is in no
+folder. They are a TSpec `DependencyGraph`, so `Within` takes rules on them as on the projects, and the
+generated specification draws what the rules allow:
+
+```csharp
+[Fact]
+public void A_subdomain_uses_only_those_below_it()
+    => Source.Projects["Application"].Folders.Is().Within(folder => folder switch
+    {
+        "Generation" or "Assistant" => ["Chat"],
+        "Workbench" => ["Generation", "Chat"],
+        _ => [],
+    });
 ```
 
 A file is the same object every time, so an analysis TSpec doesn't have can be added to it as an

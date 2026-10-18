@@ -3,9 +3,18 @@ using TSpec.Architecture;
 namespace TSpec.Internal.Document.RenderPipeline;
 
 /// A project as the diagram draws it: its id and label, whether it is a spec project, the ids of the
-/// projects it references, and the index of the specification that describes it.
+/// projects it references, and the index of the specification that describes it. Under a test, a node
+/// is a row of what the test allows, and its references are the rows it may depend on.
 internal sealed record ProjectNode(string Id, string Label, bool IsSpec, IReadOnlyList<string> References, string? Index)
 {
+    internal static IReadOnlyList<ProjectNode> Allowed(IEnumerable<string> names, IReadOnlyList<(string From, string To)> arrows)
+        => [.. names.Select(name => new ProjectNode(
+            IdOf(name),
+            name,
+            IsSpec: false,
+            [.. arrows.Where(arrow => arrow.From == name).Select(arrow => IdOf(arrow.To))],
+            Index: null))];
+
     internal static IReadOnlyList<ProjectNode> All(SourceProjects projects, IReadOnlyDictionary<string, string> indexes)
     {
         var graph = projects.Graph;
@@ -33,6 +42,7 @@ internal sealed record ProjectNode(string Id, string Label, bool IsSpec, IReadOn
     }
 
     // A Mermaid id is letters, digits and underscores; the label keeps the name as shown.
-    private static string IdOf(SourceProjects projects, string project)
-        => new([.. projects.Shown(project).Select(c => char.IsLetterOrDigit(c) ? c : '_')]);
+    private static string IdOf(SourceProjects projects, string project) => IdOf(projects.Shown(project));
+
+    private static string IdOf(string shown) => new([.. shown.Select(c => char.IsLetterOrDigit(c) ? c : '_')]);
 }

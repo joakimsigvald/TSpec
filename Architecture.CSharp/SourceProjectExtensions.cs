@@ -32,6 +32,14 @@ public static class SourceProjectExtensions
             => [.. project.Files.SelectMany(file => file.Members)];
 
         /// <summary>
+        /// The folders directly in the project's own that hold its files, in ordinal order, each with the
+        /// others it uses: one of its files uses a type a file of the other declares. A file at the project's
+        /// root is in no folder. Assert on them with <c>Is().Within(...)</c>
+        /// </summary>
+        public DependencyGraph Folders
+            => ProjectFolders.Of(project);
+
+        /// <summary>
         /// The projects of the build its <c>InternalsVisibleTo</c> names, named as the rules see them, in
         /// ordinal order
         /// </summary>

@@ -27,7 +27,12 @@ internal sealed record ListItemSegment(
 
     private static bool Fenced(string claim) => claim.Contains('\n');
 
-    private string Tabled() => Table is null ? string.Empty : new TableSegment(Table).Render();
+    private string Tabled() => Table is null ? string.Empty : $"{Drawn(Table)}{new TableSegment(Table).Render()}";
+
+    private static string Drawn(SpecificationTable table)
+        => table.Arrows is null
+            ? string.Empty
+            : $"\n{Indent(ProjectGraphSegment.Plain(ProjectNode.Allowed(table.Rows.Select(row => row[0]), table.Arrows)))}\n";
 
     private static string Blocked(string content) => $"```\n{content}\n```";
 

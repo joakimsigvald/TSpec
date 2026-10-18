@@ -87,14 +87,14 @@ public sealed class SourceProjects : IReadOnlyList<SourceProject>
     internal IReadOnlyList<string> NamesButTheSpec => [.. Graph.ProjectsButTheSpec.Select(AsWritten).Order(StringComparer.Ordinal)];
 
     internal IEnumerable<string> ReferencesOutside(IEnumerable<Func<string, IEnumerable<string>>> rules)
-        => Graph.References.Where(reference => !rules.Any(rule => IsAllowedBy(rule, reference))).Select(Describe);
+        => Graph.References.Where(reference => !IsAllowedBy(rules, reference)).Select(Describe);
 
     internal IEnumerable<string> RedundantReferences() => Graph.References.Where(Graph.IsRedundant).Select(Describe);
 
     // What each project may reference and use: a rule is a function of the project, so it is called for every one.
     internal SpecificationTable AllowedBy(IReadOnlyList<Func<string, IEnumerable<string>>> rules)
         => new(["Project", "May reference", "May use"],
-            [.. Graph.ProjectsButTheSpec.OrderBy(AsWritten, StringComparer.Ordinal).Select(project => AllowedOf(project, rules))]);
+            [.. NamesButTheSpec.Select(project => AllowedOf(project, rules))]);
 
     // To the rules the root is "." and its spec project "Spec", which read as nothing on a page.
     internal string Shown(string name)
@@ -134,26 +134,18 @@ public sealed class SourceProjects : IReadOnlyList<SourceProject>
 
     private IReadOnlyList<string> AllowedOf(string project, IReadOnlyList<Func<string, IEnumerable<string>>> rules)
     {
-        string[] targets = [.. rules.SelectMany(rule => rule(AsWritten(project))).Distinct()];
+        var targets = Rules.TargetsOf(rules, project);
         return [
-            Shown(project),
-            NamesOrNothing(targets.Where(target => !BuildGraph.IsPackage(target)).Select(ShownTarget)),
-            NamesOrNothing(targets.Where(BuildGraph.IsPackage).Select(BuildGraph.PackageName))];
+            Shown(FullName(project)),
+            Rules.Listed(targets.Where(target => !BuildGraph.IsPackage(target)).Select(ShownTarget)),
+            Rules.Listed(targets.Where(BuildGraph.IsPackage).Select(BuildGraph.PackageName))];
     }
-
-    // Beside "*" for any, an empty cell would read as undecided rather than as nothing.
-    private static string NamesOrNothing(IEnumerable<string> names) => names.Any() ? string.Join(", ", names) : "-";
 
     // A wildcard names no one project, so it stays as the rule wrote it.
     private string ShownTarget(string target) => target.EndsWith('*') ? target : Shown(FullName(target));
 
-    private bool IsAllowedBy(Func<string, IEnumerable<string>> rule, (string From, string To) reference)
-        => Allows(rule(AsWritten(reference.From)), AsWritten(reference.To));
-
-    private static bool Allows(IEnumerable<string> targets, string name) => targets.Any(target => Matches(target, name));
-
-    private static bool Matches(string target, string name)
-        => target.EndsWith('*') ? name.StartsWith(target[..^1], StringComparison.Ordinal) : target == name;
+    private bool IsAllowedBy(IEnumerable<Func<string, IEnumerable<string>>> rules, (string From, string To) reference)
+        => Rules.Allow(rules, AsWritten(reference.From), AsWritten(reference.To));
 
     private string Describe((string From, string To) reference) => $"{AsWritten(reference.From)} -> {AsWritten(reference.To)}";
 }

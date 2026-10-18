@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<Description>Architecture rules on the code of a TSpec build: each project's source files and the types they declare</Description>
@@ -16,27 +16,23 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>1.1.0</PackageVersion>
+		<PackageVersion>1.2.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			NEW
-			* A project's Types: the top-level types its files declare, a partial type listed once
-			* A file's Root: its Roslyn syntax tree, parsed with the build's language version and #if symbols
-			* A file's SpanOf(node): where a syntax node or token starts and ends
-			* A file's and a project's Members: each member's name, kind, accessibility, parameters and type
-			* A file's Uses: the build's types its code uses
-			* A type's Exposes: the build's types its signature names where other assemblies see it
-			* A project's OpensInternalsTo: the projects its InternalsVisibleTo names
-			* A type's Nested: the types declared inside it
+			* A project's Folders: the folders that hold its files, each with those whose types it uses, for Within
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<!-- TEMPORARY: the local feed holding TSpec 5.3.0-local.3. -->
+		<RestoreAdditionalProjectSources>$(MSBuildThisFileDirectory)bin\LocalFeed</RestoreAdditionalProjectSources>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
-		<PackageReference Include="TSpec" Version="5.2.0" PrivateAssets="none" />
+		<!-- TEMPORARY: TSpec's DependencyGraph from a local build until TSpec 5.3.0 is released. -->
+		<PackageReference Include="TSpec" Version="5.3.0-local.3" PrivateAssets="none" />
 		<InternalsVisibleTo Include="TSpec.Architecture.CSharp.Test" />
 		<None Include="README.md" Pack="true" PackagePath="\" />
 		<None Include="..\icon.png" Pack="true" PackagePath="\" />
