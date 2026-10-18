@@ -69,5 +69,5 @@ public class WhenReadTheTypes : Spec
 #endif
 
     private static SourceFile Declared(string file)
-        => Source.Projects["TSpec.Architecture.CSharp.Test"].Files.Single(source => source.Path == $"Declared/{file}");
+        => Source.Projects["Test"].Files.Single(source => source.Path == $"Declared/{file}");
 }

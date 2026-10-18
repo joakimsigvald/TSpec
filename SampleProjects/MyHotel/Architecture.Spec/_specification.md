@@ -7,17 +7,17 @@ flowchart TD
     MyHotel
     Contract
     Core
-    Core_Spec["Core.Spec"]
+    Core_Spec["Core.Spec"]:::spec
     Entry
     Infra
-    MyHotel_Spec["MyHotel.Spec"]
+    MyHotel_Spec["MyHotel.Spec"]:::spec
     MyHotel --> Entry
     MyHotel --> Infra
     Core --> Contract
-    Core_Spec --> Core
+    Core_Spec -.-> Core
     Entry --> Contract
     Infra --> Core
-    MyHotel_Spec --> MyHotel
+    MyHotel_Spec -.-> MyHotel
     click MyHotel "../MyHotel.Spec/_specification/README.md"
     click Core "../Core.Spec/_specification/README.md"
     classDef spec fill:none,stroke-dasharray:4 3,opacity:0.8

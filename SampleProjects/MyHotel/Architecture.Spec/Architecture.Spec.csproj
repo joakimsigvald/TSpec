@@ -15,17 +15,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Castle.Core" Version="5.2.1" />
+		<PackageReference Include="TSpec" Version="5.2.0" />
+		<PackageReference Include="TSpec.Architecture.CSharp" Version="1.0.0" />
 		<PackageReference Include="xunit.v3" Version="4.0.2" />
-	</ItemGroup>
-
-	<!-- TSpec's working copy and TSpec.Architecture.CSharp's, built into ..\lib. A reference by path brings no
-	     dependencies, so the package's Roslyn is referenced here. -->
-	<ItemGroup>
-		<Reference Include="TSpec" HintPath="..\lib\TSpec.dll" />
-		<Reference Include="TSpec.Architecture.CSharp" HintPath="..\lib\TSpec.Architecture.CSharp.dll" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
-		<Analyzer Include="..\lib\TSpec.Analyzers.dll" />
 	</ItemGroup>
 
 	<ItemGroup>
