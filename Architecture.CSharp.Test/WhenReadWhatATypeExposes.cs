@@ -28,7 +28,16 @@ public class WhenReadWhatATypeExposes : Spec
     public void GivenATypeOtherAssembliesDoNotSee_ThenItExposesNothing()
         => ExposedBy("Unseen").Is().Empty();
 
-    private static IEnumerable<string> ExposedBy(string name)
-        => Source.Projects["Test"].Types.Single(type => type.Namespace.EndsWith(".Exposes") && type.Name == name)
-            .Exposes.Select(type => type.Name);
+    [Fact]
+    public void GivenANestedType_ThenItExposesWhatItsOwnSignatureNames()
+        => Exposing("Owning").Nested.Single().Exposes.Select(type => type.Name).Is().EqualTo(["Exposed"]);
+
+    [Fact]
+    public void GivenANestedType_ThenItsSignatureIsNotItsOwners()
+        => ExposedBy("Owning").Is().Empty();
+
+    private static IEnumerable<string> ExposedBy(string name) => Exposing(name).Exposes.Select(type => type.Name);
+
+    private static DeclaredType Exposing(string name)
+        => Source.Projects["Test"].Types.Single(type => type.Namespace.EndsWith(".Exposes") && type.Name == name);
 }

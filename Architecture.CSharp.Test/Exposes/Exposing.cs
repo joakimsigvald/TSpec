@@ -25,3 +25,11 @@ internal class Unseen
 {
     public Exposed Get() => new();
 }
+
+public class Owning
+{
+    public class Owned
+    {
+        public Exposed Get() => new();
+    }
+}

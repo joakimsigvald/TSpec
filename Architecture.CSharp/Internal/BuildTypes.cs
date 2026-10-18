@@ -16,20 +16,25 @@ internal static class BuildTypes
     internal static IReadOnlyList<DeclaredType> ExposedBy(DeclaredType type)
     {
         var project = Source.Projects[type.Files[0].Project];
-        return Of(CompiledProject.Of(project).NamedBySignaturesOf(KeyOf(type, project)));
+        return Of(CompiledProject.Of(project).NamedBySignaturesOf(TypeKey.Of(type, project.AssemblyName)));
     }
 
     private static IReadOnlyList<DeclaredType> Of(IEnumerable<TypeKey> types)
-        => [.. types.Distinct().Select(Find).OfType<DeclaredType>().OrderBy(type => type.FullName, StringComparer.Ordinal)];
+        => [.. types.Distinct().Select(Find).OfType<DeclaredType>().Distinct()
+            .OrderBy(type => type.FullName, StringComparer.Ordinal)];
 
-    private static DeclaredType? Find(TypeKey type) => _byAssembly.GetOrAdd(type.Assembly, Declared).GetValueOrDefault(type);
+    // A type no file declares, such as an extension block or what a generator wrote, counts as the one it is in.
+    private static DeclaredType? Find(TypeKey type)
+        => _byAssembly.GetOrAdd(type.Assembly, Declared).GetValueOrDefault(type)
+            ?? (type.IsNested ? Find(type.Owner) : null);
 
     // An assembly no project of the build makes, such as the framework's, declares none of the build's types.
     private static IReadOnlyDictionary<TypeKey, DeclaredType> Declared(string assembly)
         => Source.Projects.FirstOrDefault(project => project.AssemblyName == assembly) is { } project
-            ? project.Types.DistinctBy(type => KeyOf(type, project)).ToDictionary(type => KeyOf(type, project))
+            ? project.Types.SelectMany(AndNested)
+                .DistinctBy(type => TypeKey.Of(type, assembly))
+                .ToDictionary(type => TypeKey.Of(type, assembly))
             : new Dictionary<TypeKey, DeclaredType>();
 
-    private static TypeKey KeyOf(DeclaredType type, SourceProject project)
-        => new(project.AssemblyName, type.Namespace, type.Name, type.Arity);
+    private static IEnumerable<DeclaredType> AndNested(DeclaredType type) => [type, .. type.Nested.SelectMany(AndNested)];
 }

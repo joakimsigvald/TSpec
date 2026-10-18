@@ -30,6 +30,13 @@ public class WhenReadWhatAFileUses : Spec
         => UsesOf("Using.cs").Single(type => type.Name == "SourceFile").Files[0].Project.Is(".");
 
     [Fact]
+    public void GivenANestedType_ThenItUsesThatTypeAsWellAsTheOneItNamesItThrough()
+        => UsesOf("UsingNested.cs").Select(type => type.FullName).Is().EqualTo(
+        [
+            "TSpec.Architecture.CSharp.Test.Uses.Container", "TSpec.Architecture.CSharp.Test.Uses.Container.Contained",
+        ]);
+
+    [Fact]
     public void GivenOnlyDeclarations_ThenItUsesNothing()
         => UsesOf("Used.cs").Is().Empty();
 

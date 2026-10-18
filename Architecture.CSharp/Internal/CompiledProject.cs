@@ -9,8 +9,7 @@ namespace TSpec.Architecture.CSharp.Internal;
 /// <summary>
 /// A project compiled from what its build compiled, against the assemblies the running spec project runs
 /// with: the types a file's code uses, the types named in its signatures that other assemblies see, and the
-/// assemblies it opens its internals to. A type nested in another counts as the outermost one, the one a
-/// declared type is.
+/// assemblies it opens its internals to.
 /// </summary>
 internal sealed class CompiledProject
 {
@@ -131,8 +130,5 @@ internal sealed class CompiledProject
             _ => [],
         };
 
-    private static TypeKey Key(INamedTypeSymbol type) => TypeKey.Of(Outermost(type));
-
-    private static INamedTypeSymbol Outermost(INamedTypeSymbol type)
-        => type.OriginalDefinition.ContainingType is { } owner ? Outermost(owner) : type.OriginalDefinition;
+    private static TypeKey Key(INamedTypeSymbol type) => TypeKey.Of(type.OriginalDefinition);
 }

@@ -13,3 +13,8 @@ public static class Extensions
 {
     public static int Twice(this int number) => 2 * number;
 }
+
+public class Container
+{
+    public class Contained;
+}

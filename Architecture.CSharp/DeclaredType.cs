@@ -3,7 +3,7 @@ using TSpec.Architecture.CSharp.Internal;
 namespace TSpec.Architecture.CSharp;
 
 /// <summary>
-/// A type declared at the top level of its files; a nested type stays with its owner
+/// A type declared at the top level of its files, or nested in another type as one of its Nested types
 /// </summary>
 public sealed class DeclaredType
 {
@@ -12,7 +12,7 @@ public sealed class DeclaredType
 
     internal DeclaredType(
         string name, IReadOnlyList<string> typeParameters, string @namespace, DeclaredKind kind, bool isPublic,
-        IReadOnlyList<SourceFile> files)
+        IReadOnlyList<SourceFile> files, DeclaredType? owner)
     {
         Name = name;
         _typeParameters = typeParameters;
@@ -20,6 +20,7 @@ public sealed class DeclaredType
         Kind = kind;
         IsPublic = isPublic;
         Files = files;
+        Owner = owner;
         _exposes = new(() => BuildTypes.ExposedBy(this));
     }
 
@@ -34,9 +35,13 @@ public sealed class DeclaredType
     public string Namespace { get; }
 
     /// <summary>
-    /// The type's name qualified with its namespace, with its type parameters: "Data.Repository&lt;T&gt;"
+    /// The type's name qualified with its namespace and the types it is nested in, with its type
+    /// parameters: "Data.Repository&lt;T&gt;"
     /// </summary>
-    public string FullName => Namespace.Length == 0 ? Declared : $"{Namespace}.{Declared}";
+    public string FullName
+        => Owner is not null ? $"{Owner.FullName}.{Declared}"
+        : Namespace.Length == 0 ? Declared
+        : $"{Namespace}.{Declared}";
 
     // Repository and Repository<T> are two types, so their full names must differ.
     private string Declared => _typeParameters.Count == 0 ? Name : $"{Name}<{string.Join(", ", _typeParameters)}>";
@@ -47,7 +52,7 @@ public sealed class DeclaredType
     public DeclaredKind Kind { get; }
 
     /// <summary>
-    /// Whether the type is public
+    /// Whether the type is public in effect: declared public, inside types that all are
     /// </summary>
     public bool IsPublic { get; }
 
@@ -64,6 +69,13 @@ public sealed class DeclaredType
     /// assemblies do not see. Its project is compiled to find out, once in a run
     /// </summary>
     public IReadOnlyList<DeclaredType> Exposes => _exposes.Value;
+
+    /// <summary>
+    /// The types declared inside the type, in the ordinal order of their full names
+    /// </summary>
+    public IReadOnlyList<DeclaredType> Nested { get; internal set; } = [];
+
+    internal DeclaredType? Owner { get; }
 
     internal int Arity => _typeParameters.Count;
 

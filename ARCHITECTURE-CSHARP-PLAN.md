@@ -5,7 +5,6 @@ proposals.
 
 | # | Capability | Value | Effort | Worth |
 |---|---|---|---|---|
-| 8 | Nested types | 2 | 2 | 1.0 |
 | 7 | A graph of sub-domains | 3 | 3 | 1.0 |
 
 Value and Effort run 1–4. Value 1 serves one rule as a convenience; 4 is a capability the audience
@@ -16,14 +15,6 @@ Not planned, as zero value: built-in layout rules (Arrows, MemberBodies, LambdaB
 ConditionalBranches, ArgumentLists, ListEnds, Indentation, Characters) are code style, and
 EnumerableMembers' "read exactly once" is a body's data flow; with `Root` and `Members` each stays a
 short Roslyn rule in M5.
-
-## 8. Nested types
-
-`type.Nested`: the types declared inside a type, each with whether it is public in effect.
-
-- *Serves:* TypesPerFile's third fact, and PublicTypes' nested public types: `Uses` and `Exposes` count a
-  nested type as its outermost one. CA1034 already reports a visible nested type and is set per project
-  in `.editorconfig`; M5's exception for a record would need a suppression.
 
 ## 7. A graph of sub-domains
 

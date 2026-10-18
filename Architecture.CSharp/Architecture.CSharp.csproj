@@ -29,6 +29,7 @@
 			* A file's Uses: the build's types its code uses
 			* A type's Exposes: the build's types its signature names where other assemblies see it
 			* A project's OpensInternalsTo: the projects its InternalsVisibleTo names
+			* A type's Nested: the types declared inside it
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

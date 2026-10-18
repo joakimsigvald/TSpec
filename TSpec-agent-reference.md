@@ -197,8 +197,8 @@ public void AreOnlyTheseAndNotRedundant()
 - A file has its `Path` in the project (written with `/`), its `Lines`, its `Raw` text and the `Types` declared at its top level.
 - A file's `Root` is its Roslyn syntax as the build parsed it, so code under an `#if` the build left out is not in it. `file.SpanOf(node)` is where a node or token starts and ends: a `Start` and an `End`, each a `Line` and `Column` counted from 1.
 - A project's `Types` are those of all its files, a partial type once.
-- A type has `Name` (no type parameters), `FullName`, `Namespace`, `Kind`, `IsPublic` and `Files`. A failure names a file `X/Path` and a type by its full name.
-- A file's `Uses`: the build's types its code uses, through a member too (an extension call, a constant). A nested type counts as its outermost.
+- A type has `Name` (no type parameters), `FullName`, `Namespace`, `Kind`, `IsPublic`, `Files` and `Nested` (the types declared inside it). A nested type's `IsPublic` is in effect. A failure names a file `X/Path` and a type by its full name.
+- A file's `Uses`: the build's types its code uses, through a member too (an extension call, a constant). A nested type is one of its own.
 - A type's `Exposes`: the build's types named in its signature that other assemblies see, itself included.
 - `Uses` and `Exposes` compile the project once a run; reflection is not seen.
 - A project's `OpensInternalsTo`: the projects its `InternalsVisibleTo` names.

@@ -80,8 +80,7 @@ public sealed class SourceFile
     /// <summary>
     /// The types of the build the file's code uses, in the ordinal order of their full names: those it
     /// names, and those whose members it names, such as an extension method's class or a constant's type.
-    /// A nested type counts as the type it is nested in. The file's project is compiled to find out, once
-    /// in a run
+    /// A nested type is one of its own. The file's project is compiled to find out, once in a run
     /// </summary>
     public IReadOnlyList<DeclaredType> Uses => _uses.Value;
 

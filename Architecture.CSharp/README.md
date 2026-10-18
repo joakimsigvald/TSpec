@@ -12,12 +12,12 @@ dotnet add package TSpec.Architecture.CSharp
 With `using TSpec.Architecture.CSharp;`, a project's `Files` are those it compiles from its own folder,
 leaving out what the build generates under `obj/` and files linked in from elsewhere. A file has its
 `Path` in the project, written with `/`, its `Lines` and its `Raw` text, and a failure names it by
-project and path: `Data.Auth/Stores/UserStore.cs`. Its `Types` are those declared at its top level, a
-nested type staying with its owner, each with its `Name` (`Repository`), its `FullName`
-(`Data.Repository<T>`), `Namespace`, `Kind`, `IsPublic` and the `Files` it is declared in, several for
-a partial type; a failure names a type by its full name. A project's `Types` are those of all its
-files, a partial type once. A rule of one public type per file, adopted with today's breaches listed in
-`Allowed`:
+project and path: `Data.Auth/Stores/UserStore.cs`. Its `Types` are those declared at its top level,
+each with its `Name` (`Repository`), its `FullName` (`Data.Repository<T>`), `Namespace`, `Kind`,
+`IsPublic`, the `Files` it is declared in, several for a partial type, and its `Nested` types, declared
+inside it. A nested type's `IsPublic` is in effect: false inside a type that is not public. A failure
+names a type by its full name. A project's `Types` are those of all its files, a partial type once. A
+rule of one public type per file, adopted with today's breaches listed in `Allowed`:
 
 ```csharp
 [Fact]
@@ -58,7 +58,7 @@ public void No_method_name_ends_in_Async()
 ```
 
 A file's `Uses` are the build's types its code uses: those it names, and those whose members it names,
-such as an extension method's class or a constant's type; a nested type counts as its outermost one. A
+such as an extension method's class or a constant's type; a nested type is one of its own. A
 type `Exposes` the build's types its signature names where other assemblies see it: its base type,
 interfaces and constraints, and the types of its public and protected members, itself included. Both
 compile the project with Roslyn, once in a run, and a use by reflection is not one the compiler sees. A
