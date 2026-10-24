@@ -6,12 +6,12 @@ against M5's `Architecture.Spec`. Names in the examples are proposals.
 | # | Capability | Value | Effort | Worth |
 |---|---|---|---|---|
 | 1 | A project's build facts in TSpec | 2 | 1 | 2.0 |
-| 4 | The semantic model | 3 | 2 | 1.5 |
 | 5 | What a file depends on | 3 | 3 | 1.0 |
 | 6 | Who uses a type | 2 | 2 | 1.0 |
 | 7 | A member's body, head and inherited name | 2 | 2 | 1.0 |
 | 8 | A capitalised word in a snake_case name | 2 | 2 | 1.0 |
 | 9 | Code lines apart from embedded text | 1 | 2 | 0.5 |
+| 10 | A file's semantic model | 2 | 1 | 2.0 |
 
 Value and Effort run 1–4. Value 1 serves one rule as a convenience; 4 is a capability the audience
 expects of an architecture tool. Effort 1 is minutes with no decision; 4 needs a design session and a
@@ -35,23 +35,6 @@ package marks its own `[Obsolete]` in its next release.
 - *Serves:* PublicTypes, TypesPerFile, LambdaParameters, ProjectDependencies.
 - *Left:* once TSpec 5.4.0 is released, the TEMPORARY local feed in the package and its specs reverted,
   and the package on TSpec 5.4.0.
-
-## 4. The semantic model
-
-```csharp
-file.Model.GetTypeInfo(property.Type).Type?.TypeKind == TypeKind.Enum
-```
-
-A file's Roslyn `SemanticModel` beside its `Root`, from the compilation `Uses` and `Exposes` already
-build. Without it a rule matches types by name — `IEnumerable`, `List`, `DateTime`, an attribute named
-`Theory`, a member read from `StringComparer` — and finds which types are enums or structs by reading
-their declarations. A type of one's own named `List` fools such a rule, and an alias hides one from it.
-
-- *Serves:* WireTypes, MutableCollections, EnumerableMembers, DefaultComparers, Arities, DapperCalls,
-  Suppressions.
-- *Open:* the raw `SemanticModel`, as `Root` is raw syntax, or symbols on `DeclaredMember` and
-  `DeclaredType`; the compilation is against the run's assemblies, so a type the spec project does not
-  run with stays unresolved.
 
 ## 5. What a file depends on
 
@@ -95,7 +78,8 @@ and where it starts past its attributes, for a rule on its length or layout.
 
 - *Serves:* EnumerableMembers and MethodSize (body); AsyncSuffixes, GetPrefixes, MutableCollections and
   MemberOrder (inherited); MethodSize, MemberBodies and Indentation (head).
-- *Open:* an implicit interface implementation counts as inherited only with the semantic model (4);
+- *Open:* an implicit interface implementation counts as inherited only with the compiler's view, as
+  `Gives` has it;
   all three, or the one with the most use first.
 
 ## 8. A capitalised word in a snake_case name
@@ -117,3 +101,19 @@ indentation, a method's size — now finds those lines itself.
 - *Serves:* LineWidths, NestingDepth, Indentation, MethodSize.
 - *Open:* it serves layout rules only, which the package has so far left to a short Roslyn rule of
   one's own; a line's kind, or a set of line numbers.
+
+## 10. A file's semantic model
+
+```csharp
+file.Model.GetSymbolInfo(argument.Expression).Symbol
+```
+
+A file's Roslyn `SemanticModel` beside its `Root`, from the compilation `Uses` and `Exposes` already
+build, for what a signature does not show: code in a method's body and attributes. Without it a rule
+matches names in the text — an identifier spelled `StringComparer`, `Dapper` or `Theory` — and a type
+of one's own with the same name fools it.
+
+- *Serves:* DefaultComparers, DapperCalls, Arities' `Theory`, Suppressions.
+- *Open:* whether to give it at all, or leave these rules to names; the compilation is against the run's
+  assemblies, so a type the spec project does not run with, or one a source generator wrote in memory,
+  stays unresolved.

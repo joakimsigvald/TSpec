@@ -16,6 +16,7 @@ public sealed class SourceFile
     private readonly Lazy<CompilationUnitSyntax> _root;
     private readonly Lazy<IReadOnlyList<DeclaredMember>> _members;
     private readonly Lazy<IReadOnlyList<DeclaredType>> _uses;
+    private readonly Lazy<SemanticModel> _model;
 
     internal SourceFile(string project, string path, string location, CSharpParseOptions options)
     {
@@ -27,6 +28,7 @@ public sealed class SourceFile
         _root = new(() => CSharpSyntaxTree.ParseText(Raw, options).GetCompilationUnitRoot());
         _members = new(() => MemberDeclarations.In(this));
         _uses = new(() => BuildTypes.UsedIn(this));
+        _model = new(() => CompiledProject.Of(Source.Projects[project]).ModelOf(Root.SyntaxTree));
     }
 
     /// <summary>
@@ -40,6 +42,8 @@ public sealed class SourceFile
     public string Path { get; }
 
     internal string Location { get; }
+
+    internal SemanticModel Model => _model.Value;
 
     /// <summary>
     /// The file's text as it is written, for an analysis TSpec does not have. Add one to the file as an

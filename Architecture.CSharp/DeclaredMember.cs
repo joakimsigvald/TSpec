@@ -10,11 +10,15 @@ namespace TSpec.Architecture.CSharp;
 public sealed class DeclaredMember
 {
     private readonly MemberDeclaration _declaration;
+    private readonly Lazy<IReadOnlyList<ITypeSymbol>> _given;
+    private readonly Lazy<IReadOnlyList<ITypeSymbol>> _taken;
 
     internal DeclaredMember(SourceFile file, MemberDeclaration declaration)
     {
         File = file;
         _declaration = declaration;
+        _given = new(() => MemberTypes.GivenBy(this));
+        _taken = new(() => MemberTypes.TakenBy(this));
     }
 
     /// <summary>
@@ -65,6 +69,58 @@ public sealed class DeclaredMember
     /// The file the member is declared in
     /// </summary>
     public SourceFile File { get; }
+
+    /// <summary>
+    /// The type the member returns or holds and the types written inside it, each once, in the order they
+    /// are written: a type argument such as <c>Task&lt;T&gt;</c>'s, a tuple's element or an array's. A
+    /// named type's own members are not inside it, and a void method gives nothing. Its project is
+    /// compiled to find out, once in a run
+    /// </summary>
+    public IReadOnlyList<ITypeSymbol> Gives() => _given.Value;
+
+    /// <summary>
+    /// Whether the type the member returns or holds, or a type written inside it, meets the condition
+    /// </summary>
+    /// <param name="condition">The condition on a type</param>
+    public bool Gives(Func<ITypeSymbol, bool> condition) => Gives().Any(condition);
+
+    /// <summary>
+    /// Whether the type the member returns or holds, or a type written inside it, is of the given kind
+    /// </summary>
+    /// <param name="kind">The kind of type: an enum, an interface</param>
+    public bool Gives(TypeKind kind) => Gives(type => type.TypeKind == kind);
+
+    /// <summary>
+    /// Whether the type the member returns or holds, or a type written inside it, is the given type,
+    /// whatever its type arguments: <c>typeof(IEnumerable&lt;&gt;)</c>. A type it only implements is not it
+    /// </summary>
+    /// <param name="type">The type</param>
+    public bool Gives(Type type) => Gives(symbol => MemberTypes.IsOf(symbol, type));
+
+    /// <summary>
+    /// The types of the member's parameters and the types written inside them, each once, in the order
+    /// they are written, as <c>Gives()</c> lists them for the type the member returns
+    /// </summary>
+    public IReadOnlyList<ITypeSymbol> Takes() => _taken.Value;
+
+    /// <summary>
+    /// Whether a parameter's type, or a type written inside it, meets the condition
+    /// </summary>
+    /// <param name="condition">The condition on a type</param>
+    public bool Takes(Func<ITypeSymbol, bool> condition) => Takes().Any(condition);
+
+    /// <summary>
+    /// Whether a parameter's type, or a type written inside it, is of the given kind
+    /// </summary>
+    /// <param name="kind">The kind of type: an enum, an interface</param>
+    public bool Takes(TypeKind kind) => Takes(type => type.TypeKind == kind);
+
+    /// <summary>
+    /// Whether a parameter's type, or a type written inside it, is the given type, whatever its type
+    /// arguments
+    /// </summary>
+    /// <param name="type">The type</param>
+    public bool Takes(Type type) => Takes(symbol => MemberTypes.IsOf(symbol, type));
 
     /// <summary>
     /// The member as a failure names it: its file, the line its name is on and its name

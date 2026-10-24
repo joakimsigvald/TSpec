@@ -208,6 +208,7 @@ public void AreOnlyTheseAndNotRedundant()
 - A project's `Folders`: a `DependencyGraph` of the folders directly in its own, each with the folders whose types its files use. A file at the project's root is in no folder. Assert with `Folders.Is().Within(...)`.
 - A file's `Members`: those it declares, nested types' and local functions too. A project's: all its files'.
 - A record's positional parameters are its constructor's and its properties.
+- A member's `Gives` is the types it returns, including those inside generic types, tuples and arrays; `Takes` is the same for its parameters. With no argument they list the types (`ITypeSymbol`). Ask if one is included with one argument that is a `TypeKind`, a `typeof(List<>)` (type arguments ignored) or a condition. A type it only implements doesn't count: `List<int>` gives no `IEnumerable<>`.
 - A member's `Accessibility` is in effect: no more than the types around it allow. Its `Type` and `Parameters` are syntax, as written.
 - A failure names a member `X/Path:line Name`.
 - To add an analysis, cache it per file in a `ConditionalWeakTable<SourceFile, T>` behind an extension member; a file is the same object every time.

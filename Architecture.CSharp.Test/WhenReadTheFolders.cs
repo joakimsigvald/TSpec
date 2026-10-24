@@ -11,7 +11,7 @@ public class WhenReadTheFolders : Spec
 {
     [Fact]
     public void ThenListTheFoldersDirectlyInTheProjectsOwnThatHoldItsFiles_InOrdinalOrder()
-        => Folders.Keys.Is().EqualTo(["Declared", "Exposes", "Internal", "Uses"]);
+        => Folders.Keys.Is().EqualTo(["Declared", "Exposes", "Internal", "Signatures", "Uses"]);
 
     [Fact]
     public void GivenAFileUsesATypeOfAnotherFolder_ThenItsFolderUsesThatFolder()

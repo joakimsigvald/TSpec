@@ -50,15 +50,14 @@ internal sealed class CompiledProject
             .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
             .Select(path => MetadataReference.CreateFromFile(path))];
 
-    internal IEnumerable<TypeKey> UsedIn(SyntaxTree tree)
-    {
-        var model = _compilation.GetSemanticModel(tree);
-        return tree.GetRoot().DescendantNodes()
+    internal SemanticModel ModelOf(SyntaxTree tree) => _compilation.GetSemanticModel(tree);
+
+    internal static IEnumerable<TypeKey> UsedIn(SemanticModel model)
+        => model.SyntaxTree.GetRoot().DescendantNodes()
             .Where(node => node is SimpleNameSyntax or ImplicitObjectCreationExpressionSyntax)
             .SelectMany(node => Bound(model.GetSymbolInfo(node)))
             .Select(TypeOf).OfType<INamedTypeSymbol>()
             .Select(Key);
-    }
 
     // A name in a nameof binds to a method group, and so to candidates only.
     private static IEnumerable<ISymbol> Bound(SymbolInfo info) => info.Symbol is { } symbol ? [symbol] : info.CandidateSymbols;
@@ -110,15 +109,7 @@ internal sealed class CompiledProject
     private static IEnumerable<ITypeSymbol> Constraints(ImmutableArray<ITypeParameterSymbol> parameters)
         => parameters.SelectMany(parameter => parameter.ConstraintTypes);
 
-    private static IEnumerable<INamedTypeSymbol> Named(ITypeSymbol type)
-        => type switch
-        {
-            INamedTypeSymbol named => [named, .. named.TypeArguments.SelectMany(Named)],
-            IArrayTypeSymbol array => Named(array.ElementType),
-            IPointerTypeSymbol pointer => Named(pointer.PointedAtType),
-            IFunctionPointerTypeSymbol pointer => TypesOf(pointer.Signature).SelectMany(Named),
-            _ => [],
-        };
+    private static IEnumerable<INamedTypeSymbol> Named(ITypeSymbol type) => WrittenTypes.Of(type).OfType<INamedTypeSymbol>();
 
     private static TypeKey Key(INamedTypeSymbol type) => TypeKey.Of(type.OriginalDefinition);
 }

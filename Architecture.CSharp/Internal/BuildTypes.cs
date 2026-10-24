@@ -11,7 +11,7 @@ internal static class BuildTypes
     private static readonly ConcurrentDictionary<string, IReadOnlyDictionary<TypeKey, DeclaredType>> _byAssembly = new();
 
     internal static IReadOnlyList<DeclaredType> UsedIn(SourceFile file)
-        => Of(CompiledProject.Of(Source.Projects[file.Project]).UsedIn(file.Root.SyntaxTree));
+        => Of(CompiledProject.UsedIn(file.Model));
 
     internal static IReadOnlyList<DeclaredType> ExposedBy(DeclaredType type)
     {

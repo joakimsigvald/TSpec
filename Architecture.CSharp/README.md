@@ -68,11 +68,25 @@ public void No_method_name_ends_in_Async()
         .Has().None(method => method.Name.EndsWith("Async"));
 ```
 
+A member `Gives` a type when the type it returns or holds is that type, or has it written inside: as a
+type argument, `Task<T>`'s too, a tuple's element or an array's. It `Takes` one when a parameter's type
+does. A named type's own members are not inside it, so a `Booking` with a `Status` gives no enum, and a
+type is not one it only implements: `List<int>` gives no `IEnumerable<>`. Each takes a kind, a type
+whatever its type arguments, or a condition, and without one lists the types, each once:
+
+```csharp
+[Fact]
+public void No_contract_member_gives_an_enum_or_takes_a_list()
+    => Source.Projects["Contract"].Members
+        .Has().None(member => member.Gives(TypeKind.Enum) || member.Takes(typeof(List<>)));
+```
+
 A file's `Uses` are the build's types its code uses: those it names, and those whose members it names,
 such as an extension method's class or a constant's type; a nested type is one of its own. A
 type `Exposes` the build's types its signature names where other assemblies see it: its base type,
-interfaces and constraints, and the types of its public and protected members, itself included. Both
-compile the project with Roslyn, once in a run, and a use by reflection is not one the compiler sees.
+interfaces and constraints, and the types of its public and protected members, itself included. These
+and `Gives` and `Takes` compile the project with Roslyn, once in a run, and a use by reflection is not one
+the compiler sees.
 
 ```csharp
 [Fact]
