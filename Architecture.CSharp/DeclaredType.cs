@@ -77,6 +77,8 @@ public sealed class DeclaredType
 
     internal DeclaredType? Owner { get; }
 
+    internal IEnumerable<DeclaredType> AndNested => [this, .. Nested.SelectMany(type => type.AndNested)];
+
     internal int Arity => _typeParameters.Count;
 
     /// <summary>

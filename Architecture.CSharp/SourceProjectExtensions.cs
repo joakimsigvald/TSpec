@@ -27,6 +27,13 @@ public static class SourceProjectExtensions
                 .OrderBy(type => type.FullName, StringComparer.Ordinal)];
 
         /// <summary>
+        /// The types the project's files declare, those nested in them however deep too, in the ordinal order
+        /// of their full names: a partial type once
+        /// </summary>
+        public IReadOnlyList<DeclaredType> AllTypes
+            => [.. project.Types.SelectMany(type => type.AndNested).OrderBy(type => type.FullName, StringComparer.Ordinal)];
+
+        /// <summary>
         /// The members the project's files declare, file by file in the order of their paths
         /// </summary>
         public IReadOnlyList<DeclaredMember> Members

@@ -202,6 +202,7 @@ public void AreOnlyTheseAndNotRedundant()
 
 - `Files` are the source files it compiles from its own folder, leaving out what the build generates under `obj/` and files linked in from elsewhere.
 - `Types` are those of all its files, a partial type once; `Members` and `Nodes<T>()` are all its files'.
+- `AllTypes` (on a file too): its types and those nested in them, however deep. `Types` are the top-level ones only, so a rule on every public type reads `AllTypes`.
 - `Folders`: a `DependencyGraph` of the folders directly in its own, each with the folders whose types its files use. A file at the project's root is in no folder. Assert with `Folders.Is().Within(...)`.
 
 ### File

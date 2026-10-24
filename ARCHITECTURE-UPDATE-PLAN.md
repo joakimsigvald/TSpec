@@ -10,7 +10,6 @@ against M5's `Architecture.Spec`. Names in the examples are proposals.
 | 8 | A capitalised word in a snake_case name | 2 | 2 | 1.0 |
 | 9 | Code lines apart from embedded text | 1 | 2 | 0.5 |
 | 11 | A file's folder | 1 | 1 | 1.0 |
-| 12 | A project's types with their nested ones | 2 | 1 | 2.0 |
 | 13 | A member's inherited name | 2 | 2 | 1.0 |
 | 14 | Where a member starts past its attributes | 1 | 1 | 1.0 |
 
@@ -64,15 +63,6 @@ rule now cuts it from the file's `Path`, as in `file.Path.StartsWith("Specs/")`.
 - *Serves:* SubdomainDependencies' "Specs uses no Contract type"; FolderCycles cut it too, before
   `Acyclic`.
 - *Open:* what a file at the project's root, in no folder, has for it.
-
-## 12. A project's types with their nested ones
-
-A project's `Types` are those declared at its files' top level, each with its `Nested`. A rule on every
-public type, `project.Types.Where(type => type.IsPublic)`, silently misses a public nested one, so it
-recurses on `Nested` itself.
-
-- *Serves:* PublicTypes, TypesPerFile, both through M5's own `AndNested`.
-- *Open:* on the project or on a type (`type.AndNested`); the name.
 
 ## 13. A member's inherited name
 

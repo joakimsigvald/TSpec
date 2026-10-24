@@ -51,6 +51,25 @@ public class WhenReadTheNestedTypes : Spec
         => Source.Projects["Test"].Files.Single(file => file.Path == "Declared/Nesting.cs").Types.Select(type => type.Name)
             .Is().EqualTo(["IOuter", "InternalOuter", "Outer", "Split"]);
 
+    [Fact]
+    public void GivenAFile_ThenAllItsTypesAreThoseItDeclaresAtItsTopLevelAndThoseNestedInThem_InTheOrdinalOrderOfTheirFullNames()
+        => NestingFile.AllTypes.Select(type => type.Name).Is().EqualTo(
+        [
+            "IOuter", "PublicByDefault", "InternalOuter", "PublicByName", "Outer", "Handler", "Hidden", "IInternal",
+            "Public", "Deeper", "Size", "Split", "Part",
+        ]);
+
+    [Fact]
+    public void GivenAProject_ThenAllItsTypesIncludeThoseNestedInThem()
+        => Source.Projects["Test"].AllTypes.Where(type => type.Namespace.EndsWith(".Nesting")).Select(type => type.Name)
+            .Is().EqualTo(NestingFile.AllTypes.Select(type => type.Name));
+
+    [Fact]
+    public void GivenAProject_ThenAllItsTypesListAPartialNestedTypeOnce()
+        => Source.Projects["Test"].AllTypes.Count(type => type.Name == "Part").Is(1);
+
+    private static SourceFile NestingFile => Source.Projects["Test"].Files.Single(file => file.Path == "Declared/Nesting.cs");
+
     private static IReadOnlyList<DeclaredType> NestedIn(string owner)
         => Source.Projects["Test"].Types.Single(type => type.Namespace.EndsWith(".Nesting") && type.Name == owner).Nested;
 }

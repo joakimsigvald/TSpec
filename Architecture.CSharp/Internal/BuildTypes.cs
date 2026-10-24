@@ -31,10 +31,8 @@ internal static class BuildTypes
     // An assembly no project of the build makes, such as the framework's, declares none of the build's types.
     private static IReadOnlyDictionary<TypeKey, DeclaredType> Declared(string assembly)
         => Source.Projects.FirstOrDefault(project => project.AssemblyName == assembly) is { } project
-            ? project.Types.SelectMany(AndNested)
+            ? project.AllTypes
                 .DistinctBy(type => TypeKey.Of(type, assembly))
                 .ToDictionary(type => TypeKey.Of(type, assembly))
             : new Dictionary<TypeKey, DeclaredType>();
-
-    private static IEnumerable<DeclaredType> AndNested(DeclaredType type) => [type, .. type.Nested.SelectMany(AndNested)];
 }

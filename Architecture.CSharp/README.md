@@ -17,7 +17,9 @@ each with its `Name` (`Repository`), its `FullName` (`Data.Repository<T>`), `Nam
 `IsPublic`, the `Files` it is declared in, several for a partial type, and its `Nested` types, declared
 inside it. A nested type's `IsPublic` is in effect: false inside a type that is not public. A failure
 names a type by its full name. A project's `Types` are those of all its files, a partial type once. A
-rule of one public type per file, adopted with today's breaches listed in `Allowed`:
+project's or a file's `AllTypes` are its types and those nested in them however deep, so a rule on every
+public type reads them, not `Types`. A rule of one public type per file, adopted with today's breaches
+listed in `Allowed`:
 
 ```csharp
 [Fact]

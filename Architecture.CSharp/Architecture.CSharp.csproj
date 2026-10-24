@@ -27,6 +27,7 @@
 			* A member's Gives and Takes: the types its return type and its parameters' types name, or whether one is of a kind, is a type or meets a condition
 			* A file's DependsOn: the projects and packages whose types its code uses, as the rules name them
 			* A file's Model: the compiler's view of its syntax
+			* AllTypes on a project or a file: its types with those nested in them
 			CHANGED
 			* Requires TSpec 5.4.0 or later
 			OBSOLETE

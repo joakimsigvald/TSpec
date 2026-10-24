@@ -65,6 +65,13 @@ public sealed class SourceFile
     public IReadOnlyList<DeclaredType> Types { get; internal set; } = [];
 
     /// <summary>
+    /// The types the file declares, those nested in them however deep too, in the ordinal order of their
+    /// full names
+    /// </summary>
+    public IReadOnlyList<DeclaredType> AllTypes
+        => [.. Types.SelectMany(type => type.AndNested).OrderBy(type => type.FullName, StringComparer.Ordinal)];
+
+    /// <summary>
     /// The file's syntax as the build parsed it, in the project's language version and with the symbols
     /// its <c>#if</c> directives test, so code the build left out is not in it
     /// </summary>
