@@ -25,6 +25,10 @@
 			NEW
 			* SourceProject.IsSpecProject: whether a project reaches TSpec, whatever its name
 			* SourceProject.OpensInternalsTo: the projects its InternalsVisibleTo names, read without Roslyn
+			* DependencyGraph: Acyclic(), a failure naming the first loop
+			* Source.Projects: NonRedundant()
+			OBSOLETE
+			* Redundant(): NonRedundant() takes the place of not.Redundant()
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

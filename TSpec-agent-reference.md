@@ -166,7 +166,7 @@ Opt in with one line in the spec project; a `_specification/` folder of markdown
 
 Put the tests in a spec project of their own that references every project: `<ProjectReference Include="..\**\*.csproj" Exclude="..\Architecture.Spec\**" />`.
 
-`Source.Projects` lists every project its build reaches, with their direct project and package references. The spec project itself is `Source.Projects.CurrentSpec`; `Within` and `Redundant` leave it out.
+`Source.Projects` lists every project its build reaches, with their direct project and package references. The spec project itself is `Source.Projects.CurrentSpec`; `Within` and `NonRedundant` leave it out.
 
 ```csharp
 [Fact]
@@ -179,17 +179,18 @@ public void AreOnlyTheseAndNotRedundant()
         "Spec" => ["."],
         "Core.Spec" => ["Core"],
         _ => [],
-    }, p => p.Segment(^1) == "Spec" ? ["P:*"] : ["P:Microsoft.*"]).and.not.Redundant();
+    }, p => p.Segment(^1) == "Spec" ? ["P:*"] : ["P:Microsoft.*"]).and.NonRedundant();
 ```
 
 - Names are assembly names under a common root within the solution. `root.X` → `X`, the root → `.`, other projects → `/Name`. Packages are always `P:Name`. A reference that produces no assembly (an `.esproj`) is not in the graph.
 - Rules add up: a dependency passes if any rule allows it; `_ => [...]` applies to every project. A trailing `*` matches the rest (`P:Moq.*` does not match `P:Moq`). `Within` allows, never requires.
-- `not.Redundant()`: no project references a project it already reaches through another; packages, and `A.B -> A` (`Core.Spec -> Core`), are exempt.
+- `NonRedundant()`: no project references a project it already reaches through another; packages, and `A.B -> A` (`Core.Spec -> Core`), are exempt. `not.Redundant()` is obsolete.
 - Layer rules: switch on `p.Segment(0)` (also `Segment(^1)`, `Segment(..2)`).
 - Custom rules: `Source.Projects["X"]` (an unknown name throws `SetupFailed`) is a `SourceProject` with `Name`, `Dependencies` and `Reaches` (directly or through other projects, packages included), named as the rules see them. `IsSpecProject`: it reaches TSpec, whatever its name. `OpensInternalsTo`: the projects its `InternalsVisibleTo` names.
 - The architecture page: `[assembly: AssemblyFixture(typeof(ArchitectureDocument))]` writes `_specification.md`, a diagram of the projects and the tests below it, on a clean full run. Only `Spec` classes count, so derive the test classes from `Spec`.
 - A graph of your own: `new DependencyGraph("Namespace", dependencies)`, each node's name and the names it depends on; the first argument heads the table. `Is().Within(...)` takes the same rules.
 - A `DependencyGraph`'s test draws what the rules allow above its table in the generated specification. A target ending in `*` draws no arrow.
+- `graph.Is().Acyclic()`: no nodes depend on each other around a loop; a failure names the first (`A -> B -> A`).
 - `Project.Dependencies` is obsolete: use `Source.Projects["X"].Dependencies`.
 
 ## C# code (package `TSpec.Architecture.CSharp`)
@@ -198,6 +199,7 @@ public void AreOnlyTheseAndNotRedundant()
 - A project's `Files` are the source files it compiles from its own folder, leaving out what the build generates under `obj/` and files linked in from elsewhere.
 - A file has its `Path` in the project (written with `/`), its `Lines`, its `Raw` text and the `Types` declared at its top level.
 - A file's `Root` is its Roslyn syntax as the build parsed it, so code under an `#if` the build left out is not in it. `file.SpanOf(node)` is where a node or token starts and ends: a `Start` and an `End`, each a `Line` and `Column` counted from 1.
+- A project's or file's `Nodes<T>()`: its syntax nodes of one kind in written order, directives included, nothing inside a documentation comment. Each has `File`, `Syntax` and `Span` (with `Lines`), and a failure names it `X/Path:line`.
 - A project's `Types` are those of all its files, a partial type once.
 - A type has `Name` (no type parameters), `FullName`, `Namespace`, `Kind`, `IsPublic`, `Files` and `Nested` (the types declared inside it). A nested type's `IsPublic` is in effect. A failure names a file `X/Path` and a type by its full name.
 - A file's `Uses`: the build's types its code uses, through a member too (an extension call, a constant). A nested type is one of its own.

@@ -8,6 +8,11 @@ namespace TSpec.Architecture.CSharp;
 public readonly record struct SourceSpan(SourcePosition Start, SourcePosition End)
 {
     /// <summary>
+    /// How many lines the span covers, the lines it starts and ends on included
+    /// </summary>
+    public int Lines => End.Line - Start.Line + 1;
+
+    /// <summary>
     /// The span as its two places: "12:5-14:2"
     /// </summary>
     public override string ToString() => $"{Start}-{End}";

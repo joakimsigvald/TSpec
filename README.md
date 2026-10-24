@@ -988,7 +988,7 @@ public class ProjectDependencies : Spec
             "Spec" => ["."],
             "Core.Spec" => ["Core"],
             _ => [],
-        }, p => p.Segment(^1) == "Spec" ? ["P:*"] : ["P:Microsoft.*"]).and.not.Redundant();
+        }, p => p.Segment(^1) == "Spec" ? ["P:*"] : ["P:Microsoft.*"]).and.NonRedundant();
 }
 ```
 
@@ -999,7 +999,7 @@ public class ProjectDependencies : Spec
 - **A target ending in `*`** allows every name that begins with what precedes it: `P:Microsoft.*`
   allows `P:Microsoft.Extensions.Logging` but not `P:Microsoft`.
 - **`Within` allows; it does not require** — the compiler already demands the references the code needs.
-- **`Redundant()` counts projects only**, and never a reference from `A.B` to `A`: `Core.Spec` must
+- **`NonRedundant()` counts projects only**, and never a reference from `A.B` to `A`: `Core.Spec` must
   reference the `Core` it specifies directly.
 - **A reference that produces no assembly**, such as one to an `.esproj`, is not in the graph.
 
@@ -1021,7 +1021,8 @@ A graph of your own takes the same rules: a `DependencyGraph` holds each node's 
 depends on, as in `new DependencyGraph("Namespace", dependencies)`, where the first argument names what
 a node is, and `Is().Within(...)` asserts on it as on the projects. In the generated specification, its
 test draws what the rules allow above the table of what each may use: an arrow for each target written
-in full, while a target ending in `*` is stated in the table only.
+in full, while a target ending in `*` is stated in the table only. `Is().Acyclic()` asserts that no
+nodes depend on each other around a loop, and a failure names the first: `A -> B -> A`.
 
 For rules on the code inside a project — its source files and folders, the types they declare and their
 syntax — add the package `TSpec.Architecture.CSharp`, described in

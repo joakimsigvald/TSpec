@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using TSpec.Architecture.CSharp.Internal;
 
 namespace TSpec.Architecture.CSharp;
@@ -30,6 +31,13 @@ public static class SourceProjectExtensions
         /// </summary>
         public IReadOnlyList<DeclaredMember> Members
             => [.. project.Files.SelectMany(file => file.Members)];
+
+        /// <summary>
+        /// The nodes of the given kind in the project's files, file by file in the order of their paths
+        /// </summary>
+        /// <typeparam name="T">The kind of node</typeparam>
+        public IReadOnlyList<SourceNode<T>> Nodes<T>() where T : SyntaxNode
+            => [.. project.Files.SelectMany(file => file.Nodes<T>())];
 
         /// <summary>
         /// The folders directly in the project's own that hold its files, in ordinal order, each with the

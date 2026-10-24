@@ -29,9 +29,20 @@ public record IsProjectGraph : Constraint<SourceProjects, IsProjectGraph>
     }
 
     /// <summary>
+    /// Asserts that no project depends on what it already reaches through another of its dependencies
+    /// </summary>
+    /// <returns>A continuation for making further assertions on the dependencies</returns>
+    public ContinueWith<IsProjectGraph> NonRedundant()
+    {
+        _found = [.. Actual!.RedundantReferences()];
+        return Assert(Ignore.Me, _ => Xunit.Assert.Empty(_found)).And();
+    }
+
+    /// <summary>
     /// Asserts that some project depends on what it already reaches through another of its dependencies
     /// </summary>
     /// <returns>A continuation for making further assertions on the dependencies</returns>
+    [Obsolete("Use NonRedundant() in place of not.Redundant().")]
     public ContinueWith<IsProjectGraph> Redundant()
     {
         _found = [.. Actual!.RedundantReferences()];

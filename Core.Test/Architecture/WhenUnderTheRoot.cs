@@ -61,12 +61,12 @@ public class WhenUnderTheRoot : Spec
     public void GivenARedundantReference_ThenNameItAsTheSwitchDoes()
         => Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
             () => UnderHost(new() { ["Host"] = ["Host.Entry", "Host.Contract"], ["Host.Entry"] = ["Host.Contract"] })
-                .Is().not.Redundant())
+                .Is().NonRedundant())
             .Message.Does().EndWith("""but found 1: [". -> Contract"]""");
 
     [Fact]
     public void GivenTheRootsSpecProjectAlsoReachesTheRootThroughAnother_ThenItIsNotRedundant()
-        => UnderHost(new() { ["Host.Spec"] = ["Host", "Host.TestHost"], ["Host.TestHost"] = ["Host"] }).Is().not.Redundant();
+        => UnderHost(new() { ["Host.Spec"] = ["Host", "Host.TestHost"], ["Host.TestHost"] = ["Host"] }).Is().NonRedundant();
 
 #pragma warning disable CS0618 // The obsolete Under still names the projects under the root it is given.
     [Fact]

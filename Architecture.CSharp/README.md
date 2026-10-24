@@ -43,6 +43,17 @@ public void No_arrow_starts_a_line()
         .Is().Empty();
 ```
 
+A project's or a file's `Nodes<T>()` are its syntax nodes of one kind, in the order they are written: a
+directive such as `#pragma` among them, nothing inside a documentation comment. Each has its `File`, its
+`Syntax` and its `Span`, whose `Lines` are the lines it covers, and a failure names it by file and line:
+`Data.Auth/Stores/UserStore.cs:12`.
+
+```csharp
+[Fact]
+public void No_query_is_written_in_query_syntax()
+    => Source.Projects["Core"].Nodes<QueryExpressionSyntax>().Is().Empty();
+```
+
 A file's `Members` are those it declares, a nested type's and local functions too, and a project's are
 those of all its files. A record's positional parameters are its constructor's and its properties. A
 member's `Accessibility` is the one it has in effect, no more than the types around it allow: a public
@@ -85,6 +96,8 @@ public void A_subdomain_uses_only_those_below_it()
         _ => [],
     });
 ```
+
+Without rules, `Folders.Is().Acyclic()` keeps a project's folders one way.
 
 A file is the same object every time, so an analysis TSpec doesn't have can be added to it as an
 extension member that keeps what it computes per file in a `ConditionalWeakTable<SourceFile, T>`.

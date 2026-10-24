@@ -27,5 +27,16 @@ public record IsDependencyGraph : Constraint<DependencyGraph, IsDependencyGraph>
         return Assert(WhatIsAllowed, _ => Xunit.Assert.Empty(_found), WhatIsAllowed).And();
     }
 
+    /// <summary>
+    /// Asserts that no nodes depend on each other around a loop, directly or through others; a failure
+    /// names the first loop
+    /// </summary>
+    /// <returns>A continuation for making further assertions on the dependencies</returns>
+    public ContinueWith<IsDependencyGraph> Acyclic()
+    {
+        _found = [.. Actual!.FirstLoop()];
+        return Assert(Ignore.Me, _ => Xunit.Assert.Empty(_found)).And();
+    }
+
     private protected override string Found(DependencyGraph? actual, string? methodName) => Counted(_found.Count, _found);
 }

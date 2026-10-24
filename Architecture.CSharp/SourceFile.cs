@@ -78,6 +78,15 @@ public sealed class SourceFile
     public IReadOnlyList<DeclaredMember> Members => _members.Value;
 
     /// <summary>
+    /// The file's nodes of the given kind, in the order they are written: a directive such as
+    /// <c>#pragma</c> among them
+    /// </summary>
+    /// <typeparam name="T">The kind of node</typeparam>
+    public IReadOnlyList<SourceNode<T>> Nodes<T>() where T : SyntaxNode
+        => [.. Root.DescendantNodes(IsCode, descendIntoTrivia: true).Where(IsCode).OfType<T>()
+            .Select(node => new SourceNode<T>(this, node))];
+
+    /// <summary>
     /// The types of the build the file's code uses, in the ordinal order of their full names: those it
     /// names, and those whose members it names, such as an extension method's class or a constant's type.
     /// A nested type is one of its own. The file's project is compiled to find out, once in a run
@@ -88,6 +97,9 @@ public sealed class SourceFile
     /// The file as a failure names it: its project and its path in it
     /// </summary>
     public override string ToString() => $"{Project}/{Path}";
+
+    // A documentation comment is prose: a name in its cref is no use of what it names.
+    private static bool IsCode(SyntaxNode node) => node is not DocumentationCommentTriviaSyntax;
 
     private static SourceSpan SpanOf(FileLinePositionSpan span)
         => new(PositionOf(span.StartLinePosition), PositionOf(span.EndLinePosition));

@@ -21,6 +21,9 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
+			NEW
+			* Nodes&lt;T&gt;(): a project's or a file's syntax nodes of one kind, each named by its file and line
+			* SourceSpan.Lines: the lines a span covers
 			CHANGED
 			* Requires TSpec 5.4.0 or later
 			OBSOLETE

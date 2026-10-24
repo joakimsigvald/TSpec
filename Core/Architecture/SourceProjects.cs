@@ -44,7 +44,7 @@ public sealed class SourceProjects : IReadOnlyList<SourceProject>
     }
 
     /// <summary>
-    /// The running spec project, which <c>Within</c> and <c>Redundant</c> leave out: it references every
+    /// The running spec project, which <c>Within</c> and <c>NonRedundant</c> leave out: it references every
     /// project to read the build
     /// </summary>
     public SourceProject CurrentSpec

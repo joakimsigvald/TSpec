@@ -114,12 +114,12 @@ public class WhenWithin : Spec
         }, _ => ["P:Microsoft.*"]);
 
     [Fact]
-    public void GivenWithinAndNotRedundant_ThenCompletes()
+    public void GivenWithinAndNonRedundant_ThenCompletes()
         => _dependencies.Is().Within(project => project switch
         {
             "Entry" or "Core" => ["Contract"],
             _ => [],
-        }).and.not.Redundant();
+        }).and.NonRedundant();
 
     [Fact]
     public void ThenSpecifyItAsWithinWhatIsAllowed()

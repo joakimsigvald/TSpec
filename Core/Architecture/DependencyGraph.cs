@@ -16,6 +16,9 @@ public sealed class DependencyGraph(string node, IReadOnlyDictionary<string, IRe
     internal IEnumerable<string> DependenciesOutside(IReadOnlyList<Func<string, IEnumerable<string>>> rules)
         => Edges.Where(edge => !Rules.Allow(rules, edge.From, edge.To)).Select(edge => $"{edge.From} -> {edge.To}");
 
+    internal IEnumerable<string> FirstLoop()
+        => new LoopSearch(this).TryFind(out var loop) ? [string.Join(" -> ", loop)] : [];
+
     // What each node may use: a rule is a function of the node, so it is called for every one.
     internal SpecificationTable AllowedBy(IReadOnlyList<Func<string, IEnumerable<string>>> rules)
         => new([node, "May use"], [.. Keys.Select(name => AllowedOf(name, rules))], ArrowsAllowedBy(rules));

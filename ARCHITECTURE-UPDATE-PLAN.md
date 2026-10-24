@@ -6,8 +6,6 @@ against M5's `Architecture.Spec`. Names in the examples are proposals.
 | # | Capability | Value | Effort | Worth |
 |---|---|---|---|---|
 | 1 | A project's build facts in TSpec | 2 | 1 | 2.0 |
-| 2 | Cycles in a graph | 3 | 2 | 1.5 |
-| 3 | A project's syntax, where it is | 3 | 2 | 1.5 |
 | 4 | The semantic model | 3 | 2 | 1.5 |
 | 5 | What a file depends on | 3 | 3 | 1.0 |
 | 6 | Who uses a type | 2 | 2 | 1.0 |
@@ -37,40 +35,6 @@ package marks its own `[Obsolete]` in its next release.
 - *Serves:* PublicTypes, TypesPerFile, LambdaParameters, ProjectDependencies.
 - *Left:* once TSpec 5.4.0 is released, the TEMPORARY local feed in the package and its specs reverted,
   and the package on TSpec 5.4.0.
-
-## 2. Cycles in a graph
-
-```csharp
-Source.Projects["Core"].Folders.Is().not.Cyclic();
-```
-
-Fails with the first loop: `Reports -> Session -> Reports`. A rule that a project's folders use each
-other one way only now builds the graph from `Uses` and searches it itself, in about 50 lines. On any
-`DependencyGraph`: folders, namespaces, a graph of one's own.
-
-- *Serves:* FolderCycles, one fact per project.
-- *Decided:* `not.Cyclic()`, as `not.Redundant()`; a failure names the first loop only; the page draws
-  nothing for it, since the graph it would draw is the code's, not a rule's.
-
-## 3. A project's syntax, where it is
-
-```csharp
-Source.Projects[project].Nodes<QueryExpressionSyntax>().Is().Empty();
-```
-
-Each node with its file, failing as `Core/Reports/Composer.cs:42`. Every syntax rule now walks
-`file.Root.DescendantNodes()`, filters, and formats `$"{file}:{file.SpanOf(node).Start.Line}"` itself,
-with helpers of its own for a node's line, end, column and line count; and a rule that computes its own
-findings reads `Breach project is null` in the specification.
-
-- *Serves:* ConditionalBranches, DefaultComparers, ExpressionLines, LambdaBodies, LambdaParameters,
-  ListEnds, MemberBodies, MemberOrder, MethodSize, NullForgiving, QuerySyntax, Suppressions, and one of
-  Comments' facts.
-- *Decided:* nodes only, a directive such as `#pragma` among them; a token (an arrow) or a comment stays
-  a short rule on `Root`.
-- *Open:* a filtered fact as `Nodes<T>().Has().None(node => Misplaced(node))`, which reads "has none
-  misplaced node" and fails as "3 that does: [...]", each by its file and line, with no new rendering; a
-  node's line count.
 
 ## 4. The semantic model
 
