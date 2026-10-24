@@ -43,6 +43,22 @@ public sealed class SourceFile
     /// </summary>
     public string Path { get; }
 
+    /// <summary>
+    /// The folder directly in the project's own that the file is in, as the project's <c>Folders</c> name it:
+    /// "Rooms" for "Rooms/Booking/RoomService.cs"; empty for a file at the project's root
+    /// </summary>
+    public string Folder => Path.Split('/') is [var folder, _, ..] ? folder : "";
+
+    /// <summary>
+    /// The file's name without its extension: "RoomService"
+    /// </summary>
+    public string Name => System.IO.Path.GetFileNameWithoutExtension(Path);
+
+    /// <summary>
+    /// The file's extension without its dot: "cs"
+    /// </summary>
+    public string Extension => System.IO.Path.GetExtension(Path).TrimStart('.');
+
     internal string Location { get; }
 
     /// <summary>

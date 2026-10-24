@@ -29,6 +29,7 @@
 			* A file's Model: the compiler's view of its syntax
 			* AllTypes on a project or a file: its types with those nested in them
 			* A member's IsOriginal: whether it sets its own name and signature, neither implementing nor overriding
+			* A file's Folder, Name and Extension
 			CHANGED
 			* Requires TSpec 5.4.0 or later
 			OBSOLETE

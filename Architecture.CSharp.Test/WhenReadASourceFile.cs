@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using TSpec.Architecture;
 using TSpec.Assert;
@@ -58,4 +59,26 @@ public class WhenReadASourceFile : Spec
         var file = Written(project, "class Room;");
         file.SpanOf(((ClassDeclarationSyntax)file.Root.Members[0]).Identifier).Is(new SourceSpan(new(1, 7), new(1, 11)));
     }
+
+    [Fact]
+    public void ThenGiveTheFolderDirectlyInTheProjectThatItIsIn()
+        => At("Rooms/Booking/RoomService.cs").Folder.Is("Rooms");
+
+    [Fact]
+    public void GivenAFileAtTheProjectsRoot_ThenItsFolderIsEmpty()
+        => At("Program.cs").Folder.Is("");
+
+    [Fact]
+    public void ThenGiveItsNameWithoutItsExtension()
+        => At("Rooms/Booking/RoomService.cs").Name.Is("RoomService");
+
+    [Fact]
+    public void GivenANameWithDots_ThenOnlyTheLastPartIsTheExtension()
+        => At("Declared/APartial.More.cs").Name.Is("APartial.More");
+
+    [Fact]
+    public void ThenGiveItsExtensionWithoutTheDot()
+        => At("Rooms/Booking/RoomService.cs").Extension.Is("cs");
+
+    private static SourceFile At(string path) => new("Entry", path, path, CSharpParseOptions.Default);
 }

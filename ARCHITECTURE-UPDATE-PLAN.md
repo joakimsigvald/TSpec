@@ -7,7 +7,6 @@ against M5's `Architecture.Spec`. Names in the examples are proposals.
 |---|---|---|---|---|
 | 1 | Done but for: the package on TSpec 5.4.0 once released | 1 | 1 | 1.0 |
 | 9 | Code lines apart from embedded text | 1 | 2 | 0.5 |
-| 11 | A file's folder | 1 | 1 | 1.0 |
 | 14 | Where a member starts past its attributes | 1 | 1 | 1.0 |
 
 Value and Effort run 1–4. Value 1 serves one rule as a convenience; 4 is a capability the audience
@@ -30,19 +29,6 @@ indentation, a method's size — now finds those lines itself.
 - *Serves:* LineWidths, NestingDepth, Indentation, MethodSize.
 - *Open:* it serves layout rules only, which the package has so far left to a short Roslyn rule of
   one's own; a line's kind, or a set of line numbers.
-
-## 11. A file's folder
-
-```csharp
-Source.Projects["Core"].Files.Where(file => file.Folder == "Specs")
-```
-
-The folder a file is in, as the project's `Folders` names it: the one directly in the project's own. A
-rule now cuts it from the file's `Path`, as in `file.Path.StartsWith("Specs/")`.
-
-- *Serves:* SubdomainDependencies' "Specs uses no Contract type"; FolderCycles cut it too, before
-  `Acyclic`.
-- *Open:* what a file at the project's root, in no folder, has for it.
 
 ## 14. Where a member starts past its attributes
 

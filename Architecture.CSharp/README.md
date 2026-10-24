@@ -12,7 +12,9 @@ dotnet add package TSpec.Architecture.CSharp
 With `using TSpec.Architecture.CSharp;`, a project's `Files` are those it compiles from its own folder,
 leaving out what the build generates under `obj/` and files linked in from elsewhere. A file has its
 `Path` in the project, written with `/`, its `Lines` and its `Raw` text, and a failure names it by
-project and path: `Data.Auth/Stores/UserStore.cs`. Its `Types` are those declared at its top level,
+project and path: `Data.Auth/Stores/UserStore.cs`. A file's `Folder`, `Name` and `Extension` are parts
+of its `Path`: for `Stores/Cache/UserStore.cs`, `Stores`, the folder directly in the project's, empty at
+the project's root; `UserStore`; and `cs`. Its `Types` are those declared at its top level,
 each with its `Name` (`Repository`), its `FullName` (`Data.Repository<T>`), `Namespace`, `Kind`,
 `IsPublic`, the `Files` it is declared in, several for a partial type, and its `Nested` types, declared
 inside it. A nested type's `IsPublic` is in effect: false inside a type that is not public. A failure
