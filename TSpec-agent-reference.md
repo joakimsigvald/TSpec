@@ -223,6 +223,7 @@ public void AreOnlyTheseAndNotRedundant()
 ### Member
 
 - `Accessibility` is in effect: no more than the types around it allow. `Type` and `Parameters` are syntax, as written. A record's positional parameters are its constructor's and its properties.
+- `IsOriginal`: it neither implements an interface's member (explicitly or implicitly) nor overrides a base type's, so it sets its own name and signature; a naming rule reads only original members.
 - `Gives` is the types it returns, including those inside generic types, tuples and arrays; `Takes` is the same for its parameters. With no argument they list the types (`ITypeSymbol`). Ask if one is included with one argument that is a `TypeKind`, a `typeof(List<>)` (type arguments ignored) or a condition. A type it only implements doesn't count: `List<int>` gives no `IEnumerable<>`.
 - A failure names it `X/Path:line Name`.
 

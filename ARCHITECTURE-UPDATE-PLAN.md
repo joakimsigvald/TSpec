@@ -10,7 +10,6 @@ against M5's `Architecture.Spec`. Names in the examples are proposals.
 | 8 | A capitalised word in a snake_case name | 2 | 2 | 1.0 |
 | 9 | Code lines apart from embedded text | 1 | 2 | 0.5 |
 | 11 | A file's folder | 1 | 1 | 1.0 |
-| 13 | A member's inherited name | 2 | 2 | 1.0 |
 | 14 | Where a member starts past its attributes | 1 | 1 | 1.0 |
 
 Value and Effort run 1–4. Value 1 serves one rule as a convenience; 4 is a capability the audience
@@ -63,15 +62,6 @@ rule now cuts it from the file's `Path`, as in `file.Path.StartsWith("Specs/")`.
 - *Serves:* SubdomainDependencies' "Specs uses no Contract type"; FolderCycles cut it too, before
   `Acyclic`.
 - *Open:* what a file at the project's root, in no folder, has for it.
-
-## 13. A member's inherited name
-
-Whether a member's name and signature are a base type's or an interface's: an override, an interface
-implementation. A naming rule (no `Async` suffix, no `Get` prefix) exempts such a member, since its name
-was not chosen where it is declared, and a signature rule exempts what a base type or interface fixed.
-
-- *Serves:* AsyncSuffixes, GetPrefixes, MutableCollections.
-- *Open:* an implicit interface implementation counts only with the compiler's view, as `Gives` has it.
 
 ## 14. Where a member starts past its attributes
 

@@ -62,13 +62,15 @@ A file's `Members` are those it declares, a nested type's and local functions to
 those of all its files. A record's positional parameters are its constructor's and its properties. A
 member's `Accessibility` is the one it has in effect, no more than the types around it allow: a public
 member of an internal class is internal. Its `Type` and `Parameters` are syntax, as written, and a
-failure names it by file, line and name: `Data.Auth/Stores/UserStore.cs:12 Find`.
+failure names it by file, line and name: `Data.Auth/Stores/UserStore.cs:12 Find`. A member
+`IsOriginal` when it sets its own name and signature: it neither implements an interface's member,
+explicitly or not, nor overrides a base type's. A naming rule reads only those:
 
 ```csharp
 [Fact]
 public void No_method_name_ends_in_Async()
     => Source.Projects.SelectMany(project => project.Members)
-        .Where(member => member.Kind == MemberKind.Method)
+        .Where(member => member.Kind == MemberKind.Method && member.IsOriginal)
         .Has().None(method => method.Name.EndsWith("Async"));
 ```
 

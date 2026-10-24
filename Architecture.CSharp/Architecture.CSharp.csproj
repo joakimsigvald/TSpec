@@ -28,6 +28,7 @@
 			* A file's DependsOn: the projects and packages whose types its code uses, as the rules name them
 			* A file's Model: the compiler's view of its syntax
 			* AllTypes on a project or a file: its types with those nested in them
+			* A member's IsOriginal: whether it sets its own name and signature, neither implementing nor overriding
 			CHANGED
 			* Requires TSpec 5.4.0 or later
 			OBSOLETE

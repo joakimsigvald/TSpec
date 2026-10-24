@@ -12,6 +12,7 @@ public sealed class DeclaredMember
     private readonly MemberDeclaration _declaration;
     private readonly Lazy<IReadOnlyList<ITypeSymbol>> _given;
     private readonly Lazy<IReadOnlyList<ITypeSymbol>> _taken;
+    private readonly Lazy<bool> _isOriginal;
 
     internal DeclaredMember(SourceFile file, MemberDeclaration declaration)
     {
@@ -19,6 +20,7 @@ public sealed class DeclaredMember
         _declaration = declaration;
         _given = new(() => MemberTypes.GivenBy(this));
         _taken = new(() => MemberTypes.TakenBy(this));
+        _isOriginal = new(() => !MemberContracts.ImplementsOrOverrides(file, declaration));
     }
 
     /// <summary>
@@ -69,6 +71,12 @@ public sealed class DeclaredMember
     /// The file the member is declared in
     /// </summary>
     public SourceFile File { get; }
+
+    /// <summary>
+    /// Whether the member sets its own name and signature: it neither implements an interface's member,
+    /// explicitly or not, nor overrides a base type's. Its project is compiled to find out, once in a run
+    /// </summary>
+    public bool IsOriginal => _isOriginal.Value;
 
     /// <summary>
     /// The type the member returns or holds and the types written inside it, each once, in the order they
