@@ -45,8 +45,6 @@ public sealed class SourceFile
 
     internal string Location { get; }
 
-    internal SemanticModel Model => _model.Value;
-
     /// <summary>
     /// The file's text as it is written, for an analysis TSpec does not have. Add one to the file as an
     /// extension property, and keep what is costly to compute in a <c>ConditionalWeakTable</c> keyed by
@@ -71,6 +69,13 @@ public sealed class SourceFile
     /// its <c>#if</c> directives test, so code the build left out is not in it
     /// </summary>
     public CompilationUnitSyntax Root => _root.Value;
+
+    /// <summary>
+    /// The compiler's view of the file's syntax: what a name in <see cref="Root"/> refers to, the type of
+    /// an expression. The file's project is compiled against the assemblies the running spec project runs
+    /// with, once in a run, so a type it does not run with, or one a source generator wrote, is unresolved
+    /// </summary>
+    public SemanticModel Model => _model.Value;
 
     /// <summary>
     /// Where a node or token of the file starts and ends

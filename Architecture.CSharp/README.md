@@ -29,7 +29,9 @@ public void Only_the_listed_files_declare_more_than_one_public_type()
 ```
 
 A file's `Root` is its Roslyn syntax as the build parsed it, so code under an `#if` the build left
-out is not in it, and `SpanOf(node)` is where a node or token starts and ends, its lines and columns
+out is not in it, and its `Model` is the compiler's view of that syntax: what a name refers to, the type
+of an expression. A type the spec project does not run with, or one a source generator wrote, is
+unresolved there. `SpanOf(node)` is where a node or token starts and ends, its lines and columns
 counted from 1:
 
 ```csharp
