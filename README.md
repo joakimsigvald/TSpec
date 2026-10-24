@@ -1010,7 +1010,8 @@ first, `p.Segment(^1)` the last and `p.Segment(..2)` the first two joined by a d
 For a rule the assertions don't cover, read the projects and assert on what you compute:
 `Source.Projects` lists every project and `Source.Projects["Data.Auth"]` gives one; each has its `Name`,
 its `Dependencies` and what it `Reaches`, directly or through other projects, as the rules see them. A
-name that is no project of the build throws `SetupFailed`.
+name that is no project of the build throws `SetupFailed`. A project `IsSpecProject` when it reaches TSpec, and
+it `OpensInternalsTo` the projects its `InternalsVisibleTo` names.
 
 Opt in with `[assembly: AssemblyFixture(typeof(ArchitectureDocument))]`, and a clean full run writes
 `_specification.md` to the spec project: a diagram of the solution's projects and their references,

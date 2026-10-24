@@ -8,19 +8,15 @@ namespace TSpec.Architecture.CSharp.Internal;
 
 /// <summary>
 /// A project compiled from what its build compiled, against the assemblies the running spec project runs
-/// with: the types a file's code uses, the types named in its signatures that other assemblies see, and the
-/// assemblies it opens its internals to.
+/// with: the types a file's code uses, and the types named in its signatures that other assemblies see.
 /// </summary>
 internal sealed class CompiledProject
 {
-    private const string InternalsVisibleTo = "System.Runtime.CompilerServices.InternalsVisibleToAttribute";
-
     private static readonly ConcurrentDictionary<(string Project, string Assembly), Lazy<CompiledProject>> _compiled = new();
     private static readonly Lazy<IReadOnlyList<PortableExecutableReference>> _assemblies = new(AssembliesOfTheRun);
 
     private readonly CSharpCompilation _compilation;
     private readonly Lazy<IReadOnlySet<(TypeKey Owner, TypeKey Named)>> _signatures;
-    private readonly Lazy<IReadOnlySet<string>> _friends;
 
     private CompiledProject(CSharpCompilation compilation)
     {
@@ -28,16 +24,10 @@ internal sealed class CompiledProject
         _signatures = new(() => new HashSet<(TypeKey, TypeKey)>(TypesIn(_compilation.Assembly.GlobalNamespace)
             .Where(IsSeenOutside)
             .SelectMany(type => SignatureOf(type).Select(named => (Key(type), Key(named))))));
-        _friends = new(() => new HashSet<string>(_compilation.Assembly.GetAttributes()
-            .Where(attribute => attribute.AttributeClass?.ToDisplayString() == InternalsVisibleTo)
-            .Select(attribute => attribute.ConstructorArguments.FirstOrDefault().Value).OfType<string>()
-            .Select(friend => friend.Split(',')[0].Trim())));
     }
 
     internal static CompiledProject Of(SourceProject project)
         => _compiled.GetOrAdd((project.Name, project.AssemblyName), _ => new(() => Compile(project))).Value;
-
-    internal IReadOnlySet<string> Friends => _friends.Value;
 
     internal IEnumerable<TypeKey> NamedBySignaturesOf(TypeKey type)
         => _signatures.Value.Where(signature => signature.Owner == type).Select(signature => signature.Named);

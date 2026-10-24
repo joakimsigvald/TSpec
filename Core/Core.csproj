@@ -17,13 +17,14 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>5.3.0</PackageVersion>
+		<PackageVersion>5.4.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			NEW
-			* DependencyGraph: Within on a graph of your own, such as a project's folders, drawn above its table in the specification
+			* SourceProject.IsSpecProject: whether a project reaches TSpec, whatever its name
+			* SourceProject.OpensInternalsTo: the projects its InternalsVisibleTo names, read without Roslyn
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

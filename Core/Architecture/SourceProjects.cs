@@ -124,7 +124,13 @@ public sealed class SourceProjects : IReadOnlyList<SourceProject>
     private IReadOnlyList<SourceProject> Listed
         => [.. Graph.Projects.Select(ProjectOf).OrderBy(project => project.Name, StringComparer.Ordinal)];
 
-    private SourceProject ProjectOf(string name) => new(AsWritten(name), WrittenReferencesOf(name), WrittenReachOf(name), name);
+    private SourceProject ProjectOf(string name)
+        => new(AsWritten(name), WrittenReferencesOf(name), WrittenReachOf(name), name,
+            Graph.IsSpecProject(name), () => WrittenFriendsOf(name));
+
+    // A friend outside the build, such as a mocking library's proxy assembly, is no project of it.
+    private IReadOnlyList<string> WrittenFriendsOf(string name)
+        => [.. BuiltAssembly.FriendsOf(name).Where(Graph.Contains).Select(AsWritten).Order(StringComparer.Ordinal)];
 
     private IReadOnlyList<string> WrittenReferencesOf(string name)
         => [.. Graph.ReferencesOf(name).Select(AsWritten).Order(StringComparer.Ordinal)];

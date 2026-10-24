@@ -40,11 +40,11 @@ public static class SourceProjectExtensions
             => ProjectFolders.Of(project);
 
         /// <summary>
-        /// The projects of the build its <c>InternalsVisibleTo</c> names, named as the rules see them, in
-        /// ordinal order
+        /// The projects of the build its <c>InternalsVisibleTo</c> names: TSpec's own
+        /// <see cref="SourceProject.OpensInternalsTo"/>
         /// </summary>
+        [Obsolete("TSpec's own SourceProject.OpensInternalsTo takes its place, read without Roslyn.")]
         public IReadOnlyList<string> OpensInternalsTo
-            => [.. Source.Projects.Where(other => CompiledProject.Of(project).Friends.Contains(other.AssemblyName))
-                .Select(other => other.Name).Order(StringComparer.Ordinal)];
+            => project.OpensInternalsTo;
     }
 }

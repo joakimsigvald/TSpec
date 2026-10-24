@@ -5,12 +5,18 @@ namespace TSpec.Architecture;
 /// </summary>
 public sealed class SourceProject
 {
-    internal SourceProject(string name, IReadOnlyList<string> dependencies, IReadOnlyList<string> reaches, string assemblyName)
+    private readonly Lazy<IReadOnlyList<string>> _opensInternalsTo;
+
+    internal SourceProject(
+        string name, IReadOnlyList<string> dependencies, IReadOnlyList<string> reaches, string assemblyName,
+        bool isSpecProject, Func<IReadOnlyList<string>> opensInternalsTo)
     {
         Name = name;
         Dependencies = dependencies;
         Reaches = reaches;
         AssemblyName = assemblyName;
+        IsSpecProject = isSpecProject;
+        _opensInternalsTo = new(opensInternalsTo);
     }
 
     /// <summary>
@@ -33,6 +39,18 @@ public sealed class SourceProject
     /// The name of the assembly the project builds, in full where <see cref="Name"/> is shortened by a root
     /// </summary>
     public string AssemblyName { get; }
+
+    /// <summary>
+    /// Whether the project is a spec project: it references TSpec, directly or through a project its specs
+    /// share
+    /// </summary>
+    public bool IsSpecProject { get; }
+
+    /// <summary>
+    /// The projects of the build its <c>InternalsVisibleTo</c> names, named as the rules see them, in
+    /// ordinal order: read from the assembly the build made of it
+    /// </summary>
+    public IReadOnlyList<string> OpensInternalsTo => _opensInternalsTo.Value;
 
     /// <summary>
     /// The project as a failure names it: its name

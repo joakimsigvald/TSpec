@@ -61,8 +61,7 @@ A file's `Uses` are the build's types its code uses: those it names, and those w
 such as an extension method's class or a constant's type; a nested type is one of its own. A
 type `Exposes` the build's types its signature names where other assemblies see it: its base type,
 interfaces and constraints, and the types of its public and protected members, itself included. Both
-compile the project with Roslyn, once in a run, and a use by reflection is not one the compiler sees. A
-project `OpensInternalsTo` the projects its `InternalsVisibleTo` names.
+compile the project with Roslyn, once in a run, and a use by reflection is not one the compiler sees.
 
 ```csharp
 [Fact]
