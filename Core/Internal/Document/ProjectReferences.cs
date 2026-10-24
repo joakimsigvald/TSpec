@@ -54,6 +54,16 @@ internal sealed class ProjectReferences
             .Where(dependency => Is(manifest, dependency.Key, dependency.Value, "package"))
             .Select(dependency => dependency.Key)];
 
+    // A package's runtime assets are the assemblies it brings: "lib/net6.0/MongoDB.Driver.dll".
+    internal static IEnumerable<(string Assembly, string Package)> PackageAssembliesIn(JsonElement manifest)
+        => manifest.TryGetProperty("targets", out var targets)
+            ? targets.EnumerateObject()
+                .SelectMany(target => target.Value.EnumerateObject())
+                .Where(library => IsLibrary(manifest, library.Name, "package"))
+                .SelectMany(library => RuntimeAssembliesOf(library.Value)
+                    .Select(assembly => (assembly, library.Name[..library.Name.IndexOf('/')])))
+            : [];
+
     internal static IReadOnlyList<string> ProjectsIn(JsonElement manifest)
         => manifest.TryGetProperty("libraries", out var libraries)
             ? [.. libraries.EnumerateObject()
@@ -81,9 +91,17 @@ internal sealed class ProjectReferences
     }
 
     private static bool Is(JsonElement manifest, string name, string version, string libraryType)
+        => IsLibrary(manifest, $"{name}/{version}", libraryType);
+
+    private static bool IsLibrary(JsonElement manifest, string library, string libraryType)
         => manifest.TryGetProperty("libraries", out var libraries)
-        && libraries.TryGetProperty($"{name}/{version}", out var library)
-        && Is(library, libraryType);
+        && libraries.TryGetProperty(library, out var found)
+        && Is(found, libraryType);
+
+    private static IEnumerable<string> RuntimeAssembliesOf(JsonElement library)
+        => library.TryGetProperty("runtime", out var runtime)
+            ? runtime.EnumerateObject().Select(asset => Path.GetFileNameWithoutExtension(asset.Name))
+            : [];
 
     private static bool Is(JsonElement library, string libraryType)
         => library.TryGetProperty("type", out var type) && type.GetString() == libraryType;

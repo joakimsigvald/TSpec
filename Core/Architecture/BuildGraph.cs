@@ -9,9 +9,14 @@ namespace TSpec.Architecture;
 /// The projects of a build by their full names, each with the projects and packages it references
 /// directly, and which of them is the running spec project.
 /// </summary>
-internal sealed class BuildGraph(Dictionary<string, IReadOnlyList<string>> references, string? spec)
+internal sealed class BuildGraph(
+    Dictionary<string, IReadOnlyList<string>> references, string? spec,
+    IReadOnlyDictionary<string, string>? packagesByAssembly = null)
 {
     private const string Package = "P:";
+
+    private readonly IReadOnlyDictionary<string, string> _packagesByAssembly
+        = packagesByAssembly ?? new Dictionary<string, string>();
 
     internal string? Spec => spec;
 
@@ -50,6 +55,9 @@ internal sealed class BuildGraph(Dictionary<string, IReadOnlyList<string>> refer
     internal bool IsRedundant((string From, string To) reference)
         => !IsPackage(reference.To) && !IsToTheProjectItsNameExtends(reference) && IsReachedThroughAnother(reference);
 
+    internal bool TryGetPackageOf(string assembly, [NotNullWhen(true)] out string? package)
+        => _packagesByAssembly.TryGetValue(assembly, out package);
+
     internal static bool IsPackage(string name) => name.StartsWith(Package, StringComparison.Ordinal);
 
     internal static string PackageName(string name) => name[Package.Length..];
@@ -60,7 +68,8 @@ internal sealed class BuildGraph(Dictionary<string, IReadOnlyList<string>> refer
         var manifest = document.RootElement;
         return new(ProjectReferences.ProjectsIn(manifest)
             .ToDictionary(project => project, project => ReferencesIn(manifest, project)),
-            specAssemblyName);
+            specAssemblyName,
+            PackagesByAssemblyIn(manifest));
     }
 
     internal static BuildGraph ReadBuilt()
@@ -70,6 +79,11 @@ internal sealed class BuildGraph(Dictionary<string, IReadOnlyList<string>> refer
                 "TSpec could not find the running spec project, so it cannot read the project graph it was built with.");
         return Parse(ProjectReferences.ReadManifest(AppContext.BaseDirectory, specAssemblyName), specAssemblyName);
     }
+
+    private static Dictionary<string, string> PackagesByAssemblyIn(JsonElement manifest)
+        => ProjectReferences.PackageAssembliesIn(manifest)
+            .DistinctBy(brought => brought.Assembly, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(brought => brought.Assembly, brought => $"{Package}{brought.Package}", StringComparer.OrdinalIgnoreCase);
 
     private static IReadOnlyList<string> ReferencesIn(JsonElement manifest, string project)
         => [.. ProjectReferences.Of(manifest, project).Names

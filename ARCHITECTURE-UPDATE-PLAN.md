@@ -5,53 +5,24 @@ against M5's `Architecture.Spec`. Names in the examples are proposals.
 
 | # | Capability | Value | Effort | Worth |
 |---|---|---|---|---|
-| 1 | A project's build facts in TSpec | 2 | 1 | 2.0 |
-| 5 | What a file depends on | 3 | 3 | 1.0 |
+| 1 | Done but for: the package on TSpec 5.4.0 once released | 1 | 1 | 1.0 |
 | 6 | Who uses a type | 2 | 2 | 1.0 |
 | 7 | A member's body, head and inherited name | 2 | 2 | 1.0 |
 | 8 | A capitalised word in a snake_case name | 2 | 2 | 1.0 |
 | 9 | Code lines apart from embedded text | 1 | 2 | 0.5 |
 | 10 | A file's semantic model | 2 | 1 | 2.0 |
+| 11 | A file's folder | 1 | 1 | 1.0 |
 
 Value and Effort run 1–4. Value 1 serves one rule as a convenience; 4 is a capability the audience
 expects of an architecture tool. Effort 1 is minutes with no decision; 4 needs a design session and a
 breakdown. Worth = Value / Effort: at 1 or above, do it; below 1, it can wait.
 
-## 1. A project's build facts in TSpec
+## 1. Done but for: the package on TSpec 5.4.0 once released
 
-```csharp
-Source.Projects.Where(project => !project.IsSpecProject)
-```
-
-TSpec already tells a spec project from the others, drawing it dashed on the architecture page
-(`BuildGraph.IsSpecProject`: it reaches TSpec), but a rule cannot ask; it tests the name instead,
-`EndsWith(".Spec")` or `Segment(^1) == "Spec"`, as the README's own example does.
-
-`OpensInternalsTo` moves to TSpec beside it: an attribute of the built assembly, loaded by its name beside
-the spec project, where the C# package compiles the project to read it. TSpec's instance
-property wins over the package's extension of the same name, so callers move without a change; the
-package marks its own `[Obsolete]` in its next release.
-
-- *Serves:* PublicTypes, TypesPerFile, LambdaParameters, ProjectDependencies.
-- *Left:* once TSpec 5.4.0 is released, the TEMPORARY local feed in the package and its specs reverted,
-  and the package on TSpec 5.4.0.
-
-## 5. What a file depends on
-
-```csharp
-Source.Projects["Data"].Files.Where(file => file.Path != "Store/Connection.cs")
-    .Has().None(file => file.Dependencies.Contains("P:Dapper"));
-```
-
-The projects and packages whose types a file uses, named as the project rules name them: a file's
-counterpart of `SourceProject.Dependencies`. `Uses` sees only the build's own types, so a rule on a
-package now looks for its name in the syntax. With it, the file's `Folder`, its node in the project's
-`Folders`, which a rule now cuts from its `Path`.
-
-- *Serves:* DapperCalls; SubdomainDependencies' "Specs uses no Contract type"; the folder of a file in
-  FolderCycles and SubdomainDependencies.
-- *Open:* telling a package from its assembly, which needs the build's package map; whether a
-  framework type (`System.*`) counts, and under what name.
+`IsSpecProject` and `OpensInternalsTo` are in TSpec 5.4.0, and the package's `OpensInternalsTo` is
+`[Obsolete]`. Left: once TSpec 5.4.0 is on NuGet, revert the TEMPORARY local feed in
+`Architecture.CSharp.csproj` and `Architecture.CSharp.Test.csproj`, and reference TSpec `5.4.0` in place
+of `5.4.0-local.3`.
 
 ## 6. Who uses a type
 
@@ -117,3 +88,16 @@ of one's own with the same name fools it.
 - *Open:* whether to give it at all, or leave these rules to names; the compilation is against the run's
   assemblies, so a type the spec project does not run with, or one a source generator wrote in memory,
   stays unresolved.
+
+## 11. A file's folder
+
+```csharp
+Source.Projects["Core"].Files.Where(file => file.Folder == "Specs")
+```
+
+The folder a file is in, as the project's `Folders` names it: the one directly in the project's own. A
+rule now cuts it from the file's `Path`, as in `file.Path.StartsWith("Specs/")`.
+
+- *Serves:* SubdomainDependencies' "Specs uses no Contract type"; FolderCycles cut it too, before
+  `Acyclic`.
+- *Open:* what a file at the project's root, in no folder, has for it.

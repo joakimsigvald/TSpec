@@ -34,4 +34,13 @@ public static class Build
         folder = ProjectDirectory.Holding(sources);
         return folder is not null;
     }
+
+    /// <summary>
+    /// Finds the package of the build an assembly comes from, named as the rules see it: "P:Dapper"
+    /// </summary>
+    /// <param name="assemblyName">The assembly's name: "Dapper"</param>
+    /// <param name="package">The package</param>
+    /// <returns>Whether a package brings the assembly: a project's or the framework's comes from none</returns>
+    public static bool TryFindPackage(string assemblyName, [NotNullWhen(true)] out string? package)
+        => Source.Projects.Graph.TryGetPackageOf(assemblyName, out package);
 }

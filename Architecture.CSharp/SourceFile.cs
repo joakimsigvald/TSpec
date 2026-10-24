@@ -17,6 +17,7 @@ public sealed class SourceFile
     private readonly Lazy<IReadOnlyList<DeclaredMember>> _members;
     private readonly Lazy<IReadOnlyList<DeclaredType>> _uses;
     private readonly Lazy<SemanticModel> _model;
+    private readonly Lazy<IReadOnlyList<string>> _dependsOn;
 
     internal SourceFile(string project, string path, string location, CSharpParseOptions options)
     {
@@ -29,6 +30,7 @@ public sealed class SourceFile
         _members = new(() => MemberDeclarations.In(this));
         _uses = new(() => BuildTypes.UsedIn(this));
         _model = new(() => CompiledProject.Of(Source.Projects[project]).ModelOf(Root.SyntaxTree));
+        _dependsOn = new(() => FileDependencies.Of(this));
     }
 
     /// <summary>
@@ -96,6 +98,20 @@ public sealed class SourceFile
     /// A nested type is one of its own. The file's project is compiled to find out, once in a run
     /// </summary>
     public IReadOnlyList<DeclaredType> Uses => _uses.Value;
+
+    /// <summary>
+    /// The projects and packages whose types the file's code uses, named as the rules see them, in ordinal
+    /// order: "Contract", "P:Dapper". The framework is none, nor is the file's own project. The file's
+    /// project is compiled to find out, once in a run
+    /// </summary>
+    public IReadOnlyList<string> DependsOn() => _dependsOn.Value;
+
+    /// <summary>
+    /// Whether the file's code uses a type of the given project or package
+    /// </summary>
+    /// <param name="name">The project or package, as the rules name it; ending in "*", every one whose name
+    /// begins with what precedes it</param>
+    public bool DependsOn(string name) => DependsOn().Any(dependency => FileDependencies.Matches(name, dependency));
 
     /// <summary>
     /// The file as a failure names it: its project and its path in it

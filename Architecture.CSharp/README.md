@@ -84,15 +84,27 @@ public void No_contract_member_gives_an_enum_or_takes_a_list()
 A file's `Uses` are the build's types its code uses: those it names, and those whose members it names,
 such as an extension method's class or a constant's type; a nested type is one of its own. A
 type `Exposes` the build's types its signature names where other assemblies see it: its base type,
-interfaces and constraints, and the types of its public and protected members, itself included. These
-and `Gives` and `Takes` compile the project with Roslyn, once in a run, and a use by reflection is not one
-the compiler sees.
+interfaces and constraints, and the types of its public and protected members, itself included. These,
+`Gives`, `Takes` and `DependsOn` compile the project with Roslyn, once in a run, and a use by reflection
+is not one the compiler sees.
 
 ```csharp
 [Fact]
 public void The_domain_uses_nothing_of_persistence()
     => Source.Projects["Core"].Files.Where(file => file.Path.StartsWith("Domain/"))
         .Has().None(file => file.Uses.Any(type => type.Namespace.EndsWith(".Persistence")));
+```
+
+A file `DependsOn()` the projects and packages whose types its code uses, named as the project rules name
+them: `Contract`, `P:Dapper`. Its own project and the framework are none, and a project it reaches only
+through another counts, unlike in its project's `Dependencies`. `DependsOn(name)` asks for one, and a name
+ending in `*` matches as in `Within`:
+
+```csharp
+[Fact]
+public void Only_the_connection_calls_Dapper()
+    => Source.Projects["Data"].Files.Where(file => file.Path != "Store/Connection.cs")
+        .Has().None(file => file.DependsOn("P:Dapper"));
 ```
 
 A project's `Folders` are the folders directly in its own that hold its files, each with the others it

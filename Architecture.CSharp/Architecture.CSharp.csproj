@@ -25,6 +25,7 @@
 			* Nodes&lt;T&gt;(): a project's or a file's syntax nodes of one kind, each named by its file and line
 			* SourceSpan.Lines: the lines a span covers
 			* A member's Gives and Takes: the types its return type and its parameters' types name, or whether one is of a kind, is a type or meets a condition
+			* A file's DependsOn: the projects and packages whose types its code uses, as the rules name them
 			CHANGED
 			* Requires TSpec 5.4.0 or later
 			OBSOLETE
@@ -32,13 +33,13 @@
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-		<!-- TEMPORARY: the local feed holding TSpec 5.4.0-local.1. -->
+		<!-- TEMPORARY: the local feed holding TSpec 5.4.0-local.3. -->
 		<RestoreAdditionalProjectSources>$(MSBuildThisFileDirectory)bin\LocalFeed</RestoreAdditionalProjectSources>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
-		<!-- TEMPORARY: TSpec's OpensInternalsTo from a local build until TSpec 5.4.0 is released. -->
-		<PackageReference Include="TSpec" Version="5.4.0-local.1" PrivateAssets="none" />
+		<!-- TEMPORARY: TSpec 5.4.0's OpensInternalsTo and Build.TryFindPackage from a local build until it is released. -->
+		<PackageReference Include="TSpec" Version="5.4.0-local.3" PrivateAssets="none" />
 		<InternalsVisibleTo Include="TSpec.Architecture.CSharp.Test" />
 		<None Include="README.md" Pack="true" PackagePath="\" />
 		<None Include="..\icon.png" Pack="true" PackagePath="\" />
