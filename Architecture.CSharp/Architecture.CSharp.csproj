@@ -37,13 +37,10 @@
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-		<!-- TEMPORARY: the local feed holding TSpec 5.4.0-local.3. -->
-		<RestoreAdditionalProjectSources>$(MSBuildThisFileDirectory)bin\LocalFeed</RestoreAdditionalProjectSources>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
-		<!-- TEMPORARY: TSpec 5.4.0's OpensInternalsTo and Build.TryFindPackage from a local build until it is released. -->
-		<PackageReference Include="TSpec" Version="5.4.0-local.3" PrivateAssets="none" />
+		<PackageReference Include="TSpec" Version="5.4.0" PrivateAssets="none" />
 		<InternalsVisibleTo Include="TSpec.Architecture.CSharp.Test" />
 		<None Include="README.md" Pack="true" PackagePath="\" />
 		<None Include="..\icon.png" Pack="true" PackagePath="\" />
