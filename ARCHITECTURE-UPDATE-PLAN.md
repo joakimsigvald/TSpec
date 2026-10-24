@@ -6,8 +6,6 @@ against M5's `Architecture.Spec`. Names in the examples are proposals.
 | # | Capability | Value | Effort | Worth |
 |---|---|---|---|---|
 | 1 | Done but for: the package on TSpec 5.4.0 once released | 1 | 1 | 1.0 |
-| 7 | A member's body | 1 | 1 | 1.0 |
-| 8 | A capitalised word in a snake_case name | 2 | 2 | 1.0 |
 | 9 | Code lines apart from embedded text | 1 | 2 | 0.5 |
 | 11 | A file's folder | 1 | 1 | 1.0 |
 | 14 | Where a member starts past its attributes | 1 | 1 | 1.0 |
@@ -22,23 +20,6 @@ breakdown. Worth = Value / Effort: at 1 or above, do it; below 1, it can wait.
 `[Obsolete]`. Left: once TSpec 5.4.0 is on NuGet, revert the TEMPORARY local feed in
 `Architecture.CSharp.csproj` and `Architecture.CSharp.Test.csproj`, and reference TSpec `5.4.0` in place
 of `5.4.0-local.3`.
-
-## 7. A member's body
-
-On `DeclaredMember`, its `Body`: a block or an arrow's expression, none for an abstract member or an
-auto-property. A rule on what a body does now finds it by the member's kind.
-
-- *Serves:* EnumerableMembers, MethodSize.
-
-## 8. A capitalised word in a snake_case name
-
-`No_method_carries_the_Async_suffix` reads "No method carries the, async suffix", and
-`In_Core_Specs_uses_no_Contract_type` reads "In, core, specs uses no, contract type": an underscore
-before a capital starts a clause (`Exists_ButIsAlreadyBooked` reads "exists, but is already booked"), so
-a snake_case name cannot hold a proper noun or an acronym. Test-name rendering in Core
-(`StringExtensions.Clauses`), not architecture.
-
-- *Open:* how to tell a snake_case name from one in clauses; whether it moves to FOLLOW-UP-PLAN's D.
 
 ## 9. Code lines apart from embedded text
 

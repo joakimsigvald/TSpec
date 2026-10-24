@@ -27,9 +27,12 @@ public class WhenSplitIdentifierIntoWords : Spec<string>
     [InlineData("GivenA_GivenB_GivenC", "given a, given b, given c")]
     [InlineData("GivenNumber123", "given number 123")]
     [InlineData("_leading", "leading")]
-    // Before anything else it separates words, so a name can be written as a sentence
-    [InlineData("A_method_takes_at_most_the_ceilings_arguments", "a method takes at most the ceilings arguments")]
-    [InlineData("GivenASnake_with_wings", "given a snake with wings")]
+    // A name with an all-lowercase word between underscores is written as a sentence: every underscore is a
+    // space, and each word stays as written
+    [InlineData("A_method_takes_at_most_the_ceilings_arguments", "A method takes at most the ceilings arguments")]
+    [InlineData("No_method_carries_the_Async_suffix", "No method carries the Async suffix")]
+    [InlineData("Only_M5Connection_calls_Dapper", "Only M5Connection calls Dapper")]
+    [InlineData("GivenASnake_with_wings", "GivenASnake with wings")]
     public void ThenReadAsWords(string identifier, string expected)
         => When(_ => identifier.AsWords()).Then().Result.Is(expected);
 
@@ -43,6 +46,8 @@ public class WhenSplitIdentifierIntoWords : Spec<string>
     [InlineData("GivenNoSuchRoom", "Given no such room")]
     [InlineData("GivenASnake_WithWings", "Given a snake, with wings")]
     [InlineData("A_method_takes_at_most_the_ceilings_arguments", "A method takes at most the ceilings arguments")]
+    [InlineData("In_Core_Specs_uses_no_Contract_type", "In Core Specs uses no Contract type")]
+    [InlineData("no_query_is_written_in_query_syntax", "No query is written in query syntax")]
     // A branch path is dotted, and reads as one sentence: a nested given refines the one above it
     // rather than stating something new, which is what an underscore says within one name too
     [InlineData("GivenCartExists.WithItems", "Given cart exists, with items")]

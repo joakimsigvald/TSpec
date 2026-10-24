@@ -28,6 +28,8 @@
 			* DependencyGraph: Acyclic(), a failure naming the first loop
 			* Source.Projects: NonRedundant()
 			* TSpec.Extensibility: Build.TryFindPackage, the package of the build an assembly comes from
+			CHANGED
+			* A snake_case test name reads as written: every underscore a space, each word as it is spelled
 			OBSOLETE
 			* Redundant(): NonRedundant() takes the place of not.Redundant()
 		</PackageReleaseNotes>

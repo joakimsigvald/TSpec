@@ -53,15 +53,25 @@ internal static class StringExtensions
     private static bool IsVowel(char c) => "aeiouAEIOU".Contains(c);
 
     /// <summary>
-    /// Breaks an identifier into words. An underscore before a capital separates clauses, so
-    /// <c>GivenASnake_WithWings</c> reads "given a snake, with wings"; any other underscore separates
-    /// words, so <c>A_method_takes_two_arguments</c> reads as the sentence it was written as.
+    /// Breaks an identifier into words. A name with an all-lowercase word between underscores is written
+    /// as a sentence, so every underscore is a space and each word stays as written:
+    /// <c>No_method_carries_the_Async_suffix</c> reads "No method carries the Async suffix". In any other
+    /// name an underscore before a capital separates clauses, so <c>GivenASnake_WithWings</c> reads
+    /// "given a snake, with wings".
     /// </summary>
     internal static string[] ToWords(this string str)
     {
         if (string.IsNullOrWhiteSpace(str))
             return [string.Empty];
 
+        var parts = str.Split('_', StringSplitOptions.RemoveEmptyEntries);
+        return IsSentence(parts) ? parts : InClauses(str);
+    }
+
+    private static bool IsSentence(string[] parts) => parts.Length > 1 && parts.Any(part => part.All(char.IsLower));
+
+    private static string[] InClauses(string str)
+    {
         List<string> words = [];
         foreach (var clause in Clauses(str))
         {
