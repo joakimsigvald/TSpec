@@ -15,7 +15,7 @@
 
 	<ItemGroup>
 		<!-- xunit.analyzers 2.1.0 is built against Roslyn 4.11, so hosting it needs at least that -->
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
 		<PackageReference Include="xunit.v3" Version="4.0.2" />
 		<PackageReference Include="xunit.analyzers" Version="2.2.0" GeneratePathProperty="true">
 		  <PrivateAssets>all</PrivateAssets>

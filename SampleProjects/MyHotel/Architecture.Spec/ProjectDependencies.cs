@@ -15,7 +15,7 @@ public class ProjectDependencies : TSpec.Spec
             "Spec" => ["."],
             "Core.Spec" => ["Core"],
             _ => [],
-        }, p => p.Segment(^1) == "Spec" ? ["P:*"] : ["P:Microsoft.*"]).and.not.Redundant();
+        }, p => p.Segment(^1) == "Spec" ? ["P:*"] : ["P:Microsoft.*"]).and.NonRedundant();
 
     [Fact]
     public void EntryNeverReachesCore() => Source.Projects["Entry"].Reaches.Does().not.Contain("Core");

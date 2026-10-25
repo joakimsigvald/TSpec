@@ -39,7 +39,7 @@
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
 		<PackageReference Include="TSpec" Version="5.4.0" PrivateAssets="none" />
 		<InternalsVisibleTo Include="TSpec.Architecture.CSharp.Test" />
 		<None Include="README.md" Pack="true" PackagePath="\" />

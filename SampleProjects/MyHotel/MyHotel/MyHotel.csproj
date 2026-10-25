@@ -22,7 +22,7 @@
 		     (a settable Example), which is read-only in 3.x. Bump this only once
 		     Microsoft.AspNetCore.OpenApi's own dependency moves to 3.x. -->
 		<PackageReference Include="Microsoft.OpenApi" Version="2.12.2" />
-		<PackageReference Include="Scalar.AspNetCore" Version="2.18.0" />
+		<PackageReference Include="Scalar.AspNetCore" Version="2.18.3" />
 	</ItemGroup>
 
 	<ItemGroup>
