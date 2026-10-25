@@ -61,6 +61,64 @@ public class WhenReadTheSizes : Spec
             + "\t\t\tGo();\n  \t\t\tStop();\n        }\n    }\n}\n").Is(2 + 2 + 4 + 4 + 2);
 
     [Fact]
+    public void GivenAStringOverSeveralLines_ThenEachLineAfterTheFirstStandsOneLevelInFromIt()
+        => SizeOf("Sql", """"
+            namespace N
+            {
+                class A
+                {
+                    string Sql()
+                    {
+                        return """
+                          SELECT 1
+                             FROM X
+                          """;
+                    }
+                }
+            }
+            """").Is(2 + 2 + 4 + 8 + 8 + 8 + 2);
+
+    [Fact]
+    public void GivenAStringIndentedByStepsOfItsOwn_ThenTheLevelsOfTheCodeStayAsTheyAre()
+        => SizeOf("Go", """"
+            namespace N
+            {
+                class A
+                {
+                    const string Sql = """
+                          SELECT 1
+                        """;
+
+                    void Go()
+                    {
+                        if (true)
+                        {
+                            Stop();
+                        }
+                    }
+                }
+            }
+            """").Is(2 + 2 + 4 + 4 + 8 + 4 + 2);
+
+    [Fact]
+    public void GivenACommentOverSeveralLines_ThenItsAlignmentLeavesTheLevelsOfTheCodeAlone()
+        => SizeOf("Run", """
+            /*
+             * A note
+             */
+            namespace N
+            {
+                class A
+                {
+                    void Run()
+                    {
+                        Go();
+                    }
+                }
+            }
+            """).Is(2 + 2 + 4 + 2);
+
+    [Fact]
     public void GivenAnAttributeOnALineOfItsOwn_ThenItIsALineOfTheMember()
         => SizeOf("Run", """
             namespace N

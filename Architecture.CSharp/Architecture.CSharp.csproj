@@ -16,15 +16,13 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>1.4.0</PackageVersion>
+		<PackageVersion>1.4.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			NEW
-			* A member's Size: its lines weighed by their indentation, so a rule limits it with a ceiling alone
-			* A file's TopLevelSize: its top-level statements measured as one member
-			* agent-reference.md: a condensed reference for coding agents, shipped in the package
+			FIXED
+			* Size: a string or a comment that spans lines no longer inflates the size of the code around it
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

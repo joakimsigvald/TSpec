@@ -27,7 +27,7 @@ public sealed class SourceFile
         Location = location;
         _raw = new(() => File.ReadAllText(location));
         _lines = new(() => LinesOf(Raw));
-        _levels = new(() => LineLevels.Of(Lines));
+        _levels = new(() => LineLevels.Of(Lines, TextLines.Of(Root)));
         _root = new(() => CSharpSyntaxTree.ParseText(Raw, options).GetCompilationUnitRoot());
         _members = new(() => MemberDeclarations.In(this));
         _uses = new(() => BuildTypes.UsedIn(this));
@@ -125,8 +125,7 @@ public sealed class SourceFile
             .Select(node => new SourceNode<T>(this, node))];
 
     /// <summary>
-    /// The size of the file's top-level statements, measured as one member is: see
-    /// <see cref="DeclaredMember.Size"/>
+    /// The size of the file's top-level statements, computed as a member's <see cref="DeclaredMember.Size"/> is
     /// </summary>
     public double TopLevelSize => Sizes.OfTopLevel(this);
 

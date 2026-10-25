@@ -79,11 +79,8 @@ public void No_method_name_ends_in_Async()
         .Has().None(method => method.Name.EndsWith("Async"));
 ```
 
-A member's `Size` weighs each of its lines by its indentation, so a rule limits it with a ceiling alone.
-A file's levels are the widths its lines start at, a tab to the next multiple of 4, ranked from 0: a
-line indented between two others makes a level of its own, so irregular indentation costs. A line at
-level n of a member that starts at level m costs 2^(n − m/2), whatever it holds, and a blank line stands
-at level 0. A file's `TopLevelSize` measures its top-level statements as one member:
+A member's `Size` measures its size, computed from its line count, indentation and complexity, and a
+file's `TopLevelSize` measures its top-level statements the same way:
 
 ```csharp
 [Fact]

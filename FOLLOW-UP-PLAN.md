@@ -48,7 +48,6 @@ Each waits for a real spec that is worse without it.
 
 | Id | Description | Effort | Value | Worth |
 |---|---|---|---|---|
-| G1 | **M5's MethodSize moves to `DeclaredMember.Size` and `SourceFile.TopLevelSize`** once a TSpec.Architecture.CSharp with them is published, its ceiling set to its largest member's size. | Small | Small | 0 |
 
 ## Reading and updating this document
 
