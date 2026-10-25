@@ -9,6 +9,9 @@ Install the package in your architecture spec project:
 dotnet add package TSpec.Architecture.CSharp
 ```
 
+A condensed reference for coding agents ships with the package, beside TSpec's:
+`~/.nuget/packages/tspec.architecture.csharp/<version>/agent-reference.md`.
+
 With `using TSpec.Architecture.CSharp;`, a project's `Files` are those it compiles from its own folder,
 leaving out what the build generates under `obj/` and files linked in from elsewhere. A file has its
 `Path` in the project, written with `/`, its `Lines` and its `Raw` text, and a failure names it by
@@ -74,6 +77,18 @@ public void No_method_name_ends_in_Async()
     => Source.Projects.SelectMany(project => project.Members)
         .Where(member => member.Kind == MemberKind.Method && member.IsOriginal)
         .Has().None(method => method.Name.EndsWith("Async"));
+```
+
+A member's `Size` weighs each of its lines by its indentation, so a rule limits it with a ceiling alone.
+A file's levels are the widths its lines start at, a tab to the next multiple of 4, ranked from 0: a
+line indented between two others makes a level of its own, so irregular indentation costs. A line at
+level n of a member that starts at level m costs 2^(n − m/2), whatever it holds, and a blank line stands
+at level 0. A file's `TopLevelSize` measures its top-level statements as one member:
+
+```csharp
+[Fact]
+public void No_member_is_over_size_240()
+    => Source.Projects.SelectMany(project => project.Members).Has().None(member => member.Size > 240);
 ```
 
 A member `Gives` a type when the type it returns or holds is that type, or has it written inside: as a

@@ -82,7 +82,7 @@ internal static class MemberDeclarations
 
     private static MemberDeclaration Constructor(TypeDeclarationSyntax type, ParameterListSyntax parameters)
         => new(type, MemberKind.Constructor, type.Identifier, null, [.. parameters.Parameters], default,
-            Targeting(type.AttributeLists, SyntaxKind.MethodKeyword), Accessibility.Public);
+            Targeting(type.AttributeLists, SyntaxKind.MethodKeyword), Accessibility.Public) { Extent = parameters };
 
     private static MemberDeclaration Positional(ParameterSyntax parameter)
         => new(parameter, MemberKind.Property, parameter.Identifier, parameter.Type, [], default,

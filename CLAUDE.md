@@ -2,10 +2,11 @@
 
 ## Documentation must stay in sync with implemented features
 
-Two documents describe TSpec to its users:
+Two documents describe each package to its users, TSpec's at the root and TSpec.Architecture.CSharp's
+in `Architecture.CSharp/`:
 
 - `README.md` — the full human documentation (also rendered on nuget.org)
-- `TSpec-agent-reference.md` — the condensed agent reference shipped in the NuGet package
+- `agent-reference.md` — the condensed agent reference shipped in the package
 
 Update one when a change alters what its reader must know to write a test correctly: new or changed
 surface, a semantic they would otherwise get wrong, a behaviour that would surprise them. 
@@ -55,8 +56,8 @@ Once it passes, refactor what you touched to clean code, keep the suite green, t
 2. Run the full suite on all three target frameworks.
 
 `TSpec.Architecture.CSharp` is released on its own, slower cadence and version: update the same two
-properties in `Architecture.CSharp/Architecture.CSharp.csproj` and run its suite on all three
-frameworks. TSpec keeps its public API, `TSpec.Extensibility` included, stable within a major
+properties in `Architecture.CSharp/Architecture.CSharp.csproj` and its agent reference's "covers"
+line, and run its suite on all three frameworks. TSpec keeps its public API, `TSpec.Extensibility` included, stable within a major
 version, or the package breaks on a TSpec minor.
 
 ## MyHotel

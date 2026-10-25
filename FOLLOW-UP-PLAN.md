@@ -44,6 +44,12 @@ Each waits for a real spec that is worse without it.
 | F3 | **Nothing tests the generator's xUnit wiring directly** — fixture wiring, `TestState` at `Dispose`, end-of-assembly ordering — which cannot be tested from inside the same assembly. A scratch project could; today only the MyHotel suites passing covers it. | Medium | Medium | 0 |
 | F6 | **Document a spec as the subject of another spec** in README §6, for authors of shared base specs. | Small | Small | 0 |
 
+## G. Architecture
+
+| Id | Description | Effort | Value | Worth |
+|---|---|---|---|---|
+| G1 | **M5's MethodSize moves to `DeclaredMember.Size` and `SourceFile.TopLevelSize`** once a TSpec.Architecture.CSharp with them is published, its ceiling set to its largest member's size. | Small | Small | 0 |
+
 ## Reading and updating this document
 
 - Add an item only once it is verified against the code: the problem and a short example. Give it

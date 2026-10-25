@@ -32,12 +32,12 @@ The example highlights how TSpec reduces boilerplate by handling test data, depe
 In real-world usage, this typically yields substantially smaller and more readable tests than plain xUnit with a mocking library such as Moq or NSubstitute.
 
 **Using an AI coding agent?** A condensed reference optimized for agents is shipped with the package
-and available as [TSpec-agent-reference.md](https://github.com/joakimsigvald/TSpec/blob/main/TSpec-agent-reference.md).
+and available as [agent-reference.md](https://github.com/joakimsigvald/TSpec/blob/main/agent-reference.md).
 Point your agent to it by adding a line to your repository's agent instructions (e.g. `CLAUDE.md` or `AGENTS.md`):
 
 ```markdown
-Tests use TSpec — reference: `~/.nuget/packages/tspec/<version>/TSpec-agent-reference.md` (highest version),
-or https://raw.githubusercontent.com/joakimsigvald/TSpec/main/TSpec-agent-reference.md
+Tests use TSpec — reference: `~/.nuget/packages/tspec/<version>/agent-reference.md` (highest version),
+or https://raw.githubusercontent.com/joakimsigvald/TSpec/main/agent-reference.md
 ```
 
 ## Table of Contents

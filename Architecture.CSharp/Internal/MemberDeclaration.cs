@@ -11,4 +11,7 @@ internal sealed record MemberDeclaration(
     SyntaxTokenList Modifiers, IEnumerable<AttributeListSyntax> AttributeLists, Accessibility Accessibility)
 {
     public string Name { get; init; } = At.Text;
+
+    // What the member's size is measured over: a primary constructor's declaration is its whole type.
+    public SyntaxNode Extent { get; init; } = Syntax;
 }

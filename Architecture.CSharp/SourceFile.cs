@@ -18,6 +18,7 @@ public sealed class SourceFile
     private readonly Lazy<IReadOnlyList<DeclaredType>> _uses;
     private readonly Lazy<SemanticModel> _model;
     private readonly Lazy<IReadOnlyList<string>> _dependsOn;
+    private readonly Lazy<IReadOnlyList<int>> _levels;
 
     internal SourceFile(string project, string path, string location, CSharpParseOptions options)
     {
@@ -26,6 +27,7 @@ public sealed class SourceFile
         Location = location;
         _raw = new(() => File.ReadAllText(location));
         _lines = new(() => LinesOf(Raw));
+        _levels = new(() => LineLevels.Of(Lines));
         _root = new(() => CSharpSyntaxTree.ParseText(Raw, options).GetCompilationUnitRoot());
         _members = new(() => MemberDeclarations.In(this));
         _uses = new(() => BuildTypes.UsedIn(this));
@@ -60,6 +62,8 @@ public sealed class SourceFile
     public string Extension => System.IO.Path.GetExtension(Path).TrimStart('.');
 
     internal string Location { get; }
+
+    internal IReadOnlyList<int> Levels => _levels.Value;
 
     /// <summary>
     /// The file's text as it is written, for an analysis TSpec does not have. Add one to the file as an
@@ -119,6 +123,12 @@ public sealed class SourceFile
     public IReadOnlyList<SourceNode<T>> Nodes<T>() where T : SyntaxNode
         => [.. Root.DescendantNodes(IsCode, descendIntoTrivia: true).Where(IsCode).OfType<T>()
             .Select(node => new SourceNode<T>(this, node))];
+
+    /// <summary>
+    /// The size of the file's top-level statements, measured as one member is: see
+    /// <see cref="DeclaredMember.Size"/>
+    /// </summary>
+    public double TopLevelSize => Sizes.OfTopLevel(this);
 
     /// <summary>
     /// The types of the build the file's code uses, in the ordinal order of their full names: those it

@@ -17,21 +17,14 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>5.4.0</PackageVersion>
+		<PackageVersion>5.4.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			NEW
-			* SourceProject.IsSpecProject: whether a project reaches TSpec, whatever its name
-			* SourceProject.OpensInternalsTo: the projects its InternalsVisibleTo names, read without Roslyn
-			* DependencyGraph: Acyclic(), a failure naming the first loop
-			* Source.Projects: NonRedundant()
-			* TSpec.Extensibility: Build.TryFindPackage, the package of the build an assembly comes from
 			CHANGED
-			* A snake_case test name reads as written: every underscore a space, each word as it is spelled
-			OBSOLETE
-			* Redundant(): NonRedundant() takes the place of not.Redundant()
+			* The agent reference is agent-reference.md: point your agent instructions at the new name
+			* Its section on C# code moved to the agent reference TSpec.Architecture.CSharp ships
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
@@ -41,7 +34,7 @@
 		<PackageReference Include="xunit.v3.extensibility.core" Version="4.0.2" />
 		<PackageReference Include="xunit.v3.assert" Version="4.0.2" />
 		<None Include="..\README.md" Pack="true" PackagePath="\" />
-		<None Include="..\TSpec-agent-reference.md" Pack="true" PackagePath="\" />
+		<None Include="..\agent-reference.md" Pack="true" PackagePath="\" />
 		<None Include="..\icon.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 	<ItemGroup>

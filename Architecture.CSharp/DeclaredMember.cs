@@ -79,6 +79,12 @@ public sealed class DeclaredMember
     public bool IsOriginal => _isOriginal.Value;
 
     /// <summary>
+    /// The member's lines, each weighed by its indentation level in the file: a line at level n of a member
+    /// that starts at level m costs 2^(n - m/2). A primary constructor is measured over its parameter list
+    /// </summary>
+    public double Size => Sizes.Of(File, File.SpanOf(_declaration.Extent));
+
+    /// <summary>
     /// The type the member returns or holds and the types written inside it, each once, in the order they
     /// are written: a type argument such as <c>Task&lt;T&gt;</c>'s, a tuple's element or an array's. A
     /// named type's own members are not inside it, and a void method gives nothing. Its project is

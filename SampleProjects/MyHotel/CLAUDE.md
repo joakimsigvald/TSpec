@@ -108,5 +108,6 @@ change is caught where it matters: in the committed files' diff.
 - Update README.md's endpoint table whenever an endpoint is added, removed, or changes contract.
 - `MyHotel.Spec` and `Core.Spec` each generate their own `_specification/` folder from a green run. Never hand-edit a file in it;
   commit the regenerated files and read their diff as part of reviewing the change.
-- TSpec usage: [TSpec-agent-reference.md](../../TSpec-agent-reference.md) — referenced by project, so
-  always the working copy.
+- TSpec usage: [agent-reference.md](../../agent-reference.md), and for the architecture rules on the
+  code [Architecture.CSharp/agent-reference.md](../../Architecture.CSharp/agent-reference.md) — the
+  working copies, so they may run ahead of the packages MyHotel references.

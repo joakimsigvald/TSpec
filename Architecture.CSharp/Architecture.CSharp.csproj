@@ -16,24 +16,15 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>1.3.0</PackageVersion>
+		<PackageVersion>1.4.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			NEW
-			* Nodes&lt;T&gt;(): a project's or a file's syntax nodes of one kind, each named by its file and line
-			* SourceSpan.Lines: the lines a span covers
-			* A member's Gives and Takes: the types its return type and its parameters' types name, or whether one is of a kind, is a type or meets a condition
-			* A file's DependsOn: the projects and packages whose types its code uses, as the rules name them
-			* A file's Model: the compiler's view of its syntax
-			* AllTypes on a project or a file: its types with those nested in them
-			* A member's IsOriginal: whether it sets its own name and signature, neither implementing nor overriding
-			* A file's Folder, Name and Extension
-			CHANGED
-			* Requires TSpec 5.4.0 or later
-			OBSOLETE
-			* OpensInternalsTo: TSpec's own SourceProject.OpensInternalsTo takes its place, read without Roslyn
+			* A member's Size: its lines weighed by their indentation, so a rule limits it with a ceiling alone
+			* A file's TopLevelSize: its top-level statements measured as one member
+			* agent-reference.md: a condensed reference for coding agents, shipped in the package
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
@@ -43,6 +34,7 @@
 		<PackageReference Include="TSpec" Version="5.4.0" PrivateAssets="none" />
 		<InternalsVisibleTo Include="TSpec.Architecture.CSharp.Test" />
 		<None Include="README.md" Pack="true" PackagePath="\" />
+		<None Include="agent-reference.md" Pack="true" PackagePath="\" />
 		<None Include="..\icon.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
