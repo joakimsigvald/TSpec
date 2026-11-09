@@ -25,6 +25,7 @@
 			CHANGED
 			* The agent reference is agent-reference.md: point your agent instructions at the new name
 			* Its section on C# code moved to the agent reference TSpec.Architecture.CSharp ships
+			* New icon
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
