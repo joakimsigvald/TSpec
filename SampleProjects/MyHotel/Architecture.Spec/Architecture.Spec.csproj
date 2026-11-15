@@ -14,6 +14,12 @@
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 	</PropertyGroup>
 
+	<!-- The source-shape facts read the syntax trees: Roslyn's parser. Keep it at least the SDK's compiler:
+	     syntax newer than this Roslyn parses with errors no fact notices. -->
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="TSpec" Version="5.4.1" />
 		<PackageReference Include="TSpec.Architecture.CSharp" Version="1.4.2" />

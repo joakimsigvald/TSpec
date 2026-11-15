@@ -1,4 +1,4 @@
-namespace MyHotel.Contract;
+namespace MyHotel.Contract.Bookings.Exceptions;
 
 public class BookingNotFound(int bookingNumber)
     : Exception($"There is no booking {bookingNumber}.")

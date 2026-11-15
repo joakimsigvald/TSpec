@@ -60,3 +60,20 @@ input[type='number'] {
   margin: 0.25rem 0;
   color: #b00020;
 }
+
+/* An error spills to the right of its field instead of widening it, so the row keeps its layout. */
+.field > [role='alert'] {
+  width: 0;
+  white-space: nowrap;
+}
+
+/* The button's field takes the rest of the row, and an error under it wraps there. */
+.actions {
+  flex: 1;
+  align-items: flex-start;
+}
+
+.actions > [role='alert'] {
+  width: auto;
+  white-space: normal;
+}

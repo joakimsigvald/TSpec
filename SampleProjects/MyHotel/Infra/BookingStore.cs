@@ -1,5 +1,5 @@
 using System.Text.Json;
-using MyHotel.Contract;
+using MyHotel.Contract.Bookings;
 using MyHotel.Core.Bookings;
 
 namespace MyHotel.Infra;
@@ -14,17 +14,17 @@ namespace MyHotel.Infra;
 /// bookings and nothing else reads it. Each save reads the book first and writes it whole, so
 /// storing bookings does not forget the numbering, or the other way round.
 /// </remarks>
-public class BookingStore(string path) : IBookingStore, IBookingNumberStore
+internal sealed class BookingStore(string path) : IBookingStore, IBookingNumberStore
 {
     public async Task<IReadOnlyList<Booking>> Load() => (await Read()).Bookings;
 
-    public async Task Save(IReadOnlyList<Booking> bookings)
-        => await Write(await Read() with { Bookings = [.. bookings] });
+    public async Task Save(IReadOnlyList<Booking> bookings) =>
+        await Write(await Read() with { Bookings = bookings });
 
     public async Task<int?> LoadLastUsed() => (await Read()).LastUsedNumber;
 
-    public async Task SaveLastUsed(int number)
-        => await Write(await Read() with { LastUsedNumber = number });
+    public async Task SaveLastUsed(int number) =>
+        await Write(await Read() with { LastUsedNumber = number });
 
     private async Task<Book> Read()
     {
@@ -43,9 +43,9 @@ public class BookingStore(string path) : IBookingStore, IBookingNumberStore
         await JsonSerializer.SerializeAsync(stream, book);
     }
 
-    /// What the file holds: the bookings made, and the last number issued — null until the first
+    /// What the file holds: the bookings made, and the last number issued - null until the first
     /// one is, which is the one moment the seed applies.
-    private record Book(List<Booking> Bookings, int? LastUsedNumber)
+    private record Book(IReadOnlyList<Booking> Bookings, int? LastUsedNumber)
     {
         internal static Book Empty => new([], null);
     }

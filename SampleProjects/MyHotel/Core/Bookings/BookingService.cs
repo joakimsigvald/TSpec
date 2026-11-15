@@ -1,4 +1,6 @@
-using MyHotel.Contract;
+using MyHotel.Contract.Bookings;
+using MyHotel.Contract.Bookings.Exceptions;
+using MyHotel.Contract.Rooms.Exceptions;
 using MyHotel.Core.Rooms;
 
 namespace MyHotel.Core.Bookings;
@@ -11,9 +13,8 @@ namespace MyHotel.Core.Bookings;
 public class BookingService(IBookingStore store, IRoomStore rooms, IBookingNumberGenerator numbers)
     : IBookingService
 {
-    public async Task<IReadOnlyList<Booking>> List() => await store.Load();
-
-    public async Task<Booking> Get(int bookingNumber) => Existing(await store.Load(), bookingNumber);
+    public async Task<IReadOnlyList<Booking>> Bookings() => await store.Load();
+    public async Task<Booking> BookingFor(int bookingNumber) => Existing(await Bookings(), bookingNumber);
 
     public async Task<Booking> Book(BookingRequest request)
     {
@@ -26,29 +27,26 @@ public class BookingService(IBookingStore store, IRoomStore rooms, IBookingNumbe
             throw new RoomAlreadyBooked(request.RoomNumber);
         var booked = new Booking(
             await numbers.Next(), request.RoomNumber, request.GuestName, request.From, request.To);
-        bookings.Add(booked);
-        await store.Save(bookings);
+        await store.Save([.. bookings, booked]);
         return booked;
     }
 
     public async Task Cancel(int bookingNumber)
     {
         var bookings = await Bookings();
-        bookings.Remove(Existing(bookings, bookingNumber));
-        await store.Save(bookings);
+        var cancelled = Existing(bookings, bookingNumber);
+        await store.Save([.. bookings.Where(booking => booking != cancelled)]);
     }
 
-    private async Task<bool> RoomExists(string roomNumber)
-        => (await rooms.Load()).Any(room => room.RoomNumber == roomNumber);
+    private async Task<bool> RoomExists(string roomNumber) =>
+        (await rooms.Load()).Any(room => room.RoomNumber == roomNumber);
 
-    private async Task<List<Booking>> Bookings() => [.. await store.Load()];
-
-    private static Booking Existing(IEnumerable<Booking> bookings, int bookingNumber)
-        => bookings.FirstOrDefault(booking => booking.BookingNumber == bookingNumber)
+    private static Booking Existing(IEnumerable<Booking> bookings, int bookingNumber) =>
+        bookings.FirstOrDefault(booking => booking.BookingNumber == bookingNumber)
         ?? throw new BookingNotFound(bookingNumber);
 
-    private static bool Overlaps(Booking booking, BookingRequest request)
-        => booking.RoomNumber == request.RoomNumber
+    private static bool Overlaps(Booking booking, BookingRequest request) =>
+        booking.RoomNumber == request.RoomNumber
         && request.From < booking.To
         && booking.From < request.To;
 }

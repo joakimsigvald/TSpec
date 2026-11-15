@@ -5,9 +5,11 @@ namespace MyHotel.Host.Spec.Bookings;
 
 public abstract class WhenBookRoom : ApiSpec<HttpResponseMessage>
 {
-    protected WhenBookRoom()
-        => When(_ => _.Api.PostAsJsonAsync("/bookings", new BookingRequest(
-            A<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12))));
+    protected WhenBookRoom() =>
+        When(_ => _.Api.PostAsJsonAsync(
+            "/bookings",
+            new BookingRequest(
+                A<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12))));
 
     public class GivenTheRoomExists : WhenBookRoom
     {
@@ -16,13 +18,13 @@ public abstract class WhenBookRoom : ApiSpec<HttpResponseMessage>
         [Fact] public void ThenRespondCreated() => Result.StatusCode.Is(Created);
 
         [Fact]
-        public async Task ThenReturnTheBookingWithTheSeededNumber()
-            => (await Result.Read<Booking>()).Is(new Booking(
+        public async Task ThenReturnTheBookingWithTheSeededNumber() =>
+            (await Result.Read<Booking>()).Is(new Booking(
                 10001, The<Room>().RoomNumber, The<string>(), new(2026, 8, 10), new(2026, 8, 12)));
 
         [Fact]
-        public void ThenPointAtTheNewBooking()
-            => Result.Headers.Location!.ToString().Is("/bookings/10001");
+        public void ThenPointAtTheNewBooking() =>
+            Result.Headers.Location!.ToString().Is("/bookings/10001");
     }
 
     /// <summary>
@@ -33,14 +35,18 @@ public abstract class WhenBookRoom : ApiSpec<HttpResponseMessage>
     public class GivenABookingWasMadeBeforeARestart : WhenBookRoom
     {
         public GivenABookingWasMadeBeforeARestart()
-            => Having(_ => _.Restart())
-                .Having(_ => _.Api.PostAsJsonAsync("/bookings", new BookingRequest(
-                    The<Room>().RoomNumber, ASecond<string>(), new(2026, 8, 8), new(2026, 8, 10))))
-                .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
+        {
+            Having(_ => _.Restart());
+            Having(_ => _.Api.PostAsJsonAsync(
+                "/bookings",
+                new BookingRequest(
+                    The<Room>().RoomNumber, ASecond<string>(), new(2026, 8, 8), new(2026, 8, 10))));
+            Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
+        }
 
         [Fact]
-        public async Task ThenCarryOnFromTheNumberAlreadyIssued()
-            => (await Result.Read<Booking>()).BookingNumber.Is(10002);
+        public async Task ThenCarryOnFromTheNumberAlreadyIssued() =>
+            (await Result.Read<Booking>()).BookingNumber.Is(10002);
     }
 
     public class GivenNoSuchRoom : WhenBookRoom
@@ -48,8 +54,8 @@ public abstract class WhenBookRoom : ApiSpec<HttpResponseMessage>
         [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
 
         [Fact]
-        public async Task ThenSayThereIsNoSuchRoom()
-            => (await Result.Read<ErrorBody>()).Code.Is("RoomNotFound");
+        public async Task ThenSayThereIsNoSuchRoom() =>
+            (await Result.Read<ErrorBody>()).Code.Is("RoomNotFound");
     }
 
     /// <summary>
@@ -57,16 +63,18 @@ public abstract class WhenBookRoom : ApiSpec<HttpResponseMessage>
     /// </summary>
     public class GivenAnOverlappingBooking : WhenBookRoom
     {
-        public GivenAnOverlappingBooking()
-            => Having(_ => _.Api.PostAsJsonAsync("/bookings", new BookingRequest(
-                The<Room>().RoomNumber, ASecond<string>(), new(2026, 8, 11), new(2026, 8, 13))))
+        public GivenAnOverlappingBooking() =>
+            Having(_ => _.Api.PostAsJsonAsync(
+                "/bookings",
+                new BookingRequest(
+                    The<Room>().RoomNumber, ASecond<string>(), new(2026, 8, 11), new(2026, 8, 13))))
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact] public void ThenRespondConflict() => Result.StatusCode.Is(Conflict);
 
         [Fact]
-        public async Task ThenSayTheRoomIsAlreadyBooked()
-            => (await Result.Read<ErrorBody>()).Code.Is("RoomAlreadyBooked");
+        public async Task ThenSayTheRoomIsAlreadyBooked() =>
+            (await Result.Read<ErrorBody>()).Code.Is("RoomAlreadyBooked");
     }
 
     /// <summary>
@@ -76,17 +84,21 @@ public abstract class WhenBookRoom : ApiSpec<HttpResponseMessage>
     public class GivenTheNightsWereBookedAndCancelled : WhenBookRoom
     {
         public GivenTheNightsWereBookedAndCancelled()
-            => Having(_ => _.Api.DeleteAsync("/bookings/10001"))
-                .Having(_ => _.Api.PostAsJsonAsync("/bookings", new BookingRequest(
-                    The<Room>().RoomNumber, ASecond<string>(), new(2026, 8, 10), new(2026, 8, 12))))
-                .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
+        {
+            Having(_ => _.Api.DeleteAsync("/bookings/10001"));
+            Having(_ => _.Api.PostAsJsonAsync(
+                "/bookings",
+                new BookingRequest(
+                    The<Room>().RoomNumber, ASecond<string>(), new(2026, 8, 10), new(2026, 8, 12))));
+            Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
+        }
 
         [Fact] public void ThenRespondCreated() => Result.StatusCode.Is(Created);
 
         /// The cancelled booking gave its number back to nobody: numbers are issued, not reused.
         [Fact]
-        public async Task ThenStillIssueAFreshNumber()
-            => (await Result.Read<Booking>()).BookingNumber.Is(10002);
+        public async Task ThenStillIssueAFreshNumber() =>
+            (await Result.Read<Booking>()).BookingNumber.Is(10002);
     }
 
     /// <summary>
@@ -95,29 +107,13 @@ public abstract class WhenBookRoom : ApiSpec<HttpResponseMessage>
     /// </summary>
     public class GivenAnAdjacentBooking : WhenBookRoom
     {
-        public GivenAnAdjacentBooking()
-            => Having(_ => _.Api.PostAsJsonAsync("/bookings", new BookingRequest(
-                The<Room>().RoomNumber, ASecond<string>(), new(2026, 8, 8), new(2026, 8, 10))))
+        public GivenAnAdjacentBooking() =>
+            Having(_ => _.Api.PostAsJsonAsync(
+                "/bookings",
+                new BookingRequest(
+                    The<Room>().RoomNumber, ASecond<string>(), new(2026, 8, 8), new(2026, 8, 10))))
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact] public void ThenRespondCreated() => Result.StatusCode.Is(Created);
-    }
-}
-
-public abstract class WhenBookZeroNights : ApiSpec<HttpResponseMessage>
-{
-    protected WhenBookZeroNights()
-        => When(_ => _.Api.PostAsJsonAsync("/bookings", new BookingRequest(
-            A<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 10))));
-
-    public class GivenTheRoomExists : WhenBookZeroNights
-    {
-        public GivenTheRoomExists() => Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
-
-        [Fact] public void ThenRespondBadRequest() => Result.StatusCode.Is(BadRequest);
-
-        [Fact]
-        public async Task ThenSayThePeriodIsInvalid()
-            => (await Result.Read<ErrorBody>()).Code.Is("InvalidBookingPeriod");
     }
 }

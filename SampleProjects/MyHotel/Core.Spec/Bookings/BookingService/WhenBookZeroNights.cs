@@ -6,11 +6,11 @@
 /// </summary>
 public class WhenBookZeroNights : Spec<Core.Bookings.BookingService, Booking>
 {
-    public WhenBookZeroNights()
-        => When(_ => _.Book(new BookingRequest(
+    public WhenBookZeroNights() =>
+        When(_ => _.Book(new BookingRequest(
             A<string>(), ASecond<string>(), A<DateOnly>(), The<DateOnly>())));
 
     [Fact]
-    public void ThenThrowInvalidBookingPeriod()
-        => Then().Throws<InvalidBookingPeriod>().that.Message.Does().Contain("at least one night");
+    public void ThenThrowInvalidBookingPeriod() =>
+        Then().Throws<InvalidBookingPeriod>().that.Message.Does().Contain("at least one night");
 }

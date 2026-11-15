@@ -1,6 +1,9 @@
 global using Xunit;
 global using TSpec;
 global using TSpec.Assert;
-global using MyHotel.Contract;
+global using MyHotel.Contract.Bookings;
+global using MyHotel.Contract.Bookings.Exceptions;
+global using MyHotel.Contract.Rooms;
+global using MyHotel.Contract.Rooms.Exceptions;
 global using MyHotel.Core.Bookings;
 global using MyHotel.Core.Rooms;

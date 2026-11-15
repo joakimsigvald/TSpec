@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { fakeApi } from '../test/fakeApi';
@@ -15,6 +15,16 @@ const fillIn = async () => {
   await userEvent.type(screen.getByLabelText('Guest'), request.guestName);
   await userEvent.type(screen.getByLabelText('From'), request.from);
   await userEvent.type(screen.getByLabelText('To'), request.to);
+};
+
+const bookRefusedWith = async (status: number, code: string) => {
+  fakeApi({
+    'GET /bookings': { status: 200, body: [] },
+    'POST /bookings': { status, body: { code } },
+  });
+  render(<Bookings />);
+  await fillIn();
+  await userEvent.click(screen.getByRole('button', { name: 'Book' }));
 };
 
 describe('Bookings', () => {
@@ -40,15 +50,29 @@ describe('Bookings', () => {
     }));
   });
 
-  it('says why a booking was refused', async () => {
-    fakeApi({
-      'GET /bookings': { status: 200, body: [booking10001] },
-      'POST /bookings': { status: 409, body: { code: 'RoomAlreadyBooked' } },
-    });
-    render(<Bookings />);
-    await fillIn();
-    await userEvent.click(screen.getByRole('button', { name: 'Book' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Rummet är redan bokat under några av nätterna.');
+  it('says under the room number that there is no such room', async () => {
+    await bookRefusedWith(404, 'RoomNotFound');
+    await waitFor(() =>
+      expect(screen.getByLabelText('Room number')).toHaveAccessibleDescription('Rummet finns inte.'));
+  });
+
+  it('says under the departure date that the period is too short', async () => {
+    await bookRefusedWith(400, 'InvalidBookingPeriod');
+    await waitFor(() =>
+      expect(screen.getByLabelText('To')).toHaveAccessibleDescription('En bokning måste gälla minst en natt.'));
+  });
+
+  it('says under the room number that the room is already booked', async () => {
+    await bookRefusedWith(409, 'RoomAlreadyBooked');
+    await waitFor(() =>
+      expect(screen.getByLabelText('Room number'))
+        .toHaveAccessibleDescription('Rummet är redan bokat under några av nätterna.'));
+  });
+
+  it('says under the button why a booking could not be made for any other reason', async () => {
+    await bookRefusedWith(500, 'Unknown');
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Book' })).toHaveAccessibleDescription('Något gick fel.'));
   });
 
   it('removes a cancelled booking from the list', async () => {

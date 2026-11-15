@@ -12,16 +12,18 @@ public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
     /// </summary>
     public class GivenTheBookingExists : WhenGetBooking
     {
-        public GivenTheBookingExists()
-            => Having(_ => _.Api.PostAsJsonAsync("/bookings", new BookingRequest(
-                The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12))))
+        public GivenTheBookingExists() =>
+            Having(_ => _.Api.PostAsJsonAsync(
+                "/bookings",
+                new BookingRequest(
+                    The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12))))
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
 
         [Fact] public void ThenRespondOk() => Result.StatusCode.Is(OK);
 
         [Fact]
-        public async Task ThenReturnTheBooking()
-            => (await Result.Read<Booking>()).Is(new Booking(
+        public async Task ThenReturnTheBooking() =>
+            (await Result.Read<Booking>()).Is(new Booking(
                 10001, The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12)));
     }
 
@@ -30,8 +32,8 @@ public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
         [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
 
         [Fact]
-        public async Task ThenSayThereIsNoSuchBooking()
-            => (await Result.Read<ErrorBody>()).Code.Is("BookingNotFound");
+        public async Task ThenSayThereIsNoSuchBooking() =>
+            (await Result.Read<ErrorBody>()).Code.Is("BookingNotFound");
     }
 
     /// <summary>
@@ -41,16 +43,20 @@ public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
     public class GivenTheApplicationWasRestarted : WhenGetBooking
     {
         public GivenTheApplicationWasRestarted()
-            => Having(_ => _.Restart())
-                .Having(_ => _.Api.PostAsJsonAsync("/bookings", new BookingRequest(
-                    The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12))))
-                .Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
+        {
+            Having(_ => _.Restart());
+            Having(_ => _.Api.PostAsJsonAsync(
+                "/bookings",
+                new BookingRequest(
+                    The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12))));
+            Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
+        }
 
         [Fact] public void ThenRespondOk() => Result.StatusCode.Is(OK);
 
         [Fact]
-        public async Task ThenReturnTheBooking()
-            => (await Result.Read<Booking>()).Is(new Booking(
+        public async Task ThenReturnTheBooking() =>
+            (await Result.Read<Booking>()).Is(new Booking(
                 10001, The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12)));
     }
 }

@@ -4,6 +4,6 @@ namespace MyHotel.Host.Spec;
 
 internal static class ResponseExtensions
 {
-    internal static async Task<T> Read<T>(this HttpResponseMessage response)
-        => (await response.Content.ReadFromJsonAsync<T>(TestContext.Current.CancellationToken))!;
+    internal static async Task<T> Read<T>(this HttpResponseMessage response) =>
+        (await response.Content.ReadFromJsonAsync<T>(TestContext.Current.CancellationToken))!;
 }

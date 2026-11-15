@@ -6,8 +6,8 @@ public abstract class WhenDeleteRoom : Spec<Core.Rooms.RoomService>
 
     public class GivenTheRoomIsStored : WhenDeleteRoom
     {
-        public GivenTheRoomIsStored()
-            => Given<IRoomStore>().That(_ => _.Load()).Returns(One<Room>);
+        public GivenTheRoomIsStored() =>
+            Given<IRoomStore>().That(_ => _.Load()).Returns(One<Room>);
 
         [Fact] public void ThenStoreWhatIsLeft() => Then<IRoomStore>(_ => _.Save(Zero<Room>()));
     }
@@ -17,7 +17,7 @@ public abstract class WhenDeleteRoom : Spec<Core.Rooms.RoomService>
         public GivenNoSuchRoom() => Given<IRoomStore>().That(_ => _.Load()).Returns(Zero<Room>);
 
         [Fact]
-        public void ThenThrowNotFound()
-            => Then().Throws<RoomNotFound>().that.Message.Does().Contain(The<Room>().RoomNumber);
+        public void ThenThrowNotFound() =>
+            Then().Throws<RoomNotFound>().that.Message.Does().Contain(The<Room>().RoomNumber);
     }
 }

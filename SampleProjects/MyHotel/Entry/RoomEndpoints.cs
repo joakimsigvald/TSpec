@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using MyHotel.Contract;
+using MyHotel.Contract.Rooms;
 
 namespace MyHotel.Entry;
 
@@ -9,34 +9,30 @@ public static class RoomEndpoints
 {
     public static void MapRoomEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/rooms", async (IRoomService rooms) =>
-        {
-            var all = await rooms.List();
-            return Results.Ok(all);
-        });
+        app.MapGet("/rooms", Rooms);
+        app.MapPost("/rooms", Add);
+        app.MapGet("/rooms/{roomNumber}", RoomFor);
+        app.MapPut("/rooms/{roomNumber}", Update);
+        app.MapDelete("/rooms/{roomNumber}", Delete);
+    }
 
-        app.MapPost("/rooms", async (IRoomService rooms, Room room) =>
-        {
-            var added = await rooms.Add(room);
-            return Results.Created($"/rooms/{added.RoomNumber}", added);
-        });
+    private static async Task<IResult> Rooms(IRoomService rooms) => Results.Ok(await rooms.Rooms());
 
-        app.MapGet("/rooms/{roomNumber}", async (IRoomService rooms, string roomNumber) =>
-        {
-            var room = await rooms.Get(roomNumber);
-            return Results.Ok(room);
-        });
+    private static async Task<IResult> Add(IRoomService rooms, Room room)
+    {
+        var added = await rooms.Add(room);
+        return Results.Created($"/rooms/{added.RoomNumber}", added);
+    }
 
-        app.MapPut("/rooms/{roomNumber}", async (IRoomService rooms, string roomNumber, Room room) =>
-        {
-            var updated = await rooms.Update(roomNumber, room);
-            return Results.Ok(updated);
-        });
+    private static async Task<IResult> RoomFor(IRoomService rooms, string roomNumber) =>
+        Results.Ok(await rooms.RoomFor(roomNumber));
 
-        app.MapDelete("/rooms/{roomNumber}", async (IRoomService rooms, string roomNumber) =>
-        {
-            await rooms.Delete(roomNumber);
-            return Results.NoContent();
-        });
+    private static async Task<IResult> Update(IRoomService rooms, string roomNumber, Room room) =>
+        Results.Ok(await rooms.Update(roomNumber, room));
+
+    private static async Task<IResult> Delete(IRoomService rooms, string roomNumber)
+    {
+        await rooms.Delete(roomNumber);
+        return Results.NoContent();
     }
 }

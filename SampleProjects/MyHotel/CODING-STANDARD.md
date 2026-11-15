@@ -90,8 +90,11 @@ e. Casing is .NET's: PascalCase for types, members, constants and static fields;
    and locals; `_camelCase` for private instance fields. In a test project, an underscore may separate the
    segments of a long method name: a test often has more to say than a production method. (VI)
 f. The shorter a name's scope, the shorter the name (`ch` instead of `character` in a one-line lambda). (VI)
-g. A message for the operator or the user is English. (V)
+g. A message for the operator or a developer is English; the user is shown the text for a code (1i). (V)
 h. A using alias is a word that says what it stands for (`Wire`), never a single letter. (VI)
+i. The backend writes no text for the user: a refusal that reaches an API response carries an error code
+   in an `ErrorBody` - the name of the exception it stands for - and Web words it (`src/locales/sv.json`).
+   The exception's message is a fixed English text for a developer; Entry adds the status. (V)
 
 ## 2. Types
 
@@ -220,7 +223,8 @@ c. A wire type mirrored by hand on the far side (Web's `*Api.ts` files) changes 
 d. SQL lives in the project that owns the connection, as a raw string literal beside the method that runs
    it. Every value is a `@parameter`; nothing from a request or a user is ever concatenated into SQL. (II)
 e. Parsing and formatting at a boundary name the culture: `CultureInfo.InvariantCulture` for anything code
-   reads back - XML, JSON, a log, a key - and `StringComparison.Ordinal` for a comparison. (V)
+   reads back - XML, JSON, a log, a key - and `StringComparison.Ordinal` for a comparison. The backend
+   formats nothing for a person (1i), so there is no other culture to name. (V)
 f. An exception we expect from foreign code (0f) or over a boundary is caught where it enters, and handled
    or wrapped in one of our own. An unexpected one is a bug, and is left for the outer boundary (8b). (V)
 

@@ -6,7 +6,7 @@ Subject under test: Hotel
 Return type: HttpResponseMessage
 ```
 
-## [When book zero nights](../Bookings/WhenBookRoom.cs)
+## [When book zero nights](../Bookings/WhenBookZeroNights.cs)
 ```
 Api.PostAsJsonAsync("/bookings",
     new BookingRequest(a Room's RoomNumber, a string, new(2026, 8, 10), new(2026, 8, 10)))

@@ -60,7 +60,7 @@ Return type: Booking
 - **store what is left** — `IBookingStore.Save(zero Bookings)`
 
 ### [When get](../Bookings/BookingService/WhenGet.cs)
-`Get(a Booking's BookingNumber), returns Booking`
+`BookingFor(a Booking's BookingNumber), returns Booking`
 
 #### Given no such booking
 `IBookingStore.Load() returns zero Bookings`
@@ -74,7 +74,7 @@ Return type: Booking
 - **return the booking** — `Result is the Booking`
 
 ### [When list](../Bookings/BookingService/WhenList.cs)
-`List(), returns IReadOnlyList<Booking>`
+`Bookings(), returns IReadOnlyList<Booking>`
 
 #### Given no bookings
 `IBookingStore.Load() returns zero Bookings`

@@ -1,4 +1,4 @@
-namespace MyHotel.Contract;
+namespace MyHotel.Contract.Bookings.Exceptions;
 
 public class InvalidBookingPeriod(DateOnly from, DateOnly to)
     : Exception($"A booking must last at least one night: from {from:o} to {to:o} does not.")

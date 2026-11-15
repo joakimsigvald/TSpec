@@ -1,4 +1,4 @@
-using MyHotel.Contract;
+using MyHotel.Contract.Bookings;
 
 namespace MyHotel.Core.Bookings;
 
@@ -10,6 +10,5 @@ namespace MyHotel.Core.Bookings;
 public interface IBookingStore
 {
     Task<IReadOnlyList<Booking>> Load();
-
     Task Save(IReadOnlyList<Booking> bookings);
 }

@@ -9,7 +9,7 @@ namespace MyHotel.Host.Spec;
 /// </summary>
 /// <param name="roomsPath">
 /// Where to keep the rooms. Omitted, the application gets a temporary file of its own and deletes
-/// it on disposal; supplied, the caller owns the file — which is what lets two applications in
+/// it on disposal; supplied, the caller owns the file - which is what lets two applications in
 /// succession see the same rooms. <paramref name="bookingsPath"/> works the same way.
 /// </param>
 internal sealed class TestApi(string? roomsPath = null, string? bookingsPath = null)
@@ -19,11 +19,8 @@ internal sealed class TestApi(string? roomsPath = null, string? bookingsPath = n
     private readonly string _bookingsPath = bookingsPath ?? TempPath("bookings");
     private readonly bool _ownsFiles = roomsPath is null && bookingsPath is null;
 
-    internal static string TempPath(string kind)
-        => Path.Combine(Path.GetTempPath(), $"myhotel-{kind}-{Guid.NewGuid():N}.json");
-
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
-        => builder
+    protected override void ConfigureWebHost(IWebHostBuilder builder) =>
+        builder
             .UseSetting("RoomStore:Path", _roomsPath)
             .UseSetting("BookingStore:Path", _bookingsPath);
 
@@ -36,4 +33,7 @@ internal sealed class TestApi(string? roomsPath = null, string? bookingsPath = n
         File.Delete(_roomsPath);
         File.Delete(_bookingsPath);
     }
+
+    internal static string TempPath(string kind) =>
+        Path.Combine(Path.GetTempPath(), $"myhotel-{kind}-{Guid.NewGuid():N}.json");
 }

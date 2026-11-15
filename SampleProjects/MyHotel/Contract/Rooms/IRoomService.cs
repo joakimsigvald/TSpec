@@ -1,4 +1,4 @@
-namespace MyHotel.Contract;
+namespace MyHotel.Contract.Rooms;
 
 /// <summary>
 /// One method per endpoint, taking what the endpoint takes. Anything that would have been an early
@@ -7,13 +7,9 @@ namespace MyHotel.Contract;
 /// </summary>
 public interface IRoomService
 {
-    Task<IReadOnlyList<Room>> List();
-
-    Task<Room> Get(string roomNumber);
-
+    Task<IReadOnlyList<Room>> Rooms();
+    Task<Room> RoomFor(string roomNumber);
     Task<Room> Add(Room room);
-
     Task<Room> Update(string roomNumber, Room room);
-
     Task Delete(string roomNumber);
 }

@@ -1,4 +1,4 @@
-namespace MyHotel.Contract;
+namespace MyHotel.Contract.Rooms.Exceptions;
 
 /// <summary>
 /// The room number identifies the room, so an update cannot carry a different one. Renumbering a
@@ -8,6 +8,5 @@ public class RoomNumberMismatch(string roomNumber, string given)
     : Exception($"Room {roomNumber} cannot be renumbered to {given}.")
 {
     public string RoomNumber { get; } = roomNumber;
-
     public string Given { get; } = given;
 }

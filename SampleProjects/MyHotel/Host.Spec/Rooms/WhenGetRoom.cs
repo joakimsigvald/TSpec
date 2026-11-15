@@ -12,7 +12,6 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
         public GivenTheRoomExists() => Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact] public void ThenRespondOk() => Result.StatusCode.Is(OK);
-
         [Fact] public async Task ThenReturnTheRoom() => (await Result.Read<Room>()).Is(The<Room>());
     }
 
@@ -21,8 +20,8 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
         [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
 
         [Fact]
-        public async Task ThenSayThereIsNoSuchRoom()
-            => (await Result.Read<ErrorBody>()).Code.Is("RoomNotFound");
+        public async Task ThenSayThereIsNoSuchRoom() =>
+            (await Result.Read<ErrorBody>()).Code.Is("RoomNotFound");
     }
 
     /// <summary>
@@ -30,15 +29,15 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
     /// </summary>
     public class GivenTheRoomWasDeleted : WhenGetRoom
     {
-        public GivenTheRoomWasDeleted()
-            => Having(_ => _.Api.DeleteAsync($"/rooms/{The<Room>().RoomNumber}"))
+        public GivenTheRoomWasDeleted() =>
+            Having(_ => _.Api.DeleteAsync($"/rooms/{The<Room>().RoomNumber}"))
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
 
         [Fact]
-        public async Task ThenSayThereIsNoSuchRoom()
-            => (await Result.Read<ErrorBody>()).Code.Is("RoomNotFound");
+        public async Task ThenSayThereIsNoSuchRoom() =>
+            (await Result.Read<ErrorBody>()).Code.Is("RoomNotFound");
     }
 
     /// <summary>
@@ -46,14 +45,14 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
     /// </summary>
     public class GivenTheRoomWasUpdated : WhenGetRoom
     {
-        public GivenTheRoomWasUpdated()
-            => Having(_ => _.Api.PutAsJsonAsync(
+        public GivenTheRoomWasUpdated() =>
+            Having(_ => _.Api.PutAsJsonAsync(
                 $"/rooms/{The<Room>().RoomNumber}", The<Room>() with { BedCount = ASecond<int>() }))
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact]
-        public async Task ThenReturnTheUpdatedRoom()
-            => (await Result.Read<Room>()).Is(The<Room>() with { BedCount = ASecond<int>() });
+        public async Task ThenReturnTheUpdatedRoom() =>
+            (await Result.Read<Room>()).Is(The<Room>() with { BedCount = ASecond<int>() });
     }
 
     /// <summary>
@@ -62,12 +61,11 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
     /// </summary>
     public class GivenTheApplicationWasRestarted : WhenGetRoom
     {
-        public GivenTheApplicationWasRestarted()
-            => Having(_ => _.Restart())
+        public GivenTheApplicationWasRestarted() =>
+            Having(_ => _.Restart())
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact] public void ThenRespondOk() => Result.StatusCode.Is(OK);
-
         [Fact] public async Task ThenReturnTheRoom() => (await Result.Read<Room>()).Is(The<Room>());
     }
 }

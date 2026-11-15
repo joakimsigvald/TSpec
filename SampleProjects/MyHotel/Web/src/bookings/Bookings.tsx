@@ -12,10 +12,10 @@ export function Bookings() {
     attempt(async () => setBookings(await listBookings()));
   }, []);
 
-  const book = (request: BookingRequest) => attempt(async () => {
+  const book = async (request: BookingRequest) => {
     const booked = await bookRoom(request);
     setBookings(current => [...current, booked]);
-  });
+  };
 
   const cancel = (bookingNumber: number) => attempt(async () => {
     await cancelBooking(bookingNumber);

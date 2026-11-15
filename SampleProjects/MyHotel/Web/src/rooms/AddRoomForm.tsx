@@ -1,15 +1,16 @@
 import { useId, type FormEvent } from 'react';
 import { ErrorMessage } from '../ErrorMessage';
-import { useAttempt } from '../useAttempt';
+import { useFormAttempt } from '../useFormAttempt';
 import type { Room } from './roomsApi';
 
 type Props = { onAdd: (room: Room) => Promise<void> };
 
+const fieldOf = { RoomAlreadyExists: 'roomNumber' } as const;
+
 export function AddRoomForm({ onAdd }: Props) {
-  const { failure, attempt } = useAttempt();
+  const { attempt, failureAt } = useFormAttempt(fieldOf);
   const roomNumberError = useId();
-  const formError = useId();
-  const aboutRoomNumber = failure === 'RoomAlreadyExists';
+  const buttonError = useId();
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -25,7 +26,7 @@ export function AddRoomForm({ onAdd }: Props) {
           Room number
           <input name="roomNumber" required aria-describedby={roomNumberError} />
         </label>
-        <ErrorMessage id={roomNumberError} code={aboutRoomNumber ? failure : undefined} />
+        <ErrorMessage id={roomNumberError} code={failureAt('roomNumber')} />
       </div>
       <div className="field">
         <label>
@@ -33,9 +34,9 @@ export function AddRoomForm({ onAdd }: Props) {
           <input name="bedCount" type="number" required />
         </label>
       </div>
-      <div className="field">
-        <button aria-describedby={formError}>Add room</button>
-        <ErrorMessage id={formError} code={aboutRoomNumber ? undefined : failure} />
+      <div className="field actions">
+        <button aria-describedby={buttonError}>Add room</button>
+        <ErrorMessage id={buttonError} code={failureAt('button')} />
       </div>
     </form>
   );

@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using MyHotel.Contract;
+using MyHotel.Contract.Bookings;
+using MyHotel.Contract.Bookings.Exceptions;
+using MyHotel.Contract.Rooms.Exceptions;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
 namespace MyHotel.Entry;

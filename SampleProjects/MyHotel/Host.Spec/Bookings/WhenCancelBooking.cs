@@ -12,9 +12,11 @@ public abstract class WhenCancelBooking : ApiSpec<HttpResponseMessage>
     /// </summary>
     public class GivenTheBookingExists : WhenCancelBooking
     {
-        public GivenTheBookingExists()
-            => Having(_ => _.Api.PostAsJsonAsync("/bookings", new BookingRequest(
-                The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12))))
+        public GivenTheBookingExists() =>
+            Having(_ => _.Api.PostAsJsonAsync(
+                "/bookings",
+                new BookingRequest(
+                    The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12))))
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
 
         [Fact] public void ThenRespondNoContent() => Result.StatusCode.Is(NoContent);
@@ -25,7 +27,7 @@ public abstract class WhenCancelBooking : ApiSpec<HttpResponseMessage>
         [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
 
         [Fact]
-        public async Task ThenSayThereIsNoSuchBooking()
-            => (await Result.Read<ErrorBody>()).Code.Is("BookingNotFound");
+        public async Task ThenSayThereIsNoSuchBooking() =>
+            (await Result.Read<ErrorBody>()).Code.Is("BookingNotFound");
     }
 }

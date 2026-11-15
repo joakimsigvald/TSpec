@@ -1,4 +1,5 @@
-using MyHotel.Contract;
+using MyHotel.Contract.Rooms;
+using MyHotel.Contract.Rooms.Exceptions;
 
 namespace MyHotel.Core.Rooms;
 
@@ -7,17 +8,15 @@ namespace MyHotel.Core.Rooms;
 /// </summary>
 public class RoomService(IRoomStore store) : IRoomService
 {
-    public async Task<IReadOnlyList<Room>> List() => await store.Load();
-
-    public async Task<Room> Get(string roomNumber) => Existing(await store.Load(), roomNumber);
+    public async Task<IReadOnlyList<Room>> Rooms() => await store.Load();
+    public async Task<Room> RoomFor(string roomNumber) => Existing(await Rooms(), roomNumber);
 
     public async Task<Room> Add(Room room)
     {
         var rooms = await Rooms();
         if (Find(rooms, room.RoomNumber) is not null)
             throw new RoomAlreadyExists(room.RoomNumber);
-        rooms.Add(room);
-        await store.Save(rooms);
+        await store.Save([.. rooms, room]);
         return room;
     }
 
@@ -26,23 +25,21 @@ public class RoomService(IRoomStore store) : IRoomService
         if (room.RoomNumber != roomNumber)
             throw new RoomNumberMismatch(roomNumber, room.RoomNumber);
         var rooms = await Rooms();
-        rooms[rooms.IndexOf(Existing(rooms, roomNumber))] = room;
-        await store.Save(rooms);
+        var existing = Existing(rooms, roomNumber);
+        await store.Save([.. rooms.Select(stored => stored == existing ? room : stored)]);
         return room;
     }
 
     public async Task Delete(string roomNumber)
     {
         var rooms = await Rooms();
-        rooms.Remove(Existing(rooms, roomNumber));
-        await store.Save(rooms);
+        var existing = Existing(rooms, roomNumber);
+        await store.Save([.. rooms.Where(stored => stored != existing)]);
     }
 
-    private async Task<List<Room>> Rooms() => [.. await store.Load()];
+    private static Room Existing(IEnumerable<Room> rooms, string roomNumber) =>
+        Find(rooms, roomNumber) ?? throw new RoomNotFound(roomNumber);
 
-    private static Room Existing(IEnumerable<Room> rooms, string roomNumber)
-        => Find(rooms, roomNumber) ?? throw new RoomNotFound(roomNumber);
-
-    private static Room? Find(IEnumerable<Room> rooms, string roomNumber)
-        => rooms.FirstOrDefault(room => room.RoomNumber == roomNumber);
+    private static Room? Find(IEnumerable<Room> rooms, string roomNumber) =>
+        rooms.FirstOrDefault(room => room.RoomNumber == roomNumber);
 }

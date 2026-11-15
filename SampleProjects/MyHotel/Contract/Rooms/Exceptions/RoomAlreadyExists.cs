@@ -1,4 +1,4 @@
-namespace MyHotel.Contract;
+namespace MyHotel.Contract.Rooms.Exceptions;
 
 public class RoomAlreadyExists(string roomNumber)
     : Exception($"Room {roomNumber} already exists.")

@@ -9,8 +9,8 @@ public class WhenGetVersion : ApiSpec<HttpResponseMessage>
     [Fact] public void ThenRespondOk() => Result.StatusCode.Is(OK);
 
     [Fact]
-    public async Task ThenReturnTheApplicationVersion()
-        => (await Result.Read<VersionInfo>()).Version.Is(DeclaredVersion);
+    public async Task ThenReturnTheApplicationVersion() =>
+        (await Result.Read<VersionInfo>()).Version.Is(DeclaredVersion);
 
     /// <summary>
     /// Read from the assembly version, which the SDK sets from &lt;Version&gt; in Host.csproj.

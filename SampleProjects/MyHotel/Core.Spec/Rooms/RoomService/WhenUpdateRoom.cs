@@ -33,8 +33,8 @@ public abstract class WhenUpdateRoom : Spec<Core.Rooms.RoomService, Room>
         }
 
         [Fact]
-        public void ThenKeepItWhereItWas()
-            => Then<IRoomStore>(_ => _.Save(new[] { TheSecond<Room>(), The(_updatedRoom) }));
+        public void ThenKeepItWhereItWas() =>
+            Then<IRoomStore>(_ => _.Save(new[] { TheSecond<Room>(), The(_updatedRoom) }));
     }
 
     public class GivenNoSuchRoom : WhenUpdateRoom
@@ -46,12 +46,12 @@ public abstract class WhenUpdateRoom : Spec<Core.Rooms.RoomService, Room>
         }
 
         [Fact]
-        public void ThenThrowNotFound()
-            => Then().Throws<RoomNotFound>().that.Message.Does().Contain(The<Room>().RoomNumber);
+        public void ThenThrowNotFound() =>
+            Then().Throws<RoomNotFound>().that.Message.Does().Contain(The<Room>().RoomNumber);
     }
 
     /// <summary>
-    /// Renumbering a room means deleting it and adding another, so the update refuses to do it —
+    /// Renumbering a room means deleting it and adding another, so the update refuses to do it -
     /// before it even looks for the room, since the request is wrong whether or not it exists.
     /// </summary>
     public class GivenTheUpdatedRoomHasAnotherNumber : WhenUpdateRoom
@@ -59,7 +59,7 @@ public abstract class WhenUpdateRoom : Spec<Core.Rooms.RoomService, Room>
         public GivenTheUpdatedRoomHasAnotherNumber() => Given(_updatedRoom).Is(ASecond<Room>());
 
         [Fact]
-        public void ThenThrowRoomNumberMismatch()
-            => Then().Throws<RoomNumberMismatch>().that.Message.Does().Contain(The(_updatedRoom).RoomNumber);
+        public void ThenThrowRoomNumberMismatch() =>
+            Then().Throws<RoomNumberMismatch>().that.Message.Does().Contain(The(_updatedRoom).RoomNumber);
     }
 }

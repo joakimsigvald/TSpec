@@ -14,8 +14,10 @@ endpoints, `Core` holds the logic, and `Host` wires them together. Entry and Cor
 cannot see each other, so nothing internal can leak out through the API by accident. Three spec
 projects state different things: [`Host.Spec`](Host.Spec) the HTTP contract,
 [`Core.Spec`](Core.Spec) the domain rules, and [`Architecture.Spec`](Architecture.Spec) which
-project may reference which. [`Web`](Web) is a small React UI over the API. Development rules are
-in [CLAUDE.md](CLAUDE.md).
+project may reference which, which of Core's sub-domains may use which, and every rule of the coding
+standard that can be checked from the source. [`Web`](Web) is a small React UI over the API.
+Development rules are in [CLAUDE.md](CLAUDE.md), and how the backend's code is written in
+[CODING-STANDARD.md](CODING-STANDARD.md).
 
 ## Running it
 
@@ -49,7 +51,9 @@ SampleProjects/MyHotel/Host.Spec/bin/Debug/net10.0/MyHotel.Host.Spec.exe
 A green run regenerates [`Host.Spec/_specification/`](Host.Spec/_specification) — one file per
 top-level folder, plus `Host.md` for the root. They are
 generated files — review them in diffs, never edit them by hand. Their version comes from `<Version>` in
-[Host.csproj](Host/Host.csproj).
+[Host.csproj](Host/Host.csproj). `Core.Spec` and `Architecture.Spec` run the same way; a green run of
+`Architecture.Spec` regenerates [`Architecture.Spec/_specification.md`](Architecture.Spec/_specification.md),
+the project graph with every fact below it.
 
 The UI's tests run with npm:
 
@@ -65,7 +69,7 @@ npm --prefix SampleProjects/MyHotel/Web test
 | `GET` | `/rooms` | `200` with every room in the order it was created; `[]` when there are none |
 | `POST` | `/rooms` | `201` with the room and a `Location` header; `409` if the room number is taken |
 | `GET` | `/rooms/{roomNumber}` | `200` with the room, or `404` |
-| `PUT` | `/rooms/{roomNumber}` | `200` with the updated room, or `404` |
+| `PUT` | `/rooms/{roomNumber}` | `200` with the updated room; `400` if the body carries another room number; `404` if there is no such room |
 | `DELETE` | `/rooms/{roomNumber}` | `204` and the room is gone, or `404` |
 | `GET` | `/bookings` | `200` with every booking in the order it was made; `[]` when there are none |
 | `POST` | `/bookings` | `201` with the booking and a `Location` header; `400` if the period is not at least one night; `404` if there is no such room; `409` if the room is already booked for any of those nights |

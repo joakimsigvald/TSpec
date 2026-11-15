@@ -32,7 +32,7 @@
 - **store what is left** — `IRoomStore.Save(zero Rooms)`
 
 ## [When get room](../Rooms/RoomService/WhenGetRoom.cs)
-`Get(a Room's RoomNumber), returns Room`
+`RoomFor(a Room's RoomNumber), returns Room`
 
 ### Given no such room
 `IRoomStore.Load() returns zero Rooms`
@@ -45,7 +45,7 @@
 - **return it** — `Result is the Room`
 
 ## [When list rooms](../Rooms/RoomService/WhenListRooms.cs)
-`List(), returns IReadOnlyList<Room>`
+`Rooms(), returns IReadOnlyList<Room>`
 
 ### Given no rooms
 `IRoomStore.Load() returns zero Rooms`

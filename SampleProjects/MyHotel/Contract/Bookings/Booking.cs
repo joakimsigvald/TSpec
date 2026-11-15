@@ -1,4 +1,4 @@
-namespace MyHotel.Contract;
+namespace MyHotel.Contract.Bookings;
 
 /// <summary>
 /// Nights are half-open, <c>[From, To)</c>: the guest departs on <c>To</c>, so that night is free

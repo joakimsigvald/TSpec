@@ -31,8 +31,19 @@ in Contract and map. Never add the reference.
 included. One it does not list fails the suite, so adding a reference is an architecture
 decision, made there.
 
+**`Architecture.Spec` also holds the coding standard as facts**, one class per rule a tool can check
+from the source (`LineWidths` is 11a, `GetPrefixes` 4c), each citing its rule. A red fact is fixed in
+the code; a rule that does not fit is changed in `CODING-STANDARD.md` and its fact in the same change,
+never switched off in the source (`Suppressions`).
+
 **Core is structured vertically** — subdomains that name their purpose (`Core/Rooms/`), not another
-horizontal layer inside. Beyond Contract, Core takes no dependency that would hurt its testability.
+horizontal layer inside. Which may use which is `SubdomainDependencies`' graph: Bookings uses Rooms,
+never the reverse, so a rule that has Rooms consult Bookings needs a decision there first. Beyond
+Contract, Core takes no dependency that would hurt its testability.
+
+**Contract is split the same way** — `Contract/Rooms/` and `Contract/Bookings/`, each with its
+exceptions in an `Exceptions/` folder (8g); what both use, `ErrorBody` and `VersionInfo`, stays at
+the root.
 
 **Storage is a JSON file, so rooms outlive the process.** `IRoomStore` is declared in Core and
 implemented in Infra — whole-list load and save, because a store that knew how to find or replace one
@@ -40,10 +51,13 @@ room would be holding rules that belong to Core. The path comes from configurati
 (`RoomStore:Path`), which is what lets a spec give each test its own file; see `TestApi`. A spec that
 shares a store with another spec is a broken spec, not a slow one.
 
-**An endpoint calls one service method and builds a response — nothing else.** `IRoomService` has one
-method per endpoint, taking what the endpoint takes. What would have been an early return is thrown
-instead, so a method either returns the value the endpoint needs or does not return at all. The
-exceptions are declared in Contract, because they are part of the shape Entry codes against.
+**An endpoint calls one service method and builds a response — nothing else.** Each is a named
+handler method in Entry, never a lambda: a route parameter such as `bookingNumber` is bound by name,
+and a lambda's parameter may not be that long (6c). `IRoomService` has one method per endpoint,
+taking what the endpoint takes and named per 4c (`Rooms()`, `RoomFor(roomNumber)`). What would have
+been an early return is thrown instead, so a method either returns the value the endpoint needs or
+does not return at all. The exceptions are declared in Contract, because they are part of the shape
+Entry codes against.
 
 **`GlobalExceptionHandler` maps those exceptions to a status and an `ErrorBody`, and handles nothing
 else.** The body's code is the exception's name. An unrecognised exception is returned to the
@@ -100,6 +114,8 @@ change is caught where it matters: in the committed files' diff.
 ## Mechanics
 
 - net10.0 only. `TreatWarningsAsErrors` everywhere — fix warnings, don't suppress them.
+- MyHotel's `.editorconfig` adds to the repository's: a static field is PascalCase (1e), where the
+  repository's rule would want `_camelCase`.
 - Run each Spec project with `dotnet test` (filter with `--filter-class MyHotel.Host.Spec.WhenGetVersion`):
 
   ```bash
@@ -126,8 +142,9 @@ change is caught where it matters: in the committed files' diff.
 - **Web's `typescript` stays on the 6.x line.** With 7.x, Visual Studio's editor reads `.tsx` as
   plain TypeScript and flags every JSX element; the compiler itself is fine.
 - Update README.md's endpoint table whenever an endpoint is added, removed, or changes contract.
-- `Host.Spec` and `Core.Spec` each generate their own `_specification/` folder from a green run. Never hand-edit a file in it;
-  commit the regenerated files and read their diff as part of reviewing the change.
+- `Host.Spec` and `Core.Spec` each generate their own `_specification/` folder from a green run, and
+  `Architecture.Spec` its `_specification.md`. Never hand-edit a file in them; commit the regenerated
+  files and read their diff as part of reviewing the change.
 - TSpec usage: [agent-reference.md](../../agent-reference.md), and for the architecture rules on the
   code [Architecture.CSharp/agent-reference.md](../../Architecture.CSharp/agent-reference.md) — the
   working copies, so they may run ahead of the packages MyHotel references.

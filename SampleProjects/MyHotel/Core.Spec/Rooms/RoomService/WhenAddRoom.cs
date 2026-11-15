@@ -9,7 +9,6 @@ public abstract class WhenAddRoom : Spec<Core.Rooms.RoomService, Room>
         public GivenNoSuchRoom() => Given<IRoomStore>().That(_ => _.Load()).Returns(Zero<Room>);
 
         [Fact] public void ThenReturnTheRoom() => Result.Is(The<Room>());
-
         [Fact] public void ThenStoreIt() => Then<IRoomStore>(_ => _.Save(One<Room>()));
     }
 
@@ -18,12 +17,12 @@ public abstract class WhenAddRoom : Spec<Core.Rooms.RoomService, Room>
     /// </summary>
     public class GivenTheRoomNumberIsTaken : WhenAddRoom
     {
-        public GivenTheRoomNumberIsTaken()
-            => Given<IRoomStore>().That(_ => _.Load())
+        public GivenTheRoomNumberIsTaken() =>
+            Given<IRoomStore>().That(_ => _.Load())
                 .Returns(() => [The<Room>() with { BedCount = Any<int>() }]);
 
         [Fact]
-        public void ThenThrowRoomAlreadyExists()
-            => Then().Throws<RoomAlreadyExists>().that.Message.Does().Contain(The<Room>().RoomNumber);
+        public void ThenThrowRoomAlreadyExists() =>
+            Then().Throws<RoomAlreadyExists>().that.Message.Does().Contain(The<Room>().RoomNumber);
     }
 }

@@ -2,7 +2,7 @@
 
 public abstract class WhenGetRoom : Spec<Core.Rooms.RoomService, Room>
 {
-    protected WhenGetRoom() => When(_ => _.Get(A<Room>().RoomNumber));
+    protected WhenGetRoom() => When(_ => _.RoomFor(A<Room>().RoomNumber));
 
     public class GivenTheRoomIsStored : WhenGetRoom
     {
@@ -16,7 +16,7 @@ public abstract class WhenGetRoom : Spec<Core.Rooms.RoomService, Room>
         public GivenNoSuchRoom() => Given<IRoomStore>().That(_ => _.Load()).Returns(Zero<Room>);
 
         [Fact]
-        public void ThenThrowNotFound()
-            => Then().Throws<RoomNotFound>().that.Message.Does().Contain(The<Room>().RoomNumber);
+        public void ThenThrowNotFound() =>
+            Then().Throws<RoomNotFound>().that.Message.Does().Contain(The<Room>().RoomNumber);
     }
 }

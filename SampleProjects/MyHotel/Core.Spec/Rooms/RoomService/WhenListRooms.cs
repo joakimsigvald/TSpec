@@ -2,7 +2,7 @@
 
 public abstract class WhenListRooms : Spec<Core.Rooms.RoomService, IReadOnlyList<Room>>
 {
-    protected WhenListRooms() => When(_ => _.List());
+    protected WhenListRooms() => When(_ => _.Rooms());
 
     public class GivenNoRooms : WhenListRooms
     {

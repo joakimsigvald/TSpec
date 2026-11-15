@@ -1,0 +1,14 @@
+# MyHotel's additions to the repository's .editorconfig, which still applies.
+
+[*.cs]
+
+# CODING-STANDARD.md 1e: a static field is PascalCase, like a constant - only a private instance field is
+# _camelCase. A rule with a required modifier is more specific than the repository's non-public-fields
+# rule, so it takes precedence over it.
+dotnet_naming_symbols.static_fields.applicable_kinds = field
+dotnet_naming_symbols.static_fields.applicable_accessibilities = *
+dotnet_naming_symbols.static_fields.required_modifiers = static
+
+dotnet_naming_rule.static_fields_are_pascal_case.symbols = static_fields
+dotnet_naming_rule.static_fields_are_pascal_case.style = pascal_case
+dotnet_naming_rule.static_fields_are_pascal_case.severity = warning

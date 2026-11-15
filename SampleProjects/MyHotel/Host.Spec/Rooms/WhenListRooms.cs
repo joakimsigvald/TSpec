@@ -17,12 +17,12 @@ public abstract class WhenListRooms : ApiSpec<HttpResponseMessage>
 
     public class GivenTwoRooms : WhenListRooms
     {
-        public GivenTwoRooms()
-            => Having(_ => _.Api.PostAsJsonAsync("/rooms", ASecond<Room>()))
+        public GivenTwoRooms() =>
+            Having(_ => _.Api.PostAsJsonAsync("/rooms", ASecond<Room>()))
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
 
         [Fact]
-        public async Task ThenReturnBothRoomsInTheOrderTheyWereCreated()
-            => (await Result.Read<Room[]>()).Is().EqualTo(Two<Room>());
+        public async Task ThenReturnBothRoomsInTheOrderTheyWereCreated() =>
+            (await Result.Read<Room[]>()).Is().EqualTo(Two<Room>());
     }
 }

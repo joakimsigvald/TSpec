@@ -1,5 +1,5 @@
 using System.Text.Json;
-using MyHotel.Contract;
+using MyHotel.Contract.Rooms;
 using MyHotel.Core.Rooms;
 
 namespace MyHotel.Infra;
@@ -8,7 +8,7 @@ namespace MyHotel.Infra;
 /// Rooms as a JSON file, so they survive a restart. A missing file is an empty hotel rather than an
 /// error: nothing has been stored yet, which is the same thing.
 /// </summary>
-public class RoomStore(string path) : IRoomStore
+internal sealed class RoomStore(string path) : IRoomStore
 {
     public async Task<IReadOnlyList<Room>> Load()
     {

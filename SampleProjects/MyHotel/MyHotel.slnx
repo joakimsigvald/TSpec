@@ -3,6 +3,7 @@
     <File Path="BACKLOG.md" />
     <File Path="CLAUDE.md" />
     <File Path="CODING-STANDARD.md" />
+    <File Path="GLOSSARY.md" />
     <File Path="README.md" />
   </Folder>
   <Project Path="Architecture.Spec/Architecture.Spec.csproj" />
