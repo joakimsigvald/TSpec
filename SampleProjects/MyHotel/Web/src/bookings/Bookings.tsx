@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
+import { ErrorMessage } from '../ErrorMessage';
 import { useAttempt } from '../useAttempt';
 import { BookRoomForm } from './BookRoomForm';
 import { bookRoom, cancelBooking, listBookings, type Booking, type BookingRequest } from './bookingsApi';
 
 export function Bookings() {
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const { error, attempt } = useAttempt();
+  const { failure, attempt } = useAttempt();
 
   useEffect(() => {
     attempt(async () => setBookings(await listBookings()));
@@ -24,7 +25,7 @@ export function Bookings() {
   return (
     <section>
       <h2>Bookings</h2>
-      {error && <p role="alert">{error}</p>}
+      <ErrorMessage code={failure} />
       <table>
         <thead>
           <tr>

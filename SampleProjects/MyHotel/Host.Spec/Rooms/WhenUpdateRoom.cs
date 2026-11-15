@@ -25,7 +25,7 @@ public abstract class WhenUpdateRoom : ApiSpec<HttpResponseMessage>
         [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
 
         [Fact]
-        public async Task ThenSayWhichRoom()
-            => (await Result.Read<ErrorBody>()).Error.Does().Contain(The<Room>().RoomNumber);
+        public async Task ThenSayThereIsNoSuchRoom()
+            => (await Result.Read<ErrorBody>()).Code.Is("RoomNotFound");
     }
 }

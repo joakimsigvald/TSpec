@@ -13,6 +13,6 @@ Return type: HttpResponseMessage
 |-------------------------|-----:|------:|-----:|
 | [Bookings](Bookings.md) |    5 |    14 |   25 |
 | [Host](Host.md)         |    1 |     0 |    2 |
-| [Rooms](Rooms.md)       |    5 |    13 |   23 |
-| *All*                   | *11* |  *27* | *50* |
+| [Rooms](Rooms.md)       |    6 |    14 |   26 |
+| *All*                   | *12* |  *28* | *53* |
 

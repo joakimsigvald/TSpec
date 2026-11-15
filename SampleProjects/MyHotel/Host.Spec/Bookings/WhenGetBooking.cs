@@ -30,8 +30,8 @@ public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
         [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
 
         [Fact]
-        public async Task ThenSayWhichBooking()
-            => (await Result.Read<ErrorBody>()).Error.Does().Contain("10001");
+        public async Task ThenSayThereIsNoSuchBooking()
+            => (await Result.Read<ErrorBody>()).Code.Is("BookingNotFound");
     }
 
     /// <summary>

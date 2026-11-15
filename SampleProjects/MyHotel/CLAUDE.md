@@ -2,6 +2,8 @@
 
 Applies to everything under `SampleProjects/MyHotel/`. What MyHotel is: [README.md](README.md).
 
+**Read [CODING-STANDARD.md](CODING-STANDARD.md) before editing backend code.**
+
 ## Architecture — Neat
 
 Folders are named for the layer, assemblies are `MyHotel.<Layer>`.
@@ -16,7 +18,9 @@ Folders are named for the layer, assemblies are `MyHotel.<Layer>`.
 | `Web` | — | nothing; calls the API over HTTP | a React UI, one folder per resource |
 
 **Web is a client of the HTTP contract and repeats none of its rules.** It shows what the API
-answers, and a refusal as the `error` the API sent. Its dev server forwards `/rooms` and `/bookings`
+answers, and a refusal as the Swedish text `src/locales/sv.json` gives its error code, or a generic
+one for a code it does not know. A form shows it under the field the code concerns, otherwise under
+its button, linked by `aria-describedby`. Its dev server forwards `/rooms` and `/bookings`
 to Host (`vite.config.ts`), so a new top-level route needs an entry there.
 
 **Entry and Core never reference each other**, and the compiler is what enforces it. When Entry needs
@@ -41,10 +45,11 @@ method per endpoint, taking what the endpoint takes. What would have been an ear
 instead, so a method either returns the value the endpoint needs or does not return at all. The
 exceptions are declared in Contract, because they are part of the shape Entry codes against.
 
-**`ContractExceptionHandler` maps those exceptions to responses, and handles nothing else.** An
-unrecognised exception is returned to the pipeline, which logs it and answers 500 — catching it would
-replace a real diagnostic with a guess. A new Contract exception needs a case there, or it becomes a
-500.
+**`GlobalExceptionHandler` maps those exceptions to a status and an `ErrorBody`, and handles nothing
+else.** The body's code is the exception's name. An unrecognised exception is returned to the
+pipeline, which logs it and answers 500 — catching it would replace a real diagnostic with a guess. A
+new Contract exception needs a case there, or it becomes a 500, and its code a text in Web's
+`sv.json`.
 
 ## Rules
 
@@ -118,6 +123,8 @@ change is caught where it matters: in the committed files' diff.
 
 - **`Microsoft.OpenApi` stays on the 2.x line.** `Microsoft.AspNetCore.OpenApi`'s source generator
   emits code that only compiles against 2.x's object model; 3.x breaks the build.
+- **Web's `typescript` stays on the 6.x line.** With 7.x, Visual Studio's editor reads `.tsx` as
+  plain TypeScript and flags every JSX element; the compiler itself is fine.
 - Update README.md's endpoint table whenever an endpoint is added, removed, or changes contract.
 - `Host.Spec` and `Core.Spec` each generate their own `_specification/` folder from a green run. Never hand-edit a file in it;
   commit the regenerated files and read their diff as part of reviewing the change.

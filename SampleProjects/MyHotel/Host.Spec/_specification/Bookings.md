@@ -16,8 +16,7 @@ Having Api.PostAsJsonAsync("/rooms", the Room)
 ### Given the room exists
 
 - **respond bad request** — `Result.StatusCode is BadRequest`
-- **explain the period must be positive**\
-  `Result.Read<ErrorBody>().Error contains "at least one night"`
+- **say the period is invalid** — `Result.Read<ErrorBody>().Code is "InvalidBookingPeriod"`
 
 ## [When cancel booking](../Bookings/WhenCancelBooking.cs)
 `Api.DeleteAsync("/bookings/10001")`
@@ -25,7 +24,7 @@ Having Api.PostAsJsonAsync("/rooms", the Room)
 ### Given no such booking
 
 - **respond not found** — `Result.StatusCode is NotFound`
-- **say which booking** — `Result.Read<ErrorBody>().Error contains "10001"`
+- **say there is no such booking** — `Result.Read<ErrorBody>().Code is "BookingNotFound"`
 
 ### Given the booking exists
 ```
@@ -71,7 +70,7 @@ Having Api.PostAsJsonAsync("/bookings",
 ### Given no such booking
 
 - **respond not found** — `Result.StatusCode is NotFound`
-- **say which booking** — `Result.Read<ErrorBody>().Error contains "10001"`
+- **say there is no such booking** — `Result.Read<ErrorBody>().Code is "BookingNotFound"`
 
 ### Given the booking exists
 ```
@@ -113,7 +112,7 @@ Api.PostAsJsonAsync("/bookings",
 ### Given no such room
 
 - **respond not found** — `Result.StatusCode is NotFound`
-- **say which room** — `Result.Read<ErrorBody>().Error contains the Room's RoomNumber`
+- **say there is no such room** — `Result.Read<ErrorBody>().Code is "RoomNotFound"`
 
 ### Given the room exists
 `Having Api.PostAsJsonAsync("/rooms", the Room)`
@@ -145,7 +144,8 @@ Having Api.PostAsJsonAsync("/bookings",
 ```
 
 - **respond conflict** — `Result.StatusCode is Conflict`
-- **say which room** — `Result.Read<ErrorBody>().Error contains the Room's RoomNumber`
+- **say the room is already booked**\
+  `Result.Read<ErrorBody>().Code is "RoomAlreadyBooked"`
 
 ### Given a booking was made before a restart
 ```

@@ -88,5 +88,7 @@ and a restart carries on from the last one used.
 Rooms and bookings are each kept in a JSON file, in creation order, so they outlive the process.
 The booking file holds the number to issue next alongside the bookings themselves.
 
-`400`, `404` and `409` carry `{ "error": "…" }`. They come from exceptions `Core` throws and
-`Contract` declares; anything else reaches the pipeline unhandled and answers `500`.
+`400`, `404` and `409` carry `{ "code": "…" }`, naming the refusal — `RoomNotFound`,
+`RoomAlreadyExists`, `RoomNumberMismatch`, `RoomAlreadyBooked`, `InvalidBookingPeriod` or
+`BookingNotFound`. They come from exceptions `Core` throws and `Contract` declares; anything else
+reaches the pipeline unhandled and answers `500`. The UI shows each code in Swedish.

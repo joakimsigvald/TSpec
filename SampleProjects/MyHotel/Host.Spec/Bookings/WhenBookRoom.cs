@@ -48,8 +48,8 @@ public abstract class WhenBookRoom : ApiSpec<HttpResponseMessage>
         [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
 
         [Fact]
-        public async Task ThenSayWhichRoom()
-            => (await Result.Read<ErrorBody>()).Error.Does().Contain(The<Room>().RoomNumber);
+        public async Task ThenSayThereIsNoSuchRoom()
+            => (await Result.Read<ErrorBody>()).Code.Is("RoomNotFound");
     }
 
     /// <summary>
@@ -65,8 +65,8 @@ public abstract class WhenBookRoom : ApiSpec<HttpResponseMessage>
         [Fact] public void ThenRespondConflict() => Result.StatusCode.Is(Conflict);
 
         [Fact]
-        public async Task ThenSayWhichRoom()
-            => (await Result.Read<ErrorBody>()).Error.Does().Contain(The<Room>().RoomNumber);
+        public async Task ThenSayTheRoomIsAlreadyBooked()
+            => (await Result.Read<ErrorBody>()).Code.Is("RoomAlreadyBooked");
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ public abstract class WhenBookZeroNights : ApiSpec<HttpResponseMessage>
         [Fact] public void ThenRespondBadRequest() => Result.StatusCode.Is(BadRequest);
 
         [Fact]
-        public async Task ThenExplainThePeriodMustBePositive()
-            => (await Result.Read<ErrorBody>()).Error.Does().Contain("at least one night");
+        public async Task ThenSayThePeriodIsInvalid()
+            => (await Result.Read<ErrorBody>()).Code.Is("InvalidBookingPeriod");
     }
 }

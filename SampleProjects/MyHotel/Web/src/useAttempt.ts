@@ -1,18 +1,21 @@
 import { useState } from 'react';
+import { ApiError } from './http';
 
 export function useAttempt() {
-  const [error, setError] = useState<string>();
+  const [failure, setFailure] = useState<string>();
 
   const attempt = async (action: () => Promise<void>): Promise<boolean> => {
-    setError(undefined);
+    setFailure(undefined);
     try {
       await action();
       return true;
-    } catch (failure) {
-      setError((failure as Error).message);
+    } catch (error) {
+      setFailure(codeOf(error));
       return false;
     }
   };
 
-  return { error, attempt };
+  return { failure, attempt };
 }
+
+const codeOf = (error: unknown) => (error instanceof ApiError ? error.code : 'Unknown');

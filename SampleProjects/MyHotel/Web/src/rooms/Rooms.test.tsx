@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { fakeApi } from '../test/fakeApi';
@@ -38,14 +38,32 @@ describe('Rooms', () => {
     }));
   });
 
-  it('says why a room could not be added', async () => {
+  it('says under the room number that the room already exists', async () => {
     fakeApi({
       'GET /rooms': { status: 200, body: [room101] },
-      'POST /rooms': { status: 409, body: { error: 'Room 101 already exists.' } },
+      'POST /rooms': { status: 409, body: { code: 'RoomAlreadyExists' } },
     });
     render(<Rooms />);
     await addRoom('101', '2');
-    expect(await screen.findByRole('alert')).toHaveTextContent('Room 101 already exists.');
+    await waitFor(() =>
+      expect(screen.getByLabelText('Room number')).toHaveAccessibleDescription('Rummet finns redan.'));
+  });
+
+  it('says under the button why a room could not be added for any other reason', async () => {
+    fakeApi({
+      'GET /rooms': { status: 200, body: [room101] },
+      'POST /rooms': { status: 500 },
+    });
+    render(<Rooms />);
+    await addRoom('103', '3');
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Add room' })).toHaveAccessibleDescription('Något gick fel.'));
+  });
+
+  it('says something went wrong when the API gives no reason', async () => {
+    fakeApi({ 'GET /rooms': { status: 500 } });
+    render(<Rooms />);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Något gick fel.');
   });
 
   it('saves the beds entered for a room', async () => {

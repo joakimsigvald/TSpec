@@ -1,0 +1,11 @@
+{
+  "errors": {
+    "RoomNotFound": "Rummet finns inte.",
+    "RoomAlreadyExists": "Rummet finns redan.",
+    "RoomNumberMismatch": "Ett rum kan inte byta nummer.",
+    "RoomAlreadyBooked": "Rummet är redan bokat under några av nätterna.",
+    "InvalidBookingPeriod": "En bokning måste gälla minst en natt.",
+    "BookingNotFound": "Bokningen finns inte.",
+    "Unknown": "Något gick fel."
+  }
+}

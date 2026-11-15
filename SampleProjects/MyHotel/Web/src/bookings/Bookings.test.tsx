@@ -43,12 +43,12 @@ describe('Bookings', () => {
   it('says why a booking was refused', async () => {
     fakeApi({
       'GET /bookings': { status: 200, body: [booking10001] },
-      'POST /bookings': { status: 409, body: { error: 'Room 101 is already booked.' } },
+      'POST /bookings': { status: 409, body: { code: 'RoomAlreadyBooked' } },
     });
     render(<Bookings />);
     await fillIn();
     await userEvent.click(screen.getByRole('button', { name: 'Book' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Room 101 is already booked.');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Rummet är redan bokat under några av nätterna.');
   });
 
   it('removes a cancelled booking from the list', async () => {

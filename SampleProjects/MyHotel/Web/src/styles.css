@@ -24,17 +24,32 @@ td {
   text-align: left;
 }
 
+:root {
+  --label-height: 1.2rem;
+}
+
 form {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  align-items: end;
+  align-items: flex-start;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
 }
 
 label {
   display: flex;
   flex-direction: column;
   font-size: 0.9rem;
+  line-height: var(--label-height);
+}
+
+/* A button has no label above it, so it steps down to line up with the inputs. */
+form button {
+  margin-top: var(--label-height);
 }
 
 input[type='number'] {
@@ -42,5 +57,6 @@ input[type='number'] {
 }
 
 [role='alert'] {
+  margin: 0.25rem 0;
   color: #b00020;
 }

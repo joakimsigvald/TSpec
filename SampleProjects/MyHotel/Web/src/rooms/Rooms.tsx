@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ErrorMessage } from '../ErrorMessage';
 import { useAttempt } from '../useAttempt';
 import { AddRoomForm } from './AddRoomForm';
 import { RoomRow } from './RoomRow';
@@ -6,16 +7,16 @@ import { addRoom, deleteRoom, listRooms, updateRoom, type Room } from './roomsAp
 
 export function Rooms() {
   const [rooms, setRooms] = useState<Room[]>([]);
-  const { error, attempt } = useAttempt();
+  const { failure, attempt } = useAttempt();
 
   useEffect(() => {
     attempt(async () => setRooms(await listRooms()));
   }, []);
 
-  const add = (room: Room) => attempt(async () => {
+  const add = async (room: Room) => {
     const added = await addRoom(room);
     setRooms(current => [...current, added]);
-  });
+  };
 
   const save = (room: Room) => attempt(async () => {
     const saved = await updateRoom(room);
@@ -30,7 +31,7 @@ export function Rooms() {
   return (
     <section>
       <h2>Rooms</h2>
-      {error && <p role="alert">{error}</p>}
+      <ErrorMessage code={failure} />
       <table>
         <thead>
           <tr>

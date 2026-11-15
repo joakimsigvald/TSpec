@@ -24,5 +24,9 @@ public abstract class WhenAddRoom : ApiSpec<HttpResponseMessage>
             => Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>() with { BedCount = Any<int>() }));
 
         [Fact] public void ThenRespondConflict() => Result.StatusCode.Is(Conflict);
+
+        [Fact]
+        public async Task ThenSayTheRoomAlreadyExists()
+            => (await Result.Read<ErrorBody>()).Code.Is("RoomAlreadyExists");
     }
 }
