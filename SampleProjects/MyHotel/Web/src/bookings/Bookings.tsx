@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ErrorMessage } from '../ErrorMessage';
 import { useAttempt } from '../useAttempt';
 import { BookRoomForm } from './BookRoomForm';
 import { bookRoom, cancelBooking, listBookings, type Booking, type BookingRequest } from './bookingsApi';
 
 export function Bookings() {
+  const { t } = useTranslation();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const { failure, attempt } = useAttempt();
 
@@ -24,16 +26,16 @@ export function Bookings() {
 
   return (
     <section>
-      <h2>Bookings</h2>
+      <h2>{t('bookings.heading')}</h2>
       <ErrorMessage code={failure} />
       <table>
         <thead>
           <tr>
-            <th>Booking</th>
-            <th>Room</th>
-            <th>Guest</th>
-            <th>From</th>
-            <th>To</th>
+            <th>{t('bookings.booking')}</th>
+            <th>{t('bookings.room')}</th>
+            <th>{t('bookings.guest')}</th>
+            <th>{t('bookings.from')}</th>
+            <th>{t('bookings.to')}</th>
             <th />
           </tr>
         </thead>
@@ -46,7 +48,7 @@ export function Bookings() {
               <td>{booking.from}</td>
               <td>{booking.to}</td>
               <td>
-                <button onClick={() => cancel(booking.bookingNumber)}>Cancel</button>
+                <button onClick={() => cancel(booking.bookingNumber)}>{t('bookings.cancel')}</button>
               </td>
             </tr>
           ))}

@@ -6,10 +6,10 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 6c as an invariant over the syntax trees: every lambda's parameter is a word
-/// of 2 to 12 letters, the first lowercase. `_` is a discard and is never used; only in a spec project may a
-/// body start with `_`, the subject, and use it nowhere else (`_ => _.Load(..)`, `_ => _ with { .. }`). One
-/// fact per project (Sources).</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 6c as an invariant over the syntax trees: every lambda's parameter is
+/// a word of 2 to 12 letters, the first lowercase. `_` is a discard and is never used; only in a spec project
+/// may a body start with `_`, the subject, and use it nowhere else (`_ => _.Load(..)`, `_ => _ with { .. }`).
+/// One fact per project (Sources).</summary>
 public class LambdaParameters : TSpec.Spec
 {
     public static TheoryData<string> Projects => Sources.Projects;

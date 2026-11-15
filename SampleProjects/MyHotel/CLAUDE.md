@@ -2,7 +2,9 @@
 
 Applies to everything under `SampleProjects/MyHotel/`. What MyHotel is: [README.md](README.md).
 
-**Read [CODING-STANDARD.md](CODING-STANDARD.md) before editing backend code.**
+**Read [CODING-STANDARD.md](CODING-STANDARD.md) and, for the code touched,
+[CODING-STANDARD-BACKEND.md](CODING-STANDARD-BACKEND.md) or
+[CODING-STANDARD-FRONTEND.md](CODING-STANDARD-FRONTEND.md) before editing code.**
 
 ## Architecture — Neat
 
@@ -33,7 +35,7 @@ decision, made there.
 
 **`Architecture.Spec` also holds the coding standard as facts**, one class per rule a tool can check
 from the source (`LineWidths` is 11a, `GetPrefixes` 4c), each citing its rule. A red fact is fixed in
-the code; a rule that does not fit is changed in `CODING-STANDARD.md` and its fact in the same change,
+the code; a rule that does not fit is changed in `CODING-STANDARD-BACKEND.md` and its fact in the same change,
 never switched off in the source (`Suppressions`).
 
 **Core is structured vertically** — subdomains that name their purpose (`Core/Rooms/`), not another

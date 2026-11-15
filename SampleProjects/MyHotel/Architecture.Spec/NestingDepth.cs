@@ -4,9 +4,9 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 11c as an invariant over the source: four spaces per level, so a line is
-/// indented in whole levels and never with a tab, and no line indented past the fifth level - the content of
-/// a multi-line raw string literal aside (0e). One fact per project (Sources).</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 11c as an invariant over the source: four spaces per level, so a line
+/// is indented in whole levels and never with a tab, and no line indented past the fifth level - the content
+/// of a multi-line raw string literal aside (0e). One fact per project (Sources).</summary>
 public class NestingDepth : TSpec.Spec
 {
     private const int Limit = 5;

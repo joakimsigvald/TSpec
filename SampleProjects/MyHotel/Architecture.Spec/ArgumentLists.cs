@@ -6,9 +6,9 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 11b as an invariant over the syntax trees: a list of arguments or parameters
-/// is on one line, at or below the line that opens it, or has each item on a line of its own below that
-/// line, a tuple type's elements too; a tuple value opens with its first item and closes with its
+/// <summary>CODING-STANDARD-BACKEND.md 11b as an invariant over the syntax trees: a list of arguments or
+/// parameters is on one line, at or below the line that opens it, or has each item on a line of its own below
+/// that line, a tuple type's elements too; a tuple value opens with its first item and closes with its
 /// last.</summary>
 public class ArgumentLists : TSpec.Spec
 {

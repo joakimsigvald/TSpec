@@ -4,8 +4,8 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 11a as an invariant over the source: a line is at most 110 characters, the
-/// content of a multi-line raw string literal aside (an embedded document or query has its own shape,
+/// <summary>CODING-STANDARD-BACKEND.md 11a as an invariant over the source: a line is at most 110 characters,
+/// the content of a multi-line raw string literal aside (an embedded document or query has its own shape,
 /// 0e).</summary>
 public class LineWidths : TSpec.Spec
 {

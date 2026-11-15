@@ -6,9 +6,9 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 11b where ArgumentLists does not look: a list of arguments or parameters whose
-/// items all start on one line is on that line, so its last item ends there too - never hugged, wrapping
-/// below it. One fact per project (Sources).</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 11b where ArgumentLists does not look: a list of arguments or
+/// parameters whose items all start on one line is on that line, so its last item ends there too - never
+/// hugged, wrapping below it. One fact per project (Sources).</summary>
 public class ListEnds : TSpec.Spec
 {
     public static TheoryData<string> Projects => Sources.Projects;

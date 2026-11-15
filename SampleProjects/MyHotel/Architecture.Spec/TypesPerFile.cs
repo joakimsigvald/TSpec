@@ -4,11 +4,11 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 10b and 10c as an invariant over the source: a file declares one public type
-/// at its top level and is named after it, and types that differ only in their type parameters share a file.
-/// A nested type is public only in a test project, or as a record that stays with its owner (a discriminated
-/// union's case). A file in a Mirrors folder (0e) has the schema's grouping. One fact per project
-/// (Sources).</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 10b and 10c as an invariant over the source: a file declares one
+/// public type at its top level and is named after it, and types that differ only in their type parameters
+/// share a file. A nested type is public only in a test project, or as a record that stays with its owner (a
+/// discriminated union's case). A file in a Mirrors folder (0e) has the schema's grouping. One fact per
+/// project (Sources).</summary>
 public class TypesPerFile : TSpec.Spec
 {
     public static TheoryData<string> Projects => Sources.Projects;

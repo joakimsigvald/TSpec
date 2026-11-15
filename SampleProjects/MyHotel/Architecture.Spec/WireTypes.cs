@@ -6,10 +6,11 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 7b as an invariant over Contract. The boundary is what Entry serializes, and
-/// it carries strings, primitives and named records: no public property of a Contract record is, or holds,
-/// an enum or value type of ours, a time type other than DateOnly, object or dynamic. A type with its own
-/// JsonConverter crosses as what the converter writes, so its members are not the wire's.</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 7b as an invariant over Contract. The boundary is what Entry
+/// serializes, and it carries strings, primitives and named records: no public property of a Contract record
+/// is, or holds, an enum or value type of ours, a time type other than DateOnly, object or dynamic. A type
+/// with its own JsonConverter crosses as what the converter writes, so its members are not the
+/// wire's.</summary>
 public class WireTypes : TSpec.Spec
 {
     // Every time type but DateOnly, which has one ISO form.

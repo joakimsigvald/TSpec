@@ -4,8 +4,8 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 10d as an invariant over the source: no file is over 250 lines - one that
-/// grows past it is split.</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 10d as an invariant over the source: no file is over 250 lines - one
+/// that grows past it is split.</summary>
 public class FileLengths : TSpec.Spec
 {
     private const int Limit = 250;

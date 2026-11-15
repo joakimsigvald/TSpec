@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ErrorMessage } from '../ErrorMessage';
 import { useAttempt } from '../useAttempt';
 import { AddRoomForm } from './AddRoomForm';
@@ -6,6 +7,7 @@ import { RoomRow } from './RoomRow';
 import { addRoom, deleteRoom, listRooms, updateRoom, type Room } from './roomsApi';
 
 export function Rooms() {
+  const { t } = useTranslation();
   const [rooms, setRooms] = useState<Room[]>([]);
   const { failure, attempt } = useAttempt();
 
@@ -30,13 +32,13 @@ export function Rooms() {
 
   return (
     <section>
-      <h2>Rooms</h2>
+      <h2>{t('rooms.heading')}</h2>
       <ErrorMessage code={failure} />
       <table>
         <thead>
           <tr>
-            <th>Room</th>
-            <th>Beds</th>
+            <th>{t('rooms.room')}</th>
+            <th>{t('rooms.beds')}</th>
             <th />
           </tr>
         </thead>

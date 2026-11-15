@@ -7,11 +7,11 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 11c as an invariant over the syntax trees, beside NestingDepth's ceiling: a
-/// level is a step of the structure. A line is at most one level deeper than the line before it, one more
-/// for each construct that line leaves open; a brace on a line of its own stands at the level of the line its
-/// construct opens on, and a closing brace or bracket at the level of its opening one. One fact per project
-/// (Sources).</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 11c as an invariant over the syntax trees, beside NestingDepth's
+/// ceiling: a level is a step of the structure. A line is at most one level deeper than the line before it,
+/// one more for each construct that line leaves open; a brace on a line of its own stands at the level of the
+/// line its construct opens on, and a closing brace or bracket at the level of its opening one. One fact per
+/// project (Sources).</summary>
 public class Indentation : TSpec.Spec
 {
     public static TheoryData<string> Projects => Sources.Projects;

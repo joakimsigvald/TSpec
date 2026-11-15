@@ -5,8 +5,8 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 2c as an invariant over the source: a tuple is private to its class, so a
-/// public or internal member neither returns nor takes one.</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 2c as an invariant over the source: a tuple is private to its class,
+/// so a public or internal member neither returns nor takes one.</summary>
 public class TupleMembers : TSpec.Spec
 {
     public static TheoryData<string> Projects => Sources.Projects;

@@ -2,7 +2,7 @@
 
 [*.cs]
 
-# CODING-STANDARD.md 1e: a static field is PascalCase, like a constant - only a private instance field is
+# CODING-STANDARD-BACKEND.md 1e: a static field is PascalCase, like a constant - only a private instance field is
 # _camelCase. A rule with a required modifier is more specific than the repository's non-public-fields
 # rule, so it takes precedence over it.
 dotnet_naming_symbols.static_fields.applicable_kinds = field

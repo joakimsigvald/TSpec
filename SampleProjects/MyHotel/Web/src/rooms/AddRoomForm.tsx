@@ -1,4 +1,5 @@
 import { useId, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ErrorMessage } from '../ErrorMessage';
 import { useFormAttempt } from '../useFormAttempt';
 import type { Room } from './roomsApi';
@@ -8,6 +9,7 @@ type Props = { onAdd: (room: Room) => Promise<void> };
 const fieldOf = { RoomAlreadyExists: 'roomNumber' } as const;
 
 export function AddRoomForm({ onAdd }: Props) {
+  const { t } = useTranslation();
   const { attempt, failureAt } = useFormAttempt(fieldOf);
   const roomNumberError = useId();
   const buttonError = useId();
@@ -23,19 +25,19 @@ export function AddRoomForm({ onAdd }: Props) {
     <form onSubmit={submit}>
       <div className="field">
         <label>
-          Room number
+          {t('rooms.roomNumber')}
           <input name="roomNumber" required aria-describedby={roomNumberError} />
         </label>
         <ErrorMessage id={roomNumberError} code={failureAt('roomNumber')} />
       </div>
       <div className="field">
         <label>
-          Beds
+          {t('rooms.beds')}
           <input name="bedCount" type="number" required />
         </label>
       </div>
       <div className="field actions">
-        <button aria-describedby={buttonError}>Add room</button>
+        <button aria-describedby={buttonError}>{t('rooms.add')}</button>
         <ErrorMessage id={buttonError} code={failureAt('button')} />
       </div>
     </form>

@@ -7,7 +7,7 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 9c and 9f as invariants over the syntax trees: a type or a member is
+/// <summary>CODING-STANDARD-BACKEND.md 9c and 9f as invariants over the syntax trees: a type or a member is
 /// described by a `///` block of at most ten lines, never by a `//` comment - a field may have one - a `//`
 /// comment runs at most three lines, and there is no `/* */` comment, nor its `/** */` twin. One fact per
 /// project (Sources); a breach is counted.</summary>

@@ -6,12 +6,12 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 8g and 10a as invariants over the syntax trees: our exception types live in an
-/// `Exceptions` folder of their sub-domain, named for what happened without the `Exception` suffix, and such
-/// a folder holds nothing else. A class is an exception when its base is one: a framework's, whose name ends
-/// in the suffix, or one of ours - a class in an `Exceptions` folder of any project, which the second fact
-/// keeps to exceptions, so a class that derives from one of ours is seen however deep. One fact per project
-/// (Sources).</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 8g and 10a as invariants over the syntax trees: our exception types
+/// live in an `Exceptions` folder of their sub-domain, named for what happened without the `Exception`
+/// suffix, and such a folder holds nothing else. A class is an exception when its base is one: a framework's,
+/// whose name ends in the suffix, or one of ours - a class in an `Exceptions` folder of any project, which
+/// the second fact keeps to exceptions, so a class that derives from one of ours is seen however deep. One
+/// fact per project (Sources).</summary>
 public class ExceptionTypes : TSpec.Spec
 {
     private const string Folder = "Exceptions";

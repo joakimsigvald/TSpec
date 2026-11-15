@@ -11,10 +11,10 @@ const booking10002 = { bookingNumber: 10002, roomNumber: '102', guestName: 'Jone
 const rowOf = (bookingNumber: number) => screen.findByRole('row', { name: new RegExp(`^${bookingNumber}`) });
 
 const fillIn = async () => {
-  await userEvent.type(screen.getByLabelText('Room number'), request.roomNumber);
-  await userEvent.type(screen.getByLabelText('Guest'), request.guestName);
-  await userEvent.type(screen.getByLabelText('From'), request.from);
-  await userEvent.type(screen.getByLabelText('To'), request.to);
+  await userEvent.type(screen.getByLabelText('Rumsnummer'), request.roomNumber);
+  await userEvent.type(screen.getByLabelText('Gäst'), request.guestName);
+  await userEvent.type(screen.getByLabelText('Från'), request.from);
+  await userEvent.type(screen.getByLabelText('Till'), request.to);
 };
 
 const bookRefusedWith = async (status: number, code: string) => {
@@ -24,7 +24,7 @@ const bookRefusedWith = async (status: number, code: string) => {
   });
   render(<Bookings />);
   await fillIn();
-  await userEvent.click(screen.getByRole('button', { name: 'Book' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Boka' }));
 };
 
 describe('Bookings', () => {
@@ -42,7 +42,7 @@ describe('Bookings', () => {
     });
     render(<Bookings />);
     await fillIn();
-    await userEvent.click(screen.getByRole('button', { name: 'Book' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Boka' }));
     expect(await rowOf(10001)).toBeInTheDocument();
     expect(api).toHaveBeenCalledWith('/bookings', expect.objectContaining({
       method: 'POST',
@@ -53,26 +53,26 @@ describe('Bookings', () => {
   it('says under the room number that there is no such room', async () => {
     await bookRefusedWith(404, 'RoomNotFound');
     await waitFor(() =>
-      expect(screen.getByLabelText('Room number')).toHaveAccessibleDescription('Rummet finns inte.'));
+      expect(screen.getByLabelText('Rumsnummer')).toHaveAccessibleDescription('Rummet finns inte.'));
   });
 
   it('says under the departure date that the period is too short', async () => {
     await bookRefusedWith(400, 'InvalidBookingPeriod');
     await waitFor(() =>
-      expect(screen.getByLabelText('To')).toHaveAccessibleDescription('En bokning måste gälla minst en natt.'));
+      expect(screen.getByLabelText('Till')).toHaveAccessibleDescription('En bokning måste gälla minst en natt.'));
   });
 
   it('says under the room number that the room is already booked', async () => {
     await bookRefusedWith(409, 'RoomAlreadyBooked');
     await waitFor(() =>
-      expect(screen.getByLabelText('Room number'))
+      expect(screen.getByLabelText('Rumsnummer'))
         .toHaveAccessibleDescription('Rummet är redan bokat under några av nätterna.'));
   });
 
   it('says under the button why a booking could not be made for any other reason', async () => {
     await bookRefusedWith(500, 'Unknown');
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Book' })).toHaveAccessibleDescription('Något gick fel.'));
+      expect(screen.getByRole('button', { name: 'Boka' })).toHaveAccessibleDescription('Något gick fel.'));
   });
 
   it('removes a cancelled booking from the list', async () => {
@@ -81,7 +81,7 @@ describe('Bookings', () => {
       'DELETE /bookings/10001': { status: 204 },
     });
     render(<Bookings />);
-    await userEvent.click(within(await rowOf(10001)).getByRole('button', { name: 'Cancel' }));
+    await userEvent.click(within(await rowOf(10001)).getByRole('button', { name: 'Avboka' }));
     await rowOf(10002);
     expect(screen.queryByRole('row', { name: /^10001/ })).not.toBeInTheDocument();
   });

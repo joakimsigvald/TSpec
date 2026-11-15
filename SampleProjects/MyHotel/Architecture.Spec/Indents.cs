@@ -1,7 +1,7 @@
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>A line's indentation as CODING-STANDARD.md 11c sets it: four spaces a level, never a tab - one
-/// home for the facts that read it.</summary>
+/// <summary>A line's indentation as CODING-STANDARD-BACKEND.md 11c sets it: four spaces a level, never a tab
+/// - one home for the facts that read it.</summary>
 internal static class Indents
 {
     public const int Width = 4;

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Room } from './roomsApi';
 
 type Props = {
@@ -8,6 +9,7 @@ type Props = {
 };
 
 export function RoomRow({ room, onSave, onDelete }: Props) {
+  const { t } = useTranslation();
   const [bedCount, setBedCount] = useState(room.bedCount);
 
   return (
@@ -16,14 +18,14 @@ export function RoomRow({ room, onSave, onDelete }: Props) {
       <td>
         <input
           type="number"
-          aria-label={`Beds in room ${room.roomNumber}`}
+          aria-label={t('rooms.bedsInRoom', { roomNumber: room.roomNumber })}
           value={bedCount}
           onChange={event => setBedCount(Number(event.target.value))}
         />
       </td>
       <td>
-        <button onClick={() => onSave({ ...room, bedCount })}>Save</button>
-        <button onClick={() => onDelete(room.roomNumber)}>Delete</button>
+        <button onClick={() => onSave({ ...room, bedCount })}>{t('rooms.save')}</button>
+        <button onClick={() => onDelete(room.roomNumber)}>{t('rooms.delete')}</button>
       </td>
     </tr>
   );

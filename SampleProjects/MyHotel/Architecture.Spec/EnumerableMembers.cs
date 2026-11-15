@@ -6,9 +6,9 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 2e as an invariant over the source: IEnumerable&lt;T> is a sequence read once.
-/// A method may take one and references that parameter exactly once; no member another class calls returns
-/// one (IAsyncEnumerable&lt;T>, the streaming shape, is another type).</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 2e as an invariant over the source: IEnumerable&lt;T> is a sequence
+/// read once. A method may take one and references that parameter exactly once; no member another class calls
+/// returns one (IAsyncEnumerable&lt;T>, the streaming shape, is another type).</summary>
 public class EnumerableMembers : TSpec.Spec
 {
     public static TheoryData<string> Projects => Sources.Projects;

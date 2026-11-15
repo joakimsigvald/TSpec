@@ -4,10 +4,11 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 3b as an invariant over the source: a type of a production project is public
-/// because another project uses it, or because a public or protected signature of another public type names
-/// it - in its own project, or in the spec it opens its internals to, where a body may use an internal and a
-/// signature may not. Everything else is internal. Contract is the wire and public as a whole.</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 3b as an invariant over the source: a type of a production project is
+/// public because another project uses it, or because a public or protected signature of another public type
+/// names it - in its own project, or in the spec it opens its internals to, where a body may use an internal
+/// and a signature may not. Everything else is internal. Contract is the wire and public as a
+/// whole.</summary>
 public class PublicTypes : TSpec.Spec
 {
     public static TheoryData<string> Projects => [.. Sources.Names.Where(Production)];

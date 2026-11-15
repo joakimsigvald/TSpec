@@ -5,9 +5,9 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 2f as an invariant over the syntax trees: a set is a collection expression,
-/// and ToHashSet stays only for a comparer a collection expression cannot take. The default one it can:
-/// EqualityComparer's Default, and for a string StringComparer.Ordinal. One fact per project
+/// <summary>CODING-STANDARD-BACKEND.md 2f as an invariant over the syntax trees: a set is a collection
+/// expression, and ToHashSet stays only for a comparer a collection expression cannot take. The default one
+/// it can: EqualityComparer's Default, and for a string StringComparer.Ordinal. One fact per project
 /// (Sources).</summary>
 public class DefaultComparers : TSpec.Spec
 {

@@ -6,8 +6,8 @@ using TSpec.Architecture.CSharp;
 namespace MyHotel.Architecture.Spec;
 
 /// <summary>The lines inside a multi-line raw string literal, counted from 0 as the file's Lines are: an
-/// embedded document or query keeps its own shape (CODING-STANDARD.md 0e), so its lines are not ours to
-/// measure - neither their width (11a) nor their indentation (11c).</summary>
+/// embedded document or query keeps its own shape (CODING-STANDARD-BACKEND.md 0e), so its lines are not ours
+/// to measure - neither their width (11a) nor their indentation (11c).</summary>
 internal static class EmbeddedLines
 {
     public static IReadOnlySet<int> Of(SourceFile file)

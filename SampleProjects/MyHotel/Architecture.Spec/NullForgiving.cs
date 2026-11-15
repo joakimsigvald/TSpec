@@ -7,8 +7,8 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 6d as an invariant over the syntax trees: a null-forgiving `!` marks a shape
-/// not fixed yet (2b), and none stands on an expression that already holds one - not
+/// <summary>CODING-STANDARD-BACKEND.md 6d as an invariant over the syntax trees: a null-forgiving `!` marks a
+/// shape not fixed yet (2b), and none stands on an expression that already holds one - not
 /// `request!.Room!.RoomNumber`. The arguments of one call are expressions of their own, and so is a lambda.
 /// One fact per project (Sources).</summary>
 public class NullForgiving : TSpec.Spec

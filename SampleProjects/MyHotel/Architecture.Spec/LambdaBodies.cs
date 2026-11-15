@@ -6,9 +6,9 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 11e as an invariant over the syntax trees: a lambda's expression body starts
-/// on the arrow's line, and a block body opens on the line after it (the arrow on the parameters' line is
-/// Arrows'). One fact per project (Sources).</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 11e as an invariant over the syntax trees: a lambda's expression body
+/// starts on the arrow's line, and a block body opens on the line after it (the arrow on the parameters' line
+/// is Arrows'). One fact per project (Sources).</summary>
 public class LambdaBodies : TSpec.Spec
 {
     public static TheoryData<string> Projects => Sources.Projects;

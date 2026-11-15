@@ -5,10 +5,11 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 2d as an invariant over the source: no member, whatever its accessibility,
-/// takes or returns a mutable collection - an array, or a collection that can be written to. A field that is
-/// not private returns its value too; a private one only holds it. An override keeps the signature its base
-/// gave it, and an interface's implementation the interface's. One fact per project (Sources).</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 2d as an invariant over the source: no member, whatever its
+/// accessibility, takes or returns a mutable collection - an array, or a collection that can be written to. A
+/// field that is not private returns its value too; a private one only holds it. An override keeps the
+/// signature its base gave it, and an interface's implementation the interface's. One fact per project
+/// (Sources).</summary>
 public class MutableCollections : TSpec.Spec
 {
     // The collections of System.Collections.Generic that can be written to, and the interfaces that write.

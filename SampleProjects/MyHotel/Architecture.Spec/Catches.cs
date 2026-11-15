@@ -6,11 +6,11 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 8a as an invariant over the syntax trees: a catch names the types it handles,
-/// and a catch of `Exception` only rethrows, with any side effect in its `when`. Whatever the filter answers,
-/// the original passes on - a filter that throws is dropped by the runtime and counts as false. MyHotel has
-/// no construct that swallows all errors by design; the first one is named here. One fact per project
-/// (Sources).</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 8a as an invariant over the syntax trees: a catch names the types it
+/// handles, and a catch of `Exception` only rethrows, with any side effect in its `when`. Whatever the filter
+/// answers, the original passes on - a filter that throws is dropped by the runtime and counts as false.
+/// MyHotel has no construct that swallows all errors by design; the first one is named here. One fact per
+/// project (Sources).</summary>
 public class Catches : TSpec.Spec
 {
     /// <summary>The one shape that reacts to every failure without keeping it.</summary>

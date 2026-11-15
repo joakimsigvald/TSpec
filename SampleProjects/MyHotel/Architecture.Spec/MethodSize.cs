@@ -4,8 +4,8 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 4a as an invariant over the source: a member's size - TSpec's measure, its
-/// lines weighed by their indentation - is at most the ceiling, and so is the size of a file's top-level
+/// <summary>CODING-STANDARD-BACKEND.md 4a as an invariant over the source: a member's size - TSpec's measure,
+/// its lines weighed by their indentation - is at most the ceiling, and so is the size of a file's top-level
 /// statements, measured as one member. A local function's lines count in its method's size too. One fact
 /// per project (Sources).</summary>
 public class MethodSize : TSpec.Spec

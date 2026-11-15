@@ -5,8 +5,8 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 1h as an invariant over the syntax trees: a using alias is longer than a
-/// letter. Whether the word says what it stands for is review's. One fact per project (Sources).</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 1h as an invariant over the syntax trees: a using alias is longer than
+/// a letter. Whether the word says what it stands for is review's. One fact per project (Sources).</summary>
 public class UsingAliases : TSpec.Spec
 {
     private const int ShortestWord = 2;

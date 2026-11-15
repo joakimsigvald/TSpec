@@ -7,9 +7,9 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 1a as an invariant over the syntax trees: code and comments are pure ASCII. A
-/// literal is content, not code - a user's text - so a string or character literal may hold any character;
-/// an interpolation's holes are code. One fact per project (Sources).</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 1a as an invariant over the syntax trees: code and comments are pure
+/// ASCII. A literal is content, not code - a user's text - so a string or character literal may hold any
+/// character; an interpolation's holes are code. One fact per project (Sources).</summary>
 public class Characters : TSpec.Spec
 {
     private static readonly SyntaxKind[] LiteralKinds =

@@ -48,6 +48,12 @@ Each waits for a real spec that is worse without it.
 
 | Id | Description | Effort | Value | Worth |
 |---|---|---|---|---|
+| G1 | **First-class source lines.** A `SourceLine` with `File`, `Number`, `Text`, `Indent` and `IsEmbedded` (inside a multi-line raw string), named `X/Path:line` on failure as nodes are. MyHotel's `LineWidths`, `NestingDepth`, `Indentation` and `Characters` each rebuild `(text, index)` tuples, and two need the `EmbeddedLines` helper. | Medium | Medium | 0 |
+| G2 | **A base type on `DeclaredType`.** `type.DerivesFrom(typeof(Spec))` / `DerivesFrom("Exception")`, semantic and transitive. MyHotel's `CoreSpecs` falls back to the `When` naming convention for want of it, and `ExceptionTypes` chases base-type names through syntax. | Small | Medium | 1 |
+| G3 | **Counted-breach failure rendering.** An assertion over a site collection that renders count, first site and an optional remedy — nine MyHotel specs repeat the `Breach`/`Sites` pair formatting `"{count} X, the first at {first}; {instead}"` around `Is().Null()`. | Medium | Medium | 0 |
+| G4 | **One fact per project without the boilerplate.** Expose the project names as `TheoryData<string>`, or a `[Theory, EachProject]` data attribute; MyHotel repeats the `Projects` property and `MemberData` pair 25 times, with a `Sources` helper only to feed it. | Small | Medium | 1 |
+| G5 | **Comments as data.** `file.Comments`, each with `Kind` (line, block, doc), the lines it covers, whether it stands on its own line, and the member it leads. MyHotel's `Comments` is 120 lines of trivia-walking, and `Indentation` re-derives comment lines. | Medium | Medium | 0 |
+| G6 | **Declaring type and attributes.** `member.DeclaringType`, and `HasAttribute("Theory")` on members and types handling the `Attribute` suffix and qualification. MyHotel's `Arities` misses `TheoryAttribute`, `WireTypes` climbs syntax ancestors to find a member's record, `Suppressions` keeps its own suffix list. | Small | Medium | 1 |
 
 ## Reading and updating this document
 

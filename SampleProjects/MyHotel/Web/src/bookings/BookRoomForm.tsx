@@ -1,4 +1,5 @@
 import { useId, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ErrorMessage } from '../ErrorMessage';
 import { useFormAttempt } from '../useFormAttempt';
 import type { BookingRequest } from './bookingsApi';
@@ -12,6 +13,7 @@ const fieldOf = {
 } as const;
 
 export function BookRoomForm({ onBook }: Props) {
+  const { t } = useTranslation();
   const { attempt, failureAt } = useFormAttempt(fieldOf);
   const roomNumberError = useId();
   const toError = useId();
@@ -28,32 +30,32 @@ export function BookRoomForm({ onBook }: Props) {
     <form onSubmit={submit}>
       <div className="field">
         <label>
-          Room number
+          {t('bookings.roomNumber')}
           <input name="roomNumber" required aria-describedby={roomNumberError} />
         </label>
         <ErrorMessage id={roomNumberError} code={failureAt('roomNumber')} />
       </div>
       <div className="field">
         <label>
-          Guest
+          {t('bookings.guest')}
           <input name="guestName" required />
         </label>
       </div>
       <div className="field">
         <label>
-          From
+          {t('bookings.from')}
           <input name="from" type="date" required />
         </label>
       </div>
       <div className="field">
         <label>
-          To
+          {t('bookings.to')}
           <input name="to" type="date" required aria-describedby={toError} />
         </label>
         <ErrorMessage id={toError} code={failureAt('to')} />
       </div>
       <div className="field actions">
-        <button aria-describedby={buttonError}>Book</button>
+        <button aria-describedby={buttonError}>{t('bookings.book')}</button>
         <ErrorMessage id={buttonError} code={failureAt('button')} />
       </div>
     </form>

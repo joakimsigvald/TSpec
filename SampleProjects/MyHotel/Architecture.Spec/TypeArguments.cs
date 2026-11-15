@@ -7,8 +7,8 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 6k as an invariant over the syntax trees and what they bind to: a call names
-/// no type argument the compiler infers. The call is bound again where it stands, without its type
+/// <summary>CODING-STANDARD-BACKEND.md 6k as an invariant over the syntax trees and what they bind to: a call
+/// names no type argument the compiler infers. The call is bound again where it stands, without its type
 /// arguments; when it reaches the same method with the same types, nullability included, they were
 /// inferred. A call after `?.` is not looked at. One fact per project (Sources).</summary>
 public class TypeArguments : TSpec.Spec

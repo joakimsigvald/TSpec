@@ -1,4 +1,28 @@
 {
+  "app": {
+    "title": "Mitt hotell"
+  },
+  "rooms": {
+    "heading": "Rum",
+    "room": "Rum",
+    "roomNumber": "Rumsnummer",
+    "beds": "Sängar",
+    "bedsInRoom": "Sängar i rum {{roomNumber}}",
+    "add": "Lägg till rum",
+    "save": "Spara",
+    "delete": "Ta bort"
+  },
+  "bookings": {
+    "heading": "Bokningar",
+    "booking": "Bokning",
+    "room": "Rum",
+    "roomNumber": "Rumsnummer",
+    "guest": "Gäst",
+    "from": "Från",
+    "to": "Till",
+    "book": "Boka",
+    "cancel": "Avboka"
+  },
   "errors": {
     "RoomNotFound": "Rummet finns inte.",
     "RoomAlreadyExists": "Rummet finns redan.",

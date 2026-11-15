@@ -11,9 +11,9 @@ const rowOf = (roomNumber: string) => screen.findByRole('row', { name: new RegEx
 const bedsIn = async (roomNumber: string) => within(await rowOf(roomNumber)).getByRole('spinbutton');
 
 const addRoom = async (roomNumber: string, beds: string) => {
-  await userEvent.type(screen.getByLabelText('Room number'), roomNumber);
-  await userEvent.type(screen.getByLabelText('Beds'), beds);
-  await userEvent.click(screen.getByRole('button', { name: 'Add room' }));
+  await userEvent.type(screen.getByLabelText('Rumsnummer'), roomNumber);
+  await userEvent.type(screen.getByLabelText('Sängar'), beds);
+  await userEvent.click(screen.getByRole('button', { name: 'Lägg till rum' }));
 };
 
 describe('Rooms', () => {
@@ -46,7 +46,7 @@ describe('Rooms', () => {
     render(<Rooms />);
     await addRoom('101', '2');
     await waitFor(() =>
-      expect(screen.getByLabelText('Room number')).toHaveAccessibleDescription('Rummet finns redan.'));
+      expect(screen.getByLabelText('Rumsnummer')).toHaveAccessibleDescription('Rummet finns redan.'));
   });
 
   it('says under the button why a room could not be added for any other reason', async () => {
@@ -57,7 +57,7 @@ describe('Rooms', () => {
     render(<Rooms />);
     await addRoom('103', '3');
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Add room' })).toHaveAccessibleDescription('Något gick fel.'));
+      expect(screen.getByRole('button', { name: 'Lägg till rum' })).toHaveAccessibleDescription('Något gick fel.'));
   });
 
   it('says something went wrong when the API gives no reason', async () => {
@@ -75,7 +75,7 @@ describe('Rooms', () => {
     const beds = await bedsIn('101');
     await userEvent.clear(beds);
     await userEvent.type(beds, '3');
-    await userEvent.click(within(await rowOf('101')).getByRole('button', { name: 'Save' }));
+    await userEvent.click(within(await rowOf('101')).getByRole('button', { name: 'Spara' }));
     expect(api).toHaveBeenCalledWith('/rooms/101', expect.objectContaining({
       method: 'PUT',
       body: JSON.stringify({ roomNumber: '101', bedCount: 3 }),
@@ -88,7 +88,7 @@ describe('Rooms', () => {
       'DELETE /rooms/101': { status: 204 },
     });
     render(<Rooms />);
-    await userEvent.click(within(await rowOf('101')).getByRole('button', { name: 'Delete' }));
+    await userEvent.click(within(await rowOf('101')).getByRole('button', { name: 'Ta bort' }));
     await rowOf('102');
     expect(screen.queryByRole('row', { name: /^101/ })).not.toBeInTheDocument();
   });

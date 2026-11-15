@@ -7,8 +7,8 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 0d as an invariant over the syntax trees: every warning fails the build, so a
-/// switch that turns one off in the source - `#pragma warning disable`, `[SuppressMessage]` or
+/// <summary>CODING-STANDARD-BACKEND.md 0d as an invariant over the syntax trees: every warning fails the
+/// build, so a switch that turns one off in the source - `#pragma warning disable`, `[SuppressMessage]` or
 /// `#nullable disable` - is the one way past every analyzer and guard, and our sources hold none. A rule that
 /// does not fit is changed where review sees it: the standard and the .editorconfig. A project file's
 /// `NoWarn` stays review's, since TSpec reads no project file. One fact per project (Sources).</summary>

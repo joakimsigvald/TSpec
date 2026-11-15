@@ -4,10 +4,10 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 4c as an invariant over the source: a query is named by the noun it returns
-/// and a command by a verb, so no method, local function or property of ours starts with the word Get. An
-/// override or an interface's implementation keeps the name its base or interface gave it (GetHashCode,
-/// GetEnumerator). One fact per project (Sources).</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 4c as an invariant over the source: a query is named by the noun it
+/// returns and a command by a verb, so no method, local function or property of ours starts with the word
+/// Get. An override or an interface's implementation keeps the name its base or interface gave it
+/// (GetHashCode, GetEnumerator). One fact per project (Sources).</summary>
 public class GetPrefixes : TSpec.Spec
 {
     public static TheoryData<string> Projects => Sources.Projects;

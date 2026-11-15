@@ -6,10 +6,10 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 4g as an invariant over the syntax trees: a clause - the statement an `if`, an
-/// `else`, a loop, a `using` or a `lock` holds - takes no braces when it is a simple statement, and takes
-/// them when it is a structured statement or a sequence of statements, so an `else` never moves to an `if`
-/// inside it. The `if` of an `else if` takes none; a declaration is neither, and the compiler keeps its
+/// <summary>CODING-STANDARD-BACKEND.md 4g as an invariant over the syntax trees: a clause - the statement an
+/// `if`, an `else`, a loop, a `using` or a `lock` holds - takes no braces when it is a simple statement, and
+/// takes them when it is a structured statement or a sequence of statements, so an `else` never moves to an
+/// `if` inside it. The `if` of an `else if` takes none; a declaration is neither, and the compiler keeps its
 /// braces. That a `using` running to the end of its block is a declaration is IDE0063's. One fact per
 /// project (Sources), and the shapes it tells apart.</summary>
 public class ClauseBraces : TSpec.Spec

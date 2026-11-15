@@ -6,10 +6,10 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 6j as an invariant over the syntax trees and what they bind to: a chain of
-/// `Append` and `AppendLine` calls on a StringBuilder holds at most one fixed text - a constant, or the empty
-/// line of `AppendLine()`. Two are a text over several lines, which is one raw string literal. A chain is
-/// looked at, not appends in statements of their own. One fact per project (Sources).</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 6j as an invariant over the syntax trees and what they bind to: a
+/// chain of `Append` and `AppendLine` calls on a StringBuilder holds at most one fixed text - a constant, or
+/// the empty line of `AppendLine()`. Two are a text over several lines, which is one raw string literal. A
+/// chain is looked at, not appends in statements of their own. One fact per project (Sources).</summary>
 public class AppendChains : TSpec.Spec
 {
     private const int FixedTexts = 1;

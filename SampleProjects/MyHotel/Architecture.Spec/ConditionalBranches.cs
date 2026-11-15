@@ -6,9 +6,9 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 6h as an invariant over the syntax trees: in a conditional the condition and
-/// each branch take one line each, and so do a switch arm's pattern and expression; what needs more is a
-/// method of its own. One fact per project (Sources).</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 6h as an invariant over the syntax trees: in a conditional the
+/// condition and each branch take one line each, and so do a switch arm's pattern and expression; what needs
+/// more is a method of its own. One fact per project (Sources).</summary>
 public class ConditionalBranches : TSpec.Spec
 {
     public static TheoryData<string> Projects => Sources.Projects;

@@ -6,9 +6,9 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 11d and 11e in part, as an invariant over the syntax trees: `=>` never starts
-/// a line - neither a member's or switch arm's nor a lambda's. One fact per project (Sources); a breach is
-/// counted. Where the body goes is MemberBodies' and LambdaBodies'.</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 11d and 11e in part, as an invariant over the syntax trees: `=>` never
+/// starts a line - neither a member's or switch arm's nor a lambda's. One fact per project (Sources); a
+/// breach is counted. Where the body goes is MemberBodies' and LambdaBodies'.</summary>
 public class Arrows : TSpec.Spec
 {
     public static TheoryData<string> Projects => Sources.Projects;

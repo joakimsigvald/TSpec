@@ -4,10 +4,10 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 4b and 3d as invariants over the source. A method's ceiling is 4b's own four;
-/// a constructor's or a positional record's is 3d's six. A record in a Mirrors folder has the schema's width
-/// (0e); a theory's parameters are its data rows. Contract owns the API's schema, so its records are held to
-/// the ceiling.</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 4b and 3d as invariants over the source. A method's ceiling is 4b's
+/// own four; a constructor's or a positional record's is 3d's six. A record in a Mirrors folder has the
+/// schema's width (0e); a theory's parameters are its data rows. Contract owns the API's schema, so its
+/// records are held to the ceiling.</summary>
 public class Arities : TSpec.Spec
 {
     private const int MethodArguments = 4;

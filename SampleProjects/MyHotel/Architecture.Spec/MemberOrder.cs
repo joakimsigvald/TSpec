@@ -7,11 +7,11 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 10e as an invariant over the syntax trees: a type's fields and constants come
-/// first, then its constructors, then its other members by accessibility as written - public, protected,
-/// internal, private - the public static ones before the public instance ones. Whether a caller stands above
-/// what it calls is judgement, left to review, and a nested type has no place among the members. One fact
-/// per project (Sources); a breach is counted.</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 10e as an invariant over the syntax trees: a type's fields and
+/// constants come first, then its constructors, then its other members by accessibility as written - public,
+/// protected, internal, private - the public static ones before the public instance ones. Whether a caller
+/// stands above what it calls is judgement, left to review, and a nested type has no place among the members.
+/// One fact per project (Sources); a breach is counted.</summary>
 public class MemberOrder : TSpec.Spec
 {
     public static TheoryData<string> Projects => Sources.Projects;

@@ -6,9 +6,9 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 11d as an invariant over the syntax trees: an expression-bodied member and a
-/// switch arm are whole on one line, or `=>` ends the line and the body starts on the next, one level in
-/// from where the member starts (`=>` never opening a line is Arrows'). One fact per project
+/// <summary>CODING-STANDARD-BACKEND.md 11d as an invariant over the syntax trees: an expression-bodied member
+/// and a switch arm are whole on one line, or `=>` ends the line and the body starts on the next, one level
+/// in from where the member starts (`=>` never opening a line is Arrows'). One fact per project
 /// (Sources).</summary>
 public class MemberBodies : TSpec.Spec
 {

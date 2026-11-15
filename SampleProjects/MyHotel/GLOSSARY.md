@@ -1,6 +1,6 @@
 # MyHotel - Glossary
 
-One term per domain concept: the name to use in code, followed by what it means (CODING-STANDARD.md 1b).
+One term per domain concept: the name to use in code, followed by what it means (CODING-STANDARD-BACKEND.md 1b).
 Where the code still uses another word, it is renamed on touch; the glossary lists the target, not the
 variants. The PR that introduces, renames or retires a concept updates its row. A row marked `*` is
 provisional: the term is not used in code yet, and is the product owner's to rename.

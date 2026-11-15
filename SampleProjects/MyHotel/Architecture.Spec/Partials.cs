@@ -4,7 +4,7 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec;
 
-/// <summary>CODING-STANDARD.md 10f as an invariant over the source: a partial type's other part is a
+/// <summary>CODING-STANDARD-BACKEND.md 10f as an invariant over the source: a partial type's other part is a
 /// generator's or a framework's, so it is not in the repository - a generated part lands under obj/, the
 /// compiler writes the host's Program. A partial type declared in two of our files is a split, which 10f
 /// forbids.</summary>

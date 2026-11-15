@@ -16,8 +16,10 @@ projects state different things: [`Host.Spec`](Host.Spec) the HTTP contract,
 [`Core.Spec`](Core.Spec) the domain rules, and [`Architecture.Spec`](Architecture.Spec) which
 project may reference which, which of Core's sub-domains may use which, and every rule of the coding
 standard that can be checked from the source. [`Web`](Web) is a small React UI over the API.
-Development rules are in [CLAUDE.md](CLAUDE.md), and how the backend's code is written in
-[CODING-STANDARD.md](CODING-STANDARD.md).
+Development rules are in [CLAUDE.md](CLAUDE.md), and how the code is written in
+[CODING-STANDARD.md](CODING-STANDARD.md), with the backend's rules in
+[CODING-STANDARD-BACKEND.md](CODING-STANDARD-BACKEND.md) and the frontend's in
+[CODING-STANDARD-FRONTEND.md](CODING-STANDARD-FRONTEND.md).
 
 ## Running it
 
