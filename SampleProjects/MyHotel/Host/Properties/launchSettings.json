@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "MyHotel": {
+    "Host": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "scalar",

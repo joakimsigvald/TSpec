@@ -15,9 +15,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="TSpec" Version="5.4.0" />
-		<PackageReference Include="TSpec.Architecture.CSharp" Version="1.3.0" />
-		<PackageReference Include="xunit.v3" Version="4.0.2" />
+		<PackageReference Include="TSpec" Version="5.4.1" />
+		<PackageReference Include="TSpec.Architecture.CSharp" Version="1.4.2" />
+		<PackageReference Include="xunit.v3" Version="4.0.3" />
 	</ItemGroup>
 
 	<ItemGroup>

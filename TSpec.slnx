@@ -16,9 +16,9 @@
     <Project Path="SampleProjects/MyHotel/Core.Spec/Core.Spec.csproj" />
     <Project Path="SampleProjects/MyHotel/Core/Core.csproj" />
     <Project Path="SampleProjects/MyHotel/Entry/Entry.csproj" />
+    <Project Path="SampleProjects/MyHotel/Host.Spec/Host.Spec.csproj" />
+    <Project Path="SampleProjects/MyHotel/Host/Host.csproj" />
     <Project Path="SampleProjects/MyHotel/Infra/Infra.csproj" />
-    <Project Path="SampleProjects/MyHotel/MyHotel.Spec/MyHotel.Spec.csproj" />
-    <Project Path="SampleProjects/MyHotel/MyHotel/MyHotel.csproj" />
   </Folder>
   <Project Path="Analyzers.Test/Analyzers.Test.csproj" />
   <Project Path="Analyzers/Analyzers.csproj" />

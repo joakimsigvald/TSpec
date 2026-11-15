@@ -1,4 +1,4 @@
-namespace MyHotel.Spec;
+namespace MyHotel.Host.Spec;
 
 /// <summary>
 /// The application together with the rooms and bookings it keeps, so a specification can restart

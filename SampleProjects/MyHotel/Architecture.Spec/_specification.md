@@ -4,22 +4,22 @@
 
 ```mermaid
 flowchart TD
-    MyHotel
     Contract
     Core
     Core_Spec["Core.Spec"]:::spec
     Entry
+    Host
+    Host_Spec["Host.Spec"]:::spec
     Infra
-    MyHotel_Spec["MyHotel.Spec"]:::spec
-    MyHotel --> Entry
-    MyHotel --> Infra
     Core --> Contract
     Core_Spec -.-> Core
     Entry --> Contract
+    Host --> Entry
+    Host --> Infra
+    Host_Spec -.-> Host
     Infra --> Core
-    MyHotel_Spec -.-> MyHotel
-    click MyHotel "../MyHotel.Spec/_specification/README.md"
     click Core "../Core.Spec/_specification/README.md"
+    click Host "../Host.Spec/_specification/README.md"
     classDef spec fill:none,stroke-dasharray:4 3,opacity:0.8
 ```
 
@@ -39,18 +39,18 @@ flowchart TD
 
 - **Are only these and not redundant**
 
-  | Project      | May reference | May use                        |
-  | ------------ | ------------- | ------------------------------ |
-  | MyHotel      | Entry, Infra  | Scalar.AspNetCore, Microsoft.* |
-  | Contract     | -             | Microsoft.*                    |
-  | Core         | Contract      | Microsoft.*                    |
-  | Core.Spec    | Core          | *                              |
-  | Entry        | Contract      | Microsoft.*                    |
-  | Infra        | Core          | Microsoft.*                    |
-  | MyHotel.Spec | MyHotel       | *                              |
+  | Project   | May reference | May use                        |
+  | --------- | ------------- | ------------------------------ |
+  | Contract  | -             | Microsoft.*                    |
+  | Core      | Contract      | Microsoft.*                    |
+  | Core.Spec | Core          | *                              |
+  | Entry     | Contract      | Microsoft.*                    |
+  | Host      | Entry, Infra  | Scalar.AspNetCore, Microsoft.* |
+  | Host.Spec | Host          | *                              |
+  | Infra     | Core          | Microsoft.*                    |
 
   ```
   Source.Projects is within what is allowed
-      and not redundant
+      and non redundant
   ```
 - **Entry never reaches core** — `Source.Projects["Entry"].Reaches does not contain "Core"`

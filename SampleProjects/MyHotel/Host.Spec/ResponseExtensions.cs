@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 
-namespace MyHotel.Spec;
+namespace MyHotel.Host.Spec;
 
 internal static class ResponseExtensions
 {

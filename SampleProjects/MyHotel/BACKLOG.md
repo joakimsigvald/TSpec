@@ -19,7 +19,7 @@ notes when that file was retired; rules for changing anything under `SampleProje
   number is not returned, since nothing here reads the bookings at all.
 - `BookingStore` persists both bookings and the counter in one JSON file (`{ Bookings,
   LastUsedNumber }`), so numbering survives a restart with the bookings it counts.
-- `MyHotel.Spec` asserts against the shipped seed rather than mocking — that suite states the HTTP
+- `Host.Spec` asserts against the shipped seed rather than mocking — that suite states the HTTP
   surface, not every wrinkle of numbering. `Core.Spec` covers the generator directly, plus a
   two-call mock sequence proving the second booking gets the second number.
 - Cancelling frees its nights, stated under booking rather than cancelling — the act that observes

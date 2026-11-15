@@ -4,16 +4,20 @@ Applies to everything under `SampleProjects/MyHotel/`. What MyHotel is: [README.
 
 ## Architecture — Neat
 
-Folders are named for the layer, assemblies are `MyHotel.<Layer>`. `MyHotel` keeps its name and
-plays Host, because the deployable is the application.
+Folders are named for the layer, assemblies are `MyHotel.<Layer>`.
 
 | Project | Assembly | References | Holds |
 |---|---|---|---|
-| `MyHotel` | `MyHotel` | everything | Host: startup and DI, almost nothing else |
+| `Host` | `MyHotel.Host` | everything | startup and DI, almost nothing else |
 | `Entry` | `MyHotel.Entry` | Contract | the REST endpoints, as thin as possible |
 | `Contract` | `MyHotel.Contract` | nothing | the models and interfaces Entry needs — the public shape |
 | `Core` | `MyHotel.Core` | Contract | all the logic, and the interfaces it needs storage to satisfy |
 | `Infra` | `MyHotel.Infra` | Core | storage and outward calls; thin and logic-free |
+| `Web` | — | nothing; calls the API over HTTP | a React UI, one folder per resource |
+
+**Web is a client of the HTTP contract and repeats none of its rules.** It shows what the API
+answers, and a refusal as the `error` the API sent. Its dev server forwards `/rooms` and `/bookings`
+to Host (`vite.config.ts`), so a new top-level route needs an entry there.
 
 **Entry and Core never reference each other**, and the compiler is what enforces it. When Entry needs
 a model that lives in Core there are two moves, both cheap: promote it to Contract, or duplicate it
@@ -52,14 +56,16 @@ and wait.
 implementation → full suite. A compile error, or a 404 where you expected a wrong value, means the
 behaviour has not been observed yet. Never write production code that no failing spec asked for.
 
-**Spec at the layer that owns the claim.** Two suites, stating different things:
+**Spec at the layer that owns the claim.** Three suites, stating different things:
 
-- `MyHotel.Spec` — black-box, subject `Hotel`: the running application reached over HTTP, with its
+- `Host.Spec` — black-box, subject `Hotel`: the running application reached over HTTP, with its
   own room file. States the *HTTP contract* — routes, status codes, response bodies — and, because
   `Hotel` can restart, what survives one.
 - `Core.Spec` — subject is a Core type with its collaborators mocked, no HTTP. States the *domain
   rules*: what is unique, what order things are kept in, what is refused. One folder per class under
   test (`RoomService/`), one `When…` class per method.
+- `Web` — Vitest and Testing Library, with the API faked (`src/test/fakeApi.ts`). States what the
+  user sees for what the API answers, and what each action sends. One test file per view.
 
 `Contract` and `Entry` hold no logic and get no specs — Entry's mapping is stated end-to-end. Do not
 narrow a spec to a layer when the behaviour is only observable end-to-end, and do not restate a
@@ -89,10 +95,10 @@ change is caught where it matters: in the committed files' diff.
 ## Mechanics
 
 - net10.0 only. `TreatWarningsAsErrors` everywhere — fix warnings, don't suppress them.
-- Run each Spec project with `dotnet test` (filter with `--filter-class MyHotel.Spec.WhenGetVersion`):
+- Run each Spec project with `dotnet test` (filter with `--filter-class MyHotel.Host.Spec.WhenGetVersion`):
 
   ```bash
-  dotnet test SampleProjects/MyHotel/MyHotel.Spec
+  dotnet test SampleProjects/MyHotel/Host.Spec
   ```
 
   ```bash
@@ -103,10 +109,17 @@ change is caught where it matters: in the committed files' diff.
   dotnet test SampleProjects/MyHotel/Architecture.Spec
   ```
 
+- Web's tests run with npm; `dotnet test` does not run them. Building the solution type-checks and
+  bundles Web, so it needs Node.
+
+  ```bash
+  npm --prefix SampleProjects/MyHotel/Web test
+  ```
+
 - **`Microsoft.OpenApi` stays on the 2.x line.** `Microsoft.AspNetCore.OpenApi`'s source generator
   emits code that only compiles against 2.x's object model; 3.x breaks the build.
 - Update README.md's endpoint table whenever an endpoint is added, removed, or changes contract.
-- `MyHotel.Spec` and `Core.Spec` each generate their own `_specification/` folder from a green run. Never hand-edit a file in it;
+- `Host.Spec` and `Core.Spec` each generate their own `_specification/` folder from a green run. Never hand-edit a file in it;
   commit the regenerated files and read their diff as part of reviewing the change.
 - TSpec usage: [agent-reference.md](../../agent-reference.md), and for the architecture rules on the
   code [Architecture.CSharp/agent-reference.md](../../Architecture.CSharp/agent-reference.md) — the

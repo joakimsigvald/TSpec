@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/Assets/">
+    <File Path="BACKLOG.md" />
+    <File Path="CLAUDE.md" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="Architecture.Spec/Architecture.Spec.csproj" />
+  <Project Path="Contract/Contract.csproj" />
+  <Project Path="Core.Spec/Core.Spec.csproj" />
+  <Project Path="Core/Core.csproj" />
+  <Project Path="Entry/Entry.csproj" />
+  <Project Path="Host.Spec/Host.Spec.csproj" />
+  <Project Path="Host/Host.csproj" />
+  <Project Path="Infra/Infra.csproj" />
+  <Project Path="Web/Web.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+</Solution>

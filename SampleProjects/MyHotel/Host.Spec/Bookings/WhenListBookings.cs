@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
 using static System.Net.HttpStatusCode;
 
-namespace MyHotel.Spec.Bookings;
+namespace MyHotel.Host.Spec.Bookings;
 
 public abstract class WhenListBookings : ApiSpec<HttpResponseMessage>
 {

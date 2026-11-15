@@ -1,4 +1,4 @@
-namespace MyHotel.Spec;
+namespace MyHotel.Host.Spec;
 
 /// <summary>
 /// The body a refused request carries. Asserting on it is what tells a handled refusal from a route

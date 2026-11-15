@@ -10,44 +10,58 @@ specifications — and the proving ground for specification generation. What is 
 next: [BACKLOG.md](BACKLOG.md).
 
 Being layered per **Neat**: `Contract` is the public shape and references nothing, `Entry` holds the
-endpoints, `Core` holds the logic, and `MyHotel` is the host that wires them together. Entry and Core
+endpoints, `Core` holds the logic, and `Host` wires them together. Entry and Core
 cannot see each other, so nothing internal can leak out through the API by accident. Three spec
-projects state different things: [`MyHotel.Spec`](MyHotel.Spec) the HTTP contract,
+projects state different things: [`Host.Spec`](Host.Spec) the HTTP contract,
 [`Core.Spec`](Core.Spec) the domain rules, and [`Architecture.Spec`](Architecture.Spec) which
-project may reference which. Development rules are in [CLAUDE.md](CLAUDE.md).
+project may reference which. [`Web`](Web) is a small React UI over the API. Development rules are
+in [CLAUDE.md](CLAUDE.md).
 
 ## Running it
 
 ```bash
-dotnet run --project SampleProjects/MyHotel/MyHotel
+dotnet run --project SampleProjects/MyHotel/Host
 ```
 
 Opens [Scalar](https://scalar.com) at `/scalar`, an interactive UI over the OpenAPI document at
-`/openapi/v1.json`. In Visual Studio, set `MyHotel` as the startup project — VS keeps that choice
-in `.vs/`, which is not under source control.
+`/openapi/v1.json`. With the API running, start the UI at `http://localhost:5173` (the first run
+needs `npm --prefix SampleProjects/MyHotel/Web install`):
+
+```bash
+npm --prefix SampleProjects/MyHotel/Web run dev
+```
+
+In Visual Studio, set `Host` and `Web` as startup projects — VS keeps that choice in
+`MyHotel.slnLaunch.user`, which is not under source control.
 
 ## Running the specifications
 
 `dotnet test` swallows the xunit v3 runner's output, so run the executable directly:
 
 ```bash
-dotnet build SampleProjects/MyHotel/MyHotel.Spec -f net10.0
+dotnet build SampleProjects/MyHotel/Host.Spec -f net10.0
 ```
 
 ```bash
-SampleProjects/MyHotel/MyHotel.Spec/bin/Debug/net10.0/MyHotel.Spec.exe
+SampleProjects/MyHotel/Host.Spec/bin/Debug/net10.0/MyHotel.Host.Spec.exe
 ```
 
-A green run regenerates [`MyHotel.Spec/_specification/`](MyHotel.Spec/_specification) — one file per
-top-level folder, plus `MyHotel.md` for the root. They are
+A green run regenerates [`Host.Spec/_specification/`](Host.Spec/_specification) — one file per
+top-level folder, plus `Host.md` for the root. They are
 generated files — review them in diffs, never edit them by hand. Their version comes from `<Version>` in
-[MyHotel.csproj](MyHotel/MyHotel.csproj).
+[Host.csproj](Host/Host.csproj).
+
+The UI's tests run with npm:
+
+```bash
+npm --prefix SampleProjects/MyHotel/Web test
+```
 
 ## Endpoints
 
 | Method | Path | Returns |
 |---|---|---|
-| `GET` | `/version` | `{ "version": "0.1.0" }` — read from the assembly, so it tracks `<Version>` in [MyHotel.csproj](MyHotel.csproj) |
+| `GET` | `/version` | `{ "version": "0.1.0" }` — read from the assembly, so it tracks `<Version>` in [Host.csproj](Host/Host.csproj) |
 | `GET` | `/rooms` | `200` with every room in the order it was created; `[]` when there are none |
 | `POST` | `/rooms` | `201` with the room and a `Location` header; `409` if the room number is taken |
 | `GET` | `/rooms/{roomNumber}` | `200` with the room, or `404` |

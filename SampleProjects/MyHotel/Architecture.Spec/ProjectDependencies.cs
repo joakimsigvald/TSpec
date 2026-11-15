@@ -9,10 +9,10 @@ public class ProjectDependencies : TSpec.Spec
     public void AreOnlyTheseAndNotRedundant()
         => Source.Projects.Is().Within(p => p switch
         {
-            "." => ["Entry", "Infra", "P:Scalar.AspNetCore"],
+            "Host" => ["Entry", "Infra", "P:Scalar.AspNetCore"],
             "Entry" or "Core" => ["Contract"],
             "Infra" => ["Core"],
-            "Spec" => ["."],
+            "Host.Spec" => ["Host"],
             "Core.Spec" => ["Core"],
             _ => [],
         }, p => p.Segment(^1) == "Spec" ? ["P:*"] : ["P:Microsoft.*"]).and.NonRedundant();

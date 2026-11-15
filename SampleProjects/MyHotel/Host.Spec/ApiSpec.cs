@@ -1,4 +1,4 @@
-namespace MyHotel.Spec;
+namespace MyHotel.Host.Spec;
 
 /// <summary>
 /// Base for black-box specifications: the subject under test is the running application, reached

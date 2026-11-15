@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 
-namespace MyHotel.Spec;
+namespace MyHotel.Host.Spec;
 
 /// <summary>
 /// The API over given room and booking files. Both outlive the application, so a shared path would

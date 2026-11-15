@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Json;
 using static System.Net.HttpStatusCode;
 
-namespace MyHotel.Spec.Rooms;
+namespace MyHotel.Host.Spec.Rooms;
 
 public abstract class WhenUpdateRoom : ApiSpec<HttpResponseMessage>
 {

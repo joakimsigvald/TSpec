@@ -1,6 +1,6 @@
 using static System.Net.HttpStatusCode;
 
-namespace MyHotel.Spec;
+namespace MyHotel.Host.Spec;
 
 public class WhenGetVersion : ApiSpec<HttpResponseMessage>
 {
@@ -13,7 +13,7 @@ public class WhenGetVersion : ApiSpec<HttpResponseMessage>
         => (await Result.Read<VersionInfo>()).Version.Is(DeclaredVersion);
 
     /// <summary>
-    /// Read from the assembly version, which the SDK sets from &lt;Version&gt; in MyHotel.csproj.
+    /// Read from the assembly version, which the SDK sets from &lt;Version&gt; in Host.csproj.
     /// The endpoint reads the informational version, so agreeing means both track the project file.
     /// </summary>
     private static string DeclaredVersion => typeof(Program).Assembly.GetName().Version!.ToString(3);

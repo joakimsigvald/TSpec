@@ -8,21 +8,21 @@
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<Version>0.2.0</Version>
 		<Description>A small hotel booking API: rooms, bookings, and the rules that keep them consistent.</Description>
-		<AssemblyName>MyHotel</AssemblyName>
-		<RootNamespace>MyHotel</RootNamespace>
+		<AssemblyName>MyHotel.Host</AssemblyName>
+		<RootNamespace>MyHotel.Host</RootNamespace>
 		<IsPackable>false</IsPackable>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.13" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.15" />
 		<!-- Pinned to stay above the vulnerable 2.0.0 (GHSA-v5pm-xwqc-g5wc).
-		     Stay on 2.x: Microsoft.AspNetCore.OpenApi 10.0.12 requires [2.12.0, 3.0.0), and its
+		     Stay on 2.x: Microsoft.AspNetCore.OpenApi 10.0.15 requires [2.13.0, 3.0.0), and its
 		     XmlCommentGenerator source generator emits code against the 2.x IOpenApiMediaType shape
 		     (a settable Example), which is read-only in 3.x. Bump this only once
 		     Microsoft.AspNetCore.OpenApi's own dependency moves to 3.x. -->
-		<PackageReference Include="Microsoft.OpenApi" Version="2.12.2" />
-		<PackageReference Include="Scalar.AspNetCore" Version="2.18.3" />
+		<PackageReference Include="Microsoft.OpenApi" Version="2.13.0" />
+		<PackageReference Include="Scalar.AspNetCore" Version="2.21.0" />
 	</ItemGroup>
 
 	<ItemGroup>

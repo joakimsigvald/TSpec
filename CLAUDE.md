@@ -63,9 +63,9 @@ version, or the package breaks on a TSpec minor.
 ## MyHotel
 
 `SampleProjects/MyHotel/` is the reference application TSpec is developed against, not part of the
-shipped package. It is layered per the Neat architecture — `MyHotel` (host), `Entry`, `Contract`,
-`Core`, `Infra` — with three spec projects, `MyHotel.Spec` (black-box, HTTP), `Core.Spec` (domain
-rules) and `Architecture.Spec` (the project graph). It has its own rules: read `SampleProjects/MyHotel/CLAUDE.md` before changing anything
+shipped package. It is layered per the Neat architecture — `Host`, `Entry`, `Contract`,
+`Core`, `Infra` — with three spec projects, `Host.Spec` (black-box, HTTP), `Core.Spec` (domain
+rules) and `Architecture.Spec` (the project graph), and a React UI, `Web`. It has its own rules: read `SampleProjects/MyHotel/CLAUDE.md` before changing anything
 under it.
 
 Note `SampleProjects/MyHotel/Core/` is MyHotel's business layer and is unrelated to `Core/`, which
