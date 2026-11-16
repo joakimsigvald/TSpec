@@ -12,19 +12,105 @@ dotnet add package TSpec.Architecture.CSharp
 A condensed reference for coding agents ships with the package, beside TSpec's:
 `~/.nuget/packages/tspec.architecture.csharp/<version>/agent-reference.md`.
 
-With `using TSpec.Architecture.CSharp;`, a project's `Files` are those it compiles from its own folder,
-leaving out what the build generates under `obj/` and files linked in from elsewhere. A file has its
-`Path` in the project, written with `/`, its `Lines` and its `Raw` text, and a failure names it by
-project and path: `Data.Auth/Stores/UserStore.cs`. A file's `Folder`, `Name` and `Extension` are parts
-of its `Path`: for `Stores/Cache/UserStore.cs`, `Stores`, the folder directly in the project's, empty at
-the project's root; `UserStore`; and `cs`. Its `Types` are those declared at its top level,
-each with its `Name` (`Repository`), its `FullName` (`Data.Repository<T>`), `Namespace`, `Kind`,
+Everything below is reached with `using TSpec.Architecture.CSharp;`. `Uses`, `Exposes`, `DependsOn`,
+`DerivesFrom`, `HasAttribute`, `Gives` and `Takes` compile the project with Roslyn, once in a run, and a
+use by reflection is not one the compiler sees.
+
+## Project
+
+A project's `Files` are those it compiles from its own folder, leaving out what the build generates
+under `obj/` and files linked in from elsewhere. Its `Types`, `Members` and `Nodes<T>()` are those of all
+its files, a partial type once. Its `AllTypes` are its types and those nested in them however deep.
+
+A project's `Folders` are the folders directly in its own that hold its files, each with the others it
+uses: one of its files uses a type a file of the other declares. A file at the project's root is in no
+folder. They are a TSpec `DependencyGraph`, so `Within` takes rules on them as on the projects, and the
+generated specification draws what the rules allow:
+
+```csharp
+[Fact]
+public void A_subdomain_uses_only_those_below_it()
+    => Source.Projects["Application"].Folders.Is().Within(folder => folder switch
+    {
+        "Generation" or "Assistant" => ["Chat"],
+        "Workbench" => ["Generation", "Chat"],
+        _ => [],
+    });
+```
+
+Without rules, `Folders.Is().Acyclic()` keeps a project's folders one way.
+
+## File
+
+A file has its `Path` in the project, written with `/`, its `Lines` and its `Raw` text, and a failure
+names it by project and path: `Data.Auth/Stores/UserStore.cs`. A file's `Folder`, `Name` and `Extension`
+are parts of its `Path`: for `Stores/Cache/UserStore.cs`, `Stores`, the folder directly in the project's,
+empty at the project's root; `UserStore`; and `cs`. Its `Types` are those declared at its top level, and
+its `AllTypes` those and the types nested in them.
+
+A file's `Root` is its Roslyn syntax as the build parsed it, so code under an `#if` the build left
+out is not in it, and its `Model` is the compiler's view of that syntax: what a name refers to, the type
+of an expression. A type the spec project does not run with, or one a source generator wrote, is
+unresolved there. `SpanOf(node)` is where a node or token starts and ends, its lines and columns
+counted from 1:
+
+```csharp
+[Fact]
+public void No_arrow_starts_a_line()
+    => Source.Projects.SelectMany(project => project.Files)
+        .SelectMany(file => file.Root.DescendantTokens()
+            .Where(token => token.IsKind(SyntaxKind.EqualsGreaterThanToken))
+            .Where(arrow => file.SpanOf(arrow).Start.Line > file.SpanOf(arrow.GetPreviousToken()).End.Line)
+            .Select(arrow => $"{file}:{file.SpanOf(arrow).Start.Line}"))
+        .Is().Empty();
+```
+
+A file's `Nodes<T>()` are its syntax nodes of one kind, in the order they are written: a directive such
+as `#pragma` among them, nothing inside a documentation comment. Each has its `File`, its `Syntax` and
+its `Span`, whose `Lines` are the lines it covers, and a failure names it by file and line:
+`Data.Auth/Stores/UserStore.cs:12`.
+
+```csharp
+[Fact]
+public void No_query_is_written_in_query_syntax()
+    => Source.Projects["Core"].Nodes<QueryExpressionSyntax>().Is().Empty();
+```
+
+A file's `Members` are those it declares (see [Member](#member)), and its `TopLevelSize` measures its
+top-level statements as a member's `Size` is measured.
+
+A file's `Uses` are the build's types its code uses: those it names, and those whose members it names,
+such as an extension method's class or a constant's type; a nested type is one of its own.
+
+```csharp
+[Fact]
+public void The_domain_uses_nothing_of_persistence()
+    => Source.Projects["Core"].Files.Where(file => file.Path.StartsWith("Domain/"))
+        .Has().None(file => file.Uses.Any(type => type.Namespace.EndsWith(".Persistence")));
+```
+
+A file `DependsOn()` the projects and packages whose types its code uses, named as the project rules name
+them: `Contract`, `P:Dapper`. Its own project and the framework are none, and a project it reaches only
+through another counts, unlike in its project's `Dependencies`. `DependsOn(name)` asks for one, and a name
+ending in `*` matches as in `Within`:
+
+```csharp
+[Fact]
+public void Only_the_connection_calls_Dapper()
+    => Source.Projects["Data"].Files.Where(file => file.Path != "Store/Connection.cs")
+        .Has().None(file => file.DependsOn("P:Dapper"));
+```
+
+A file is the same object every time, so an analysis TSpec doesn't have can be added to it as an
+extension member that keeps what it computes per file in a `ConditionalWeakTable<SourceFile, T>`.
+
+## Type
+
+A type has its `Name` (`Repository`), its `FullName` (`Data.Repository<T>`), `Namespace`, `Kind`,
 `IsPublic`, the `Files` it is declared in, several for a partial type, and its `Nested` types, declared
 inside it. A nested type's `IsPublic` is in effect: false inside a type that is not public. A failure
-names a type by its full name. A project's `Types` are those of all its files, a partial type once. A
-project's or a file's `AllTypes` are its types and those nested in them however deep, so a rule on every
-public type reads them, not `Types`. A rule of one public type per file, adopted with today's breaches
-listed in `Allowed`:
+names a type by its full name. `Types` are the top-level ones only, so a rule on every public type reads
+`AllTypes`. A rule of one public type per file, adopted with today's breaches listed in `Allowed`:
 
 ```csharp
 [Fact]
@@ -34,6 +120,9 @@ public void Only_the_listed_files_declare_more_than_one_public_type()
         .Where(file => file.Public > 1)
         .Are(Allowed);
 ```
+
+A type `Exposes` the build's types its signature names where other assemblies see it: its base type,
+interfaces and constraints, and the types of its public and protected members, itself included.
 
 A type `DerivesFrom` all types in its inheritance chain. For generic types, the generic argument is
 ignored. A type does not derive from an interface. All types derive from `object`. A base the spec
@@ -53,35 +142,7 @@ attribute it names. So `HasAttribute("Serializable")` finds both `[System.Serial
 `[MyOwn.Serializable]`, while `HasAttribute("System.Serializable")` finds only the first, however the
 code wrote it.
 
-A file's `Root` is its Roslyn syntax as the build parsed it, so code under an `#if` the build left
-out is not in it, and its `Model` is the compiler's view of that syntax: what a name refers to, the type
-of an expression. A type the spec project does not run with, or one a source generator wrote, is
-unresolved there. `SpanOf(node)` is where a node or token starts and ends, its lines and columns
-counted from 1:
-
-```csharp
-[Fact]
-public void No_arrow_starts_a_line()
-    => Source.Projects.SelectMany(project => project.Files)
-        .SelectMany(file => file.Root.DescendantTokens()
-            .Where(token => token.IsKind(SyntaxKind.EqualsGreaterThanToken))
-            .Where(arrow => file.SpanOf(arrow).Start.Line > file.SpanOf(arrow.GetPreviousToken()).End.Line)
-            .Select(arrow => $"{file}:{file.SpanOf(arrow).Start.Line}"))
-        .Is().Empty();
-```
-
-A project's or a file's `Nodes<T>()` are its syntax nodes of one kind, in the order they are written: a
-directive such as `#pragma` among them, nothing inside a documentation comment. Each has its `File`, its
-`Syntax` and its `Span`, whose `Lines` are the lines it covers, and a failure names it by file and line:
-`Data.Auth/Stores/UserStore.cs:12`.
-
-```csharp
-[Fact]
-public void No_query_is_written_in_query_syntax()
-    => Source.Projects["Core"].Nodes<QueryExpressionSyntax>().Is().Empty();
-```
-
-## Members
+## Member
 
 - A file's `Members` are all the members it declares, including those of nested types and local
   functions. A project's `Members` are those of all its files.
@@ -107,8 +168,7 @@ public void No_method_name_ends_in_Async()
         .Has().None(method => method.Name.EndsWith("Async"));
 ```
 
-A member's `Size` measures its size, computed from its line count, indentation and complexity, and a
-file's `TopLevelSize` measures its top-level statements the same way:
+A member's `Size` measures its size, computed from its line count, indentation and complexity:
 
 ```csharp
 [Fact]
@@ -128,50 +188,3 @@ public void No_contract_member_gives_an_enum_or_takes_a_list()
     => Source.Projects["Contract"].Members
         .Has().None(member => member.Gives(TypeKind.Enum) || member.Takes(typeof(List<>)));
 ```
-
-A file's `Uses` are the build's types its code uses: those it names, and those whose members it names,
-such as an extension method's class or a constant's type; a nested type is one of its own. A
-type `Exposes` the build's types its signature names where other assemblies see it: its base type,
-interfaces and constraints, and the types of its public and protected members, itself included. These,
-`Gives`, `Takes`, `DependsOn`, `DerivesFrom` and `HasAttribute` compile the project with Roslyn, once in
-a run, and a use by reflection is not one the compiler sees.
-
-```csharp
-[Fact]
-public void The_domain_uses_nothing_of_persistence()
-    => Source.Projects["Core"].Files.Where(file => file.Path.StartsWith("Domain/"))
-        .Has().None(file => file.Uses.Any(type => type.Namespace.EndsWith(".Persistence")));
-```
-
-A file `DependsOn()` the projects and packages whose types its code uses, named as the project rules name
-them: `Contract`, `P:Dapper`. Its own project and the framework are none, and a project it reaches only
-through another counts, unlike in its project's `Dependencies`. `DependsOn(name)` asks for one, and a name
-ending in `*` matches as in `Within`:
-
-```csharp
-[Fact]
-public void Only_the_connection_calls_Dapper()
-    => Source.Projects["Data"].Files.Where(file => file.Path != "Store/Connection.cs")
-        .Has().None(file => file.DependsOn("P:Dapper"));
-```
-
-A project's `Folders` are the folders directly in its own that hold its files, each with the others it
-uses: one of its files uses a type a file of the other declares. A file at the project's root is in no
-folder. They are a TSpec `DependencyGraph`, so `Within` takes rules on them as on the projects, and the
-generated specification draws what the rules allow:
-
-```csharp
-[Fact]
-public void A_subdomain_uses_only_those_below_it()
-    => Source.Projects["Application"].Folders.Is().Within(folder => folder switch
-    {
-        "Generation" or "Assistant" => ["Chat"],
-        "Workbench" => ["Generation", "Chat"],
-        _ => [],
-    });
-```
-
-Without rules, `Folders.Is().Acyclic()` keeps a project's folders one way.
-
-A file is the same object every time, so an analysis TSpec doesn't have can be added to it as an
-extension member that keeps what it computes per file in a `ConditionalWeakTable<SourceFile, T>`.
