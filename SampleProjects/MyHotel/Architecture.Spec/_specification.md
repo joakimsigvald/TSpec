@@ -23,30 +23,84 @@ flowchart TD
     classDef spec fill:none,stroke-dasharray:4 3,opacity:0.8
 ```
 
+## Folder cycles
+
+- **No top level folders use each other around a loop**\
+  `Source.Projects[project].Folders is acyclic`
+
+## Layers
+
+- **Contract declares only public types** — `Types of "Contract" has all type.IsPublic`
+- **Infra declares no interface**\
+  `Types of "Infra" has none type.Kind == DeclaredKind.Interface`
+
+## Project dependencies
+
+- **Are only these and not redundant**
+
+  | Project   | May reference | May use                        |
+  | --------- | ------------- | ------------------------------ |
+  | Contract  | -             | Microsoft.*                    |
+  | Core      | Contract      | Microsoft.*                    |
+  | Core.Spec | Core          | *                              |
+  | Entry     | Contract      | Microsoft.*                    |
+  | Host      | Entry, Infra  | Scalar.AspNetCore, Microsoft.* |
+  | Host.Spec | Host          | *                              |
+  | Infra     | Core          | Microsoft.*                    |
+
+  ```
+  Source.Projects is within what is allowed
+      and non redundant
+  ```
+- **Entry never reaches core** — `Source.Projects["Entry"].Reaches does not contain "Core"`
+
+## Subdomain dependencies
+
+- **In core a subdomain uses only the ones the graph draws below it**\
+  `Source.Projects["Core"].Folders is within what is allowed`
+
+  ```mermaid
+  flowchart TD
+      Bookings
+      Rooms
+      Bookings --> Rooms
+  ```
+
+  | Folder   | May use |
+  | -------- | ------- |
+  | Bookings | Rooms   |
+  | Rooms    | -       |
+
+## Enumerable members
+
+- **A member another class calls returns no enumerable**\
+  `Source.Projects[project].Members has none returns an enumerable member`
+- **An enumerable parameter is referenced exactly once**\
+  `Source.Projects[project].Members.SelectMany(ParametersReadOtherThanOnce) is empty`
+
+## Mutable collections
+
+- **No member takes or returns a mutable collection**\
+  `Source.Projects[project].Members has none passes a mutable collection member`
+
+## Public types
+
+- **A public type is named by another project or in a public signature**\
+  `Source.Projects[project].AllTypes.Where(type => type.IsPublic) has all needed project, type`
+
+## Tuple members
+
+- **A public or internal member neither returns nor takes a tuple**\
+  `Source.Projects[project].Members has none member.IsExposed && member.Carries(IsTuple)`
+
+## Wire types
+
+- **No wire property carries an enum a time or an object**\
+  `Contract.Members.Where(IsWireProperty) has none refused property`
+
 ## Append chains
 
 - **A chain of appends holds at most one fixed text** — `Breach project is null`
-
-## Argument lists
-
-- **A list is on one line or one item per line**\
-  `Source.Projects[project].Files.SelectMany(BadlyListed) is empty`
-
-## Arities
-
-- **A method takes at most the ceilings arguments**\
-  `Source.Projects[project].Members.Where(MethodOverTheCeiling).Select(Reported) is empty`
-- **A constructor takes at most the ceilings arguments**\
-  `Source.Projects[project].Members.Where(ConstructorOverTheCeiling).Select(Reported) is empty`
-
-## Arrows
-
-- **An arrow never starts a line** — `Breach project is null`
-
-## Async suffixes
-
-- **No method carries the async suffix**\
-  `Source.Projects[project].Members has none async suffixed member`
 
 ## Catches
 
@@ -74,10 +128,40 @@ flowchart TD
   | "catch (Exception e) when (Log(e)) { throw; }"          |
   | "catch (Exception e) when (Log(e) && false) { throw; }" |
 
-## Characters
+## Default comparers
 
-- **Code and comments are ascii**\
-  `Source.Projects[project].Files.SelectMany(NonAsciiLines) is empty`
+- **No to hash set passes the default comparer**\
+  `Source.Projects[project].Nodes<ArgumentSyntax>() has none default comparer argument`
+
+## Null forgiving
+
+- **An expression holds at most one null forgiving operator**
+  ```
+  Source.Projects[project].Nodes<PostfixUnaryExpressionSyntax>() has none doubly forgiven expression
+  ```
+
+## Query syntax
+
+- **No query is written in query syntax**\
+  `Source.Projects[project].Nodes<QueryExpressionSyntax>() is empty`
+
+## Suppressions
+
+- **No source switches a warning off**\
+  `Source.Projects[project].Nodes<SyntaxNode>() has none suppressing node`
+
+## Type arguments
+
+- **A call names no type argument the compiler infers** — `Breach project is null`
+
+## Argument lists
+
+- **A list is on one line or one item per line**\
+  `Source.Projects[project].Files.SelectMany(BadlyListed) is empty`
+
+## Arrows
+
+- **An arrow never starts a line** — `Breach project is null`
 
 ## Clause braces
 
@@ -105,81 +189,15 @@ flowchart TD
   | "foreach (var x in xs) foreach (var y in x) F();" |
   | "using (scope) { F(); }"                          |
 
-## Comments
-
-- **A type or a member is described by a summary not a comment**\
-  `Breach project, DescribedByAComment, "types or members carry a // comment" is null`
-- **A summary is at most ten lines**\
-  `Breach project, LongSummaries, "/// blocks run over ten lines" is null`
-- **A comment is at most three lines**\
-  `Breach project, LongComments, "// comments run over three lines" is null`
-- **There is no block comment** — `Breach project, BlockComments, "/* */ comments" is null`
-
 ## Conditional branches
 
 - **In a conditional each part takes one line**\
   `Source.Projects[project].Files.SelectMany(PartsOverOneLine) is empty`
 
-## Core specs
-
-- **Each spec sits in the folder of the class it specifies**\
-  `CoreSpecFiles has all CoreClassFolders.Contains(FolderOf(file))`
-- **Each spec file declares one spec** — `CoreSpecFiles has all file.Types.Count == 1`
-
-## Default comparers
-
-- **No to hash set passes the default comparer**\
-  `Source.Projects[project].Nodes<ArgumentSyntax>() has none default comparer argument`
-
-## Enumerable members
-
-- **A member another class calls returns no enumerable**\
-  `Source.Projects[project].Members has none returns an enumerable member`
-- **An enumerable parameter is referenced exactly once**\
-  `Source.Projects[project].Members.SelectMany(ParametersReadOtherThanOnce) is empty`
-
-## Exception types
-
-- **Our exception types live in an exceptions folder without the suffix**\
-  `Breach project is null`
-- **An exceptions folder holds only exceptions**
-  ```
-  Classes(project).Where(type => InTheFolder(FileOf(type)) && !IsAnException(type)).Select(Reported)
-      is empty
-  ```
-- **An exception type elsewhere or with the suffix breaks it**\
-  `Breaks file, name is true`
-
-  | file                                                 | name                    |
-  | ---------------------------------------------------- | ----------------------- |
-  | "Contract/Rooms/RoomNotFound.cs"                     | "RoomNotFound"          |
-  | "Contract/Rooms/Exceptions/RoomNotFoundException.cs" | "RoomNotFoundException" |
-
-- **One in an exceptions folder without the suffix does not**\
-  `Breaks file, name is false`
-
-  | file                                        | name           |
-  | ------------------------------------------- | -------------- |
-  | "Contract/Rooms/Exceptions/RoomNotFound.cs" | "RoomNotFound" |
-
 ## Expression lines
 
 - **Each expression has a line of its own**\
   `Source.Projects[project].Files.SelectMany(SharedLines) is empty`
-
-## File lengths
-
-- **A file is under 250 lines** — `Source.Projects[project].Files has none overlong file`
-
-## Folder cycles
-
-- **No top level folders use each other around a loop**\
-  `Source.Projects[project].Folders is acyclic`
-
-## Get prefixes
-
-- **No member is named get something**\
-  `Source.Projects[project].Members has none named get something member`
 
 ## Indentation
 
@@ -192,17 +210,6 @@ flowchart TD
 
 - **An expression body starts on the arrows line and a block on the next**\
   `Source.Projects[project].Files.SelectMany(MisplacedLambdaBodies) is empty`
-
-## Lambda parameters
-
-- **A lambdas parameter is a word**\
-  `Source.Projects[project].Nodes<ParameterSyntax>() has none unworded parameter`
-
-## Layers
-
-- **Contract declares only public types** — `Types of "Contract" has all type.IsPublic`
-- **Infra declares no interface**\
-  `Types of "Infra" has none type.Kind == DeclaredKind.Interface`
 
 ## Line widths
 
@@ -218,11 +225,6 @@ flowchart TD
 
 - **A member is on one line or its body starts below one level in**\
   `Source.Projects[project].Files.SelectMany(MisplacedMemberBodies) is empty`
-
-## Member order
-
-- **Fields come first then constructors then members by accessibility**\
-  `Breach project is null`
 
 ## Member spacing
 
@@ -248,18 +250,6 @@ flowchart TD
   | "class C {     [Fact]     void A() { }     void B() { } }"        |
   | "class C {     void A() { }       void B() { } }"                 |
 
-## Method size
-
-- **A members size is limited**\
-  `Source.Projects[project].Members.Where(Oversized).Select(Reported) is empty`
-- **The top level statements size is limited**\
-  `Source.Projects[project].Files.Where(OversizedTopLevel).Select(Reported) is empty`
-
-## Mutable collections
-
-- **No member takes or returns a mutable collection**\
-  `Source.Projects[project].Members has none passes a mutable collection member`
-
 ## Nesting depth
 
 - **No line is indented past the fifth level**\
@@ -269,12 +259,40 @@ flowchart TD
 - **A line is indented in whole levels**\
   `Source.Projects[project].Files.SelectMany(PartLevelLines) is empty`
 
-## Null forgiving
+## Core specs
 
-- **An expression holds at most one null forgiving operator**
+- **Each spec sits in the folder of the class it specifies**\
+  `CoreSpecFiles has all CoreClassFolders.Contains(FolderOf(file))`
+- **Each spec file declares one spec** — `CoreSpecFiles has all file.Types.Count == 1`
+
+## Exception types
+
+- **Our exception types live in an exceptions folder without the suffix**\
+  `Breach project is null`
+- **An exceptions folder holds only exceptions**
   ```
-  Source.Projects[project].Nodes<PostfixUnaryExpressionSyntax>() has none doubly forgiven expression
+  Classes(project).Where(type => InTheFolder(FileOf(type)) && !IsAnException(type)).Select(Reported)
+      is empty
   ```
+- **An exception type elsewhere or with the suffix breaks it**\
+  `Breaks file, name is true`
+
+  | file                                                 | name                    |
+  | ---------------------------------------------------- | ----------------------- |
+  | "Contract/Rooms/RoomNotFound.cs"                     | "RoomNotFound"          |
+  | "Contract/Rooms/Exceptions/RoomNotFoundException.cs" | "RoomNotFoundException" |
+
+- **One in an exceptions folder without the suffix does not**\
+  `Breaks file, name is false`
+
+  | file                                        | name           |
+  | ------------------------------------------- | -------------- |
+  | "Contract/Rooms/Exceptions/RoomNotFound.cs" | "RoomNotFound" |
+
+## Member order
+
+- **Fields come first then constructors then members by accessibility**\
+  `Breach project is null`
 
 ## Partials
 
@@ -283,67 +301,6 @@ flowchart TD
   Source.Projects[project].Types.Where(type => type.Files.Count > 1).Select(type =>
       $"{type} in {string.Join(", ", type.Files)}") is empty
   ```
-
-## Project dependencies
-
-- **Are only these and not redundant**
-
-  | Project   | May reference | May use                        |
-  | --------- | ------------- | ------------------------------ |
-  | Contract  | -             | Microsoft.*                    |
-  | Core      | Contract      | Microsoft.*                    |
-  | Core.Spec | Core          | *                              |
-  | Entry     | Contract      | Microsoft.*                    |
-  | Host      | Entry, Infra  | Scalar.AspNetCore, Microsoft.* |
-  | Host.Spec | Host          | *                              |
-  | Infra     | Core          | Microsoft.*                    |
-
-  ```
-  Source.Projects is within what is allowed
-      and non redundant
-  ```
-- **Entry never reaches core** — `Source.Projects["Entry"].Reaches does not contain "Core"`
-
-## Public types
-
-- **A public type is named by another project or in a public signature**\
-  `Source.Projects[project].AllTypes.Where(type => type.IsPublic) has all needed project, type`
-
-## Query syntax
-
-- **No query is written in query syntax**\
-  `Source.Projects[project].Nodes<QueryExpressionSyntax>() is empty`
-
-## Subdomain dependencies
-
-- **In core a subdomain uses only the ones the graph draws below it**\
-  `Source.Projects["Core"].Folders is within what is allowed`
-
-  ```mermaid
-  flowchart TD
-      Bookings
-      Rooms
-      Bookings --> Rooms
-  ```
-
-  | Folder   | May use |
-  | -------- | ------- |
-  | Bookings | Rooms   |
-  | Rooms    | -       |
-
-## Suppressions
-
-- **No source switches a warning off**\
-  `Source.Projects[project].Nodes<SyntaxNode>() has none suppressing node`
-
-## Tuple members
-
-- **A public or internal member neither returns nor takes a tuple**\
-  `Source.Projects[project].Members has none member.IsExposed && member.Carries(IsTuple)`
-
-## Type arguments
-
-- **A call names no type argument the compiler infers** — `Breach project is null`
 
 ## Types per file
 
@@ -357,11 +314,54 @@ flowchart TD
       public but no record type
   ```
 
+## Arities
+
+- **A method takes at most the ceilings arguments**\
+  `Source.Projects[project].Members.Where(MethodOverTheCeiling).Select(Reported) is empty`
+- **A constructor takes at most the ceilings arguments**\
+  `Source.Projects[project].Members.Where(ConstructorOverTheCeiling).Select(Reported) is empty`
+
+## File lengths
+
+- **A file is under 250 lines** — `Source.Projects[project].Files has none overlong file`
+
+## Method size
+
+- **A members size is limited**\
+  `Source.Projects[project].Members.Where(Oversized).Select(Reported) is empty`
+- **The top level statements size is limited**\
+  `Source.Projects[project].Files.Where(OversizedTopLevel).Select(Reported) is empty`
+
+## Async suffixes
+
+- **No method carries the async suffix**\
+  `Source.Projects[project].Members has none async suffixed member`
+
+## Characters
+
+- **Code and comments are ascii**\
+  `Source.Projects[project].Files.SelectMany(NonAsciiLines) is empty`
+
+## Comments
+
+- **A type or a member is described by a summary not a comment**\
+  `Breach project, DescribedByAComment, "types or members carry a // comment" is null`
+- **A summary is at most ten lines**\
+  `Breach project, LongSummaries, "/// blocks run over ten lines" is null`
+- **A comment is at most three lines**\
+  `Breach project, LongComments, "// comments run over three lines" is null`
+- **There is no block comment** — `Breach project, BlockComments, "/* */ comments" is null`
+
+## Get prefixes
+
+- **No member is named get something**\
+  `Source.Projects[project].Members has none named get something member`
+
+## Lambda parameters
+
+- **A lambdas parameter is a word**\
+  `Source.Projects[project].Nodes<ParameterSyntax>() has none unworded parameter`
+
 ## Using aliases
 
 - **A using alias is a word not a letter** — `Breach project is null`
-
-## Wire types
-
-- **No wire property carries an enum a time or an object**\
-  `Contract.Members.Where(IsWireProperty) has none refused property`

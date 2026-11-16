@@ -11,13 +11,14 @@ namespace TSpec.Internal.Document.RenderPipeline;
 /// </summary>
 internal static class DocumentRenderer
 {
+    private const int FolderLevel = 2;
     /// The README first, being the one to open first; then the folders' files, by name.
     internal static IReadOnlyList<SpecificationFile> Render(
         SpecificationSubject subject, string specAssemblyName,
         IEnumerable<SpecificationEntry> entries, string? sourceRoot = null)
     {
         Requirement[] requirements = [.. Requirement.From(entries)];
-        var documents = Document.Of(subject.Name, specAssemblyName, requirements, sourceRoot);
+        var documents = Document.Of(subject.Name, specAssemblyName, requirements, sourceRoot, linkBase: "../");
         if (documents.Count == 0)
             return [];
         return [
@@ -25,18 +26,28 @@ internal static class DocumentRenderer
             .. documents.Select(document => new SpecificationFile(document.Name, document.Layout(subject.Version).Render()))];
     }
 
-    /// What the documents say below their titles, for a page that is headed by its own.
-    internal static IEnumerable<DocumentSegment> Bodies(
-        string subjectName, string specAssemblyName, IEnumerable<SpecificationEntry> entries)
-        => Document.Of(subjectName, specAssemblyName, [.. Requirement.From(entries)], sourceRoot: null)
-            .SelectMany(document => document.Body());
+    /// <summary>
+    /// The documents as sections of one page that sits in the spec project's folder and is headed by its
+    /// own title: what sits at the project's root first, then each folder under a heading naming it,
+    /// its own headings a level below.
+    /// </summary>
+    internal static IEnumerable<DocumentSegment> Sections(
+        string subjectName, string specAssemblyName, IEnumerable<SpecificationEntry> entries, string? sourceRoot)
+        => Document.Of(subjectName, specAssemblyName, [.. Requirement.From(entries)], sourceRoot, linkBase: "")
+            .OrderBy(document => document.Root.HasKey)
+            .SelectMany(Section);
+
+    private static DocumentSegment[] Section(Document document)
+        => document.Root.HasKey
+            ? [new HeadingSegment(document.Title, FolderLevel), .. document.Body(shift: 1)]
+            : document.Body(shift: 0);
 
     private static DocumentSegment[] Layout(this Document document, string version)
         => [new TitleSegment(document.Title),
             CommentSegment.Generated(version, document.GeneratedFrom),
-            .. document.Body()];
+            .. document.Body(shift: 0)];
 
-    private static DocumentSegment[] Body(this Document _document)
+    private static DocumentSegment[] Body(this Document _document, int shift)
     {
         List<DocumentSegment> _segments = [];
         var root = _document.Root;
@@ -61,7 +72,7 @@ internal static class DocumentRenderer
 
         void AddHeading(DocumentNode node, string heading, string? statedSubject, string? statedReturnType)
         {
-            Add(new HeadingSegment(heading, node.Level, _document.Href(node.Source)));
+            Add(new HeadingSegment(heading, node.Level + shift, _document.Href(node.Source)));
             Add(new CodeSegment(
                 statedSubject is null ? node.SubjectUnderTest : null,
                 statedReturnType is null ? node.ReturnType : null,

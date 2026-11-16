@@ -11,7 +11,9 @@ internal sealed record Document(
     string SpecAssemblyName,
     string Name,
     DocumentNode Root,
-    string? SourceRoot)
+    string? SourceRoot,
+    // From the folder the document sits in to the spec project, which links to source are relative to.
+    string LinkBase)
 {
     internal const int Width = 90;
 
@@ -46,12 +48,12 @@ internal sealed record Document(
     /// </summary>
     internal static IReadOnlyList<Document> Of(
         string subjectName, string specAssemblyName,
-        IReadOnlyList<Requirement> requirements, string? sourceRoot)
+        IReadOnlyList<Requirement> requirements, string? sourceRoot, string linkBase)
     {
         var rootDepth = RootDepth(requirements, specAssemblyName);
         var documents = requirements
             .GroupBy(requirement => AreaOf(requirement.Entry.Namespace, rootDepth))
-            .Select(area => ToDocument(area, rootDepth, subjectName, specAssemblyName, sourceRoot))
+            .Select(area => ToDocument(area, rootDepth, subjectName, specAssemblyName, (sourceRoot, linkBase)))
             .OrderBy(document => document.Name, StringComparer.Ordinal)
             .ToArray();
         var clash = documents.Select(document => document.Name)
@@ -67,7 +69,7 @@ internal sealed record Document(
 
     /// Where the documents' links to source point, from the folder the documents sit in.
     internal string? Href(SourceLocation? at)
-        => SourceLink.Href(at, SourceRoot) is { } relative ? $"../{relative}" : null;
+        => SourceLink.Href(at, SourceRoot) is { } relative ? $"{LinkBase}{relative}" : null;
 
     private const int RootLevel = 1;
     private const int GroupLevel = 2;
@@ -75,7 +77,7 @@ internal sealed record Document(
 
     private static Document ToDocument(
         IGrouping<string, Requirement> area, int rootDepth,
-        string subjectName, string specAssemblyName, string? sourceRoot)
+        string subjectName, string specAssemblyName, (string? Root, string Base) links)
     {
         var ofArea = area.ToArray();
         var atRoot = area.Key.Length == 0;
@@ -90,7 +92,7 @@ internal sealed record Document(
             Requirement.SubjectOf(ofArea), Requirement.ReturnTypeOf(ofArea),
             [.. groups.Select(group => ToGroup(group, grouped: groups.Length > 1))],
             Requirements: []);
-        return new(specAssemblyName, name, root, sourceRoot);
+        return new(specAssemblyName, name, root, links.Root, links.Base);
     }
 
     private static string LastPart(string subjectName) => subjectName[(subjectName.LastIndexOf('.') + 1)..];

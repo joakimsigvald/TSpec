@@ -16,12 +16,12 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>1.5.0</PackageVersion>
+		<PackageVersion>1.5.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			DerivesFrom on a type, DeclaringType on a member, and HasAttribute on both
+			Docs: group rules in folders by architecture domain
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

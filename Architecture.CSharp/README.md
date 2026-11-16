@@ -12,6 +12,10 @@ dotnet add package TSpec.Architecture.CSharp
 A condensed reference for coding agents ships with the package, beside TSpec's:
 `~/.nuget/packages/tspec.architecture.csharp/<version>/agent-reference.md`.
 
+Group these rules in folders by architecture domain — `Naming`, `Layout`, `Sizes` — not by the code they
+read: a rule reads every project, so there is no part of the source for its folder to mirror. TSpec's
+architecture page heads each folder and links each rule's class to its file.
+
 Everything below is reached with `using TSpec.Architecture.CSharp;`. `Uses`, `Exposes`, `DependsOn`,
 `DerivesFrom`, `HasAttribute`, `Gives` and `Takes` compile the project with Roslyn, once in a run, and a
 use by reflection is not one the compiler sees.

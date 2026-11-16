@@ -18,6 +18,7 @@ public class WhenRenderTheArchitectureDocument : Spec
     }, spec: "Company.Hotel.Architecture.Spec");
 
     private static readonly Dictionary<string, string> _noIndexes = [];
+    private static readonly string _root = Path.Combine(Path.GetTempPath(), "Hotel.Architecture.Spec");
 
     [Fact]
     public void GivenAProjectHasASpecification_ThenLinkItsNodeToTheIndex()
@@ -110,4 +111,34 @@ public class WhenRenderTheArchitectureDocument : Spec
     public void GivenNoRoot_ThenTitleItAsTheSpecProject()
         => ArchitectureRenderer.Render(new(new() { ["Hotel"] = [], ["Tools"] = [] }), "Hotel.Architecture.Spec", [], _noIndexes)
             .Does().StartWith("# Hotel Architecture Spec\n");
+
+    [Fact]
+    public void GivenTestsInFolders_ThenHeadEachFolderWithItsTestsBelowIt()
+        => Render([Rule("LineWidths", "Layout"), Rule("Layers", "Dependencies")], sourceRoot: null).Does().EndWith(
+            "```\n\n## Dependencies\n\n### Layers\n\n- **Holds** — `Rule holds`\n\n"
+            + "## Layout\n\n### Line widths\n\n- **Holds** — `Rule holds`\n");
+
+    [Fact]
+    public void GivenTestsAtTheRootToo_ThenTheyComeFirstUnderNoFolder()
+        => Render([Rule("Layers", "Dependencies"), Rule("Sources", "")], sourceRoot: null).Does().EndWith(
+            "```\n\n## Sources\n\n- **Holds** — `Rule holds`\n\n"
+            + "## Dependencies\n\n### Layers\n\n- **Holds** — `Rule holds`\n");
+
+    [Fact]
+    public void GivenTheProjectsFolder_ThenATestsHeadingLinksToItsFile()
+        => Render([Rule("LineWidths", "Layout")], _root).Does().Contain("### [Line widths](Layout/LineWidths.cs)\n");
+
+    [Fact]
+    public void GivenTheProjectsFolder_ThenAFolderHeadingDoesNotLink()
+        => Render([Rule("LineWidths", "Layout")], _root).Does().Contain("## Layout\n");
+
+    private static string Render(SpecificationEntry[] entries, string? sourceRoot)
+        => ArchitectureRenderer.Render(_hotel, "Hotel.Architecture.Spec", entries, _noIndexes, sourceRoot);
+
+    /// A passing rule of a class in a folder of the spec project, or at its root when the folder is empty.
+    private static SpecificationEntry Rule(string subject, string folder)
+        => new(subject, "", "Holds",
+            [new([new SpecificationStep(StepLayout.Sentence) { Family = StepFamily.None, Body = "rule holds" }])],
+            Namespace: string.Join('.', new[] { "Hotel.Architecture.Spec", folder }.Where(part => part.Length > 0)),
+            Source: new(Path.Combine(_root, folder, $"{subject}.cs"), 7));
 }

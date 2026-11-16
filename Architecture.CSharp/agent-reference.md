@@ -5,6 +5,7 @@ It reads the code inside the projects of a TSpec build; the projects and their r
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec/blob/main/Architecture.CSharp/README.md).
 
 - `using TSpec.Architecture.CSharp;`.
+- Group rules in folders by architecture domain (`Naming`, `Layout`, `Sizes`), not mirroring the source: a rule reads every project. The namespace follows the folder; the architecture page heads each folder.
 - `Uses`, `Exposes`, `DependsOn`, `DerivesFrom`, `HasAttribute`, `Gives` and `Takes` compile the project once a run; reflection is not seen.
 
 ## Project

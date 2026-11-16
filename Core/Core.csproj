@@ -17,15 +17,13 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>5.4.1</PackageVersion>
+		<PackageVersion>5.5.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			CHANGED
-			* The agent reference is agent-reference.md: point your agent instructions at the new name
-			* Its section on C# code moved to the agent reference TSpec.Architecture.CSharp ships
-			* New icon
+			NEW
+			* The architecture page heads each folder of the spec project and links each test class to its file
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

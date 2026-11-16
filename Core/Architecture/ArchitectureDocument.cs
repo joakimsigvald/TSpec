@@ -42,7 +42,7 @@ public sealed class ArchitectureDocument : IDisposable
     private void Write(string directory, IReadOnlyCollection<SpecificationEntry> entries)
         => PendingSpecification.Write(
             Path.Combine(directory, ArchitectureRenderer.FileName),
-            ArchitectureRenderer.Render(Source.Projects, _specAssembly.GetName().Name!, entries, Indexes(directory)));
+            ArchitectureRenderer.Render(Source.Projects, _specAssembly.GetName().Name!, entries, Indexes(directory), directory));
 
     // Each spec project's own index, by the spec project, as linked from this page.
     private static Dictionary<string, string> Indexes(string directory)
