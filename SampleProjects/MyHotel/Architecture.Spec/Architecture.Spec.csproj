@@ -17,13 +17,20 @@
 	<!-- The source-shape facts read the syntax trees: Roslyn's parser. Keep it at least the SDK's compiler:
 	     syntax newer than this Roslyn parses with errors no fact notices. -->
 	<ItemGroup>
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.12.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="TSpec" Version="5.4.1" />
-		<PackageReference Include="TSpec.Architecture.CSharp" Version="1.4.2" />
 		<PackageReference Include="xunit.v3" Version="4.0.3" />
+	</ItemGroup>
+
+	<!-- TSpec.Architecture.CSharp 1.5.0 before it is published: build ..\..\..\Architecture.CSharp in Release
+	     first. Back to a PackageReference once 1.5.0 is on nuget.org. -->
+	<ItemGroup>
+		<Reference Include="TSpec.Architecture.CSharp">
+			<HintPath>..\..\..\Architecture.CSharp\bin\Release\net10.0\TSpec.Architecture.CSharp.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 
 	<ItemGroup>

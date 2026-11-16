@@ -1,5 +1,4 @@
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using TSpec.Architecture;
 using TSpec.Architecture.CSharp;
 using TSpec.Assert;
@@ -33,18 +32,13 @@ public class WireTypes : TSpec.Spec
     private static bool Converted(ITypeSymbol type) =>
         type.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == "JsonConverterAttribute");
 
-    private static bool Converted(BaseTypeDeclarationSyntax declaration) =>
-        declaration.AttributeLists
-            .SelectMany(list => list.Attributes)
-            .Any(attribute => attribute.Name.ToString() is "JsonConverter" or "JsonConverterAttribute");
-
-    /// <summary>A record's public property, a positional one too, that no converter around it
+    /// <summary>A record's public property, a positional one too, that no converter on the record
     /// writes.</summary>
     private static bool IsWireProperty(DeclaredMember member) =>
         member.Kind is MemberKind.Property
         && member.Accessibility is Accessibility.Public
-        && member.Syntax.FirstAncestorOrSelf<TypeDeclarationSyntax>() is RecordDeclarationSyntax
-        && !member.Syntax.Ancestors().OfType<BaseTypeDeclarationSyntax>().Any(Converted);
+        && member.DeclaringType is { Kind: DeclaredKind.Record or DeclaredKind.RecordStruct } record
+        && !record.HasAttribute("JsonConverter");
 
     private static SourceProject Contract => Source.Projects["Contract"];
 }

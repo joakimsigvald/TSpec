@@ -25,7 +25,7 @@ public class Arities : TSpec.Spec
 
     private static bool MethodOverTheCeiling(DeclaredMember member) =>
         member.Kind is MemberKind.Method or MemberKind.LocalFunction
-        && !member.Attributes.Any(attribute => attribute.Name.ToString() == "Theory")
+        && !member.HasAttribute("Theory")
         && member.Parameters.Count > MethodArguments;
 
     private static bool ConstructorOverTheCeiling(DeclaredMember member) =>

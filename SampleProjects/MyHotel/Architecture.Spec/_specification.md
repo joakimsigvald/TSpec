@@ -144,28 +144,9 @@ flowchart TD
   `Breach project is null`
 - **An exceptions folder holds only exceptions**
   ```
-  Classes(project).Where(type => InTheFolder(type) && !IsAnException(type.Syntax,
-      Ours)).Select(Reported) is empty
+  Classes(project).Where(type => InTheFolder(FileOf(type)) && !IsAnException(type)).Select(Reported)
+      is empty
   ```
-- **A class that derives from an exception is one**\
-  `Is an exception ClassOf(declaration), new HashSet<string> { "RoomNotFound" } is true`
-
-  | declaration                                                           |
-  | --------------------------------------------------------------------- |
-  | "class Refused : Exception { }"                                       |
-  | "class Refused(string message) : InvalidOperationException(message);" |
-  | "class Unreachable : System.IO.IOException { }"                       |
-  | "class Narrower : RoomNotFound { }"                                   |
-
-- **Another class is not**\
-  `Is an exception ClassOf(declaration), new HashSet<string>() is false`
-
-  | declaration                       |
-  | --------------------------------- |
-  | "class Refusal { }"               |
-  | "class Refusal : IDisposable { }" |
-  | "class Refusal : Exceptional { }" |
-
 - **An exception type elsewhere or with the suffix breaks it**\
   `Breaks file, name is true`
 

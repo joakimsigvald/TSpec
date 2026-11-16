@@ -17,9 +17,7 @@ public class CoreSpecs : TSpec.Spec
     private static IEnumerable<SourceFile> CoreSpecFiles =>
         Source.Projects["Core.Spec"].Files.Where(file => file.Types.Any(IsSpec));
 
-    /// <summary>A spec derives from Spec, but a declared type has no base type to tell it by; MyHotel names
-    /// every spec When...</summary>
-    private static bool IsSpec(DeclaredType type) => type.Name.StartsWith("When", StringComparison.Ordinal);
+    private static bool IsSpec(DeclaredType type) => type.DerivesFrom(typeof(TSpec.Spec<,>));
 
     private static IReadOnlySet<string> CoreClassFolders
     {
