@@ -100,7 +100,7 @@ public record CountContinuation<TItem, TContinuation> : EnumerableConstraint<TIt
 
     /// The count in the failure description is the number of counted items,
     /// i.e. the number of matching items when a condition is given
-    private protected override string Found(IEnumerable<TItem>? actual, string? methodName)
+    protected override string Found(IEnumerable<TItem>? actual, string? methodName)
         => actual is null ? "null" : Counted(Count(actual), actual);
 
     private string ExpressExpectation(int expected, string expectedExpr) 

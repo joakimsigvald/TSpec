@@ -11,6 +11,9 @@ public static class Source
     internal const string NoOtherRoot = "Source.Projects is named under the root your spec project's name shares with the "
         + "projects: leave Under out, or rename the spec project to share it.";
 
+    internal const string MovedToCSharp = "Moved to the package TSpec.Architecture.CSharp, where it works as before: "
+        + "reference the package and use its namespace, TSpec.Architecture.CSharp.";
+
     private static readonly Lazy<SourceProjects> _projects = new(SourceProjects.ReadBuilt);
 
     /// <summary>

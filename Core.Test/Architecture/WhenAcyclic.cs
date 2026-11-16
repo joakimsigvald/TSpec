@@ -1,6 +1,8 @@
 using TSpec.Architecture;
 using TSpec.Assert;
 
+#pragma warning disable CS0618 // The deprecated graph is what these specify: that it still asserts as it did.
+
 namespace TSpec.Test.Architecture;
 
 public class WhenAcyclic : Spec

@@ -39,7 +39,11 @@ public abstract record Constraint<TActual, TContinuation>
     : Constraint
     where TContinuation : Constraint<TActual, TContinuation>, new()
 {
-    internal Constraint() : base() => AuxiliaryVerb = typeof(TContinuation).Name.ToWords()[0];
+    /// <summary>
+    /// For a constraint of an extension package: its continuation's name starts with the verb its
+    /// assertions are stated with, as in IsDependencyGraph
+    /// </summary>
+    protected Constraint() : base() => AuxiliaryVerb = typeof(TContinuation).Name.ToWords()[0];
 
     /// <summary>
     /// Invert the following assertion
@@ -132,7 +136,39 @@ public abstract record Constraint<TActual, TContinuation>
     internal static TContinuation Create(TActual? actual, string actualExpr)
         => new() { Actual = actual, ActualExpr = actualExpr.DescribeActual(SpecificationContext.PendingSubject) };
 
-    internal TActual? Actual { get; set; }
+    /// <summary>
+    /// The value asserted on
+    /// </summary>
+    protected internal TActual? Actual { get; internal set; }
+
+    /// <summary>
+    /// For a constraint of an extension package: asserts what the action checks, stated as the calling
+    /// method's name and the expected value. The action fails the assertion by throwing
+    /// </summary>
+    /// <param name="expected">The expected value, or <see cref="Ignore.Me"/> when the method's name says it all</param>
+    /// <param name="assert">What must hold of the value asserted on</param>
+    /// <param name="expectedExpr">How the expected value reads in the specification</param>
+    /// <param name="methodName">Captured automatically by the compiler — do not provide</param>
+    /// <returns>A continuation for making further assertions on the value</returns>
+    protected ContinueWith<TContinuation> Expect(
+        object? expected,
+        Action<TActual?> assert,
+        string? expectedExpr = null,
+        [CallerMemberName] string? methodName = null)
+        => Assert(expected, assert, expectedExpr, methodName: methodName).And();
+
+    /// <summary>
+    /// For a constraint of an extension package: states the assertion as a table in the specification, the
+    /// arrows, where given, drawn above it from one row's name to another's
+    /// </summary>
+    /// <param name="headers">The table's headers</param>
+    /// <param name="rows">The table's rows, a cell per header</param>
+    /// <param name="arrows">Arrows between the rows' names</param>
+    protected void AddTable(
+        IReadOnlyList<string> headers,
+        IReadOnlyList<IReadOnlyList<string>> rows,
+        IReadOnlyList<(string From, string To)>? arrows = null)
+        => SpecificationContext.Current.AddTable(new(headers, rows, arrows));
 
     internal virtual ContinueWith<TContinuation> Value(
         TActual expected, string expectedExpr)
@@ -221,9 +257,21 @@ public abstract record Constraint<TActual, TContinuation>
 
     private protected virtual string Outcome(TActual? actual, string? methodName) => $" but found {Found(actual, methodName)}";
 
-    private protected virtual string Found(TActual? actual, string? methodName) => actual.FormatValue();
+    /// <summary>
+    /// What a failure says was found, after "but found"
+    /// </summary>
+    /// <param name="actual">The value asserted on</param>
+    /// <param name="methodName">The assertion that failed</param>
+    /// <returns>The text of what was found</returns>
+    protected virtual string Found(TActual? actual, string? methodName) => actual.FormatValue();
 
-    private protected static string Counted(int count, object items) => $"{count}: {items.FormatValue()}";
+    /// <summary>
+    /// What was found as a count and the items: <c>2: ["A", "B"]</c>
+    /// </summary>
+    /// <param name="count">How many were found</param>
+    /// <param name="items">What was found</param>
+    /// <returns>The text of what was found</returns>
+    protected static string Counted(int count, object items) => $"{count}: {items.FormatValue()}";
 
     internal ContinueWith<TContinuation> And() => new(Continued());
     internal ContinueWithThat<TContinuation, TThat> AndThat<TThat>(TThat that)

@@ -21,16 +21,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="TSpec" Version="5.4.1" />
+		<PackageReference Include="TSpec" Version="5.5.0-local.2" />
+		<PackageReference Include="TSpec.Architecture.CSharp" Version="1.6.0-local.1" />
 		<PackageReference Include="xunit.v3" Version="4.0.3" />
-	</ItemGroup>
-
-	<!-- TSpec.Architecture.CSharp 1.5.0 before it is published: build ..\..\..\Architecture.CSharp in Release
-	     first. Back to a PackageReference once 1.5.0 is on nuget.org. -->
-	<ItemGroup>
-		<Reference Include="TSpec.Architecture.CSharp">
-			<HintPath>..\..\..\Architecture.CSharp\bin\Release\net10.0\TSpec.Architecture.CSharp.dll</HintPath>
-		</Reference>
 	</ItemGroup>
 
 	<ItemGroup>

@@ -49,7 +49,8 @@ public record IsProjectGraph : Constraint<SourceProjects, IsProjectGraph>
         return Assert(Ignore.Me, _ => Xunit.Assert.NotEmpty(_found)).And();
     }
 
-    private protected override string Found(SourceProjects? actual, string? methodName) => Counted(_found.Count, _found);
+    /// <inheritdoc/>
+    protected override string Found(SourceProjects? actual, string? methodName) => Counted(_found.Count, _found);
 }
 
 /// <summary>
@@ -77,6 +78,7 @@ public static class AssertionExtensionsArchitecture
     /// <param name="_">Ignore this parameter — it exists only to distinguish overloads</param>
     /// <param name="actualExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making assertions on the dependencies</returns>
+    [Obsolete(Source.MovedToCSharp)]
     public static IsDependencyGraph Is(
         this DependencyGraph? actual,
         Ignore _ = default,

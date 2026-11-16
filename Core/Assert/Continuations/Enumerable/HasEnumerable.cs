@@ -319,7 +319,8 @@ public record HasEnumerable<TItem, TContinuation> : EnumerableConstraint<TItem, 
 
     internal override TContinuation Continue() => Create(Actual, ActualExpr);
 
-    private protected override string Found(IEnumerable<TItem>? actual, string? methodName)
+    /// <inheritdoc/>
+    protected override string Found(IEnumerable<TItem>? actual, string? methodName)
         => _breaches ?? base.Found(actual, methodName);
 
     private void ExpectNone(IEnumerable<TItem> breaches, string relation)

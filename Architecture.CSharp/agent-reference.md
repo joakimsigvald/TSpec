@@ -1,6 +1,6 @@
 # TSpec.Architecture.CSharp — Agent Reference
 
-Condensed reference for AI coding agents writing architecture rules with TSpec.Architecture.CSharp (covers 1.5).
+Condensed reference for AI coding agents writing architecture rules with TSpec.Architecture.CSharp (covers 1.6).
 It reads the code inside the projects of a TSpec build; the projects and their references (`Source.Projects`, `Within`, `NonRedundant`) are TSpec's own, in TSpec's `agent-reference.md`.
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec/blob/main/Architecture.CSharp/README.md).
 
@@ -14,6 +14,13 @@ Full documentation: [README.md](https://github.com/joakimsigvald/TSpec/blob/main
 - `Types` are those of all its files, a partial type once; `Members` and `Nodes<T>()` are all its files'.
 - `AllTypes` (on a file too): its types and those nested in them, however deep. `Types` are the top-level ones only, so a rule on every public type reads `AllTypes`.
 - `Folders`: a `DependencyGraph` of the folders directly in its own, each with the folders whose types its files use. A file at the project's root is in no folder. Assert with `Folders.Is().Within(...)`.
+
+## Dependency graph
+
+- `new DependencyGraph("Namespace", dependencies)`: each node's name and the names it depends on; the first argument heads the table. `Is().Within(...)` takes the rules `Source.Projects` takes.
+- Its test draws what the rules allow above its table in the generated specification. A target ending in `*` draws no arrow.
+- `Is().Acyclic()`: no nodes depend on each other around a loop; a failure names the first (`A -> B -> A`).
+- Moved here from TSpec in 1.6, where the old one is deprecated: `using TSpec.Architecture.CSharp;`.
 
 ## File
 

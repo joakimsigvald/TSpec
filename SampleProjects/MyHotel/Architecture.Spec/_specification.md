@@ -23,18 +23,20 @@ flowchart TD
     classDef spec fill:none,stroke-dasharray:4 3,opacity:0.8
 ```
 
-## Folder cycles
+## Dependencies
+
+### [Folder cycles](Dependencies/FolderCycles.cs)
 
 - **No top level folders use each other around a loop**\
   `Source.Projects[project].Folders is acyclic`
 
-## Layers
+### [Layers](Dependencies/Layers.cs)
 
 - **Contract declares only public types** — `Types of "Contract" has all type.IsPublic`
 - **Infra declares no interface**\
   `Types of "Infra" has none type.Kind == DeclaredKind.Interface`
 
-## Project dependencies
+### [Project dependencies](Dependencies/ProjectDependencies.cs)
 
 - **Are only these and not redundant**
 
@@ -54,7 +56,7 @@ flowchart TD
   ```
 - **Entry never reaches core** — `Source.Projects["Entry"].Reaches does not contain "Core"`
 
-## Subdomain dependencies
+### [Subdomain dependencies](Dependencies/SubdomainDependencies.cs)
 
 - **In core a subdomain uses only the ones the graph draws below it**\
   `Source.Projects["Core"].Folders is within what is allowed`
@@ -71,38 +73,42 @@ flowchart TD
   | Bookings | Rooms   |
   | Rooms    | -       |
 
-## Enumerable members
+## Exposure
+
+### [Enumerable members](Exposure/EnumerableMembers.cs)
 
 - **A member another class calls returns no enumerable**\
   `Source.Projects[project].Members has none returns an enumerable member`
 - **An enumerable parameter is referenced exactly once**\
   `Source.Projects[project].Members.SelectMany(ParametersReadOtherThanOnce) is empty`
 
-## Mutable collections
+### [Mutable collections](Exposure/MutableCollections.cs)
 
 - **No member takes or returns a mutable collection**\
   `Source.Projects[project].Members has none passes a mutable collection member`
 
-## Public types
+### [Public types](Exposure/PublicTypes.cs)
 
 - **A public type is named by another project or in a public signature**\
   `Source.Projects[project].AllTypes.Where(type => type.IsPublic) has all needed project, type`
 
-## Tuple members
+### [Tuple members](Exposure/TupleMembers.cs)
 
 - **A public or internal member neither returns nor takes a tuple**\
   `Source.Projects[project].Members has none member.IsExposed && member.Carries(IsTuple)`
 
-## Wire types
+### [Wire types](Exposure/WireTypes.cs)
 
 - **No wire property carries an enum a time or an object**\
   `Contract.Members.Where(IsWireProperty) has none refused property`
 
-## Append chains
+## Idioms
+
+### [Append chains](Idioms/AppendChains.cs)
 
 - **A chain of appends holds at most one fixed text** — `Breach project is null`
 
-## Catches
+### [Catches](Idioms/Catches.cs)
 
 - **No catch takes every exception** — `Breach project is null`
 - **A catch takes every exception** — `Takes everything CatchOf(clause) is true`
@@ -128,42 +134,44 @@ flowchart TD
   | "catch (Exception e) when (Log(e)) { throw; }"          |
   | "catch (Exception e) when (Log(e) && false) { throw; }" |
 
-## Default comparers
+### [Default comparers](Idioms/DefaultComparers.cs)
 
 - **No to hash set passes the default comparer**\
   `Source.Projects[project].Nodes<ArgumentSyntax>() has none default comparer argument`
 
-## Null forgiving
+### [Null forgiving](Idioms/NullForgiving.cs)
 
 - **An expression holds at most one null forgiving operator**
   ```
   Source.Projects[project].Nodes<PostfixUnaryExpressionSyntax>() has none doubly forgiven expression
   ```
 
-## Query syntax
+### [Query syntax](Idioms/QuerySyntax.cs)
 
 - **No query is written in query syntax**\
   `Source.Projects[project].Nodes<QueryExpressionSyntax>() is empty`
 
-## Suppressions
+### [Suppressions](Idioms/Suppressions.cs)
 
 - **No source switches a warning off**\
   `Source.Projects[project].Nodes<SyntaxNode>() has none suppressing node`
 
-## Type arguments
+### [Type arguments](Idioms/TypeArguments.cs)
 
 - **A call names no type argument the compiler infers** — `Breach project is null`
 
-## Argument lists
+## Layout
+
+### [Argument lists](Layout/ArgumentLists.cs)
 
 - **A list is on one line or one item per line**\
   `Source.Projects[project].Files.SelectMany(BadlyListed) is empty`
 
-## Arrows
+### [Arrows](Layout/Arrows.cs)
 
 - **An arrow never starts a line** — `Breach project is null`
 
-## Clause braces
+### [Clause braces](Layout/ClauseBraces.cs)
 
 - **A clause takes braces unless it is a simple statement** — `Breach project is null`
 - **A statement braces its clauses** — `Misbraced in statement is empty`
@@ -189,44 +197,44 @@ flowchart TD
   | "foreach (var x in xs) foreach (var y in x) F();" |
   | "using (scope) { F(); }"                          |
 
-## Conditional branches
+### [Conditional branches](Layout/ConditionalBranches.cs)
 
 - **In a conditional each part takes one line**\
   `Source.Projects[project].Files.SelectMany(PartsOverOneLine) is empty`
 
-## Expression lines
+### [Expression lines](Layout/ExpressionLines.cs)
 
 - **Each expression has a line of its own**\
   `Source.Projects[project].Files.SelectMany(SharedLines) is empty`
 
-## Indentation
+### [Indentation](Layout/Indentation.cs)
 
 - **A line is at most a level deeper than the line before it**\
   `Source.Projects[project].Files.SelectMany(OversteppingLines) is empty`
 - **A brace on a line of its own stands at the level of its construct**\
   `Source.Projects[project].Files.SelectMany(MisbracedLines) is empty`
 
-## Lambda bodies
+### [Lambda bodies](Layout/LambdaBodies.cs)
 
 - **An expression body starts on the arrows line and a block on the next**\
   `Source.Projects[project].Files.SelectMany(MisplacedLambdaBodies) is empty`
 
-## Line widths
+### [Line widths](Layout/LineWidths.cs)
 
 - **A line is at most 110 characters**\
   `Source.Projects[project].Files.SelectMany(OverwideLines) is empty`
 
-## List ends
+### [List ends](Layout/ListEnds.cs)
 
 - **A list whose items start on one line ends on it**\
   `Source.Projects[project].Files.SelectMany(ListsEndingBelowTheirLine) is empty`
 
-## Member bodies
+### [Member bodies](Layout/MemberBodies.cs)
 
 - **A member is on one line or its body starts below one level in**\
   `Source.Projects[project].Files.SelectMany(MisplacedMemberBodies) is empty`
 
-## Member spacing
+### [Member spacing](Layout/MemberSpacing.cs)
 
 - **Members are one empty line apart unless two single line ones of a kind**\
   `Breach project is null`
@@ -250,7 +258,7 @@ flowchart TD
   | "class C {     [Fact]     void A() { }     void B() { } }"        |
   | "class C {     void A() { }       void B() { } }"                 |
 
-## Nesting depth
+### [Nesting depth](Layout/NestingDepth.cs)
 
 - **No line is indented past the fifth level**\
   `Source.Projects[project].Files.SelectMany(OvernestedLines) is empty`
@@ -259,13 +267,15 @@ flowchart TD
 - **A line is indented in whole levels**\
   `Source.Projects[project].Files.SelectMany(PartLevelLines) is empty`
 
-## Core specs
+## Placement
+
+### [Core specs](Placement/CoreSpecs.cs)
 
 - **Each spec sits in the folder of the class it specifies**\
   `CoreSpecFiles has all CoreClassFolders.Contains(FolderOf(file))`
 - **Each spec file declares one spec** — `CoreSpecFiles has all file.Types.Count == 1`
 
-## Exception types
+### [Exception types](Placement/ExceptionTypes.cs)
 
 - **Our exception types live in an exceptions folder without the suffix**\
   `Breach project is null`
@@ -289,12 +299,12 @@ flowchart TD
   | ------------------------------------------- | -------------- |
   | "Contract/Rooms/Exceptions/RoomNotFound.cs" | "RoomNotFound" |
 
-## Member order
+### [Member order](Placement/MemberOrder.cs)
 
 - **Fields come first then constructors then members by accessibility**\
   `Breach project is null`
 
-## Partials
+### [Partials](Placement/Partials.cs)
 
 - **A partial type is declared in one file**
   ```
@@ -302,7 +312,7 @@ flowchart TD
       $"{type} in {string.Join(", ", type.Files)}") is empty
   ```
 
-## Types per file
+### [Types per file](Placement/TypesPerFile.cs)
 
 - **A file declares one public type**\
   `Source.Projects[project].Files.Where(Ours) has none crowded file`
@@ -314,35 +324,39 @@ flowchart TD
       public but no record type
   ```
 
-## Arities
+## Sizes
+
+### [Arities](Sizes/Arities.cs)
 
 - **A method takes at most the ceilings arguments**\
   `Source.Projects[project].Members.Where(MethodOverTheCeiling).Select(Reported) is empty`
 - **A constructor takes at most the ceilings arguments**\
   `Source.Projects[project].Members.Where(ConstructorOverTheCeiling).Select(Reported) is empty`
 
-## File lengths
+### [File lengths](Sizes/FileLengths.cs)
 
 - **A file is under 250 lines** — `Source.Projects[project].Files has none overlong file`
 
-## Method size
+### [Method size](Sizes/MethodSize.cs)
 
 - **A members size is limited**\
   `Source.Projects[project].Members.Where(Oversized).Select(Reported) is empty`
 - **The top level statements size is limited**\
   `Source.Projects[project].Files.Where(OversizedTopLevel).Select(Reported) is empty`
 
-## Async suffixes
+## Wording
+
+### [Async suffixes](Wording/AsyncSuffixes.cs)
 
 - **No method carries the async suffix**\
   `Source.Projects[project].Members has none async suffixed member`
 
-## Characters
+### [Characters](Wording/Characters.cs)
 
 - **Code and comments are ascii**\
   `Source.Projects[project].Files.SelectMany(NonAsciiLines) is empty`
 
-## Comments
+### [Comments](Wording/Comments.cs)
 
 - **A type or a member is described by a summary not a comment**\
   `Breach project, DescribedByAComment, "types or members carry a // comment" is null`
@@ -352,16 +366,16 @@ flowchart TD
   `Breach project, LongComments, "// comments run over three lines" is null`
 - **There is no block comment** — `Breach project, BlockComments, "/* */ comments" is null`
 
-## Get prefixes
+### [Get prefixes](Wording/GetPrefixes.cs)
 
 - **No member is named get something**\
   `Source.Projects[project].Members has none named get something member`
 
-## Lambda parameters
+### [Lambda parameters](Wording/LambdaParameters.cs)
 
 - **A lambdas parameter is a word**\
   `Source.Projects[project].Nodes<ParameterSyntax>() has none unworded parameter`
 
-## Using aliases
+### [Using aliases](Wording/UsingAliases.cs)
 
 - **A using alias is a word not a letter** — `Breach project is null`

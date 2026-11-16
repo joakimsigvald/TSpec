@@ -70,7 +70,7 @@ public record LengthContinuation : EnumerableConstraint<char, HasStringContinuat
     }
 
     /// The failure description states the actual length before the string itself
-    private protected override string Found(IEnumerable<char>? actual, string? methodName)
+    protected override string Found(IEnumerable<char>? actual, string? methodName)
         => actual is null ? "null" : Counted(actual.Count(), actual);
 
     internal override HasStringContinuation Continue() => _parent.Continue();

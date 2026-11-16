@@ -6,6 +6,7 @@ namespace TSpec.Architecture;
 /// <summary>
 /// Continuation that allows assertions to be made on the dependencies between the nodes of a graph
 /// </summary>
+[Obsolete(Source.MovedToCSharp)]
 public record IsDependencyGraph : Constraint<DependencyGraph, IsDependencyGraph>
 {
     private const string WhatIsAllowed = "what is allowed";
@@ -38,5 +39,6 @@ public record IsDependencyGraph : Constraint<DependencyGraph, IsDependencyGraph>
         return Assert(Ignore.Me, _ => Xunit.Assert.Empty(_found)).And();
     }
 
-    private protected override string Found(DependencyGraph? actual, string? methodName) => Counted(_found.Count, _found);
+    /// <inheritdoc/>
+    protected override string Found(DependencyGraph? actual, string? methodName) => Counted(_found.Count, _found);
 }

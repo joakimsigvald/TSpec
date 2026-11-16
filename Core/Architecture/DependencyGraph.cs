@@ -10,6 +10,7 @@ namespace TSpec.Architecture;
 /// </summary>
 /// <param name="node">What a node is, as the table of what each may use names it, such as "Folder"</param>
 /// <param name="dependencies">The names each node depends on, by the node's name</param>
+[Obsolete(Source.MovedToCSharp)]
 public sealed class DependencyGraph(string node, IReadOnlyDictionary<string, IReadOnlyList<string>> dependencies)
     : ReadOnlyDictionary<string, IReadOnlyList<string>>(Sorted(dependencies))
 {

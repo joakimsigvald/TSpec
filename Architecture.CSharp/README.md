@@ -28,8 +28,8 @@ its files, a partial type once. Its `AllTypes` are its types and those nested in
 
 A project's `Folders` are the folders directly in its own that hold its files, each with the others it
 uses: one of its files uses a type a file of the other declares. A file at the project's root is in no
-folder. They are a TSpec `DependencyGraph`, so `Within` takes rules on them as on the projects, and the
-generated specification draws what the rules allow:
+folder. They are a [`DependencyGraph`](#dependency-graph), so `Within` takes rules on them as on the
+projects, and the generated specification draws what the rules allow:
 
 ```csharp
 [Fact]
@@ -43,6 +43,21 @@ public void A_subdomain_uses_only_those_below_it()
 ```
 
 Without rules, `Folders.Is().Acyclic()` keeps a project's folders one way.
+
+## Dependency graph
+
+A `DependencyGraph` holds named nodes, each with the names it depends on:
+`new DependencyGraph("Namespace", dependencies)`, where the first argument says what a node is. A
+project's `Folders` are one.
+
+- `Is().Within(...)` asserts that each node depends only on what one of the rules allows it. The rules
+  are written as for `Source.Projects`, in TSpec's README.
+- In the generated specification, the test draws what the rules allow above a table of what each node
+  may use: an arrow for each target written in full, while a target ending in `*` is only in the table.
+- `Is().Acyclic()` asserts that no nodes depend on each other around a loop, and a failure names the
+  first: `A -> B -> A`.
+
+It moved here from TSpec in 1.6, where the old one is deprecated.
 
 ## File
 

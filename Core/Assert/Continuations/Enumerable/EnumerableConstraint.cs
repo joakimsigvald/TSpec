@@ -10,7 +10,8 @@ public abstract record EnumerableConstraint<TItem, TContinuation> : Constraint<I
 {
     static readonly string[] _methodsWithCount = ["Count", "Length", "OneItem", "TwoItems", "ThreeItems", "FourItems", "FiveItems"];
 
-    private protected override string Found(IEnumerable<TItem>? actual, string? methodName)
+    /// <inheritdoc/>
+    protected override string Found(IEnumerable<TItem>? actual, string? methodName)
         => actual is not null && IsCounted(actual, methodName) ? Counted(actual.Count(), actual) : actual.FormatValue();
 
     // A deferred sequence is counted only where the assertion has counted it: an infinite one never ends.

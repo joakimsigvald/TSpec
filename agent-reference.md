@@ -188,9 +188,7 @@ public void AreOnlyTheseAndNotRedundant()
 - Layer rules: switch on `p.Segment(0)` (also `Segment(^1)`, `Segment(..2)`).
 - Custom rules: `Source.Projects["X"]` (an unknown name throws `SetupFailed`) is a `SourceProject` with `Name`, `Dependencies` and `Reaches` (directly or through other projects, packages included), named as the rules see them. `IsSpecProject`: it reaches TSpec, whatever its name. `OpensInternalsTo`: the projects its `InternalsVisibleTo` names.
 - The architecture page: `[assembly: AssemblyFixture(typeof(ArchitectureDocument))]` writes `_specification.md`, a diagram of the projects and the tests below it, on a clean full run. Only `Spec` classes count, so derive the test classes from `Spec`.
-- A graph of your own: `new DependencyGraph("Namespace", dependencies)`, each node's name and the names it depends on; the first argument heads the table. `Is().Within(...)` takes the same rules.
-- A `DependencyGraph`'s test draws what the rules allow above its table in the generated specification. A target ending in `*` draws no arrow.
-- `graph.Is().Acyclic()`: no nodes depend on each other around a loop; a failure names the first (`A -> B -> A`).
+- `DependencyGraph`, with `Within` and `Acyclic`, moved to `TSpec.Architecture.CSharp`; the one here is deprecated.
 - `Project.Dependencies` is obsolete: use `Source.Projects["X"].Dependencies`.
 - Rules on the code inside a project (its files, folders, types, members and syntax) take the package `TSpec.Architecture.CSharp`, which ships an `agent-reference.md` of its own.
 
