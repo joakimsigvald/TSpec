@@ -1,4 +1,4 @@
-using TSpec.Architecture;
+using TSpec.Architecture.CSharp;
 using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec.Dependencies;

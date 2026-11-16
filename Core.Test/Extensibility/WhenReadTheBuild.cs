@@ -3,6 +3,8 @@ using TSpec.Assert;
 using TSpec.Extensibility;
 using TSpec.Test.Internal.Document;
 
+#pragma warning disable CS0618 // The build is read through the deprecated project graph too, which still opens it as it did.
+
 namespace TSpec.Test.Extensibility;
 
 public class WhenReadTheBuild : Spec
@@ -13,6 +15,29 @@ public class WhenReadTheBuild : Spec
         Build.TryOpenDebugInformation(Source.Projects["."], out var provider).Is().True();
         provider!.Dispose();
     }
+
+    [Fact]
+    public void GivenTheAssemblyNameOfAProject_ThenOpenItsDebugInformation()
+    {
+        Build.TryOpenDebugInformation("TSpec", out var provider).Is().True();
+        provider!.Dispose();
+    }
+
+    [Fact]
+    public void GivenAnAssemblyNameWithNoAssemblyInTheBuildOutput_ThenOpenNothing()
+        => Build.TryOpenDebugInformation("Nowhere", out _).Is().False();
+
+    [Fact]
+    public void ThenListTheProjectsOfTheBuildByTheirAssemblyNames()
+        => Build.References.Keys.Order(StringComparer.Ordinal).Is().EqualTo(["TSpec", "TSpec.Test"]);
+
+    [Fact]
+    public void ThenGiveEachProjectWhatItReferencesDirectly_PackagesWithP()
+        => Build.References["TSpec.Test"].Does().Contain("TSpec").and.Contain("P:xunit.v3");
+
+    [Fact]
+    public void ThenNameTheRunningSpecProject()
+        => Build.SpecProject.Is("TSpec.Test");
 
     [Fact]
     public void GivenAProjectWithNoAssemblyInTheBuildOutput_ThenOpenNothing()

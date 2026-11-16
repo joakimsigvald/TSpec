@@ -4,5 +4,5 @@ namespace TSpec.Architecture.CSharp.Test.Uses;
 
 public static class DependingOnOthers
 {
-    public static object Of(SourceFile file) => (file, SyntaxKind.ClassKeyword, Source.Projects, DateTime.Now, new Constructed());
+    public static object Of(SourceFile file) => (file, SyntaxKind.ClassKeyword, Ignore.Me, DateTime.Now, new Constructed());
 }

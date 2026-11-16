@@ -1,5 +1,7 @@
 using TSpec.Architecture;
 
+#pragma warning disable CS0618 // The architecture page reads TSpec's deprecated project graph until it moves to the package too.
+
 namespace TSpec.Internal.Document.RenderPipeline;
 
 /// The projects as a Mermaid flowchart, packages left out. Each project and each reference is a line

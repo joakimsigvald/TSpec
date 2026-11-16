@@ -1,6 +1,5 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using TSpec.Architecture;
 using TSpec.Assert;
 using TSpec.Test.Internal.Document;
 using static TSpec.Architecture.CSharp.Test.WrittenFiles;

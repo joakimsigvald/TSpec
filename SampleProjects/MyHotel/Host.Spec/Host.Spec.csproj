@@ -16,7 +16,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.15" />
-		<PackageReference Include="TSpec" Version="5.5.0-local.2" />
+		<PackageReference Include="TSpec" Version="5.5.0-local.3" />
 		<PackageReference Include="xunit.v3" Version="4.0.3" />
 	</ItemGroup>
 

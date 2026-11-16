@@ -1,6 +1,8 @@
 using TSpec.Architecture;
 using TSpec.Assert;
 
+#pragma warning disable CS0618 // The deprecated project graph is what these specify: that it still reads and asserts as it did.
+
 namespace TSpec.Test.Architecture;
 
 public class WhenUnderTheRoot : Spec
@@ -68,11 +70,9 @@ public class WhenUnderTheRoot : Spec
     public void GivenTheRootsSpecProjectAlsoReachesTheRootThroughAnother_ThenItIsNotRedundant()
         => UnderHost(new() { ["Host.Spec"] = ["Host", "Host.TestHost"], ["Host.TestHost"] = ["Host"] }).Is().NonRedundant();
 
-#pragma warning disable CS0618 // The obsolete Under still names the projects under the root it is given.
     [Fact]
     public void GivenTheObsoleteUnder_ThenNameTheProjectsUnderTheRootItIsGiven()
         => new SourceProjects(new() { ["Host.Entry"] = [] }).Under("Host").Select(project => project.Name).Is().EqualTo(["Entry"]);
-#pragma warning restore CS0618
 
     private static SourceProjects UnderHost(Dictionary<string, IReadOnlyList<string>> references)
         => new(references, spec: "Host.Architecture.Spec");

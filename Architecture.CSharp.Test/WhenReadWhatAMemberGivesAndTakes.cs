@@ -1,5 +1,4 @@
 using Microsoft.CodeAnalysis;
-using TSpec.Architecture;
 using TSpec.Assert;
 using TSpec.Architecture.CSharp.Test.Signatures;
 

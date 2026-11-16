@@ -14,11 +14,13 @@ public static class Source
     internal const string MovedToCSharp = "Moved to the package TSpec.Architecture.CSharp, where it works as before: "
         + "reference the package and use its namespace, TSpec.Architecture.CSharp.";
 
+    [Obsolete(MovedToCSharp)]
     private static readonly Lazy<SourceProjects> _projects = new(SourceProjects.ReadBuilt);
 
     /// <summary>
     /// Every project the running spec project was built with, itself too, each with the projects and
     /// packages it references directly, as the build resolved them
     /// </summary>
+    [Obsolete(MovedToCSharp)]
     public static SourceProjects Projects => _projects.Value;
 }

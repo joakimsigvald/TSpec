@@ -1,10 +1,18 @@
 # TSpec.Architecture.CSharp
 
-Architecture rules on the code inside the projects of a [TSpec](https://github.com/joakimsigvald/TSpec#readme)
-build: their source files and folders, the types those declare and their Roslyn syntax. The projects
-and their references are TSpec's own, in [its README's Architecture section](https://github.com/joakimsigvald/TSpec#7-architecture).
+Architecture rules on a [TSpec](https://github.com/joakimsigvald/TSpec#readme) build: its projects and
+their references, and the code inside them — their source files and folders, the types those declare
+and their Roslyn syntax.
 
-Install the package in your architecture spec project:
+Put the architecture tests in a spec project of their own, say `Architecture.Spec`, that references
+every project in the solution, and add the package to it:
+
+```xml
+<ItemGroup>
+  <ProjectReference Include="..\**\*.csproj" Exclude="..\Architecture.Spec\**" />
+</ItemGroup>
+```
+
 ```shell
 dotnet add package TSpec.Architecture.CSharp
 ```
@@ -19,6 +27,56 @@ architecture page heads each folder and links each rule's class to its file.
 Everything below is reached with `using TSpec.Architecture.CSharp;`. `Uses`, `Exposes`, `DependsOn`,
 `DerivesFrom`, `HasAttribute`, `Gives` and `Takes` compile the project with Roslyn, once in a run, and a
 use by reflection is not one the compiler sees.
+
+## Projects
+
+`Source.Projects` is read from the spec project's build: every project the build reaches, each with the
+projects and packages it references directly. `Architecture.Spec` itself is among them as
+`Source.Projects.CurrentSpec`, and the assertions below leave it out, since it references every project.
+
+Assert that the graph holds only what the architecture allows, and that no project references what it
+already reaches through another:
+
+```csharp
+public class ProjectDependencies : Spec
+{
+    [Fact]
+    public void AreOnlyTheseAndNotRedundant()
+        => Source.Projects.Is().Within(p => p switch
+        {
+            "." => ["Entry", "Infra", "P:Scalar.AspNetCore"],
+            "Entry" or "Core" => ["Contract"],
+            "Infra" => ["Core"],
+            "Spec" => ["."],
+            "Core.Spec" => ["Core"],
+            _ => [],
+        }, p => p.Segment(^1) == "Spec" ? ["P:*"] : ["P:Microsoft.*"]).and.NonRedundant();
+}
+```
+
+- **Names are assembly names, under a common root within the solution.** For `MyHotel.Architecture.Spec`,
+  `MyHotel.Entry` is `Entry`, `MyHotel` itself is `.`, and a project outside the root is `/` and its
+  name. A package is `P:` and its name.
+- **Rules add up**: a dependency passes if any rule allows it, so `_ => [...]` allows its targets to
+  every project.
+- **A target ending in `*`** allows every name that begins with what precedes it: `P:Microsoft.*`
+  allows `P:Microsoft.Extensions.Logging` but not `P:Microsoft`.
+- **`Within` allows; it does not require** — the compiler already demands the references the code needs.
+- **`NonRedundant()` counts projects only**, and never a reference from `A.B` to `A`: `Core.Spec` must
+  reference the `Core` it specifies directly.
+- **A reference that produces no assembly**, such as one to an `.esproj`, is not in the graph.
+
+For rules on layers rather than projects, switch on a segment of the name: `p.Segment(0)` is the
+first, `p.Segment(^1)` the last and `p.Segment(..2)` the first two joined by a dot, as in
+`p => p.Segment(0) switch { "Data" => ["Domain.*"], _ => [] }`.
+
+For a rule the assertions don't cover, read the projects and assert on what you compute:
+`Source.Projects["Data.Auth"]` gives one; each has its `Name`, its `AssemblyName`, its `Dependencies`
+and what it `Reaches`, directly or through other projects, as the rules see them. A name that is no
+project of the build throws `SetupFailed`. A project `IsSpecProject` when it reaches TSpec, and it
+`OpensInternalsTo` the projects its `InternalsVisibleTo` names.
+
+These moved here from TSpec in 1.6, where the old ones are deprecated.
 
 ## Project
 
@@ -51,7 +109,7 @@ A `DependencyGraph` holds named nodes, each with the names it depends on:
 project's `Folders` are one.
 
 - `Is().Within(...)` asserts that each node depends only on what one of the rules allows it. The rules
-  are written as for `Source.Projects`, in TSpec's README.
+  are written as for [`Source.Projects`](#projects).
 - In the generated specification, the test draws what the rules allow above a table of what each node
   may use: an arrow for each target written in full, while a target ending in `*` is only in the table.
 - `Is().Acyclic()` asserts that no nodes depend on each other around a loop, and a failure names the

@@ -7,6 +7,7 @@ namespace TSpec.Architecture;
 /// <summary>
 /// Continuation that allows assertions to be made on the dependencies between projects
 /// </summary>
+[Obsolete(Source.MovedToCSharp)]
 public record IsProjectGraph : Constraint<SourceProjects, IsProjectGraph>
 {
     private const string WhatIsAllowed = "what is allowed";
@@ -56,6 +57,7 @@ public record IsProjectGraph : Constraint<SourceProjects, IsProjectGraph>
 /// <summary>
 /// Fluent assertions on the dependencies between projects
 /// </summary>
+[Obsolete(Source.MovedToCSharp)]
 public static class AssertionExtensionsArchitecture
 {
     /// <summary>
@@ -65,6 +67,7 @@ public static class AssertionExtensionsArchitecture
     /// <param name="_">Ignore this parameter — it exists only to distinguish overloads</param>
     /// <param name="actualExpr">Captured automatically by the compiler — do not provide</param>
     /// <returns>A continuation for making assertions on the dependencies</returns>
+    [Obsolete(Source.MovedToCSharp)]
     public static IsProjectGraph Is(
         this SourceProjects? actual,
         Ignore _ = default,

@@ -1,4 +1,4 @@
-using TSpec.Architecture;
+using TSpec.Architecture.CSharp;
 
 namespace MyHotel.Architecture.Spec;
 

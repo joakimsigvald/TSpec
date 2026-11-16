@@ -1,12 +1,38 @@
 # TSpec.Architecture.CSharp — Agent Reference
 
 Condensed reference for AI coding agents writing architecture rules with TSpec.Architecture.CSharp (covers 1.6).
-It reads the code inside the projects of a TSpec build; the projects and their references (`Source.Projects`, `Within`, `NonRedundant`) are TSpec's own, in TSpec's `agent-reference.md`.
+It reads the projects of a TSpec build, their references, and the code inside them.
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec/blob/main/Architecture.CSharp/README.md).
 
-- `using TSpec.Architecture.CSharp;`.
+- Put the tests in a spec project of their own that references every project: `<ProjectReference Include="..\**\*.csproj" Exclude="..\Architecture.Spec\**" />`.
+- `using TSpec.Architecture.CSharp;` — not `TSpec.Architecture` too, whose `Source` and `Segment` are deprecated and would clash.
 - Group rules in folders by architecture domain (`Naming`, `Layout`, `Sizes`), not mirroring the source: a rule reads every project. The namespace follows the folder; the architecture page heads each folder.
 - `Uses`, `Exposes`, `DependsOn`, `DerivesFrom`, `HasAttribute`, `Gives` and `Takes` compile the project once a run; reflection is not seen.
+
+## Projects
+
+`Source.Projects` lists every project its build reaches, with their direct project and package references. The spec project itself is `Source.Projects.CurrentSpec`; `Within` and `NonRedundant` leave it out.
+
+```csharp
+[Fact]
+public void AreOnlyTheseAndNotRedundant()
+    => Source.Projects.Is().Within(p => p switch
+    {
+        "." => ["Entry", "Infra"],
+        "Entry" or "Core" => ["Contract"],
+        "Infra" => ["Core"],
+        "Spec" => ["."],
+        "Core.Spec" => ["Core"],
+        _ => [],
+    }, p => p.Segment(^1) == "Spec" ? ["P:*"] : ["P:Microsoft.*"]).and.NonRedundant();
+```
+
+- Names are assembly names under a common root within the solution. `root.X` → `X`, the root → `.`, other projects → `/Name`. Packages are always `P:Name`. A reference that produces no assembly (an `.esproj`) is not in the graph.
+- Rules add up: a dependency passes if any rule allows it; `_ => [...]` applies to every project. A trailing `*` matches the rest (`P:Moq.*` does not match `P:Moq`). `Within` allows, never requires.
+- `NonRedundant()`: no project references a project it already reaches through another; packages, and `A.B -> A` (`Core.Spec -> Core`), are exempt.
+- Layer rules: switch on `p.Segment(0)` (also `Segment(^1)`, `Segment(..2)`).
+- Custom rules: `Source.Projects["X"]` (an unknown name throws `SetupFailed`) is a `SourceProject` with `Name`, `AssemblyName`, `Dependencies` and `Reaches` (directly or through other projects, packages included), named as the rules see them. `IsSpecProject`: it reaches TSpec, whatever its name. `OpensInternalsTo`: the projects its `InternalsVisibleTo` names.
+- Moved here from TSpec in 1.6, where the old ones are deprecated.
 
 ## Project
 

@@ -1,7 +1,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
-using TSpec.Architecture;
 using TSpec.Architecture.CSharp;
 using TSpec.Assert;
 

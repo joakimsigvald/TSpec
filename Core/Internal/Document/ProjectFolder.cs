@@ -2,6 +2,8 @@ using System.Diagnostics.CodeAnalysis;
 using TSpec.Architecture;
 using TSpec.Extensibility;
 
+#pragma warning disable CS0618 // The architecture page reads TSpec's deprecated project graph until it moves to the package too.
+
 namespace TSpec.Internal.Document;
 
 internal static class ProjectFolder

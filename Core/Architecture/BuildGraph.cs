@@ -15,10 +15,17 @@ internal sealed class BuildGraph(
 {
     private const string Package = "P:";
 
+    private static readonly Lazy<BuildGraph> _built = new(ReadBuilt);
+
     private readonly IReadOnlyDictionary<string, string> _packagesByAssembly
         = packagesByAssembly ?? new Dictionary<string, string>();
 
+    // The build the running spec project was made from, read once.
+    internal static BuildGraph Built => _built.Value;
+
     internal string? Spec => spec;
+
+    internal IReadOnlyDictionary<string, IReadOnlyList<string>> ReferencesByProject => references;
 
     internal IEnumerable<string> Projects => references.Keys;
 
@@ -92,10 +99,10 @@ internal sealed class BuildGraph(
 
     // A spec project must reference the project it specifies directly, even when a shared spec project reaches it too.
     private static bool IsToTheProjectItsNameExtends((string From, string To) reference)
-        => reference.From.Segment(..^1) == reference.To;
+        => NameSegments.In(reference.From, ..^1) == reference.To;
 
     private static IEnumerable<string> LeadingParts(string name)
-        => Enumerable.Range(1, name.Split('.').Length - 1).Select(dropped => name.Segment(..^dropped));
+        => Enumerable.Range(1, name.Split('.').Length - 1).Select(dropped => NameSegments.In(name, ..^dropped));
 
     private bool IsShared(string part)
         => ProjectsButTheSpec.Any(project => project == part || project.StartsWith($"{part}.", StringComparison.Ordinal));

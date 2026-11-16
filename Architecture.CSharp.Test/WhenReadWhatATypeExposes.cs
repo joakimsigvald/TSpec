@@ -1,4 +1,3 @@
-using TSpec.Architecture;
 using TSpec.Assert;
 
 namespace TSpec.Architecture.CSharp.Test;

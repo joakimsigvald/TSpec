@@ -1,6 +1,8 @@
 using TSpec.Architecture;
 using TSpec.Internal.Specification;
 
+#pragma warning disable CS0618 // The architecture page reads TSpec's deprecated project graph until it moves to the package too.
+
 namespace TSpec.Internal.Document.RenderPipeline;
 
 /// The page an architecture spec writes: the solution its projects are named under, the graph of

@@ -4,6 +4,8 @@ using TSpec.Internal.Document;
 using TSpec.Internal.Document.RenderPipeline;
 using TSpec.Internal.Specification;
 
+#pragma warning disable CS0618 // The architecture page reads TSpec's deprecated project graph until it moves to the package too.
+
 namespace TSpec.Test.Architecture;
 
 public class WhenRenderTheArchitectureDocument : Spec

@@ -164,33 +164,9 @@ Opt in with one line in the spec project; a `_specification/` folder of markdown
 
 ## Architecture (`TSpec.Architecture`)
 
-Put the tests in a spec project of their own that references every project: `<ProjectReference Include="..\**\*.csproj" Exclude="..\Architecture.Spec\**" />`.
-
-`Source.Projects` lists every project its build reaches, with their direct project and package references. The spec project itself is `Source.Projects.CurrentSpec`; `Within` and `NonRedundant` leave it out.
-
-```csharp
-[Fact]
-public void AreOnlyTheseAndNotRedundant()
-    => Source.Projects.Is().Within(p => p switch
-    {
-        "." => ["Entry", "Infra"],
-        "Entry" or "Core" => ["Contract"],
-        "Infra" => ["Core"],
-        "Spec" => ["."],
-        "Core.Spec" => ["Core"],
-        _ => [],
-    }, p => p.Segment(^1) == "Spec" ? ["P:*"] : ["P:Microsoft.*"]).and.NonRedundant();
-```
-
-- Names are assembly names under a common root within the solution. `root.X` → `X`, the root → `.`, other projects → `/Name`. Packages are always `P:Name`. A reference that produces no assembly (an `.esproj`) is not in the graph.
-- Rules add up: a dependency passes if any rule allows it; `_ => [...]` applies to every project. A trailing `*` matches the rest (`P:Moq.*` does not match `P:Moq`). `Within` allows, never requires.
-- `NonRedundant()`: no project references a project it already reaches through another; packages, and `A.B -> A` (`Core.Spec -> Core`), are exempt. `not.Redundant()` is obsolete.
-- Layer rules: switch on `p.Segment(0)` (also `Segment(^1)`, `Segment(..2)`).
-- Custom rules: `Source.Projects["X"]` (an unknown name throws `SetupFailed`) is a `SourceProject` with `Name`, `Dependencies` and `Reaches` (directly or through other projects, packages included), named as the rules see them. `IsSpecProject`: it reaches TSpec, whatever its name. `OpensInternalsTo`: the projects its `InternalsVisibleTo` names.
+- Architecture tests are written with the package `TSpec.Architecture.CSharp`, which ships an `agent-reference.md` of its own. `Source.Projects` (`Within`, `NonRedundant`), `SourceProject`, `Segment` and `DependencyGraph` moved there; the ones here are deprecated.
 - The architecture page: `[assembly: AssemblyFixture(typeof(ArchitectureDocument))]` writes `_specification.md`, a diagram of the projects and the tests below it, on a clean full run. Only `Spec` classes count, so derive the test classes from `Spec`.
-- `DependencyGraph`, with `Within` and `Acyclic`, moved to `TSpec.Architecture.CSharp`; the one here is deprecated.
 - `Project.Dependencies` is obsolete: use `Source.Projects["X"].Dependencies`.
-- Rules on the code inside a project (its files, folders, types, members and syntax) take the package `TSpec.Architecture.CSharp`, which ships an `agent-reference.md` of its own.
 
 ## Complete examples
 

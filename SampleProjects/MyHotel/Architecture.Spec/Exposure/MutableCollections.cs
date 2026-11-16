@@ -1,5 +1,4 @@
 using Microsoft.CodeAnalysis;
-using TSpec.Architecture;
 using TSpec.Architecture.CSharp;
 using TSpec.Assert;
 

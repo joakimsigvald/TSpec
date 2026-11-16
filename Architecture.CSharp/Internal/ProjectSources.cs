@@ -38,7 +38,7 @@ internal static class ProjectSources
 
     private static ProjectSource Read(SourceProject project)
     {
-        if (!Build.TryOpenDebugInformation(project, out var provider))
+        if (!Build.TryOpenDebugInformation(project.AssemblyName, out var provider))
             throw new SetupFailed(
                 $"TSpec could not read the sources of '{project.Name}': there is no debug information for '{project.AssemblyName}'.");
 

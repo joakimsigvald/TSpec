@@ -3,6 +3,7 @@ namespace TSpec.Architecture;
 /// <summary>
 /// A project of the build, named as the rules see it
 /// </summary>
+[Obsolete(Source.MovedToCSharp)]
 public sealed class SourceProject
 {
     private readonly Lazy<IReadOnlyList<string>> _opensInternalsTo;

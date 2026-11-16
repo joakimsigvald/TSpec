@@ -9,6 +9,7 @@ namespace TSpec.Architecture;
 /// dependencies with <c>Is()</c>:
 /// <code>Source.Projects.Is().Within(project => project switch { "MyHotel.Entry" => ["MyHotel.Contract"], _ => [] });</code>
 /// </summary>
+[Obsolete(Source.MovedToCSharp)]
 public sealed class SourceProjects : IReadOnlyList<SourceProject>
 {
     internal SourceProjects(Dictionary<string, IReadOnlyList<string>> references, string? spec = null)
@@ -104,7 +105,7 @@ public sealed class SourceProjects : IReadOnlyList<SourceProject>
 
     internal static SourceProjects Parse(string depsJson, string specAssemblyName) => new(BuildGraph.Parse(depsJson, specAssemblyName));
 
-    internal static SourceProjects ReadBuilt() => new(BuildGraph.ReadBuilt());
+    internal static SourceProjects ReadBuilt() => new(BuildGraph.Built);
 
     // The obsolete ProjectGraph named projects in full unless told a root, and still does.
     internal SourceProjects WithFullNames => new(Graph, root: null);

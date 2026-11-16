@@ -957,72 +957,15 @@ A file for a new folder is untracked and `git diff` does not see it; `git status
 
 ## 7. Architecture
 
-Put the architecture tests in a spec project of their own, say `Architecture.Spec`, that references
-every project in the solution:
-
-```xml
-<ItemGroup>
-  <ProjectReference Include="..\**\*.csproj" Exclude="..\Architecture.Spec\**" />
-</ItemGroup>
-```
-
-`Source.Projects` is read from that project's build: every project the build reaches, each with the
-projects and packages it references directly. `Architecture.Spec` itself is among them as
-`Source.Projects.CurrentSpec`, and the assertions below leave it out, since it references every project.
-
-Assert that the graph holds only what the architecture allows, and that no project references what it
-already reaches through another:
-
-```csharp
-using TSpec.Architecture;
-
-public class ProjectDependencies : Spec
-{
-    [Fact]
-    public void AreOnlyTheseAndNotRedundant()
-        => Source.Projects.Is().Within(p => p switch
-        {
-            "." => ["Entry", "Infra", "P:Scalar.AspNetCore"],
-            "Entry" or "Core" => ["Contract"],
-            "Infra" => ["Core"],
-            "Spec" => ["."],
-            "Core.Spec" => ["Core"],
-            _ => [],
-        }, p => p.Segment(^1) == "Spec" ? ["P:*"] : ["P:Microsoft.*"]).and.NonRedundant();
-}
-```
-
-- **Names are assembly names, under a common root within the solution. For `MyHotel.Architecture.Spec`, `MyHotel.Entry` is `Entry`, `MyHotel`
-  itself is `.`, and a project outside the root is `/` and its name. A package is `P:` and its name.
-- **Rules add up**: a dependency passes if any rule allows it, so `_ => [...]` allows its targets to
-  every project.
-- **A target ending in `*`** allows every name that begins with what precedes it: `P:Microsoft.*`
-  allows `P:Microsoft.Extensions.Logging` but not `P:Microsoft`.
-- **`Within` allows; it does not require** — the compiler already demands the references the code needs.
-- **`NonRedundant()` counts projects only**, and never a reference from `A.B` to `A`: `Core.Spec` must
-  reference the `Core` it specifies directly.
-- **A reference that produces no assembly**, such as one to an `.esproj`, is not in the graph.
-
-For rules on layers rather than projects, switch on a segment of the name: `p.Segment(0)` is the
-first, `p.Segment(^1)` the last and `p.Segment(..2)` the first two joined by a dot, as in
-`p => p.Segment(0) switch { "Data" => ["Domain.*"], _ => [] }`.
-
-For a rule the assertions don't cover, read the projects and assert on what you compute:
-`Source.Projects` lists every project and `Source.Projects["Data.Auth"]` gives one; each has its `Name`,
-its `Dependencies` and what it `Reaches`, directly or through other projects, as the rules see them. A
-name that is no project of the build throws `SetupFailed`. A project `IsSpecProject` when it reaches TSpec, and
-it `OpensInternalsTo` the projects its `InternalsVisibleTo` names.
+Architecture tests — on the projects of the solution and their references, and on the code inside them —
+are written with the package `TSpec.Architecture.CSharp`, described in
+[its README](https://github.com/joakimsigvald/TSpec/blob/main/Architecture.CSharp/README.md).
+`Source.Projects` with its `Within` and `NonRedundant`, `Segment` and `DependencyGraph` have moved there;
+the ones here still work, deprecated, until the next major version.
 
 Opt in with `[assembly: AssemblyFixture(typeof(ArchitectureDocument))]`, and a clean full run writes
 `_specification.md` to the spec project: a diagram of the solution's projects and their references,
 and the architecture tests below it.
-
-`DependencyGraph`, with its `Within` and `Acyclic`, has moved to the package `TSpec.Architecture.CSharp`,
-which describes it. The one here still works, deprecated, until the next major version.
-
-For rules on the code inside a project — its source files and folders, the types they declare and their
-syntax — add the package `TSpec.Architecture.CSharp`, described in
-[its README](https://github.com/joakimsigvald/TSpec/blob/main/Architecture.CSharp/README.md).
 
 `Project.Dependencies` and its `ProjectGraph` are obsolete: `graph["X"]` there is
 `Source.Projects["X"].Dependencies`, and its `Projects` are names, the running spec project's left out.

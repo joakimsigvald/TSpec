@@ -1,4 +1,3 @@
-using TSpec.Architecture;
 using TSpec.Assert;
 using static TSpec.Architecture.CSharp.Test.DeclaredFiles;
 

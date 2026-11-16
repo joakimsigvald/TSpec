@@ -21,7 +21,8 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			* DependencyGraph, with Within and Acyclic, moved here from TSpec 5.5; Folders returns it
+			* Source.Projects with Within and NonRedundant, Segment and DependencyGraph moved here from TSpec 5.5:
+			  use TSpec.Architecture.CSharp in place of TSpec.Architecture
 			* Docs: group rules in folders by architecture domain
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -29,7 +30,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.12.0" />
-		<PackageReference Include="TSpec" Version="5.5.0-local.2" PrivateAssets="none" />
+		<PackageReference Include="TSpec" Version="5.5.0-local.3" PrivateAssets="none" />
 		<InternalsVisibleTo Include="TSpec.Architecture.CSharp.Test" />
 		<None Include="README.md" Pack="true" PackagePath="\" />
 		<None Include="agent-reference.md" Pack="true" PackagePath="\" />
