@@ -164,8 +164,7 @@ Opt in with one line in the spec project; a `_specification/` folder of markdown
 
 ## Architecture (`TSpec.Architecture`)
 
-- Architecture tests are written with the package `TSpec.Architecture.CSharp`, which ships an `agent-reference.md` of its own. `Source.Projects` (`Within`, `NonRedundant`), `SourceProject`, `Segment` and `DependencyGraph` moved there; the ones here are deprecated.
-- The architecture page: `[assembly: AssemblyFixture(typeof(ArchitectureDocument))]` writes `_specification.md`, a diagram of the projects and the tests below it, on a clean full run. Only `Spec` classes count, so derive the test classes from `Spec`.
+- Architecture tests are written with the package `TSpec.Architecture.CSharp`, which ships an `agent-reference.md` of its own. `Source.Projects` (`Within`, `NonRedundant`), `SourceProject`, `Segment`, `DependencyGraph` and the architecture page, `ArchitectureDocument`, moved there; the ones here are deprecated.
 - `Project.Dependencies` is obsolete: use `Source.Projects["X"].Dependencies`.
 
 ## Complete examples

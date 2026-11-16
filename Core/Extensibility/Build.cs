@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using TSpec.Architecture;
 using TSpec.Internal.Document;
+using TSpec.Internal.Document.RenderPipeline;
 
 namespace TSpec.Extensibility;
 
@@ -56,6 +57,20 @@ public static class Build
     {
         folder = ProjectDirectory.Holding(sources);
         return folder is not null;
+    }
+
+    /// <summary>
+    /// Finds the index of the specification a spec project of the build writes, where it has written one
+    /// </summary>
+    /// <param name="assemblyName">The spec project's assembly name</param>
+    /// <param name="index">The index's path</param>
+    /// <returns>Whether the project's folder holds the index</returns>
+    public static bool TryFindSpecificationIndex(string assemblyName, [NotNullWhen(true)] out string? index)
+    {
+        index = ProjectFolder.TryFind(assemblyName, out var folder)
+            ? Path.Combine(folder, SpecificationDocument.FolderName, $"{IndexRenderer.Name}.md")
+            : null;
+        return File.Exists(index);
     }
 
     /// <summary>

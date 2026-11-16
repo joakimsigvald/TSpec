@@ -15,7 +15,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="TSpec" Version="5.5.0-local.3" />
+		<PackageReference Include="TSpec" Version="5.5.0-local.4" />
 		<PackageReference Include="xunit.v3" Version="4.0.3" />
 	</ItemGroup>
 

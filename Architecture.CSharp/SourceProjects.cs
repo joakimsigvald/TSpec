@@ -75,21 +75,21 @@ public sealed class SourceProjects : IReadOnlyList<SourceProject>
     internal IReadOnlyList<IReadOnlyList<string>> AllowedBy(IReadOnlyList<Func<string, IEnumerable<string>>> rules)
         => [.. NamesButTheSpec.Select(project => AllowedOf(project, rules))];
 
-    internal static SourceProjects ReadBuilt() => new(new(Build.References), Build.SpecProject);
-
-    private IReadOnlyList<string> NamesButTheSpec => [.. Graph.ProjectsButTheSpec.Select(AsWritten).Order(StringComparer.Ordinal)];
-
     // To the rules the root is "." and its spec project "Spec", which read as nothing on a page.
-    private string Shown(string name)
+    internal string Shown(string name)
         => Graph.TryGetTheProjectItsNameExtends(name, out var extended) ? $"{Shown(extended)}.{name.Segment(^1)}"
         : name == Root ? name.Segment(^1)
         : AsWritten(name);
 
-    private string AsWritten(string name)
+    internal string AsWritten(string name)
         => Root is null || BuildGraph.IsPackage(name) ? name
         : name == Root ? "."
         : name.StartsWith($"{Root}.", StringComparison.Ordinal) ? name[(Root.Length + 1)..]
         : $"/{name}";
+
+    internal static SourceProjects ReadBuilt() => new(new(Build.References), Build.SpecProject);
+
+    private IReadOnlyList<string> NamesButTheSpec => [.. Graph.ProjectsButTheSpec.Select(AsWritten).Order(StringComparer.Ordinal)];
 
     private string FullName(string written)
         => Root is null || BuildGraph.IsPackage(written) ? written

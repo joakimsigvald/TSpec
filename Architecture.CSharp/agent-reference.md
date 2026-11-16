@@ -6,6 +6,7 @@ Full documentation: [README.md](https://github.com/joakimsigvald/TSpec/blob/main
 
 - Put the tests in a spec project of their own that references every project: `<ProjectReference Include="..\**\*.csproj" Exclude="..\Architecture.Spec\**" />`.
 - `using TSpec.Architecture.CSharp;` — not `TSpec.Architecture` too, whose `Source` and `Segment` are deprecated and would clash.
+- The architecture page: `[assembly: AssemblyFixture(typeof(TSpec.Architecture.CSharp.ArchitectureDocument))]` writes `_specification.md`, a diagram of the projects and the tests below it, on a clean full run. Only `Spec` classes count, so derive the test classes from `Spec`.
 - Group rules in folders by architecture domain (`Naming`, `Layout`, `Sizes`), not mirroring the source: a rule reads every project. The namespace follows the folder; the architecture page heads each folder.
 - `Uses`, `Exposes`, `DependsOn`, `DerivesFrom`, `HasAttribute`, `Gives` and `Takes` compile the project once a run; reflection is not seen.
 

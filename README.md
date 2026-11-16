@@ -960,12 +960,9 @@ A file for a new folder is untracked and `git diff` does not see it; `git status
 Architecture tests — on the projects of the solution and their references, and on the code inside them —
 are written with the package `TSpec.Architecture.CSharp`, described in
 [its README](https://github.com/joakimsigvald/TSpec/blob/main/Architecture.CSharp/README.md).
-`Source.Projects` with its `Within` and `NonRedundant`, `Segment` and `DependencyGraph` have moved there;
-the ones here still work, deprecated, until the next major version.
-
-Opt in with `[assembly: AssemblyFixture(typeof(ArchitectureDocument))]`, and a clean full run writes
-`_specification.md` to the spec project: a diagram of the solution's projects and their references,
-and the architecture tests below it.
+`Source.Projects` with its `Within` and `NonRedundant`, `Segment`, `DependencyGraph` and the architecture
+page, `ArchitectureDocument`, have moved there; the ones here still work, deprecated, until the next major
+version.
 
 `Project.Dependencies` and its `ProjectGraph` are obsolete: `graph["X"]` there is
 `Source.Projects["X"].Dependencies`, and its `Projects` are names, the running spec project's left out.

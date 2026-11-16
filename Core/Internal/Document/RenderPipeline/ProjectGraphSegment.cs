@@ -1,6 +1,6 @@
 using TSpec.Architecture;
 
-#pragma warning disable CS0618 // The architecture page reads TSpec's deprecated project graph until it moves to the package too.
+#pragma warning disable CS0618 // The deprecated architecture page reads TSpec's deprecated project graph.
 
 namespace TSpec.Internal.Document.RenderPipeline;
 
@@ -15,7 +15,9 @@ internal sealed record ProjectGraphSegment(IReadOnlyList<ProjectNode> Nodes) : D
     internal static ProjectGraphSegment Of(SourceProjects projects, IReadOnlyDictionary<string, string> indexes)
         => new(ProjectNode.All(projects, indexes));
 
-    internal override string Render() => $"\n{Flowchart([.. Drawn(Nodes), .. Nodes.SelectMany(Link), SpecStyle])}\n";
+    internal string Text => Flowchart([.. Drawn(Nodes), .. Nodes.SelectMany(Link), SpecStyle]);
+
+    internal override string Render() => $"\n{Text}\n";
 
     // The nodes and arrows alone, as drawn under a test that allows them.
     internal static string Plain(IReadOnlyList<ProjectNode> nodes) => Flowchart(Drawn(nodes));

@@ -1,6 +1,6 @@
 using TSpec.Architecture;
 
-#pragma warning disable CS0618 // The architecture page reads TSpec's deprecated project graph until it moves to the package too.
+#pragma warning disable CS0618 // The deprecated architecture page reads TSpec's deprecated project graph.
 
 namespace TSpec.Internal.Document.RenderPipeline;
 
