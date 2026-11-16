@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using TSpec.Architecture.CSharp.Internal;
 
 namespace TSpec.Architecture.CSharp;
@@ -9,10 +11,12 @@ public sealed class DeclaredType
 {
     private readonly IReadOnlyList<string> _typeParameters;
     private readonly Lazy<IReadOnlyList<DeclaredType>> _exposes;
+    private readonly Lazy<IReadOnlyList<INamedTypeSymbol>> _baseTypes;
 
     internal DeclaredType(
         string name, IReadOnlyList<string> typeParameters, string @namespace, DeclaredKind kind, bool isPublic,
-        IReadOnlyList<SourceFile> files, DeclaredType? owner)
+        IReadOnlyList<SourceFile> files, IReadOnlyList<SourceNode<MemberDeclarationSyntax>> declarations,
+        DeclaredType? owner)
     {
         Name = name;
         _typeParameters = typeParameters;
@@ -20,8 +24,10 @@ public sealed class DeclaredType
         Kind = kind;
         IsPublic = isPublic;
         Files = files;
+        Declarations = declarations;
         Owner = owner;
         _exposes = new(() => BuildTypes.ExposedBy(this));
+        _baseTypes = new(() => BaseTypes.Of(this));
     }
 
     /// <summary>
@@ -71,11 +77,47 @@ public sealed class DeclaredType
     public IReadOnlyList<DeclaredType> Exposes => _exposes.Value;
 
     /// <summary>
+    /// The attributes written on the type, on every declaration of a partial type
+    /// </summary>
+    public IReadOnlyList<AttributeSyntax> Attributes => [.. AttributeNodes.Select(attribute => attribute.Syntax)];
+
+    /// <summary>
+    /// Whether an attribute of the given name is written on the type, however the code wrote it. The name
+    /// counts with or without the Attribute suffix; plain, it matches an attribute of that name in any
+    /// namespace, qualified only the one it names. Its project is compiled to find out, once in a run
+    /// </summary>
+    /// <param name="name">The attribute's name: "Serializable", "System.SerializableAttribute"</param>
+    public bool HasAttribute(string name) => WrittenAttributes.Has(AttributeNodes, name);
+
+    /// <summary>
+    /// Whether the type derives from the given type: it is the type's base type, or a base type's own base,
+    /// however deep and whatever its type arguments. An interface the type implements is no base. The
+    /// type's project is compiled to find out, once in a run
+    /// </summary>
+    /// <param name="type">The base type: <c>typeof(Exception)</c>, <c>typeof(Container&lt;&gt;)</c></param>
+    public bool DerivesFrom(Type type) => _baseTypes.Value.Any(baseType => MemberTypes.IsOf(baseType, type));
+
+    /// <summary>
+    /// Whether the type derives from a base type of the given name or full name, for a base the rule
+    /// cannot name at runtime, as <c>DerivesFrom(Type)</c> reads the bases
+    /// </summary>
+    /// <param name="name">The base type's name: "Entity", "MyApp.Domain.Entity"</param>
+    public bool DerivesFrom(string name)
+        => _baseTypes.Value.Any(baseType => baseType.Name == name || baseType.ToDisplayString() == name);
+
+    /// <summary>
     /// The types declared inside the type, in the ordinal order of their full names
     /// </summary>
     public IReadOnlyList<DeclaredType> Nested { get; internal set; } = [];
 
     internal DeclaredType? Owner { get; }
+
+    internal IReadOnlyList<SourceNode<MemberDeclarationSyntax>> Declarations { get; }
+
+    private IEnumerable<SourceNode<AttributeSyntax>> AttributeNodes
+        => Declarations.SelectMany(declaration => declaration.Syntax.AttributeLists
+            .SelectMany(list => list.Attributes)
+            .Select(attribute => new SourceNode<AttributeSyntax>(declaration.File, attribute)));
 
     internal IEnumerable<DeclaredType> AndNested => [this, .. Nested.SelectMany(type => type.AndNested)];
 

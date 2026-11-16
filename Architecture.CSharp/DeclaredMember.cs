@@ -13,6 +13,7 @@ public sealed class DeclaredMember
     private readonly Lazy<IReadOnlyList<ITypeSymbol>> _given;
     private readonly Lazy<IReadOnlyList<ITypeSymbol>> _taken;
     private readonly Lazy<bool> _isOriginal;
+    private readonly Lazy<DeclaredType?> _declaringType;
 
     internal DeclaredMember(SourceFile file, MemberDeclaration declaration)
     {
@@ -21,6 +22,7 @@ public sealed class DeclaredMember
         _given = new(() => MemberTypes.GivenBy(this));
         _taken = new(() => MemberTypes.TakenBy(this));
         _isOriginal = new(() => !MemberContracts.ImplementsOrOverrides(file, declaration));
+        _declaringType = new(DeclarerOf);
     }
 
     /// <summary>
@@ -71,6 +73,20 @@ public sealed class DeclaredMember
     /// The file the member is declared in
     /// </summary>
     public SourceFile File { get; }
+
+    /// <summary>
+    /// The type the member is declared in: its own type for a primary constructor, its class for an
+    /// extension block's member; none for a member at the top level of its file
+    /// </summary>
+    public DeclaredType? DeclaringType => _declaringType.Value;
+
+    /// <summary>
+    /// Whether an attribute of the given name is written on the member, as a type's <c>HasAttribute</c>
+    /// reads it
+    /// </summary>
+    /// <param name="name">The attribute's name: "Theory", "Xunit.TheoryAttribute"</param>
+    public bool HasAttribute(string name)
+        => WrittenAttributes.Has(Attributes.Select(attribute => new SourceNode<AttributeSyntax>(File, attribute)), name);
 
     /// <summary>
     /// Whether the member sets its own name and signature: it neither implements an interface's member,
@@ -139,4 +155,11 @@ public sealed class DeclaredMember
     /// The member as a failure names it: its file, the line its name is on and its name
     /// </summary>
     public override string ToString() => $"{File}:{File.SpanOf(_declaration.At).Start.Line} {Name}";
+
+    // An extension block is no type of its own: its members are its class's.
+    private DeclaredType? DeclarerOf()
+        => _declaration.Syntax.AncestorsAndSelf().OfType<BaseTypeDeclarationSyntax>()
+            .FirstOrDefault(type => type is not ExtensionBlockDeclarationSyntax) is { } declarer
+            ? File.AllTypes.FirstOrDefault(type => type.Declarations.Any(part => part.Syntax == declarer))
+            : null;
 }

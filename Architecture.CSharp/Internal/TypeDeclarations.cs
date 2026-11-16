@@ -57,7 +57,8 @@ internal static class TypeDeclarations
         var first = parts[0];
         var type = new DeclaredType(
             first.Name, first.TypeParameters, first.Namespace, first.Kind, IsPublic(parts, owner),
-            [.. parts.Select(part => part.File).Distinct().OrderBy(file => file.Path, StringComparer.Ordinal)], owner);
+            [.. parts.Select(part => part.File).Distinct().OrderBy(file => file.Path, StringComparer.Ordinal)],
+            [.. parts.Select(part => new SourceNode<MemberDeclarationSyntax>(part.File, part.Declaration))], owner);
         type.Nested = [.. Declared(parts.SelectMany(NestedIn), type).OrderBy(nested => nested.FullName, StringComparer.Ordinal)];
         return type;
     }

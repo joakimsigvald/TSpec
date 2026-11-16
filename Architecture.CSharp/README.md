@@ -35,6 +35,24 @@ public void Only_the_listed_files_declare_more_than_one_public_type()
         .Are(Allowed);
 ```
 
+A type `DerivesFrom` all types in its inheritance chain. For generic types, the generic argument is
+ignored. A type does not derive from an interface. All types derive from `object`. A base the spec
+project cannot reference is given by name instead, plain or fully qualified: `DerivesFrom("Entity")`.
+
+```csharp
+[Fact]
+public void Our_exceptions_live_in_an_Exceptions_folder()
+    => Source.Projects["Contract"].AllTypes.Where(type => type.DerivesFrom(typeof(Exception)))
+        .Has().All(type => type.Files.All(file => file.Path.Contains("/Exceptions/")));
+```
+
+A type's `Attributes` are those written on it — on every declaration, for a partial type. `HasAttribute`
+asks for one by name, in any form the code could write it: with or without the `Attribute` suffix, plain
+or qualified. A plain name matches an attribute of that name in any namespace; a qualified one only the
+attribute it names. So `HasAttribute("Serializable")` finds both `[System.Serializable]` and a
+`[MyOwn.Serializable]`, while `HasAttribute("System.Serializable")` finds only the first, however the
+code wrote it.
+
 A file's `Root` is its Roslyn syntax as the build parsed it, so code under an `#if` the build left
 out is not in it, and its `Model` is the compiler's view of that syntax: what a name refers to, the type
 of an expression. A type the spec project does not run with, or one a source generator wrote, is
@@ -63,13 +81,23 @@ public void No_query_is_written_in_query_syntax()
     => Source.Projects["Core"].Nodes<QueryExpressionSyntax>().Is().Empty();
 ```
 
-A file's `Members` are those it declares, a nested type's and local functions too, and a project's are
-those of all its files. A record's positional parameters are its constructor's and its properties. A
-member's `Accessibility` is the one it has in effect, no more than the types around it allow: a public
-member of an internal class is internal. Its `Type` and `Parameters` are syntax, as written, and a
-failure names it by file, line and name: `Data.Auth/Stores/UserStore.cs:12 Find`. A member
-`IsOriginal` when it sets its own name and signature: it neither implements an interface's member,
-explicitly or not, nor overrides a base type's. A naming rule reads only those:
+## Members
+
+- A file's `Members` are all the members it declares, including those of nested types and local
+  functions. A project's `Members` are those of all its files.
+- A record's positional parameter is two members: a constructor parameter and a property.
+- `Accessibility` is the accessibility in effect, not the one written: a public member of an internal
+  class is internal.
+- `Type` and `Parameters` are syntax, as written. For the types they resolve to, see `Gives` and
+  `Takes` below.
+- `DeclaringType` is the type the member is declared in. For a primary constructor it is that type
+  itself; for a member of an extension block, the class around the block; for a delegate declared at
+  a file's top level, none.
+- `HasAttribute` asks for an attribute by name, as a type's does.
+- A member `IsOriginal` when it chose its own name and signature: it neither overrides a base type's
+  member nor implements an interface's. A naming rule should check only original members, since an
+  override of `GetHashCode` cannot rename it.
+- A failure names a member by file, line and name: `Data.Auth/Stores/UserStore.cs:12 Find`.
 
 ```csharp
 [Fact]
@@ -105,8 +133,8 @@ A file's `Uses` are the build's types its code uses: those it names, and those w
 such as an extension method's class or a constant's type; a nested type is one of its own. A
 type `Exposes` the build's types its signature names where other assemblies see it: its base type,
 interfaces and constraints, and the types of its public and protected members, itself included. These,
-`Gives`, `Takes` and `DependsOn` compile the project with Roslyn, once in a run, and a use by reflection
-is not one the compiler sees.
+`Gives`, `Takes`, `DependsOn`, `DerivesFrom` and `HasAttribute` compile the project with Roslyn, once in
+a run, and a use by reflection is not one the compiler sees.
 
 ```csharp
 [Fact]

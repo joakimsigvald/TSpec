@@ -1,11 +1,11 @@
 # TSpec.Architecture.CSharp — Agent Reference
 
-Condensed reference for AI coding agents writing architecture rules with TSpec.Architecture.CSharp (covers 1.4).
+Condensed reference for AI coding agents writing architecture rules with TSpec.Architecture.CSharp (covers 1.5).
 It reads the code inside the projects of a TSpec build; the projects and their references (`Source.Projects`, `Within`, `NonRedundant`) are TSpec's own, in TSpec's `agent-reference.md`.
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec/blob/main/Architecture.CSharp/README.md).
 
 - `using TSpec.Architecture.CSharp;`.
-- `Uses`, `Exposes`, `DependsOn`, `Gives` and `Takes` compile the project once a run; reflection is not seen.
+- `Uses`, `Exposes`, `DependsOn`, `DerivesFrom`, `HasAttribute`, `Gives` and `Takes` compile the project once a run; reflection is not seen.
 
 ## Project
 
@@ -30,11 +30,14 @@ Full documentation: [README.md](https://github.com/joakimsigvald/TSpec/blob/main
 
 - `Name` (no type parameters), `FullName`, `Namespace`, `Kind`, `IsPublic`, `Files` and `Nested` (the types declared inside it). A nested type's `IsPublic` is in effect. A failure names it by its full name.
 - `Exposes`: the build's types named in its signature that other assemblies see, itself included.
+- `DerivesFrom(typeof(Exception))`, `DerivesFrom("Entity")`: the given type (or name/full name) is its base type or a base's own base, however deep, type arguments ignored. An implemented interface is no base.
+- `Attributes` (written on every part of a partial) and `HasAttribute(name)`: the name counts with or without the `Attribute` suffix. Plain (`"Serializable"`), it matches that name in any namespace; qualified (`"System.Serializable"`), only that attribute — however the code wrote it.
 
 ## Member
 
 - `Accessibility` is in effect: no more than the types around it allow. `Type` and `Parameters` are syntax, as written. A record's positional parameters are its constructor's and its properties.
 - `IsOriginal`: it neither implements an interface's member (explicitly or implicitly) nor overrides a base type's, so it sets its own name and signature; a naming rule reads only original members.
+- `DeclaringType`: the type it is declared in — the type itself for a primary constructor, the class for an extension block's member, null at the file's top level. `HasAttribute(name)` as a type's.
 - `Gives` is the types it returns, including those inside generic types, tuples and arrays; `Takes` is the same for its parameters. With no argument they list the types (`ITypeSymbol`). Ask if one is included with one argument that is a `TypeKind`, a `typeof(List<>)` (type arguments ignored) or a condition. A type it only implements doesn't count: `List<int>` gives no `IEnumerable<>`.
 - `Size`: its size, computed from line count, indentation and complexity. A rule sets only the ceiling: `Has().None(member => member.Size > 240)`.
 - A failure names it `X/Path:line Name`.
