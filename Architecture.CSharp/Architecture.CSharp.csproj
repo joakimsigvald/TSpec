@@ -23,6 +23,7 @@
 		<PackageReleaseNotes>
 			* Source.Projects with Within and NonRedundant, Segment, DependencyGraph and ArchitectureDocument moved here
 			  from TSpec 5.5: use TSpec.Architecture.CSharp in place of TSpec.Architecture
+			* The architecture page heads each folder of the spec project and links each test class to its file
 			* Docs: group rules in folders by architecture domain
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>

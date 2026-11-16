@@ -23,10 +23,9 @@
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			NEW
-			* The architecture page heads each folder of the spec project and links each test class to its file
 			* Extensibility: a package can write its own constraint, and state an assertion as a table
 			* Extensibility: Build lists the build's projects and their references, and opens debug information by assembly name
-			* Extensibility: a package can write a page of its own with SpecificationPage, the tests laid out below it
+			* Extensibility: a package can write a page of its own with SpecificationPage, the tests below it headed by folder and linked to their files
 			DEPRECATED
 			* Source.Projects with Within and NonRedundant, Segment, DependencyGraph and ArchitectureDocument moved to TSpec.Architecture.CSharp 1.6
 		</PackageReleaseNotes>
