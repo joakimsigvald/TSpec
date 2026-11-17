@@ -35,7 +35,7 @@ flowchart TD
 - **Contract declares only public types** — `Types of "Contract" has all type.IsPublic`
 - **Contract nests no type** — `Types of "Contract" has none type.Nested.Count > 0`
 - **Infra declares no interface**\
-  `Types of "Infra" has none type.Kind == DeclaredKind.Interface`
+  `All types of "Infra" has none type.Kind == DeclaredKind.Interface`
 
 ### [Project dependencies](Dependencies/ProjectDependencies.cs)
 
@@ -83,13 +83,31 @@ flowchart TD
 - **An enumerable parameter is referenced exactly once**\
   `Source.Projects[project].Members.SelectMany(ParametersReadOtherThanOnce) is empty`
 - **The references to a parameter are the names that resolve to it**\
-  `References in method is references`
+  `References in Method(method) is references`
 
   | method                                                                  | references |
   | ----------------------------------------------------------------------- | ---------- |
   | "int Count(IEnumerable<int> rows) => rows.Count();"                     | 1          |
   | "int Twice(IEnumerable<int> rows) => rows.Count() + rows.Sum();"        | 2          |
   | "int Max(IEnumerable<int> rows) => rows.Max(row => new[] { row }.Max(r… | 1          |
+
+- **A parameter holds an enumerable however its type is written**\
+  `Holds an enumerable Method(method) is true`
+
+  | method                                         |
+  | ---------------------------------------------- |
+  | "int Count(IEnumerable<int> rows) => 0;"       |
+  | "int Count(Rows rows) => 0;"                   |
+  | "int Count(Func<IEnumerable<int>> rows) => 0;" |
+  | "int Count(IEnumerable<int>[] rows) => 0;"     |
+
+- **A type that only implements one holds none**\
+  `Holds an enumerable Method(method) is false`
+
+  | method                                     |
+  | ------------------------------------------ |
+  | "int Count(IReadOnlyList<int> rows) => 0;" |
+  | "int Count(string rows) => 0;"             |
 
 ### [Mutable collections](Exposure/MutableCollections.cs)
 
@@ -110,6 +128,10 @@ flowchart TD
 
 - **No wire property carries an enum a time or an object**\
   `Contract.Members.Where(IsWireProperty) has none Refused`
+- **An enum with the system text json converter is converted**\
+  `Converted EnumIn("[JsonConverter(typeof(JsonStringEnumConverter))]") is true`
+- **An enum with a json converter of our own is not**\
+  `Converted EnumIn("[Own.JsonConverter]") is false`
 
 ## Idioms
 

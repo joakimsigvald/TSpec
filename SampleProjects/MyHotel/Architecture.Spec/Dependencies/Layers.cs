@@ -14,7 +14,8 @@ public class Layers : TSpec.Spec
 
     [Fact]
     public void InfraDeclaresNoInterface() =>
-        TypesOf("Infra").Has().None(type => type.Kind == DeclaredKind.Interface);
+        AllTypesOf("Infra").Has().None(type => type.Kind == DeclaredKind.Interface);
 
     private static IEnumerable<DeclaredType> TypesOf(string project) => Source.Projects[project].Types;
+    private static IEnumerable<DeclaredType> AllTypesOf(string project) => Source.Projects[project].AllTypes;
 }

@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using TSpec.Architecture.CSharp;
 using TSpec.Assert;
@@ -25,7 +26,21 @@ public class EnumerableMembers : TSpec.Spec
     [InlineData("int Twice(IEnumerable<int> rows) => rows.Count() + rows.Sum();", 2)]
     [InlineData("int Max(IEnumerable<int> rows) => rows.Max(row => new[] { row }.Max(rows => rows));", 1)]
     public void TheReferencesToAParameterAreTheNamesThatResolveToIt(string method, int references) =>
-        ReferencesIn(method).Is(references);
+        ReferencesIn(Method(method)).Is(references);
+
+    [Theory]
+    [InlineData("int Count(IEnumerable<int> rows) => 0;")]
+    [InlineData("int Count(Rows rows) => 0;")]
+    [InlineData("int Count(Func<IEnumerable<int>> rows) => 0;")]
+    [InlineData("int Count(IEnumerable<int>[] rows) => 0;")]
+    public void AParameterHoldsAnEnumerableHoweverItsTypeIsWritten(string method) =>
+        HoldsAnEnumerable(Method(method)).Is().True();
+
+    [Theory]
+    [InlineData("int Count(IReadOnlyList<int> rows) => 0;")]
+    [InlineData("int Count(string rows) => 0;")]
+    public void ATypeThatOnlyImplementsOneHoldsNone(string method) =>
+        HoldsAnEnumerable(Method(method)).Is().False();
 
     private static bool ReturnsAnEnumerable(DeclaredMember member) =>
         member.IsExposed && member.Gives(typeof(IEnumerable<>));
@@ -36,7 +51,7 @@ public class EnumerableMembers : TSpec.Spec
         BodyOf(member.Syntax) is { } body ? Breaches(member, body) : [];
 
     private static IEnumerable<string> Breaches(DeclaredMember member, SyntaxNode body) =>
-        member.Parameters.Where(HoldsAnEnumerable)
+        member.Parameters.Where(parameter => HoldsAnEnumerable(parameter, member.File.Model))
             .Select(parameter => Breach(member, parameter, body))
             .OfType<string>();
 
@@ -55,8 +70,21 @@ public class EnumerableMembers : TSpec.Spec
             _ => null,
         };
 
-    private static bool HoldsAnEnumerable(ParameterSyntax parameter) =>
-        parameter.Type is { } type && type.DescendantNodesAndSelf().Any(IsEnumerable);
+    private static bool HoldsAnEnumerable(ParameterSyntax parameter, SemanticModel model) =>
+        model.GetDeclaredSymbol(parameter)?.Type is { } type && Holds(type);
+
+    /// <summary>An IEnumerable&lt;T> itself, or a type that has one among its type arguments or as its
+    /// elements; a type that only implements one holds none.</summary>
+    private static bool Holds(ITypeSymbol type) =>
+        type switch
+        {
+            IArrayTypeSymbol array => Holds(array.ElementType),
+            INamedTypeSymbol named => IsEnumerable(named) || named.TypeArguments.Any(Holds),
+            _ => false,
+        };
+
+    private static bool IsEnumerable(INamedTypeSymbol type) =>
+        type.OriginalDefinition.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T;
 
     private static int Uses(SyntaxNode body, ParameterSyntax parameter, SemanticModel model) =>
         body.DescendantNodes().OfType<IdentifierNameSyntax>().Count(name => Names(name, parameter, model));
@@ -68,21 +96,28 @@ public class EnumerableMembers : TSpec.Spec
             model.GetSymbolInfo(name).Symbol,
             model.GetDeclaredSymbol(parameter));
 
-    private static bool IsEnumerable(SyntaxNode node) =>
-        node is GenericNameSyntax { Identifier.Text: "IEnumerable" };
-
-    /// <summary>The references to the first parameter of a method in a class of its own.</summary>
-    private static int ReferencesIn(string method) =>
-        ReferencesIn(Snippets.Compiled($$"""
+    /// <summary>A snippet with the method in a class of its own, where `Rows` is an alias of
+    /// IEnumerable&lt;int>.</summary>
+    private static SemanticModel Method(string method) =>
+        Snippets.Compiled($$"""
+            using System;
             using System.Collections.Generic;
             using System.Linq;
+            using Rows = System.Collections.Generic.IEnumerable<int>;
 
             class C { {{method}} }
-            """));
+            """);
 
+    /// <summary>The references to the snippet method's first parameter.</summary>
     private static int ReferencesIn(SemanticModel snippet) =>
-        ReferencesIn(Snippets.Nodes<MethodDeclarationSyntax>(snippet).Single(), snippet);
+        Uses(MethodIn(snippet).ExpressionBody!, FirstParameterIn(snippet), snippet);
 
-    private static int ReferencesIn(MethodDeclarationSyntax method, SemanticModel model) =>
-        Uses(method.ExpressionBody!, method.ParameterList.Parameters[0], model);
+    private static bool HoldsAnEnumerable(SemanticModel snippet) =>
+        HoldsAnEnumerable(FirstParameterIn(snippet), snippet);
+
+    private static MethodDeclarationSyntax MethodIn(SemanticModel snippet) =>
+        Snippets.Nodes<MethodDeclarationSyntax>(snippet).Single();
+
+    private static ParameterSyntax FirstParameterIn(SemanticModel snippet) =>
+        MethodIn(snippet).ParameterList.Parameters[0];
 }

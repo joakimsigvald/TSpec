@@ -1,4 +1,6 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using TSpec.Architecture.CSharp;
 using TSpec.Assert;
 
@@ -11,6 +13,8 @@ namespace MyHotel.Architecture.Spec.Exposure;
 /// wire's.</summary>
 public class WireTypes : TSpec.Spec
 {
+    private const string Converter = "System.Text.Json.Serialization.JsonConverter";
+
     // Every time type but DateOnly, which has one ISO form.
     private static readonly Type[] Untyped =
         [typeof(DateTime), typeof(DateTimeOffset), typeof(TimeSpan), typeof(TimeOnly)];
@@ -18,6 +22,14 @@ public class WireTypes : TSpec.Spec
     [Fact]
     public void NoWirePropertyCarriesAnEnumATimeOrAnObject() =>
         Contract.Members.Where(IsWireProperty).Has().None(Refused);
+
+    [Fact]
+    public void AnEnumWithTheSystemTextJsonConverterIsConverted() =>
+        Converted(EnumIn("[JsonConverter(typeof(JsonStringEnumConverter))]")).Is().True();
+
+    [Fact]
+    public void AnEnumWithAJsonConverterOfOurOwnIsNot() =>
+        Converted(EnumIn("[Own.JsonConverter]")).Is().False();
 
     private static bool Refused(DeclaredMember property) =>
         Untyped.Any(property.Gives) || property.Gives(IsRefused);
@@ -29,7 +41,8 @@ public class WireTypes : TSpec.Spec
         || (type.IsValueType && type.ContainingAssembly?.Name == Contract.AssemblyName && !Converted(type));
 
     private static bool Converted(ITypeSymbol type) =>
-        type.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == "JsonConverterAttribute");
+        type.GetAttributes()
+            .Any(attribute => attribute.AttributeClass?.ToDisplayString() == $"{Converter}Attribute");
 
     /// <summary>A record's public property, a positional one too, that no converter on the record
     /// writes.</summary>
@@ -37,7 +50,26 @@ public class WireTypes : TSpec.Spec
         member.Kind is MemberKind.Property
         && member.Accessibility is Accessibility.Public
         && member.DeclaringType is { Kind: DeclaredKind.Record or DeclaredKind.RecordStruct } record
-        && !record.HasAttribute("JsonConverter");
+        && !record.HasAttribute(Converter);
 
     private static SourceProject Contract => Source.Projects["Contract"];
+
+    /// <summary>An enum with the attribute in a snippet, where Own.JsonConverter is an attribute of our
+    /// own.</summary>
+    private static ITypeSymbol EnumIn(string attribute) =>
+        EnumIn(Snippets.Compiled($$"""
+            using System;
+            using System.Text.Json.Serialization;
+
+            {{attribute}}
+            enum Status { Free }
+
+            namespace Own
+            {
+                sealed class JsonConverterAttribute : Attribute;
+            }
+            """));
+
+    private static ITypeSymbol EnumIn(SemanticModel snippet) =>
+        snippet.GetDeclaredSymbol(Snippets.Nodes<EnumDeclarationSyntax>(snippet).Single())!;
 }
