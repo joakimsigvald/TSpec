@@ -24,6 +24,8 @@
 		<PackageReleaseNotes>
 			CHANGED
 			* A method group as a condition reads as its name in words, as a lambda calling it does: Has().None(IsMinor) reads "has none is minor"
+			FIXED
+			* A negated Does assertion after and or or keeps its verb: "and does not contain"
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

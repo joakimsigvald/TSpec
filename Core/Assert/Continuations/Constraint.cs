@@ -43,7 +43,9 @@ public abstract record Constraint<TActual, TContinuation>
     /// For a constraint of an extension package: its continuation's name starts with the verb its
     /// assertions are stated with, as in IsDependencyGraph
     /// </summary>
-    protected Constraint() : base() => AuxiliaryVerb = typeof(TContinuation).Name.ToWords()[0];
+    protected Constraint() : base() => AuxiliaryVerb = OwnVerb;
+
+    private static string OwnVerb => typeof(TContinuation).Name.ToWords()[0];
 
     /// <summary>
     /// Invert the following assertion
@@ -205,8 +207,10 @@ public abstract record Constraint<TActual, TContinuation>
         [CallerMemberName] string? methodName = null)
     {
         var isInverted = State.HasFlag(ConstraintState.Inverted);
-        if (!isInverted && verbalizationStrategy == VerbalizationStrategy.PresentSingularS)
-            AuxiliaryVerb = string.Empty;
+        // "contains" stands without its auxiliary, so a negation brings it back, also after and or or:
+        // "does not contain"
+        if (verbalizationStrategy == VerbalizationStrategy.PresentSingularS)
+            AuxiliaryVerb = isInverted ? $"{OwnVerb} not" : string.Empty;
         return Assert(() =>
             {
                 if (State.HasFlag(ConstraintState.Succeeded))

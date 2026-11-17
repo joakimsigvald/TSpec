@@ -132,6 +132,28 @@ public class WhenString : Spec<string>
     }
 
     [Fact]
+    public void DoesContainAndNotContain()
+    {
+        "abcd".Does().Contain("abc").and.not.Contain("xxx");
+        Specification.Is(
+            """
+            "abcd" contains "abc"
+                and does not contain "xxx"
+            """);
+    }
+
+    [Fact]
+    public void DoesEitherStartWithOrNotEndWith()
+    {
+        "abcd".Does().either.StartWith("ab").or.not.EndWith("xx");
+        Specification.Is(
+            """
+            "abcd" starts with "ab"
+                or does not end with "xx"
+            """);
+    }
+
+    [Fact]
     public void IsNotNullAndNot()
     {
         "A".Is().not.Null().and.Not("B");
