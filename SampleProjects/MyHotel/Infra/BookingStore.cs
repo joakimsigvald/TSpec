@@ -45,7 +45,7 @@ internal sealed class BookingStore(string path) : IBookingStore, IBookingNumberS
 
     /// What the file holds: the bookings made, and the last number issued - null until the first
     /// one is, which is the one moment the seed applies.
-    private record Book(IReadOnlyList<Booking> Bookings, int? LastUsedNumber)
+    private sealed record Book(IReadOnlyList<Booking> Bookings, int? LastUsedNumber)
     {
         internal static Book Empty => new([], null);
     }

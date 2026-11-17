@@ -13,7 +13,7 @@ public class FileLengths : TSpec.Spec
 
     [Theory, MemberData(nameof(Projects))]
     public void AFileIsUnder250Lines(string project) =>
-        Source.Projects[project].Files.Has().None(file => Overlong(file));
+        Source.Projects[project].Files.Has().None(Overlong);
 
     private static bool Overlong(SourceFile file) => file.Lines.Count > Limit;
 }

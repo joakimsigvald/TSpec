@@ -6,33 +6,71 @@ using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec.Idioms;
 
-/// <summary>CODING-STANDARD-BACKEND.md 0d as an invariant over the syntax trees: every warning fails the
-/// build, so a switch that turns one off in the source - `#pragma warning disable`, `[SuppressMessage]` or
-/// `#nullable disable` - is the one way past every analyzer and guard, and our sources hold none. A rule that
-/// does not fit is changed where review sees it: the standard and the .editorconfig. A project file's
-/// `NoWarn` stays review's, since TSpec reads no project file. One fact per project (Sources).</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 0d as an invariant over the syntax trees and what they bind to: every
+/// warning fails the build, so a switch that turns one off in the source - `#pragma warning disable`,
+/// `[SuppressMessage]` or `#nullable disable` - is the one way past every analyzer and guard, and our sources
+/// hold none. A rule that does not fit is changed where review sees it: the standard and the .editorconfig. A
+/// project file's `NoWarn` stays review's, since TSpec reads no project file. One fact per project
+/// (Sources).</summary>
 public class Suppressions : TSpec.Spec
 {
-    // The ends of SuppressMessage and UnconditionalSuppressMessage, with or without a namespace or Attribute.
-    private static readonly string[] SuppressionNames = ["SuppressMessage", "SuppressMessageAttribute"];
+    private static readonly string[] SuppressionTypes =
+    [
+        "System.Diagnostics.CodeAnalysis.SuppressMessageAttribute",
+        "System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute",
+    ];
 
     public static TheoryData<string> Projects => Sources.Projects;
 
     [Theory, MemberData(nameof(Projects))]
     public void NoSourceSwitchesAWarningOff(string project) =>
-        Source.Projects[project].Nodes<SyntaxNode>().Has().None(node => Suppressing(node));
+        Source.Projects[project].Nodes<SyntaxNode>().Has().None(Suppressing);
+
+    [Theory]
+    [InlineData("""[SuppressMessage("Style", "IDE0001")]""")]
+    [InlineData("""[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Style", "IDE0001")]""")]
+    [InlineData("""[UnconditionalSuppressMessage("Trimming", "IL2026")]""")]
+    [InlineData("""[Quiet("Style", "IDE0001")]""")]
+    public void AnAttributeSwitchesAWarningOff(string attribute) =>
+        Suppresses(OnAClass(attribute)).Is().True();
+
+    [Theory]
+    [InlineData("[Obsolete]")]
+    [InlineData("""[NotASuppressMessage("Style")]""")]
+    public void AnotherAttributeDoesNot(string attribute) => Suppresses(OnAClass(attribute)).Is().False();
 
     private static bool Suppressing(SourceNode<SyntaxNode> node) =>
         node.Syntax switch
         {
             PragmaWarningDirectiveTriviaSyntax pragma => Disables(pragma.DisableOrRestoreKeyword),
             NullableDirectiveTriviaSyntax nullable => Disables(nullable.SettingToken),
-            AttributeSyntax attribute => Suppresses(attribute),
+            AttributeSyntax attribute => Suppresses(attribute, node.File.Model),
             _ => false,
         };
 
     private static bool Disables(SyntaxToken setting) => setting.IsKind(SyntaxKind.DisableKeyword);
 
-    private static bool Suppresses(AttributeSyntax attribute) =>
-        SuppressionNames.Any(name => attribute.Name.ToString().EndsWith(name, StringComparison.Ordinal));
+    private static bool Suppresses(SemanticModel snippet) =>
+        Suppresses(Snippets.Nodes<AttributeSyntax>(snippet).Single(), snippet);
+
+    private static bool Suppresses(AttributeSyntax attribute, SemanticModel model) =>
+        model.GetSymbolInfo(attribute).Symbol?.ContainingType.ToDisplayString() is { } type
+        && SuppressionTypes.Contains(type);
+
+    /// <summary>A snippet with the attribute on a class, where `Quiet` is an alias of SuppressMessage and
+    /// NotASuppressMessage an attribute of our own.</summary>
+    private static SemanticModel OnAClass(string attribute) =>
+        Snippets.Compiled($$"""
+            using System;
+            using System.Diagnostics.CodeAnalysis;
+            using Quiet = System.Diagnostics.CodeAnalysis.SuppressMessageAttribute;
+
+            {{attribute}}
+            sealed class C { }
+
+            sealed class NotASuppressMessage(string category) : Attribute
+            {
+                public string Category => category;
+            }
+            """);
 }

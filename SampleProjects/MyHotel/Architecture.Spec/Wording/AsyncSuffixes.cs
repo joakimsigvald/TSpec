@@ -12,7 +12,7 @@ public class AsyncSuffixes : TSpec.Spec
 
     [Theory, MemberData(nameof(Projects))]
     public void NoMethodCarriesTheAsyncSuffix(string project) =>
-        Source.Projects[project].Members.Has().None(member => AsyncSuffixed(member));
+        Source.Projects[project].Members.Has().None(AsyncSuffixed);
 
     private static bool AsyncSuffixed(DeclaredMember member) =>
         member.Kind is MemberKind.Method or MemberKind.LocalFunction

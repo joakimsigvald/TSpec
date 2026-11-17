@@ -14,11 +14,18 @@ public class EnumerableMembers : TSpec.Spec
 
     [Theory, MemberData(nameof(Projects))]
     public void AMemberAnotherClassCallsReturnsNoEnumerable(string project) =>
-        Source.Projects[project].Members.Has().None(member => ReturnsAnEnumerable(member));
+        Source.Projects[project].Members.Has().None(ReturnsAnEnumerable);
 
     [Theory, MemberData(nameof(Projects))]
     public void AnEnumerableParameterIsReferencedExactlyOnce(string project) =>
         Source.Projects[project].Members.SelectMany(ParametersReadOtherThanOnce).Is().Empty();
+
+    [Theory]
+    [InlineData("int Count(IEnumerable<int> rows) => rows.Count();", 1)]
+    [InlineData("int Twice(IEnumerable<int> rows) => rows.Count() + rows.Sum();", 2)]
+    [InlineData("int Max(IEnumerable<int> rows) => rows.Max(row => new[] { row }.Max(rows => rows));", 1)]
+    public void TheReferencesToAParameterAreTheNamesThatResolveToIt(string method, int references) =>
+        ReferencesIn(method).Is(references);
 
     private static bool ReturnsAnEnumerable(DeclaredMember member) =>
         member.IsExposed && member.Gives(typeof(IEnumerable<>));
@@ -34,7 +41,7 @@ public class EnumerableMembers : TSpec.Spec
             .OfType<string>();
 
     private static string? Breach(DeclaredMember member, ParameterSyntax parameter, SyntaxNode body) =>
-        Uses(body, parameter) is var uses and not 1
+        Uses(body, parameter, member.File.Model) is var uses and not 1
             ? $"{member}({parameter.Identifier.Text}) referenced {uses} times"
             : null;
 
@@ -51,10 +58,31 @@ public class EnumerableMembers : TSpec.Spec
     private static bool HoldsAnEnumerable(ParameterSyntax parameter) =>
         parameter.Type is { } type && type.DescendantNodesAndSelf().Any(IsEnumerable);
 
-    private static int Uses(SyntaxNode body, ParameterSyntax parameter) =>
-        body.DescendantNodes().OfType<IdentifierNameSyntax>()
-            .Count(name => name.Identifier.Text == parameter.Identifier.Text);
+    private static int Uses(SyntaxNode body, ParameterSyntax parameter, SemanticModel model) =>
+        body.DescendantNodes().OfType<IdentifierNameSyntax>().Count(name => Names(name, parameter, model));
+
+    /// <summary>Whether the name resolves to the parameter: a lambda's own parameter of that name does
+    /// not.</summary>
+    private static bool Names(IdentifierNameSyntax name, ParameterSyntax parameter, SemanticModel model) =>
+        SymbolEqualityComparer.Default.Equals(
+            model.GetSymbolInfo(name).Symbol,
+            model.GetDeclaredSymbol(parameter));
 
     private static bool IsEnumerable(SyntaxNode node) =>
         node is GenericNameSyntax { Identifier.Text: "IEnumerable" };
+
+    /// <summary>The references to the first parameter of a method in a class of its own.</summary>
+    private static int ReferencesIn(string method) =>
+        ReferencesIn(Snippets.Compiled($$"""
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C { {{method}} }
+            """));
+
+    private static int ReferencesIn(SemanticModel snippet) =>
+        ReferencesIn(Snippets.Nodes<MethodDeclarationSyntax>(snippet).Single(), snippet);
+
+    private static int ReferencesIn(MethodDeclarationSyntax method, SemanticModel model) =>
+        Uses(method.ExpressionBody!, method.ParameterList.Parameters[0], model);
 }

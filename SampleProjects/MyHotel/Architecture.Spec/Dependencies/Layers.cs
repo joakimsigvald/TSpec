@@ -10,9 +10,11 @@ public class Layers : TSpec.Spec
         TypesOf("Contract").Has().All(type => type.IsPublic);
 
     [Fact]
+    public void ContractNestsNoType() => TypesOf("Contract").Has().None(type => type.Nested.Count > 0);
+
+    [Fact]
     public void InfraDeclaresNoInterface() =>
         TypesOf("Infra").Has().None(type => type.Kind == DeclaredKind.Interface);
 
-    private static IEnumerable<DeclaredType> TypesOf(string project) =>
-        Source.Projects[project].Files.SelectMany(file => file.Types);
+    private static IEnumerable<DeclaredType> TypesOf(string project) => Source.Projects[project].Types;
 }

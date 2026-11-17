@@ -31,6 +31,7 @@ Each waits for a real spec that is worse without it.
 | D8 | **A run of digits splits apart.** `SplitWords` never advances `prev`, so every digit starts a word and only the acronym merge rejoins single ones: `Item10x` reads `item 1 0x`. Advancing it also turns `GivenX10` from `given x10` into `given x 10`. | Small | Small | 0 |
 | D11 | **A lone capital at the start of a title splits off.** `TSpec` reads `# T Spec`, `EShop` `# E Shop`. Fix it in `AsTitle` only, since `GivenASnake` must still read `given a snake` and `MyHTTPServer` `My HTTP Server`. | Small | Small | 0 |
 | D15 | **Given-headings and bullets could link to their line** once Visual Studio's Markdown preview follows a `#L` anchor. `SourceLocations` already reads lines. | Small | Small | 0 |
+| D16 | **A method group renders as written.** `Members.Has().None(AsyncSuffixed)` reads `has none AsyncSuffixed`, while `member => AsyncSuffixed(member)` reads `has none async suffixed member` — and IDE0200 asks for the method group. Render a bare method name as words, as a call's name already is; every page that passes one changes (MyHotel's architecture page, about 20 lines). | Small | Medium | 1 |
 
 ## E. Documentation
 
@@ -49,7 +50,6 @@ Each waits for a real spec that is worse without it.
 | Id | Description | Effort | Value | Worth |
 |---|---|---|---|---|
 | G1 | **First-class source lines.** A `SourceLine` with `File`, `Number`, `Text`, `Indent` and `IsEmbedded` (inside a multi-line raw string), named `X/Path:line` on failure as nodes are. MyHotel's `LineWidths`, `NestingDepth`, `Indentation` and `Characters` each rebuild `(text, index)` tuples, and two need the `EmbeddedLines` helper. | Medium | Medium | 0 |
-| G3 | **Counted-breach failure rendering.** An assertion over a site collection that renders count, first site and an optional remedy — nine MyHotel specs repeat the `Breach`/`Sites` pair formatting `"{count} X, the first at {first}; {instead}"` around `Is().Null()`. | Medium | Medium | 0 |
 | G5 | **Comments as data.** `file.Comments`, each with `Kind` (line, block, doc), the lines it covers, whether it stands on its own line, and the member it leads. MyHotel's `Comments` is 120 lines of trivia-walking, and `Indentation` re-derives comment lines. | Medium | Medium | 0 |
 
 ## Reading and updating this document

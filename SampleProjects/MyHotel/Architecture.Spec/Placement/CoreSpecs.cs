@@ -23,8 +23,7 @@ public class CoreSpecs : TSpec.Spec
         get
         {
             var core = Source.Projects["Core"];
-            HashSet<string> folders = [.. core.Files.SelectMany(file => file.Types)
-                .Select(type => FolderOf(type, core.AssemblyName))];
+            HashSet<string> folders = [.. core.Types.Select(type => FolderOf(type, core.AssemblyName))];
             return folders;
         }
     }

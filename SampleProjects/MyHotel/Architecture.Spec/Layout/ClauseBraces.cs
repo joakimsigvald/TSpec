@@ -17,7 +17,7 @@ public class ClauseBraces : TSpec.Spec
 
     [Theory, MemberData(nameof(Projects))]
     public void AClauseTakesBracesUnlessItIsASimpleStatement(string project) =>
-        Breach(project).Is().Null();
+        Source.Projects[project].Nodes<StatementSyntax>().Has().None(Misbraced);
 
     [Theory]
     [InlineData("if (a) F();")]
@@ -38,20 +38,11 @@ public class ClauseBraces : TSpec.Spec
     [InlineData("using (scope) { F(); }")]
     public void AStatementMisbracesOneClause(string statement) => MisbracedIn(statement).Has().OneItem();
 
-    private static string? Breach(string project) =>
-        Sites(project) is [var first, ..] and var sites
-            ? $"{sites.Count} clauses brace a simple statement or leave any other bare, the first at {first}"
-            : null;
-
-    /// <summary>"file:line" for every misbraced clause in the project.</summary>
-    private static IReadOnlyList<string> Sites(string project) =>
-        [.. Source.Projects[project].Nodes<StatementSyntax>()
-            .Where(clause => Misbraced(clause.Syntax))
-            .Select(Reported)];
-
     private static IReadOnlyList<StatementSyntax> MisbracedIn(string statement) =>
         [.. SyntaxFactory.ParseStatement(statement).DescendantNodesAndSelf().OfType<StatementSyntax>()
             .Where(Misbraced)];
+
+    private static bool Misbraced(SourceNode<StatementSyntax> clause) => Misbraced(clause.Syntax);
 
     /// <summary>A clause braced around one simple statement, or bare though it is none - but the `if` of an
     /// `else if`.</summary>
@@ -72,7 +63,4 @@ public class ClauseBraces : TSpec.Spec
     private static bool IsSimple(StatementSyntax statement) =>
         statement is ExpressionStatementSyntax or ReturnStatementSyntax or ThrowStatementSyntax
             or BreakStatementSyntax or ContinueStatementSyntax or YieldStatementSyntax;
-
-    private static string Reported(SourceNode<StatementSyntax> clause) =>
-        $"{clause.File}:{clause.File.Line(clause.Syntax)}";
 }

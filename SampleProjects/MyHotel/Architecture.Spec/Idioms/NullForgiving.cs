@@ -17,7 +17,7 @@ public class NullForgiving : TSpec.Spec
     [Theory, MemberData(nameof(Projects))]
     public void AnExpressionHoldsAtMostOneNullForgivingOperator(string project) =>
         Source.Projects[project].Nodes<PostfixUnaryExpressionSyntax>()
-            .Has().None(expression => DoublyForgiven(expression));
+            .Has().None(DoublyForgiven);
 
     /// <summary>A `!` on an expression that already holds one.</summary>
     private static bool DoublyForgiven(SourceNode<PostfixUnaryExpressionSyntax> expression) =>

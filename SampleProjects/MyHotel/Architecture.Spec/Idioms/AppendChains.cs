@@ -20,17 +20,7 @@ public class AppendChains : TSpec.Spec
 
     [Theory, MemberData(nameof(Projects))]
     public void AChainOfAppendsHoldsAtMostOneFixedText(string project) =>
-        Breach(project).Is().Null();
-
-    private static string? Breach(string project) =>
-        Sites(project) is [var first, ..] and var sites
-            ? $"{sites.Count} chains append a text over several lines, the first at {first}"
-            : null;
-
-    /// <summary>"file:line" for every chain of the project that holds more than one fixed text.</summary>
-    private static IReadOnlyList<string> Sites(string project) =>
-        [.. Source.Projects[project].Nodes<InvocationExpressionSyntax>()
-            .Where(EndsATextInParts).Select(Reported)];
+        Source.Projects[project].Nodes<InvocationExpressionSyntax>().Has().None(EndsATextInParts);
 
     /// <summary>The last call of a chain of appends that holds more than one fixed text.</summary>
     private static bool EndsATextInParts(SourceNode<InvocationExpressionSyntax> call) =>
@@ -65,7 +55,4 @@ public class AppendChains : TSpec.Spec
     private static bool IsFixed(SourceFile file, InvocationExpressionSyntax append) =>
         append.ArgumentList.Arguments is not [var first, ..]
         || file.Model.GetConstantValue(first.Expression).HasValue;
-
-    private static string Reported(SourceNode<InvocationExpressionSyntax> call) =>
-        $"{call.File}:{call.File.Line(call.Syntax)}";
 }

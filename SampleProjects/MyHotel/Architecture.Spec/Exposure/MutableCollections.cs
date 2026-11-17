@@ -33,7 +33,7 @@ public class MutableCollections : TSpec.Spec
 
     [Theory, MemberData(nameof(Projects))]
     public void NoMemberTakesOrReturnsAMutableCollection(string project) =>
-        Source.Projects[project].Members.Has().None(member => PassesAMutableCollection(member));
+        Source.Projects[project].Members.Has().None(PassesAMutableCollection);
 
     private static bool PassesAMutableCollection(DeclaredMember member) =>
         Passes(member) && CarriesAMutableCollection(member) && member.IsOriginal;
@@ -42,5 +42,5 @@ public class MutableCollections : TSpec.Spec
         member.Kind is not MemberKind.Field || member.Accessibility is not Accessibility.Private;
 
     private static bool CarriesAMutableCollection(DeclaredMember member) =>
-        member.Carries(TypeKind.Array) || Mutable.Any(collection => member.Carries(collection));
+        member.Carries(TypeKind.Array) || Mutable.Any(member.Carries);
 }

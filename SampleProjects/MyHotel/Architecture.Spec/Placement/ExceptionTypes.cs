@@ -19,12 +19,11 @@ public class ExceptionTypes : TSpec.Spec
 
     [Theory, MemberData(nameof(Projects))]
     public void OurExceptionTypesLiveInAnExceptionsFolderWithoutTheSuffix(string project) =>
-        Breach(project).Is().Null();
+        Classes(project).Has().either.None(MisplacedException).or.Fix(Instead);
 
     [Theory, MemberData(nameof(Projects))]
     public void AnExceptionsFolderHoldsOnlyExceptions(string project) =>
-        Classes(project).Where(type => InTheFolder(FileOf(type)) && !IsAnException(type))
-            .Select(Reported).Is().Empty();
+        Classes(project).Has().None(StrayInTheFolder);
 
     [Theory]
     [InlineData("Contract/Rooms/RoomNotFound.cs", "RoomNotFound")]
@@ -37,19 +36,14 @@ public class ExceptionTypes : TSpec.Spec
     public void OneInAnExceptionsFolderWithoutTheSuffixDoesNot(string file, string name) =>
         Breaks(file, name).Is().False();
 
-    private static string? Breach(string project) =>
-        Sites(project) is [var first, ..] and var sites
-            ? $"{sites.Count} exception types break 8g, the first {first}; {Instead}"
-            : null;
-
-    /// <summary>"Name in file" for every exception type of the project that breaks 8g.</summary>
-    private static IReadOnlyList<string> Sites(string project) =>
-        [.. Classes(project)
-            .Where(type => IsAnException(type) && Breaks(FileOf(type), type.Name))
-            .Select(Reported)];
-
     private static IEnumerable<DeclaredType> Classes(string project) =>
         Source.Projects[project].AllTypes.Where(type => type.Kind is DeclaredKind.Class);
+
+    private static bool MisplacedException(DeclaredType type) =>
+        IsAnException(type) && Breaks(FileOf(type), type.Name);
+
+    private static bool StrayInTheFolder(DeclaredType type) =>
+        InTheFolder(FileOf(type)) && !IsAnException(type);
 
     private static bool IsAnException(DeclaredType type) => type.DerivesFrom(typeof(Exception));
     private static bool InTheFolder(string file) => file.Split('/') is [.., Folder, _];
@@ -58,5 +52,4 @@ public class ExceptionTypes : TSpec.Spec
         !InTheFolder(file) || name.EndsWith(Suffix, StringComparison.Ordinal);
 
     private static string FileOf(DeclaredType type) => type.Files[0].ToString();
-    private static string Reported(DeclaredType type) => $"{type.Name} in {FileOf(type)}";
 }

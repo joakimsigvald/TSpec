@@ -1,15 +1,15 @@
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using TSpec.Architecture.CSharp;
 using TSpec.Assert;
 
 namespace MyHotel.Architecture.Spec.Idioms;
 
-/// <summary>CODING-STANDARD-BACKEND.md 8a as an invariant over the syntax trees: a catch names the types it
-/// handles, and a catch of `Exception` only rethrows, with any side effect in its `when`. Whatever the filter
-/// answers, the original passes on - a filter that throws is dropped by the runtime and counts as false.
-/// MyHotel has no construct that swallows all errors by design; the first one is named here. One fact per
-/// project (Sources).</summary>
+/// <summary>CODING-STANDARD-BACKEND.md 8a as an invariant over the syntax trees and what they bind to: a
+/// catch names the types it handles, and a catch of `Exception` only rethrows, with any side effect in its
+/// `when`. Whatever the filter answers, the original passes on - a filter that throws is dropped by the
+/// runtime and counts as false. MyHotel has no construct that swallows all errors by design; the first one is
+/// named here. One fact per project (Sources).</summary>
 public class Catches : TSpec.Spec
 {
     /// <summary>The one shape that reacts to every failure without keeping it.</summary>
@@ -22,7 +22,8 @@ public class Catches : TSpec.Spec
 
     [Theory, MemberData(nameof(Projects))]
     public void NoCatchTakesEveryException(string project) =>
-        Breach(project).Is().Null();
+        Source.Projects[project].Nodes<CatchClauseSyntax>()
+            .Has().either.None(TakesEverything).or.Fix(Instead);
 
     [Theory]
     [InlineData("catch { }")]
@@ -33,7 +34,8 @@ public class Catches : TSpec.Spec
     [InlineData("catch (Exception e) { if (cancelled) throw; }")]
     [InlineData("catch (Exception e) { Log(e); throw; }")]
     [InlineData("catch (Exception e) { throw Malformed(e); }")]
-    public void ACatchTakesEveryException(string clause) => TakesEverything(CatchOf(clause)).Is().True();
+    [InlineData("catch (Error) { }")]
+    public void ACatchTakesEveryException(string clause) => TakesEverything(CatchIn(clause)).Is().True();
 
     [Theory]
     [InlineData("catch (TimeoutException) { }")]
@@ -41,35 +43,33 @@ public class Catches : TSpec.Spec
     [InlineData("catch (Exception e) when (Log(e)) { throw; }")]
     [InlineData("catch (Exception e) when (Log(e) && false) { throw; }")]
     public void ACatchTakesOnlyTheTypesItNamesOrRethrows(string clause) =>
-        TakesEverything(CatchOf(clause)).Is().False();
+        TakesEverything(CatchIn(clause)).Is().False();
 
-    private static string? Breach(string project) =>
-        Sites(project) is [var first, ..] and var sites
-            ? $"{sites.Count} catches take every exception, the first at {first}; {Instead}"
-            : null;
+    private static bool TakesEverything(SourceNode<CatchClauseSyntax> clause) =>
+        TakesEverything(clause.Syntax, clause.File.Model);
 
-    /// <summary>"file:line" for every catch in the project that takes every exception.</summary>
-    private static IReadOnlyList<string> Sites(string project) =>
-        [.. Source.Projects[project].Nodes<CatchClauseSyntax>()
-            .Where(clause => TakesEverything(clause.Syntax))
-            .Select(Reported)];
+    private static bool TakesEverything(SemanticModel snippet) =>
+        TakesEverything(Snippets.Nodes<CatchClauseSyntax>(snippet).Single(), snippet);
 
-    private static bool TakesEverything(CatchClauseSyntax clause) =>
-        TakesAny(clause.Declaration) && !Rethrows(clause);
+    private static bool TakesEverything(CatchClauseSyntax clause, SemanticModel model) =>
+        TakesAny(clause.Declaration, model) && !Rethrows(clause);
 
-    /// <summary>A bare catch, or `Exception` in each spelling but an alias, which syntax cannot see
-    /// through.</summary>
-    private static bool TakesAny(CatchDeclarationSyntax? declaration) =>
+    /// <summary>A bare catch, or one of Exception however its type is written.</summary>
+    private static bool TakesAny(CatchDeclarationSyntax? declaration, SemanticModel model) =>
         declaration is null
-        || declaration.Type.ToString() is "Exception" or "System.Exception" or "global::System.Exception";
+        || model.GetTypeInfo(declaration.Type).Type?.ToDisplayString() == "System.Exception";
 
     private static bool Rethrows(CatchClauseSyntax clause) =>
         clause.Block.Statements is [ThrowStatementSyntax { Expression: null }];
 
-    private static string Reported(SourceNode<CatchClauseSyntax> clause) =>
-        $"{clause.File}:{clause.File.Line(clause.Syntax)}";
+    /// <summary>A snippet holding the catch clause after an empty try, where `Error` is an alias of
+    /// Exception.</summary>
+    private static SemanticModel CatchIn(string clause) =>
+        Snippets.Compiled($$"""
+            using System;
+            using System.IO;
+            using Error = System.Exception;
 
-    /// <summary>The catch clause of a snippet, after an empty try.</summary>
-    private static CatchClauseSyntax CatchOf(string clause) =>
-        ((TryStatementSyntax)SyntaxFactory.ParseStatement($"try {{ }} {clause}")).Catches[0];
+            class C { void M() { try { } {{clause}} } }
+            """);
 }

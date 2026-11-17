@@ -14,20 +14,12 @@ public class Arrows : TSpec.Spec
 
     [Theory, MemberData(nameof(Projects))]
     public void AnArrowNeverStartsALine(string project) =>
-        Breach(project).Is().Null();
+        Source.Projects[project].Nodes<SyntaxNode>().Has().None(HoldsAnArrowStartingALine);
 
-    private static string? Breach(string project) =>
-        Leading(project) is [var first, ..] and var leading
-            ? $"{leading.Count} arrows start a line, the first at {first}"
-            : null;
-
-    /// <summary>"file:line" for every arrow in the project that opens its line.</summary>
-    private static IReadOnlyList<string> Leading(string project) =>
-        [.. Source.Projects[project].Files.SelectMany(LeadingIn)];
-
-    private static IEnumerable<string> LeadingIn(SourceFile file) =>
-        file.Root.DescendantTokens()
+    /// <summary>Every token is a child of one node, so looking at each node's own tokens sees every
+    /// arrow.</summary>
+    private static bool HoldsAnArrowStartingALine(SourceNode<SyntaxNode> node) =>
+        node.Syntax.ChildTokens()
             .Where(token => token.IsKind(SyntaxKind.EqualsGreaterThanToken))
-            .Where(arrow => file.Line(arrow) > file.Line(arrow.GetPreviousToken()))
-            .Select(arrow => $"{file}:{file.Line(arrow)}");
+            .Any(arrow => node.File.Line(arrow) > node.File.Line(arrow.GetPreviousToken()));
 }

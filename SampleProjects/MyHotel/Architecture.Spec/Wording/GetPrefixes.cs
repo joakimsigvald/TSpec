@@ -13,7 +13,7 @@ public class GetPrefixes : TSpec.Spec
 
     [Theory, MemberData(nameof(Projects))]
     public void NoMemberIsNamedGetSomething(string project) =>
-        Source.Projects[project].Members.Has().None(member => NamedGetSomething(member));
+        Source.Projects[project].Members.Has().None(NamedGetSomething);
 
     private static bool NamedGetSomething(DeclaredMember member) =>
         member.Kind is MemberKind.Method or MemberKind.LocalFunction or MemberKind.Property

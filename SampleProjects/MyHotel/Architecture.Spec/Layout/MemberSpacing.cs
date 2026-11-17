@@ -16,7 +16,7 @@ public class MemberSpacing : TSpec.Spec
 
     [Theory, MemberData(nameof(Projects))]
     public void MembersAreOneEmptyLineApartUnlessTwoSingleLineOnesOfAKind(string project) =>
-        Breach(project).Is().Null();
+        Source.Projects[project].Nodes<MemberDeclarationSyntax>().Has().None(Misspaced);
 
     [Theory]
     [InlineData("class C\n{\n    int a;\n    int b;\n}")]
@@ -36,20 +36,8 @@ public class MemberSpacing : TSpec.Spec
     public void TheseAreNot(string declaration) =>
         Misspaced(TypeOf(declaration)).Has().OneItem();
 
-    private static string? Breach(string project) =>
-        Misspaced(project) is [var first, ..] and var misspaced
-            ? $"{misspaced.Count} members have the wrong empty lines above them, the first at {first}"
-            : null;
-
-    /// <summary>"file:line" for each member of the project whose distance to the member above breaks
-    /// 11g.</summary>
-    private static IReadOnlyList<string> Misspaced(string project) =>
-        [.. Source.Projects[project].Files.SelectMany(MisspacedIn)];
-
-    private static IEnumerable<string> MisspacedIn(SourceFile file) =>
-        file.Root.DescendantNodes().OfType<TypeDeclarationSyntax>()
-            .SelectMany(Misspaced)
-            .Select(member => $"{file}:{file.Line(member)}");
+    private static bool Misspaced(SourceNode<MemberDeclarationSyntax> member) =>
+        member.Syntax.Parent is TypeDeclarationSyntax type && Misspaced(type).Contains(member.Syntax);
 
     /// <summary>The members of a type with the wrong number of empty lines above them.</summary>
     private static IEnumerable<MemberDeclarationSyntax> Misspaced(TypeDeclarationSyntax type) =>

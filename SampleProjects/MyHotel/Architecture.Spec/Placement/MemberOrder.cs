@@ -17,29 +17,17 @@ public class MemberOrder : TSpec.Spec
 
     [Theory, MemberData(nameof(Projects))]
     public void FieldsComeFirstThenConstructorsThenMembersByAccessibility(string project) =>
-        Breach(project).Is().Null();
+        Source.Projects[project].Nodes<MemberDeclarationSyntax>().Has().None(StandsBelowOneItShouldPrecede);
 
-    private static string? Breach(string project) =>
-        Misplaced(project) is [var first, ..] and var misplaced
-            ? $"{misplaced.Count} members stand below one they should precede, the first at {first}"
-            : null;
+    private static bool StandsBelowOneItShouldPrecede(SourceNode<MemberDeclarationSyntax> member) =>
+        member.Syntax.Parent is TypeDeclarationSyntax type
+        && IsOrdered(member.Syntax)
+        && Above(member.Syntax, type).Any(above => PlaceOf(above, type) > PlaceOf(member.Syntax, type));
 
-    /// <summary>"file:line" for each member of the project standing below one it should precede.</summary>
-    private static IReadOnlyList<string> Misplaced(string project) =>
-        [.. Source.Projects[project].Files.SelectMany(MisplacedIn)];
-
-    private static IEnumerable<string> MisplacedIn(SourceFile file) =>
-        file.Root.DescendantNodes().OfType<TypeDeclarationSyntax>()
-            .SelectMany(type => Below(PlacedIn(type)))
-            .Select(member => $"{file}:{file.Line(member)}");
-
-    /// <summary>The members with a member above them whose place comes later.</summary>
-    private static IEnumerable<MemberDeclarationSyntax> Below(IReadOnlyList<Placed> members) =>
-        members.Where((member, at) => members.Take(at).Any(above => above.Place > member.Place))
-            .Select(member => member.Syntax);
-
-    private static IReadOnlyList<Placed> PlacedIn(TypeDeclarationSyntax type) =>
-        [.. type.Members.Where(IsOrdered).Select(member => new Placed(member, PlaceOf(member, type)))];
+    private static IEnumerable<MemberDeclarationSyntax> Above(
+        MemberDeclarationSyntax member,
+        TypeDeclarationSyntax type) =>
+        type.Members.TakeWhile(above => above != member).Where(IsOrdered);
 
     /// <summary>A nested type is a type of its own (10b, 10c), not a member to order.</summary>
     private static bool IsOrdered(MemberDeclarationSyntax member) =>
@@ -84,6 +72,4 @@ public class MemberOrder : TSpec.Spec
         Internal,
         Private,
     }
-
-    private sealed record Placed(MemberDeclarationSyntax Syntax, Place Place);
 }

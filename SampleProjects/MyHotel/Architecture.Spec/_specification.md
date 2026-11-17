@@ -33,6 +33,7 @@ flowchart TD
 ### [Layers](Dependencies/Layers.cs)
 
 - **Contract declares only public types** — `Types of "Contract" has all type.IsPublic`
+- **Contract nests no type** — `Types of "Contract" has none type.Nested.Count > 0`
 - **Infra declares no interface**\
   `Types of "Infra" has none type.Kind == DeclaredKind.Interface`
 
@@ -78,14 +79,22 @@ flowchart TD
 ### [Enumerable members](Exposure/EnumerableMembers.cs)
 
 - **A member another class calls returns no enumerable**\
-  `Source.Projects[project].Members has none returns an enumerable member`
+  `Source.Projects[project].Members has none ReturnsAnEnumerable`
 - **An enumerable parameter is referenced exactly once**\
   `Source.Projects[project].Members.SelectMany(ParametersReadOtherThanOnce) is empty`
+- **The references to a parameter are the names that resolve to it**\
+  `References in method is references`
+
+  | method                                                                  | references |
+  | ----------------------------------------------------------------------- | ---------- |
+  | "int Count(IEnumerable<int> rows) => rows.Count();"                     | 1          |
+  | "int Twice(IEnumerable<int> rows) => rows.Count() + rows.Sum();"        | 2          |
+  | "int Max(IEnumerable<int> rows) => rows.Max(row => new[] { row }.Max(r… | 1          |
 
 ### [Mutable collections](Exposure/MutableCollections.cs)
 
 - **No member takes or returns a mutable collection**\
-  `Source.Projects[project].Members has none passes a mutable collection member`
+  `Source.Projects[project].Members has none PassesAMutableCollection`
 
 ### [Public types](Exposure/PublicTypes.cs)
 
@@ -100,18 +109,20 @@ flowchart TD
 ### [Wire types](Exposure/WireTypes.cs)
 
 - **No wire property carries an enum a time or an object**\
-  `Contract.Members.Where(IsWireProperty) has none refused property`
+  `Contract.Members.Where(IsWireProperty) has none Refused`
 
 ## Idioms
 
 ### [Append chains](Idioms/AppendChains.cs)
 
-- **A chain of appends holds at most one fixed text** — `Breach project is null`
+- **A chain of appends holds at most one fixed text**\
+  `Source.Projects[project].Nodes<InvocationExpressionSyntax>() has none EndsATextInParts`
 
 ### [Catches](Idioms/Catches.cs)
 
-- **No catch takes every exception** — `Breach project is null`
-- **A catch takes every exception** — `Takes everything CatchOf(clause) is true`
+- **No catch takes every exception**\
+  `Source.Projects[project].Nodes<CatchClauseSyntax>() has none TakesEverything`
+- **A catch takes every exception** — `Takes everything CatchIn(clause) is true`
 
   | clause                                                 |
   | ------------------------------------------------------ |
@@ -123,9 +134,10 @@ flowchart TD
   | "catch (Exception e) { if (cancelled) throw; }"        |
   | "catch (Exception e) { Log(e); throw; }"               |
   | "catch (Exception e) { throw Malformed(e); }"          |
+  | "catch (Error) { }"                                    |
 
 - **A catch takes only the types it names or rethrows**\
-  `Takes everything CatchOf(clause) is false`
+  `Takes everything CatchIn(clause) is false`
 
   | clause                                                  |
   | ------------------------------------------------------- |
@@ -137,14 +149,30 @@ flowchart TD
 ### [Default comparers](Idioms/DefaultComparers.cs)
 
 - **No to hash set passes the default comparer**\
-  `Source.Projects[project].Nodes<ArgumentSyntax>() has none default comparer argument`
+  `Source.Projects[project].Nodes<ArgumentSyntax>() has none DefaultComparer`
+- **To hash set passes the default comparer** — `Passes the default SetBy(call) is true`
+
+  | call                                                  |
+  | ----------------------------------------------------- |
+  | "words.ToHashSet(StringComparer.Ordinal)"             |
+  | "words.ToHashSet(System.StringComparer.Ordinal)"      |
+  | "words.ToHashSet(EqualityComparer<string>.Default)"   |
+  | "Enumerable.ToHashSet(words, StringComparer.Ordinal)" |
+  | "words.ToHashSet(Strings.Ordinal)"                    |
+  | "words.ToHashSet(Ordinal)"                            |
+
+- **To hash set passes another or none** — `Passes the default SetBy(call) is false`
+
+  | call                                                 |
+  | ---------------------------------------------------- |
+  | "words.ToHashSet()"                                  |
+  | "words.ToHashSet(StringComparer.OrdinalIgnoreCase)"  |
+  | "new HashSet<string>(words, StringComparer.Ordinal)" |
 
 ### [Null forgiving](Idioms/NullForgiving.cs)
 
-- **An expression holds at most one null forgiving operator**
-  ```
-  Source.Projects[project].Nodes<PostfixUnaryExpressionSyntax>() has none doubly forgiven expression
-  ```
+- **An expression holds at most one null forgiving operator**\
+  `Source.Projects[project].Nodes<PostfixUnaryExpressionSyntax>() has none DoublyForgiven`
 
 ### [Query syntax](Idioms/QuerySyntax.cs)
 
@@ -154,11 +182,27 @@ flowchart TD
 ### [Suppressions](Idioms/Suppressions.cs)
 
 - **No source switches a warning off**\
-  `Source.Projects[project].Nodes<SyntaxNode>() has none suppressing node`
+  `Source.Projects[project].Nodes<SyntaxNode>() has none Suppressing`
+- **An attribute switches a warning off** — `Suppresses OnAClass(attribute) is true`
+
+  | attribute                                                                        |
+  | -------------------------------------------------------------------------------- |
+  | "[SuppressMessage("Style", "IDE0001")]"                                          |
+  | "[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Style", "IDE0001")]" |
+  | "[UnconditionalSuppressMessage("Trimming", "IL2026")]"                           |
+  | "[Quiet("Style", "IDE0001")]"                                                    |
+
+- **Another attribute does not** — `Suppresses OnAClass(attribute) is false`
+
+  | attribute                        |
+  | -------------------------------- |
+  | "[Obsolete]"                     |
+  | "[NotASuppressMessage("Style")]" |
 
 ### [Type arguments](Idioms/TypeArguments.cs)
 
-- **A call names no type argument the compiler infers** — `Breach project is null`
+- **A call names no type argument the compiler infers**\
+  `Source.Projects[project].Nodes<GenericNameSyntax>() has none Redundant`
 
 ## Layout
 
@@ -169,11 +213,13 @@ flowchart TD
 
 ### [Arrows](Layout/Arrows.cs)
 
-- **An arrow never starts a line** — `Breach project is null`
+- **An arrow never starts a line**\
+  `Source.Projects[project].Nodes<SyntaxNode>() has none HoldsAnArrowStartingALine`
 
 ### [Clause braces](Layout/ClauseBraces.cs)
 
-- **A clause takes braces unless it is a simple statement** — `Breach project is null`
+- **A clause takes braces unless it is a simple statement**\
+  `Source.Projects[project].Nodes<StatementSyntax>() has none Misbraced`
 - **A statement braces its clauses** — `Misbraced in statement is empty`
 
   | statement                                        |
@@ -237,7 +283,7 @@ flowchart TD
 ### [Member spacing](Layout/MemberSpacing.cs)
 
 - **Members are one empty line apart unless two single line ones of a kind**\
-  `Breach project is null`
+  `Source.Projects[project].Nodes<MemberDeclarationSyntax>() has none Misspaced`
 - **These members are spaced as 1 1g says** — `Misspaced TypeOf(declaration) is empty`
 
   | declaration                                                        |
@@ -278,12 +324,9 @@ flowchart TD
 ### [Exception types](Placement/ExceptionTypes.cs)
 
 - **Our exception types live in an exceptions folder without the suffix**\
-  `Breach project is null`
-- **An exceptions folder holds only exceptions**
-  ```
-  Classes(project).Where(type => InTheFolder(FileOf(type)) && !IsAnException(type)).Select(Reported)
-      is empty
-  ```
+  `Classes project has none MisplacedException`
+- **An exceptions folder holds only exceptions**\
+  `Classes project has none StrayInTheFolder`
 - **An exception type elsewhere or with the suffix breaks it**\
   `Breaks file, name is true`
 
@@ -302,7 +345,7 @@ flowchart TD
 ### [Member order](Placement/MemberOrder.cs)
 
 - **Fields come first then constructors then members by accessibility**\
-  `Breach project is null`
+  `Source.Projects[project].Nodes<MemberDeclarationSyntax>() has none StandsBelowOneItShouldPrecede`
 
 ### [Partials](Placement/Partials.cs)
 
@@ -315,13 +358,13 @@ flowchart TD
 ### [Types per file](Placement/TypesPerFile.cs)
 
 - **A file declares one public type**\
-  `Source.Projects[project].Files.Where(Ours) has none crowded file`
+  `Source.Projects[project].Files.Where(Ours) has none Crowded`
 - **A file is named after its public type**\
-  `Source.Projects[project].Files.Where(Ours) has none misnamed file`
+  `Source.Projects[project].Files.Where(Ours) has none Misnamed`
 - **Only a test project nests a public class**
   ```
   Source.Projects[project].AllTypes.Where(IsNested).Where(type => type.Files.All(Ours)) has none
-      public but no record type
+      PublicButNoRecord
   ```
 
 ## Sizes
@@ -335,7 +378,7 @@ flowchart TD
 
 ### [File lengths](Sizes/FileLengths.cs)
 
-- **A file is under 250 lines** — `Source.Projects[project].Files has none overlong file`
+- **A file is under 250 lines** — `Source.Projects[project].Files has none Overlong`
 
 ### [Method size](Sizes/MethodSize.cs)
 
@@ -349,7 +392,7 @@ flowchart TD
 ### [Async suffixes](Wording/AsyncSuffixes.cs)
 
 - **No method carries the async suffix**\
-  `Source.Projects[project].Members has none async suffixed member`
+  `Source.Projects[project].Members has none AsyncSuffixed`
 
 ### [Characters](Wording/Characters.cs)
 
@@ -369,13 +412,14 @@ flowchart TD
 ### [Get prefixes](Wording/GetPrefixes.cs)
 
 - **No member is named get something**\
-  `Source.Projects[project].Members has none named get something member`
+  `Source.Projects[project].Members has none NamedGetSomething`
 
 ### [Lambda parameters](Wording/LambdaParameters.cs)
 
 - **A lambdas parameter is a word**\
-  `Source.Projects[project].Nodes<ParameterSyntax>() has none unworded parameter`
+  `Source.Projects[project].Nodes<ParameterSyntax>() has none Unworded`
 
 ### [Using aliases](Wording/UsingAliases.cs)
 
-- **A using alias is a word not a letter** — `Breach project is null`
+- **A using alias is a word not a letter**\
+  `Source.Projects[project].Nodes<UsingDirectiveSyntax>() has none IsALetter`

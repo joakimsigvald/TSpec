@@ -1,14 +1,256 @@
-# MyHotel's additions to the repository's .editorconfig, which still applies.
+# MyHotel's own, in place of the repository's: the coding standard's rules, after Medrave M5's.
+root = true
+
+[*]
+# .gitattributes forces LF on checkout; this stops an editor writing CRLF back on save.
+end_of_line = lf
 
 [*.cs]
+# CODING-STANDARD-BACKEND.md 1e - casing is .NET's: PascalCase for types, members, constants and static
+# fields; camelCase for parameters and locals; _camelCase for private instance fields. A rule naming a
+# modifier (const, static) outranks one that names none, whatever its accessibility; between rules naming no
+# modifier, the one naming an accessibility wins.
+dotnet_naming_rule.constants_should_be_pascal_case.severity = warning
+dotnet_naming_rule.constants_should_be_pascal_case.symbols = constants
+dotnet_naming_rule.constants_should_be_pascal_case.style = pascal_case
 
-# CODING-STANDARD-BACKEND.md 1e: a static field is PascalCase, like a constant - only a private instance field is
-# _camelCase. A rule with a required modifier is more specific than the repository's non-public-fields
-# rule, so it takes precedence over it.
-dotnet_naming_symbols.static_fields.applicable_kinds = field
-dotnet_naming_symbols.static_fields.applicable_accessibilities = *
-dotnet_naming_symbols.static_fields.required_modifiers = static
+dotnet_naming_symbols.constants.applicable_kinds = field, local
+dotnet_naming_symbols.constants.applicable_accessibilities = *
+dotnet_naming_symbols.constants.required_modifiers = const
 
-dotnet_naming_rule.static_fields_are_pascal_case.symbols = static_fields
-dotnet_naming_rule.static_fields_are_pascal_case.style = pascal_case
-dotnet_naming_rule.static_fields_are_pascal_case.severity = warning
+dotnet_naming_rule.private_static_fields_should_be_pascal_case.severity = warning
+dotnet_naming_rule.private_static_fields_should_be_pascal_case.symbols = private_static_fields
+dotnet_naming_rule.private_static_fields_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_symbols.private_static_fields.applicable_kinds = field
+dotnet_naming_symbols.private_static_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_fields.required_modifiers = static
+
+dotnet_naming_rule.private_instance_fields_should_be_underscore_camel_case.severity = warning
+dotnet_naming_rule.private_instance_fields_should_be_underscore_camel_case.symbols = private_instance_fields
+dotnet_naming_rule.private_instance_fields_should_be_underscore_camel_case.style = underscore_camel_case
+
+dotnet_naming_symbols.private_instance_fields.applicable_kinds = field
+dotnet_naming_symbols.private_instance_fields.applicable_accessibilities = private
+
+dotnet_naming_rule.types_and_members_should_be_pascal_case.severity = warning
+dotnet_naming_rule.types_and_members_should_be_pascal_case.symbols = types_and_members
+dotnet_naming_rule.types_and_members_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_symbols.types_and_members.applicable_kinds = namespace, class, struct, interface, enum, delegate, method, property, event, field, local_function
+dotnet_naming_symbols.types_and_members.applicable_accessibilities = *
+
+dotnet_naming_rule.parameters_and_locals_should_be_camel_case.severity = warning
+dotnet_naming_rule.parameters_and_locals_should_be_camel_case.symbols = parameters_and_locals
+dotnet_naming_rule.parameters_and_locals_should_be_camel_case.style = camel_case
+
+dotnet_naming_symbols.parameters_and_locals.applicable_kinds = parameter, local
+dotnet_naming_symbols.parameters_and_locals.applicable_accessibilities = *
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+dotnet_naming_style.camel_case.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case.required_prefix = _
+
+# The build reports a naming rule only when IDE1006 has a severity of its own.
+dotnet_diagnostic.IDE1006.severity = warning
+
+# 0d - a rule an analyzer can check is checked in the build (EnforceCodeStyleInBuild in each project).
+# `error` is a defect: a breach that can harm security or the structure. `warning` is a flaw of style or
+# consistency, which costs the reader. Both fail the build (TreatWarningsAsErrors); `suggestion` is the IDE's
+# alone. The section numbers are CODING-STANDARD-BACKEND.md's.
+
+# 1e - no underscore in a production name but the private field's prefix, internal and private names too
+# (the spec projects' section below lets a test's name separate its segments with one)
+dotnet_diagnostic.CA1707.severity = warning
+dotnet_code_quality.CA1707.api_surface = all
+
+# 0a, 0b - the newest C#, high-level constructs over low-level ones
+csharp_style_namespace_declarations = file_scoped
+dotnet_diagnostic.IDE0161.severity = warning
+csharp_style_pattern_matching_over_is_with_cast_check = true
+dotnet_diagnostic.IDE0020.severity = warning
+csharp_style_pattern_matching_over_as_with_null_check = true
+dotnet_diagnostic.IDE0019.severity = warning
+csharp_style_prefer_pattern_matching = true
+dotnet_diagnostic.IDE0078.severity = warning
+csharp_style_prefer_not_pattern = true
+dotnet_diagnostic.IDE0083.severity = warning
+csharp_style_prefer_switch_expression = true
+dotnet_diagnostic.IDE0066.severity = warning
+# 6f - prefer an expression (boolean, conditional or switch) over an if statement; 6g and 6h bound the
+# lines, which no analyzer measures (Architecture.Spec's ExpressionLines and ConditionalBranches do)
+dotnet_style_prefer_conditional_expression_over_return = true
+dotnet_diagnostic.IDE0046.severity = warning
+dotnet_style_prefer_conditional_expression_over_assignment = true
+dotnet_diagnostic.IDE0045.severity = warning
+# `c ? false : x` is `!c && x`
+dotnet_style_prefer_simplified_boolean_expressions = true
+dotnet_diagnostic.IDE0075.severity = warning
+csharp_style_prefer_index_operator = true
+dotnet_diagnostic.IDE0056.severity = warning
+csharp_style_prefer_range_operator = true
+dotnet_diagnostic.IDE0057.severity = warning
+
+# 2d - no mutable collection on a member (CA1002 names Collection<T>; IReadOnlyList<T> satisfies it). Both
+# stay on the public API: at full scope they refuse a private field, which 2d allows. Architecture.Spec's
+# MutableCollections checks every member.
+dotnet_diagnostic.CA1002.severity = error
+dotnet_diagnostic.CA1819.severity = error
+# CA1859 asks for the concrete List<T>/Dictionary<K,V> "for performance": the opposite of 2d.
+dotnet_diagnostic.CA1859.severity = none
+
+# 2f - a literal is a collection expression; a materialised sequence is [.. xs], not ToList()/ToArray()
+dotnet_style_prefer_collection_expression = when_types_loosely_match
+dotnet_diagnostic.IDE0028.severity = warning
+dotnet_diagnostic.IDE0300.severity = warning
+dotnet_diagnostic.IDE0301.severity = warning
+dotnet_diagnostic.IDE0302.severity = warning
+dotnet_diagnostic.IDE0303.severity = warning
+dotnet_diagnostic.IDE0304.severity = warning
+dotnet_diagnostic.IDE0305.severity = warning
+
+# 3a - sealed (the analyzer sees internal types only; InternalsVisibleTo must not silence it)
+dotnet_diagnostic.CA1852.severity = error
+dotnet_code_quality.CA1852.ignore_internalsvisibleto = true
+
+# 3c - a primary constructor, no field copies
+csharp_style_prefer_primary_constructors = true
+dotnet_diagnostic.IDE0290.severity = warning
+
+# 3h - a type and a member name their accessibility; an interface's members do not
+dotnet_style_require_accessibility_modifiers = for_non_interface_members
+dotnet_diagnostic.IDE0040.severity = warning
+
+# 4f - arrow syntax over a body
+csharp_style_expression_bodied_methods = true
+csharp_style_expression_bodied_constructors = true
+csharp_style_expression_bodied_operators = true
+csharp_style_expression_bodied_properties = true
+csharp_style_expression_bodied_indexers = true
+csharp_style_expression_bodied_accessors = true
+csharp_style_expression_bodied_lambdas = true
+csharp_style_expression_bodied_local_functions = true
+dotnet_diagnostic.IDE0021.severity = warning
+dotnet_diagnostic.IDE0022.severity = warning
+dotnet_diagnostic.IDE0023.severity = warning
+dotnet_diagnostic.IDE0024.severity = warning
+dotnet_diagnostic.IDE0025.severity = warning
+dotnet_diagnostic.IDE0026.severity = warning
+dotnet_diagnostic.IDE0027.severity = warning
+dotnet_diagnostic.IDE0053.severity = warning
+dotnet_diagnostic.IDE0061.severity = warning
+
+# 4g - a clause takes no braces when it is a simple statement and takes them otherwise: no analyzer removes
+# braces (IDE0011 only adds them, to every clause), so Architecture.Spec's ClauseBraces checks both ways. A
+# using that runs to the end of its block is a declaration
+csharp_prefer_simple_using_statement = true
+dotnet_diagnostic.IDE0063.severity = warning
+
+# 4h - a named step inside a method is a local function, never a lambda held in a variable
+csharp_style_prefer_local_over_anonymous_function = true
+dotnet_diagnostic.IDE0039.severity = warning
+
+# 5b - the CancellationToken is last and reaches every call that takes one. CA1849 asks for the async twin of
+# a sync call, not the blocking .Result/.Wait() 5c bans, so it stays a suggestion.
+dotnet_diagnostic.CA1068.severity = warning
+dotnet_diagnostic.CA2016.severity = error
+dotnet_diagnostic.CA1849.severity = suggestion
+
+# 6a - prefer LINQ: CA1826 asks for indexers and Count properties instead of First()/Count()
+dotnet_diagnostic.CA1826.severity = none
+
+# 6b - a lambda that only passes its parameters on is the method itself: `Where(IsFree)`, not
+# `Where(room => IsFree(room))`
+csharp_style_prefer_method_group_conversion = true
+dotnet_diagnostic.IDE0200.severity = warning
+
+# 6e - the type once: var wherever the right-hand side names or carries it; the type on the left only for a
+# collection expression, which has no type of its own
+csharp_style_var_for_built_in_types = true
+csharp_style_var_when_type_is_apparent = true
+csharp_style_var_elsewhere = true
+dotnet_diagnostic.IDE0007.severity = warning
+dotnet_diagnostic.IDE0008.severity = warning
+csharp_style_implicit_object_creation_when_type_is_apparent = true
+dotnet_diagnostic.IDE0090.severity = warning
+
+# 8d - a log message is a static template. CA1848 wants LoggerMessage delegates instead, CA1873 guards
+# every call with IsEnabled: performance idioms the standard does not ask for.
+dotnet_diagnostic.CA2254.severity = error
+dotnet_diagnostic.CA1848.severity = none
+dotnet_diagnostic.CA1873.severity = none
+
+# 8g - our exception types are named for what happened, without the Exception suffix CA1710 asks of a public
+# one.
+dotnet_diagnostic.CA1710.severity = none
+
+# 10a - namespace = folder
+dotnet_style_namespace_match_folder = true
+dotnet_diagnostic.IDE0130.severity = error
+
+# 11a - the IDE's guideline only; no analyzer checks a line's width (Architecture.Spec's LineWidths does)
+max_line_length = 110
+
+# 11c - four spaces per level, never a tab; the depth no analyzer measures (Architecture.Spec's NestingDepth
+# does)
+indent_style = space
+indent_size = 4
+
+# 11 - the formatter's layout at its own defaults, which the house layout follows: set here, an IDE's personal
+# preferences cannot make Format Document write anything else. IDE0055 fails the build on any line the
+# formatter would rewrite - 11b's initializer members and 11f's attribute line among them.
+dotnet_diagnostic.IDE0055.severity = warning
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+csharp_new_line_between_query_expression_clauses = true
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_indent_labels = one_less_than_current
+csharp_indent_block_contents = true
+csharp_indent_braces = false
+csharp_indent_case_contents_when_block = true
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_between_parentheses = false
+csharp_space_before_colon_in_inheritance_clause = true
+csharp_space_after_colon_in_inheritance_clause = true
+csharp_space_around_binary_operators = before_and_after
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
+csharp_space_between_method_declaration_name_and_open_parenthesis = false
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_between_method_call_empty_parameter_list_parentheses = false
+csharp_space_between_method_call_name_and_opening_parenthesis = false
+csharp_space_after_comma = true
+csharp_space_before_comma = false
+csharp_space_after_dot = false
+csharp_space_before_dot = false
+csharp_space_after_semicolon_in_for_statement = true
+csharp_space_before_semicolon_in_for_statement = false
+csharp_space_around_declaration_statements = false
+csharp_space_before_open_square_brackets = false
+csharp_space_between_empty_square_brackets = false
+csharp_space_between_square_brackets = false
+csharp_preserve_single_line_statements = true
+csharp_preserve_single_line_blocks = true
+
+# CA1708 (names differing by case) trips on C# 14 extension blocks: every block is a member named `extension`.
+# The naming rules leave no room for a real case clash.
+dotnet_diagnostic.CA1708.severity = none
+
+# The generated entry points and parts under obj/ are not ours.
+[**/obj/**.cs]
+generated_code = true
+
+# The specs have TSpec's shape: public classes named as the claim, protected fields holding what a fact
+# picked, mentions named like the member they stand for. The API-design naming rules do not apply to them.
+[*.Spec/**.cs]
+dotnet_diagnostic.CA1051.severity = none
+dotnet_diagnostic.CA1707.severity = none
+dotnet_diagnostic.CA1711.severity = none
+dotnet_diagnostic.CA1720.severity = none

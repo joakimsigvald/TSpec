@@ -15,7 +15,7 @@ public class LambdaParameters : TSpec.Spec
 
     [Theory, MemberData(nameof(Projects))]
     public void ALambdasParameterIsAWord(string project) =>
-        Source.Projects[project].Nodes<ParameterSyntax>().Has().None(parameter => Unworded(parameter));
+        Source.Projects[project].Nodes<ParameterSyntax>().Has().None(Unworded);
 
     /// <summary>A lambda's parameter that is not a word.</summary>
     private static bool Unworded(SourceNode<ParameterSyntax> parameter) =>

@@ -16,16 +16,7 @@ public class TypeArguments : TSpec.Spec
 
     [Theory, MemberData(nameof(Projects))]
     public void ACallNamesNoTypeArgumentTheCompilerInfers(string project) =>
-        Breach(project).Is().Null();
-
-    private static string? Breach(string project) =>
-        Sites(project) is [var first, ..] and var sites
-            ? $"{sites.Count} calls name type arguments the compiler infers, the first at {first}"
-            : null;
-
-    /// <summary>"file:line" for every called name in the project whose type arguments are inferred.</summary>
-    private static IReadOnlyList<string> Sites(string project) =>
-        [.. Source.Projects[project].Nodes<GenericNameSyntax>().Where(Redundant).Select(Reported)];
+        Source.Projects[project].Nodes<GenericNameSyntax>().Has().None(Redundant);
 
     /// <summary>A called name whose type arguments say what the compiler infers.</summary>
     private static bool Redundant(SourceNode<GenericNameSyntax> name) =>
@@ -49,7 +40,4 @@ public class TypeArguments : TSpec.Spec
             call.SpanStart,
             call.ReplaceNode(name.Syntax, SyntaxFactory.IdentifierName(name.Syntax.Identifier)),
             SpeculativeBindingOption.BindAsExpression).Symbol;
-
-    private static string Reported(SourceNode<GenericNameSyntax> name) =>
-        $"{name.File}:{name.File.Line(name.Syntax)}";
 }

@@ -17,10 +17,10 @@ public class WireTypes : TSpec.Spec
 
     [Fact]
     public void NoWirePropertyCarriesAnEnumATimeOrAnObject() =>
-        Contract.Members.Where(IsWireProperty).Has().None(property => Refused(property));
+        Contract.Members.Where(IsWireProperty).Has().None(Refused);
 
     private static bool Refused(DeclaredMember property) =>
-        Untyped.Any(time => property.Gives(time)) || property.Gives(IsRefused);
+        Untyped.Any(property.Gives) || property.Gives(IsRefused);
 
     /// <summary>Object, dynamic, and Contract's own enums and value types without a converter.</summary>
     private static bool IsRefused(ITypeSymbol type) =>

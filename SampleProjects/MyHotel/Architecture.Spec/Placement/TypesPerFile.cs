@@ -15,16 +15,16 @@ public class TypesPerFile : TSpec.Spec
 
     [Theory, MemberData(nameof(Projects))]
     public void AFileDeclaresOnePublicType(string project) =>
-        Source.Projects[project].Files.Where(Ours).Has().None(file => Crowded(file));
+        Source.Projects[project].Files.Where(Ours).Has().None(Crowded);
 
     [Theory, MemberData(nameof(Projects))]
     public void AFileIsNamedAfterItsPublicType(string project) =>
-        Source.Projects[project].Files.Where(Ours).Has().None(file => Misnamed(file));
+        Source.Projects[project].Files.Where(Ours).Has().None(Misnamed);
 
     [Theory, MemberData(nameof(Production))]
     public void OnlyATestProjectNestsAPublicClass(string project) =>
         Source.Projects[project].AllTypes.Where(IsNested).Where(type => type.Files.All(Ours))
-            .Has().None(type => PublicButNoRecord(type));
+            .Has().None(PublicButNoRecord);
 
     private static bool IsTest(string project) => Source.Projects[project].IsSpecProject;
 
