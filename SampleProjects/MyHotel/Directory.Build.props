@@ -1,0 +1,11 @@
+<Project>
+
+	<!-- CODING-STANDARD-BACKEND.md 5c and 8e by symbol (BannedSymbols.txt, each line saying which rule): a task
+	     is never blocked on, and the clock is read through TimeProvider. Every C# project, the specs included;
+	     Web is no C# project. -->
+	<ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+		<PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0" PrivateAssets="all" />
+		<AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" Link="BannedSymbols.txt" />
+	</ItemGroup>
+
+</Project>

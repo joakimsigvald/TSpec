@@ -117,7 +117,8 @@ change is caught where it matters: in the committed files' diff.
 
 - net10.0 only. `TreatWarningsAsErrors` everywhere — fix warnings, don't suppress them.
 - MyHotel's `.editorconfig` replaces the repository's (`root = true`): it holds the analyzer rules of
-  `CODING-STANDARD-BACKEND.md`, each citing its section, after Medrave M5's.
+  `CODING-STANDARD-BACKEND.md`, each citing its section, after Medrave M5's. `BannedSymbols.txt` bans
+  the calls 5c and 8e forbid, in every C# project (`Directory.Build.props`).
 - Run each Spec project with `dotnet test` (filter with `--filter-class MyHotel.Host.Spec.WhenGetVersion`):
 
   ```bash

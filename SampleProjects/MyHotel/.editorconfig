@@ -175,6 +175,15 @@ dotnet_diagnostic.IDE0008.severity = warning
 csharp_style_implicit_object_creation_when_type_is_apparent = true
 dotnet_diagnostic.IDE0090.severity = warning
 
+# 7e - parsing and formatting name the culture, and a comparison is ordinal: CA1304 and CA1311 ask for a
+# culture, CA1305 for a format provider, CA1307 and CA1310 for a StringComparison, CA1309 for an ordinal one.
+dotnet_diagnostic.CA1304.severity = warning
+dotnet_diagnostic.CA1305.severity = warning
+dotnet_diagnostic.CA1307.severity = warning
+dotnet_diagnostic.CA1309.severity = warning
+dotnet_diagnostic.CA1310.severity = warning
+dotnet_diagnostic.CA1311.severity = warning
+
 # 8d - a log message is a static template. CA1848 wants LoggerMessage delegates instead, CA1873 guards
 # every call with IsEnabled: performance idioms the standard does not ask for.
 dotnet_diagnostic.CA2254.severity = error
@@ -243,9 +252,11 @@ csharp_preserve_single_line_blocks = true
 # The naming rules leave no room for a real case clash.
 dotnet_diagnostic.CA1708.severity = none
 
-# The generated entry points and parts under obj/ are not ours.
+# The generated entry points and parts under obj/ are not ours: xunit's blocks on the runner's task, and the
+# banned symbols (RS0030, BannedSymbols.txt) are for code we write.
 [**/obj/**.cs]
 generated_code = true
+dotnet_diagnostic.RS0030.severity = none
 
 # The specs have TSpec's shape: public classes named as the claim, protected fields holding what a fact
 # picked, mentions named like the member they stand for. The API-design naming rules do not apply to them.
