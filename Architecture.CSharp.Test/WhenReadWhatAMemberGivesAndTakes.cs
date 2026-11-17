@@ -90,6 +90,22 @@ public class WhenReadWhatAMemberGivesAndTakes : Spec
     public void GivenTwoParametersOfOneType_ThenListItOnce()
         => Member("TakingTwice").Takes().Select(type => type.Name).Is().EqualTo(["Status"]);
 
+    [Fact]
+    public void GivenAKindItGives_ThenItCarriesIt()
+        => Member("Plain").Carries(TypeKind.Enum).Is(true);
+
+    [Fact]
+    public void GivenATypeItTakes_ThenItCarriesIt()
+        => Member("Taking").Carries(typeof(List<>)).Is(true);
+
+    [Fact]
+    public void GivenAConditionAParameterMeets_ThenItCarriesIt()
+        => Member("Taking").Carries(type => type.SpecialType == SpecialType.System_Int32).Is(true);
+
+    [Fact]
+    public void GivenNeitherAReturnNorAParameter_ThenItCarriesNothing()
+        => Member("Nothing").Carries(_ => true).Is(false);
+
     private static DeclaredMember Member(string name)
         => Source.Projects["Test"].Members.Single(member => member.File.Path == "Signatures/Signing.cs" && member.Name == name);
 }

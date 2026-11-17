@@ -152,6 +152,24 @@ public sealed class DeclaredMember
     public bool Takes(Type type) => Takes(symbol => MemberTypes.IsOf(symbol, type));
 
     /// <summary>
+    /// Whether the member gives or takes a type that meets the condition
+    /// </summary>
+    /// <param name="condition">The condition on a type</param>
+    public bool Carries(Func<ITypeSymbol, bool> condition) => Gives(condition) || Takes(condition);
+
+    /// <summary>
+    /// Whether the member gives or takes a type of the given kind
+    /// </summary>
+    /// <param name="kind">The kind of type: an enum, an interface</param>
+    public bool Carries(TypeKind kind) => Gives(kind) || Takes(kind);
+
+    /// <summary>
+    /// Whether the member gives or takes the given type, whatever its type arguments
+    /// </summary>
+    /// <param name="type">The type</param>
+    public bool Carries(Type type) => Gives(type) || Takes(type);
+
+    /// <summary>
     /// The member as a failure names it: its file, the line its name is on and its name
     /// </summary>
     public override string ToString() => $"{File}:{File.SpanOf(_declaration.At).Start.Line} {Name}";

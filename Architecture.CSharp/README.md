@@ -288,7 +288,8 @@ A member `Gives` a type when the type it returns or holds is that type, or has i
 type argument, `Task<T>`'s too, a tuple's element or an array's. It `Takes` one when a parameter's type
 does. A named type's own members are not inside it, so a `Booking` with a `Status` gives no enum, and a
 type is not one it only implements: `List<int>` gives no `IEnumerable<>`. Each takes a kind, a type
-whatever its type arguments, or a condition, and without one lists the types, each once:
+whatever its type arguments, or a condition, and without one lists the types, each once. A member
+`Carries` a type it gives or takes:
 
 ```csharp
 [Fact]
