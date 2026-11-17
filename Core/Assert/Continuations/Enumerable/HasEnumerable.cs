@@ -209,9 +209,9 @@ public record HasEnumerable<TItem, TContinuation> : EnumerableConstraint<TItem, 
     public ContinueWith<TContinuation> All(
         Func<TItem, int, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
         => Assert(
-            expectedExpr.Describe(),
+            expectedExpr.AsCondition().Describe(),
             NotNullAnd(actual => ExpectNone(Indexed(actual).Where(at => !condition(at.Item, at.Index)).Select(at => at.Item), "that does not")),
-            expectedExpr!,
+            expectedExpr.AsCondition()!,
             "have").And();
 
     /// <summary>
@@ -224,9 +224,9 @@ public record HasEnumerable<TItem, TContinuation> : EnumerableConstraint<TItem, 
     public ContinueWith<TContinuation> All(
         Func<TItem, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
         => Assert(
-            expectedExpr.Describe(),
+            expectedExpr.AsCondition().Describe(),
             NotNullAnd(actual => ExpectNone(actual.Where(it => !condition(it)), "that does not")),
-            expectedExpr!,
+            expectedExpr.AsCondition()!,
             "have").And();
 
     /// <summary>
@@ -297,9 +297,9 @@ public record HasEnumerable<TItem, TContinuation> : EnumerableConstraint<TItem, 
     public ContinueWith<TContinuation> None(
         Func<TItem, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
         => Assert(
-            expectedExpr.Describe(),
+            expectedExpr.AsCondition().Describe(),
             NotNullAnd(actual => ExpectNone(actual.Where(condition), "that does")),
-            expectedExpr!,
+            expectedExpr.AsCondition()!,
             "have").And();
 
     /// <summary>
@@ -312,9 +312,9 @@ public record HasEnumerable<TItem, TContinuation> : EnumerableConstraint<TItem, 
     public ContinueWith<TContinuation> None(
         Func<TItem, int, bool> condition, [CallerArgumentExpression(nameof(condition))] string? expectedExpr = null)
         => Assert(
-            expectedExpr.Describe(),
+            expectedExpr.AsCondition().Describe(),
             NotNullAnd(actual => ExpectNone(Indexed(actual).Where(at => condition(at.Item, at.Index)).Select(at => at.Item), "that does")),
-            expectedExpr!,
+            expectedExpr.AsCondition()!,
             "have").And();
 
     internal override TContinuation Continue() => Create(Actual, ActualExpr);

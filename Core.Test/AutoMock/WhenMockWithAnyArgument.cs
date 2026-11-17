@@ -84,7 +84,7 @@ public class WhenMockWithAnyArgument : Spec<MyValueIntService, string>
             .Then().Result.Is(The<string>());
         Specification.Is(
             """
-            Given IMyValueIntRepo.Get(any int where IsPositive) returns a string
+            Given IMyValueIntRepo.Get(any int where is positive) returns a string
             When GetValue(a MyValueInt)
             Then Result is the string
             """);

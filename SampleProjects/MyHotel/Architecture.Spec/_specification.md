@@ -79,7 +79,7 @@ flowchart TD
 ### [Enumerable members](Exposure/EnumerableMembers.cs)
 
 - **A member another class calls returns no enumerable**\
-  `Source.Projects[project].Members has none ReturnsAnEnumerable`
+  `Source.Projects[project].Members has none returns an enumerable`
 - **An enumerable parameter is referenced exactly once**\
   `Source.Projects[project].Members.SelectMany(ParametersReadOtherThanOnce) is empty`
 - **The references to a parameter are the names that resolve to it**\
@@ -112,7 +112,7 @@ flowchart TD
 ### [Mutable collections](Exposure/MutableCollections.cs)
 
 - **No member takes or returns a mutable collection**\
-  `Source.Projects[project].Members has none PassesAMutableCollection`
+  `Source.Projects[project].Members has none passes a mutable collection`
 
 ### [Public types](Exposure/PublicTypes.cs)
 
@@ -127,7 +127,7 @@ flowchart TD
 ### [Wire types](Exposure/WireTypes.cs)
 
 - **No wire property carries an enum a time or an object**\
-  `Contract.Members.Where(IsWireProperty) has none Refused`
+  `Contract.Members.Where(IsWireProperty) has none refused`
 - **An enum with the system text json converter is converted**\
   `Converted EnumIn("[JsonConverter(typeof(JsonStringEnumConverter))]") is true`
 - **An enum with a json converter of our own is not**\
@@ -138,12 +138,12 @@ flowchart TD
 ### [Append chains](Idioms/AppendChains.cs)
 
 - **A chain of appends holds at most one fixed text**\
-  `Source.Projects[project].Nodes<InvocationExpressionSyntax>() has none EndsATextInParts`
+  `Source.Projects[project].Nodes<InvocationExpressionSyntax>() has none ends a text in parts`
 
 ### [Catches](Idioms/Catches.cs)
 
 - **No catch takes every exception**\
-  `Source.Projects[project].Nodes<CatchClauseSyntax>() has none TakesEverything`
+  `Source.Projects[project].Nodes<CatchClauseSyntax>() has none takes everything`
 - **A catch takes every exception** — `Takes everything CatchIn(clause) is true`
 
   | clause                                                 |
@@ -171,7 +171,7 @@ flowchart TD
 ### [Default comparers](Idioms/DefaultComparers.cs)
 
 - **No to hash set passes the default comparer**\
-  `Source.Projects[project].Nodes<ArgumentSyntax>() has none DefaultComparer`
+  `Source.Projects[project].Nodes<ArgumentSyntax>() has none default comparer`
 - **To hash set passes the default comparer** — `Passes the default SetBy(call) is true`
 
   | call                                                  |
@@ -194,7 +194,7 @@ flowchart TD
 ### [Null forgiving](Idioms/NullForgiving.cs)
 
 - **An expression holds at most one null forgiving operator**\
-  `Source.Projects[project].Nodes<PostfixUnaryExpressionSyntax>() has none DoublyForgiven`
+  `Source.Projects[project].Nodes<PostfixUnaryExpressionSyntax>() has none doubly forgiven`
 
 ### [Query syntax](Idioms/QuerySyntax.cs)
 
@@ -204,7 +204,7 @@ flowchart TD
 ### [Suppressions](Idioms/Suppressions.cs)
 
 - **No source switches a warning off**\
-  `Source.Projects[project].Nodes<SyntaxNode>() has none Suppressing`
+  `Source.Projects[project].Nodes<SyntaxNode>() has none suppressing`
 - **An attribute switches a warning off** — `Suppresses OnAClass(attribute) is true`
 
   | attribute                                                                        |
@@ -224,7 +224,7 @@ flowchart TD
 ### [Type arguments](Idioms/TypeArguments.cs)
 
 - **A call names no type argument the compiler infers**\
-  `Source.Projects[project].Nodes<GenericNameSyntax>() has none Redundant`
+  `Source.Projects[project].Nodes<GenericNameSyntax>() has none redundant`
 
 ## Layout
 
@@ -236,12 +236,12 @@ flowchart TD
 ### [Arrows](Layout/Arrows.cs)
 
 - **An arrow never starts a line**\
-  `Source.Projects[project].Nodes<SyntaxNode>() has none HoldsAnArrowStartingALine`
+  `Source.Projects[project].Nodes<SyntaxNode>() has none holds an arrow starting a line`
 
 ### [Clause braces](Layout/ClauseBraces.cs)
 
 - **A clause takes braces unless it is a simple statement**\
-  `Source.Projects[project].Nodes<StatementSyntax>() has none Misbraced`
+  `Source.Projects[project].Nodes<StatementSyntax>() has none misbraced`
 - **A statement braces its clauses** — `Misbraced in statement is empty`
 
   | statement                                        |
@@ -289,7 +289,7 @@ flowchart TD
 
 ### [Line widths](Layout/LineWidths.cs)
 
-- **A line is at most 110 characters** — `Sources.CodeLinesOf(project) has none Overwide`
+- **A line is at most 110 characters** — `Sources.CodeLinesOf(project) has none overwide`
 
 ### [List ends](Layout/ListEnds.cs)
 
@@ -304,7 +304,7 @@ flowchart TD
 ### [Member spacing](Layout/MemberSpacing.cs)
 
 - **Members are one empty line apart unless two single line ones of a kind**\
-  `Source.Projects[project].Nodes<MemberDeclarationSyntax>() has none Misspaced`
+  `Source.Projects[project].Nodes<MemberDeclarationSyntax>() has none misspaced`
 - **These members are spaced as 1 1g says** — `Misspaced TypeOf(declaration) is empty`
 
   | declaration                                                        |
@@ -328,10 +328,10 @@ flowchart TD
 ### [Nesting depth](Layout/NestingDepth.cs)
 
 - **No line is indented past the fifth level**\
-  `Sources.CodeLinesOf(project) has none Overnested`
-- **No line is indented with a tab** — `Sources.CodeLinesOf(project) has none Tabbed`
+  `Sources.CodeLinesOf(project) has none overnested`
+- **No line is indented with a tab** — `Sources.CodeLinesOf(project) has none tabbed`
 - **A line is indented in whole levels**\
-  `Sources.CodeLinesOf(project) has none PartLevel`
+  `Sources.CodeLinesOf(project) has none part level`
 
 ## Placement
 
@@ -344,9 +344,9 @@ flowchart TD
 ### [Exception types](Placement/ExceptionTypes.cs)
 
 - **Our exception types live in an exceptions folder without the suffix**\
-  `Classes project has none MisplacedException`
+  `Classes project has none misplaced exception`
 - **An exceptions folder holds only exceptions**\
-  `Classes project has none StrayInTheFolder`
+  `Classes project has none stray in the folder`
 - **An exception type elsewhere or with the suffix breaks it**\
   `Breaks file, name is true`
 
@@ -364,8 +364,11 @@ flowchart TD
 
 ### [Member order](Placement/MemberOrder.cs)
 
-- **Fields come first then constructors then members by accessibility**\
-  `Source.Projects[project].Nodes<MemberDeclarationSyntax>() has none StandsBelowOneItShouldPrecede`
+- **Fields come first then constructors then members by accessibility**
+  ```
+  Source.Projects[project].Nodes<MemberDeclarationSyntax>() has none
+      stands below one it should precede
+  ```
 
 ### [Partials](Placement/Partials.cs)
 
@@ -378,13 +381,13 @@ flowchart TD
 ### [Types per file](Placement/TypesPerFile.cs)
 
 - **A file declares one public type**\
-  `Source.Projects[project].Files.Where(Ours) has none Crowded`
+  `Source.Projects[project].Files.Where(Ours) has none crowded`
 - **A file is named after its public type**\
-  `Source.Projects[project].Files.Where(Ours) has none Misnamed`
+  `Source.Projects[project].Files.Where(Ours) has none misnamed`
 - **Only a test project nests a public class**
   ```
   Source.Projects[project].AllTypes.Where(IsNested).Where(type => type.Files.All(Ours)) has none
-      PublicButNoRecord
+      public but no record
   ```
 
 ## Sizes
@@ -398,7 +401,7 @@ flowchart TD
 
 ### [File lengths](Sizes/FileLengths.cs)
 
-- **A file is under 250 lines** — `Source.Projects[project].Files has none Overlong`
+- **A file is under 250 lines** — `Source.Projects[project].Files has none overlong`
 
 ### [Method size](Sizes/MethodSize.cs)
 
@@ -412,7 +415,7 @@ flowchart TD
 ### [Async suffixes](Wording/AsyncSuffixes.cs)
 
 - **No method carries the async suffix**\
-  `Source.Projects[project].Members has none AsyncSuffixed`
+  `Source.Projects[project].Members has none async suffixed`
 
 ### [Characters](Wording/Characters.cs)
 
@@ -432,14 +435,14 @@ flowchart TD
 ### [Get prefixes](Wording/GetPrefixes.cs)
 
 - **No member is named get something**\
-  `Source.Projects[project].Members has none NamedGetSomething`
+  `Source.Projects[project].Members has none named get something`
 
 ### [Lambda parameters](Wording/LambdaParameters.cs)
 
 - **A lambdas parameter is a word**\
-  `Source.Projects[project].Nodes<ParameterSyntax>() has none Unworded`
+  `Source.Projects[project].Nodes<ParameterSyntax>() has none unworded`
 
 ### [Using aliases](Wording/UsingAliases.cs)
 
 - **A using alias is a word not a letter**\
-  `Source.Projects[project].Nodes<UsingDirectiveSyntax>() has none IsALetter`
+  `Source.Projects[project].Nodes<UsingDirectiveSyntax>() has none is a letter`

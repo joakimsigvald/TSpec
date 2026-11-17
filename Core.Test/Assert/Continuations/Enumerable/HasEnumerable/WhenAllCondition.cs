@@ -22,4 +22,23 @@ public class WhenAllCondition : Spec
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => arr.Has().All(it => it < 3));
         ex.HasMessage("Expected arr to have all it < 3 but found 1 that does not: [3]", "Arr has all it < 3");
     }
+
+    [Fact]
+    public void GivenAMethodGroup_ThenItReadsAsTheWordsOfItsName()
+    {
+        int[] arr = [1, -3];
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => arr.Has().All(IsPositive));
+        ex.HasMessage("Expected arr to have all is positive but found 1 that does not: [-3]", "Arr has all is positive");
+    }
+
+    [Fact]
+    public void GivenAnIndexedMethodGroup_ThenItReadsAsTheWordsOfItsName()
+    {
+        int[] arr = [1, 2];
+        arr.Has().All(IsAboveItsIndex);
+        Specification.Is("Arr has all is above its index");
+    }
+
+    private static bool IsPositive(int value) => value > 0;
+    private static bool IsAboveItsIndex(int value, int index) => value > index;
 }

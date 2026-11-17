@@ -63,9 +63,13 @@ internal abstract class Describer
             return DescribeWithDrilldown(head, expr.Raw, m.Boundary, plural: typeArgs != m.TypeArgs);
 
         return AsMatchCondition(m) is { } condition
-            ? $"{head}{Wrap.Enter} {Wrap.Point}where {Value.Describe(condition)}{Wrap.Exit}"
+            ? $"{head}{Wrap.Enter} {Wrap.Point}where {Condition(condition)}{Wrap.Exit}"
             : $"{head}{Braced(m.Constraints)}";
     }
+
+    /// A method group reads as the words of its name, as a lambda calling it does.
+    private static string Condition(Expr condition)
+        => condition is Identifier method ? method.Name.AsWords() : Value.Describe(condition);
 
     /// <summary>
     /// The condition of <c>Any&lt;T&gt;(constraint)</c>, which matches the values satisfying it: a method

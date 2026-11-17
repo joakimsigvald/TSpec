@@ -17,17 +17,13 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>5.5.0</PackageVersion>
+		<PackageVersion>5.6.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			NEW
-			* Extensibility: a package can write its own constraint, and state an assertion as a table
-			* Extensibility: Build lists the build's projects and their references, and opens debug information by assembly name
-			* Extensibility: a package can write a page of its own with SpecificationPage, the tests below it headed by folder and linked to their files
-			DEPRECATED
-			* Source.Projects with Within and NonRedundant, Segment, DependencyGraph and ArchitectureDocument moved to TSpec.Architecture.CSharp 1.6
+			CHANGED
+			* A method group as a condition reads as its name in words, as a lambda calling it does: Has().None(IsMinor) reads "has none is minor"
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

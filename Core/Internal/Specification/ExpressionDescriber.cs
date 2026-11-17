@@ -18,6 +18,16 @@ internal static class ExpressionDescriber
         => string.IsNullOrWhiteSpace(expr) ? string.Empty
         : Describer.Value.Describe(Parser.Parse(expr.ToSingleLine()));
 
+    /// <summary>
+    /// A condition as the specification states it: a method group reads as the words of its name, as a lambda
+    /// calling it does; any other condition stays its source. The words come through a later
+    /// <see cref="Describe"/> unchanged, since the words of a name parse as no expression that reads otherwise.
+    /// </summary>
+    public static string? AsCondition(this string? expr)
+        => !string.IsNullOrWhiteSpace(expr) && Parser.Parse(expr.ToSingleLine()) is Identifier method
+            ? method.Name.AsWords()
+            : expr;
+
     public static string? DescribeCall(this string? expr, bool skipSubjectRef = false)
         => expr is null ? null
         : string.IsNullOrWhiteSpace(expr) ? string.Empty
