@@ -49,7 +49,6 @@ Each waits for a real spec that is worse without it.
 
 | Id | Description | Effort | Value | Worth |
 |---|---|---|---|---|
-| G1 | **First-class source lines.** A `SourceLine` with `File`, `Number`, `Text`, `Indent` and `IsEmbedded` (inside a multi-line raw string), named `X/Path:line` on failure as nodes are. MyHotel's `LineWidths`, `NestingDepth`, `Indentation` and `Characters` each rebuild `(text, index)` tuples, and two need the `EmbeddedLines` helper. | Medium | Medium | 0 |
 | G5 | **Comments as data.** `file.Comments`, each with `Kind` (line, block, doc), the lines it covers, whether it stands on its own line, and the member it leads. MyHotel's `Comments` is 120 lines of trivia-walking, and `Indentation` re-derives comment lines. | Medium | Medium | 0 |
 
 ## Reading and updating this document

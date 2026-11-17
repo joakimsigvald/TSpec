@@ -16,15 +16,14 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>1.6.0</PackageVersion>
+		<PackageVersion>1.7.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			* Source.Projects with Within and NonRedundant, Segment, DependencyGraph and ArchitectureDocument moved here
-			  from TSpec 5.5: use TSpec.Architecture.CSharp in place of TSpec.Architecture
-			* The architecture page heads each folder of the spec project and links each test class to its file
-			* Docs: group rules in folders by architecture domain
+			* A file's SourceLines: each line with its file, its number and whether it is code
+			DEPRECATED
+			* A file's Lines: use SourceLines and a line's Text
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

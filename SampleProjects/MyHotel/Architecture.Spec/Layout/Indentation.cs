@@ -23,29 +23,29 @@ public class Indentation : TSpec.Spec
     public void ABraceOnALineOfItsOwnStandsAtTheLevelOfItsConstruct(string project) =>
         Source.Projects[project].Files.SelectMany(MisbracedLines).Is().Empty();
 
-    /// <summary>"file:line" for every line indented deeper than the line before it allows: one level, and
-    /// one more for each construct that line leaves open.</summary>
-    private static IEnumerable<string> OversteppingLines(SourceFile file)
+    /// <summary>Every line indented deeper than the line before it allows: one level, and one more for each
+    /// construct that line leaves open.</summary>
+    private static IEnumerable<SourceLine> OversteppingLines(SourceFile file)
     {
         var opens = Opens(file);
         var lines = Counted(file);
         return lines.Zip(lines.Skip(1))
-            .Where(pair => Step(pair.First, pair.Second) > Allowed(opens, pair.First.Index))
-            .Select(pair => $"{file}:{pair.Second.Index + 1}");
+            .Where(pair => Step(pair.First, pair.Second) > Allowed(opens, pair.First))
+            .Select(pair => pair.Second);
     }
 
-    private static int Step((string Text, int Index) before, (string Text, int Index) line) =>
+    private static int Step(SourceLine before, SourceLine line) =>
         Indents.Of(line.Text) - Indents.Of(before.Text);
 
-    private static int Allowed(IReadOnlyDictionary<int, int> opens, int line) =>
-        Indents.Width * Math.Max(1, opens.GetValueOrDefault(line));
+    private static int Allowed(IReadOnlyDictionary<int, int> opens, SourceLine line) =>
+        Indents.Width * Math.Max(1, opens.GetValueOrDefault(line.Number));
 
-    /// <summary>How many constructs each line leaves open: its opening brackets less its closing
-    /// ones.</summary>
+    /// <summary>How many constructs each line leaves open, by its number: its opening brackets less its
+    /// closing ones.</summary>
     private static IReadOnlyDictionary<int, int> Opens(SourceFile file) =>
         file.Root.DescendantTokens()
             .Where(token => Sign(token) != 0)
-            .GroupBy(token => file.Line(token) - 1)
+            .GroupBy(token => file.Line(token))
             .ToDictionary(line => line.Key, line => line.Sum(Sign));
 
     private static int Sign(SyntaxToken token) =>
@@ -56,39 +56,21 @@ public class Indentation : TSpec.Spec
             _ => 0,
         };
 
-    /// <summary>The lines a reader steps through: not blank, not a directive, not inside an embedded document
-    /// or a block comment (prose, aligned as prose).</summary>
-    private static IReadOnlyList<(string Text, int Index)> Counted(SourceFile file)
-    {
-        HashSet<int> skipped = [.. EmbeddedLines.Of(file), .. CommentLines(file)];
-        return [.. file.Lines
-            .Select((text, index) => (Text: text, Index: index))
-            .Where(line => line.Text.TrimStart() is { Length: > 0 } code && !code.StartsWith('#'))
-            .Where(line => !skipped.Contains(line.Index))];
-    }
+    /// <summary>The lines a reader steps through: code, not blank and not a directive. The text of an
+    /// embedded document or a block comment is prose, aligned as prose.</summary>
+    private static IReadOnlyList<SourceLine> Counted(SourceFile file) =>
+        [.. file.SourceLines.Where(line => line.IsCode && IsAStep(line.Text))];
 
-    /// <summary>A block comment's lines after its first.</summary>
-    private static IEnumerable<int> CommentLines(SourceFile file) =>
-        file.Root.DescendantTrivia()
-            .Where(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
-            .Select(trivia => file.Root.SyntaxTree.GetLineSpan(trivia.Span))
-            .SelectMany(Continued);
-
-    private static IEnumerable<int> Continued(FileLinePositionSpan span) =>
-        Enumerable.Range(
-            span.StartLinePosition.Line + 1,
-            span.EndLinePosition.Line - span.StartLinePosition.Line);
+    private static bool IsAStep(string text) =>
+        text.TrimStart() is { Length: > 0 } code && !code.StartsWith('#');
 
     /// <summary>"file:line" for every brace that starts its line off the level it answers to.</summary>
-    private static IEnumerable<string> MisbracedLines(SourceFile file)
-    {
-        var embedded = EmbeddedLines.Of(file);
-        return file.Root.DescendantTokens()
+    private static IEnumerable<string> MisbracedLines(SourceFile file) =>
+        file.Root.DescendantTokens()
             .Where(token => AnchorOf(token) is not null && StartsItsLine(file, token))
-            .Where(token => !embedded.Contains(file.Line(token) - 1))
+            .Where(token => file.SourceLines[file.Line(token) - 1].IsCode)
             .Where(token => file.Column(token) != IndentOf(file, AnchorOf(token)!.Value))
             .Select(token => $"{file}:{file.Line(token)}");
-    }
 
     /// <summary>The token whose line a brace answers to: its construct's head for an opening brace, its
     /// opening partner for a closing one.</summary>
@@ -147,5 +129,5 @@ public class Indentation : TSpec.Spec
         file.Line(token.GetPreviousToken()) < file.Line(token);
 
     private static int IndentOf(SourceFile file, SyntaxToken token) =>
-        Indents.Of(file.Lines[file.Line(token) - 1]);
+        Indents.Of(file.SourceLines[file.Line(token) - 1].Text);
 }

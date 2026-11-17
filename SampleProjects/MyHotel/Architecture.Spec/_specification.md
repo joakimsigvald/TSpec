@@ -289,8 +289,7 @@ flowchart TD
 
 ### [Line widths](Layout/LineWidths.cs)
 
-- **A line is at most 110 characters**\
-  `Source.Projects[project].Files.SelectMany(OverwideLines) is empty`
+- **A line is at most 110 characters** — `Sources.CodeLinesOf(project) has none Overwide`
 
 ### [List ends](Layout/ListEnds.cs)
 
@@ -329,11 +328,10 @@ flowchart TD
 ### [Nesting depth](Layout/NestingDepth.cs)
 
 - **No line is indented past the fifth level**\
-  `Source.Projects[project].Files.SelectMany(OvernestedLines) is empty`
-- **No line is indented with a tab**\
-  `Source.Projects[project].Files.SelectMany(TabbedLines) is empty`
+  `Sources.CodeLinesOf(project) has none Overnested`
+- **No line is indented with a tab** — `Sources.CodeLinesOf(project) has none Tabbed`
 - **A line is indented in whole levels**\
-  `Source.Projects[project].Files.SelectMany(PartLevelLines) is empty`
+  `Sources.CodeLinesOf(project) has none PartLevel`
 
 ## Placement
 

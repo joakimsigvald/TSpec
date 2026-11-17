@@ -13,6 +13,8 @@ public sealed class SourceFile
 {
     private readonly Lazy<string> _raw;
     private readonly Lazy<IReadOnlyList<string>> _lines;
+    private readonly Lazy<IReadOnlyDictionary<int, int>> _textLines;
+    private readonly Lazy<IReadOnlyList<SourceLine>> _sourceLines;
     private readonly Lazy<CompilationUnitSyntax> _root;
     private readonly Lazy<IReadOnlyList<DeclaredMember>> _members;
     private readonly Lazy<IReadOnlyList<DeclaredType>> _uses;
@@ -27,7 +29,9 @@ public sealed class SourceFile
         Location = location;
         _raw = new(() => File.ReadAllText(location));
         _lines = new(() => LinesOf(Raw));
-        _levels = new(() => LineLevels.Of(Lines, TextLines.Of(Root)));
+        _textLines = new(() => TextLines.Of(Root));
+        _sourceLines = new(() => [.. _lines.Value.Select(LineAt)]);
+        _levels = new(() => LineLevels.Of(_lines.Value, _textLines.Value));
         _root = new(() => CSharpSyntaxTree.ParseText(Raw, options).GetCompilationUnitRoot());
         _members = new(() => MemberDeclarations.In(this));
         _uses = new(() => BuildTypes.UsedIn(this));
@@ -76,7 +80,14 @@ public sealed class SourceFile
     /// The file's lines as an editor counts them: a final line break ends the last line and starts none,
     /// and an empty file has one empty line
     /// </summary>
+    [Obsolete("Use SourceLines: a line's Text is what Lines held, beside its number and whether it is code")]
     public IReadOnlyList<string> Lines => _lines.Value;
+
+    /// <summary>
+    /// The file's lines as an editor counts them, each with its number and whether it is code: a final line
+    /// break ends the last line and starts none, and an empty file has one empty line
+    /// </summary>
+    public IReadOnlyList<SourceLine> SourceLines => _sourceLines.Value;
 
     /// <summary>
     /// The types declared at the file's top level, in the ordinal order of their full names; a nested
@@ -154,6 +165,8 @@ public sealed class SourceFile
     /// The file as a failure names it: its project and its path in it
     /// </summary>
     public override string ToString() => $"{Project}/{Path}";
+
+    private SourceLine LineAt(string text, int index) => new(this, index + 1, text, !_textLines.Value.ContainsKey(index));
 
     // A documentation comment is prose: a name in its cref is no use of what it names.
     private static bool IsCode(SyntaxNode node) => node is not DocumentationCommentTriviaSyntax;

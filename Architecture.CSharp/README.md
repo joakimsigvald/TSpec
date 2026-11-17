@@ -124,11 +124,24 @@ It moved here from TSpec in 1.6, where the old one is deprecated.
 
 ## File
 
-A file has its `Path` in the project, written with `/`, its `Lines` and its `Raw` text, and a failure
-names it by project and path: `Data.Auth/Stores/UserStore.cs`. A file's `Folder`, `Name` and `Extension`
-are parts of its `Path`: for `Stores/Cache/UserStore.cs`, `Stores`, the folder directly in the project's,
-empty at the project's root; `UserStore`; and `cs`. Its `Types` are those declared at its top level, and
-its `AllTypes` those and the types nested in them.
+A file has its `Path` in the project, written with `/`, and its `Raw` text, and a failure names it by
+project and path: `Data.Auth/Stores/UserStore.cs`. A file's `Folder`, `Name` and `Extension` are parts of
+its `Path`: for `Stores/Cache/UserStore.cs`, `Stores`, the folder directly in the project's, empty at the
+project's root; `UserStore`; and `cs`. Its `Types` are those declared at its top level, and its
+`AllTypes` those and the types nested in them.
+
+A file's `SourceLines` are its lines as an editor counts them. Each has its `File`, its `Number`, counted
+from 1, and its `Text`, and a failure names it by file and line. A line `IsCode` unless it continues a
+string or a comment that opens on an earlier line, such as the content of a raw string literal:
+
+```csharp
+[Fact]
+public void A_line_of_code_is_at_most_120_characters()
+    => Source.Projects.SelectMany(project => project.Files).SelectMany(file => file.SourceLines)
+        .Has().None(line => line.IsCode && line.Text.Length > 120);
+```
+
+`Lines`, the same lines as text alone, is deprecated.
 
 A file's `Root` is its Roslyn syntax as the build parsed it, so code under an `#if` the build left
 out is not in it, and its `Model` is the compiler's view of that syntax: what a name refers to, the type

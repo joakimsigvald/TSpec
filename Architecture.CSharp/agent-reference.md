@@ -1,6 +1,6 @@
 # TSpec.Architecture.CSharp — Agent Reference
 
-Condensed reference for AI coding agents writing architecture rules with TSpec.Architecture.CSharp (covers 1.6).
+Condensed reference for AI coding agents writing architecture rules with TSpec.Architecture.CSharp (covers 1.7).
 It reads the projects of a TSpec build, their references, and the code inside them.
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec/blob/main/Architecture.CSharp/README.md).
 
@@ -51,7 +51,8 @@ public void AreOnlyTheseAndNotRedundant()
 
 ## File
 
-- `Path` in the project (written with `/`), `Lines`, `Raw` text and the `Types` declared at its top level. A failure names it `X/Path`.
+- `Path` in the project (written with `/`), `Raw` text and the `Types` declared at its top level. A failure names it `X/Path`.
+- `SourceLines`: each line's `File`, `Number` (from 1) and `Text`; a failure names it `X/Path:line`. `IsCode` is false on a line that continues a string or comment opened on an earlier line, such as a raw string's content. `Lines` (the text alone) is deprecated.
 - `Folder`, `Name` and `Extension` are parts of `Path`: for `Stores/Cache/UserStore.cs`, `Stores` (the top-level folder, as `Folders` names it; empty at the project's root), `UserStore` and `cs`.
 - `Root` is its Roslyn syntax as the build parsed it, so code under an `#if` the build left out is not in it. `Model` is Roslyn's `SemanticModel` of that syntax; a type the spec project does not run with is unresolved. `file.SpanOf(node)` is where a node or token starts and ends: a `Start` and an `End`, each a `Line` and `Column` counted from 1.
 - `Nodes<T>()`: its syntax nodes of one kind in written order, directives included, nothing inside a documentation comment. Each has `File`, `Syntax` and `Span` (with `Lines`), and a failure names it `X/Path:line`.

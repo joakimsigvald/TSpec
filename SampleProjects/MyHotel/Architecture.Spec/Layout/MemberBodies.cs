@@ -32,7 +32,7 @@ public class MemberBodies : TSpec.Spec
 
     private static bool OneLevelIn(Body body, SourceFile file) =>
         file.Column(body.Expression)
-        == Indents.Of(file.Lines[file.Line(Head(body.Member)) - 1]) + Indents.Width;
+        == Indents.Of(file.SourceLines[file.Line(Head(body.Member)) - 1].Text) + Indents.Width;
 
     private static Body? BodyOf(SyntaxNode node) =>
         node switch

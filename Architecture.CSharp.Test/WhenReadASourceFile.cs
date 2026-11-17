@@ -1,3 +1,4 @@
+#pragma warning disable CS0618 // Lines is deprecated in favour of SourceLines, and still works until it is removed
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using TSpec.Assert;
