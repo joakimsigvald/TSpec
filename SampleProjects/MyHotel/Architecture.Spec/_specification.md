@@ -425,12 +425,10 @@ flowchart TD
 ### [Comments](Wording/Comments.cs)
 
 - **A type or a member is described by a summary not a comment**\
-  `Breach project, DescribedByAComment, "types or members carry a // comment" is null`
-- **A summary is at most ten lines**\
-  `Breach project, LongSummaries, "/// blocks run over ten lines" is null`
-- **A comment is at most three lines**\
-  `Breach project, LongComments, "// comments run over three lines" is null`
-- **There is no block comment** — `Breach project, BlockComments, "/* */ comments" is null`
+  `Comments of project has none describes a type or a member`
+- **A summary is at most ten lines** — `Comments of project has none is a long summary`
+- **A comment is at most three lines** — `Comments of project has none is a long comment`
+- **There is no block comment** — `Comments of project has none is a block comment`
 
 ### [Get prefixes](Wording/GetPrefixes.cs)
 

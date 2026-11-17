@@ -48,7 +48,6 @@ Each waits for a real spec that is worse without it.
 
 | Id | Description | Effort | Value | Worth |
 |---|---|---|---|---|
-| G5 | **Comments as data.** `file.Comments`, each with `Kind` (line, block, doc), the lines it covers, whether it stands on its own line, and the member it leads. MyHotel's `Comments` is 120 lines of trivia-walking, and `Indentation` re-derives comment lines. | Medium | Medium | 0 |
 
 ## Reading and updating this document
 

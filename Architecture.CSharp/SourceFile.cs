@@ -17,6 +17,7 @@ public sealed class SourceFile
     private readonly Lazy<IReadOnlyList<SourceLine>> _sourceLines;
     private readonly Lazy<CompilationUnitSyntax> _root;
     private readonly Lazy<IReadOnlyList<DeclaredMember>> _members;
+    private readonly Lazy<IReadOnlyList<SourceComment>> _comments;
     private readonly Lazy<IReadOnlyList<DeclaredType>> _uses;
     private readonly Lazy<SemanticModel> _model;
     private readonly Lazy<IReadOnlyList<string>> _dependsOn;
@@ -34,6 +35,7 @@ public sealed class SourceFile
         _levels = new(() => LineLevels.Of(_lines.Value, _textLines.Value));
         _root = new(() => CSharpSyntaxTree.ParseText(Raw, options).GetCompilationUnitRoot());
         _members = new(() => MemberDeclarations.In(this));
+        _comments = new(() => FileComments.Of(this));
         _uses = new(() => BuildTypes.UsedIn(this));
         _model = new(() => CompiledProject.Of(Source.Projects[project]).ModelOf(Root.SyntaxTree));
         _dependsOn = new(() => FileDependencies.Of(this));
@@ -118,7 +120,14 @@ public sealed class SourceFile
     /// <summary>
     /// Where a node or token of the file starts and ends
     /// </summary>
-    public SourceSpan SpanOf(SyntaxNodeOrToken node) => SpanOf(Root.SyntaxTree.GetLineSpan(node.Span));
+    public SourceSpan SpanOf(SyntaxNodeOrToken node) => SpanOf(node.Span);
+
+    internal SourceSpan SpanOf(TextSpan span) => SpanOf(Root.SyntaxTree.GetLineSpan(span));
+
+    /// <summary>
+    /// The file's comments, in the order they are written; text inside a documentation comment is none
+    /// </summary>
+    public IReadOnlyList<SourceComment> Comments => _comments.Value;
 
     /// <summary>
     /// The members the file declares, in the order they are written: a nested type's and local functions

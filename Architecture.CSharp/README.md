@@ -171,6 +171,19 @@ public void No_query_is_written_in_query_syntax()
     => Source.Projects["Core"].Nodes<QueryExpressionSyntax>().Is().Empty();
 ```
 
+A file's `Comments` are its comments as a reader sees them: `//` lines in a row, each on its own line, are
+one comment, as the lines of a `///` block are. Each has its `File`, its `Kind` (`Line`, `Block`,
+`Documentation` or `DocumentationBlock`), its `Span`, its `Text`, and a failure names it by file and line.
+A comment `IsTrailing` when it follows code on its line, and otherwise `Leads` the code below it: the
+largest declaration or statement that starts there, its attributes included.
+
+```csharp
+[Fact]
+public void A_comment_is_at_most_three_lines()
+    => Source.Projects["Core"].Files.SelectMany(file => file.Comments)
+        .Has().None(comment => comment.Kind == CommentKind.Line && comment.Span.Lines > 3);
+```
+
 A file's `Members` are those it declares (see [Member](#member)), and its `TopLevelSize` measures its
 top-level statements as a member's `Size` is measured.
 
