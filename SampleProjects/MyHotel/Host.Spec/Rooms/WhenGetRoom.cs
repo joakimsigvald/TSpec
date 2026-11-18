@@ -15,6 +15,22 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
         [Fact] public async Task ThenReturnTheRoom() => (await Result.Read<Room>()).Is(The<Room>());
     }
 
+    /// <summary>
+    /// Setups run last-declared-first, so the room exists before it is booked.
+    /// </summary>
+    public class GivenTheRoomHasAnOpenBooking : WhenGetRoom
+    {
+        public GivenTheRoomHasAnOpenBooking() =>
+            Having(_ => _.Api.PostAsJsonAsync(
+                "/bookings",
+                new BookingRequest(
+                    The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12))))
+                .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
+
+        [Fact]
+        public async Task ThenSaySo() => (await Result.Read<RoomOverview>()).HasOpenBookings.Is(true);
+    }
+
     public class GivenNoSuchRoom : WhenGetRoom
     {
         [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);

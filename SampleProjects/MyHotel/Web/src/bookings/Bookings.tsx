@@ -1,36 +1,31 @@
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ErrorMessage } from '../ErrorMessage';
-import type { Room } from '../rooms/roomsApi';
+import { useBookings, useReload, useRooms } from '../queries';
 import { useAttempt } from '../useAttempt';
 import { BookRoomForm } from './BookRoomForm';
-import { bookRoom, cancelBooking, listBookings, type Booking, type BookingRequest } from './bookingsApi';
+import { bookRoom, cancelBooking, type BookingRequest } from './bookingsApi';
 
-type Props = { rooms: Room[] };
-
-export function Bookings({ rooms }: Props) {
+export function Bookings() {
   const { t } = useTranslation();
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const { bookings, failure: loadFailure } = useBookings();
+  const { rooms } = useRooms();
+  const reload = useReload('booking');
   const { failure, attempt } = useAttempt();
 
-  useEffect(() => {
-    attempt(async () => setBookings(await listBookings()));
-  }, []);
-
   const book = async (request: BookingRequest) => {
-    const booked = await bookRoom(request);
-    setBookings(current => [...current, booked]);
+    await bookRoom(request);
+    await reload();
   };
 
   const cancel = (bookingNumber: number) => attempt(async () => {
     await cancelBooking(bookingNumber);
-    setBookings(current => current.filter(each => each.bookingNumber !== bookingNumber));
+    await reload();
   });
 
   return (
     <section>
       <h2>{t('bookings.heading')}</h2>
-      <ErrorMessage code={failure} />
+      <ErrorMessage code={failure ?? loadFailure} />
       <table>
         <thead>
           <tr>
@@ -51,7 +46,10 @@ export function Bookings({ rooms }: Props) {
               <td>{booking.from}</td>
               <td>{booking.to}</td>
               <td>
-                <button onClick={() => cancel(booking.bookingNumber)}>{t('bookings.cancel')}</button>
+                {booking.status === 'Open' && (
+                  <button onClick={() => cancel(booking.bookingNumber)}>{t('bookings.cancel')}</button>
+                )}
+                {booking.status === 'Cancelled' && t('bookings.cancelled')}
               </td>
             </tr>
           ))}

@@ -4,7 +4,7 @@
 /// The room number identifies the room, so the update carries the room it becomes rather than a
 /// number of its own. A tag names that room, and each branch says which one it is.
 /// </summary>
-public abstract class WhenUpdateRoom : Spec<Core.Rooms.RoomService, Room>
+public abstract class WhenUpdateRoom : Spec<Core.Rooms.RoomService, RoomOverview>
 {
     private readonly Tag<Room> _updatedRoom = new();
 
@@ -15,10 +15,13 @@ public abstract class WhenUpdateRoom : Spec<Core.Rooms.RoomService, Room>
         public GivenTheRoomIsStored()
         {
             Given(_updatedRoom).Is(The<Room>() with { BedCount = ASecond<int>() });
-            Given<IRoomStore>().That(_ => _.Load()).Returns(One<Room>);
+            Given<IRoomStore>().That(_ => _.Load()).Returns(One<Room>)
+                .And<IOpenBookings>().That(_ => _.RoomNumbers()).Returns(Zero<string>);
         }
 
-        [Fact] public void ThenReturnTheUpdatedRoom() => Result.Is(The(_updatedRoom));
+        [Fact]
+        public void ThenReturnTheUpdatedRoom() =>
+            Result.Is(new RoomOverview(The(_updatedRoom).RoomNumber, The(_updatedRoom).BedCount, false));
     }
 
     /// <summary>

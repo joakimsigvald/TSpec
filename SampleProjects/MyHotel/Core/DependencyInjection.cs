@@ -13,5 +13,6 @@ public static class DependencyInjection
             .AddSingleton(seed)
             .AddSingleton<IRoomService, RoomService>()
             .AddSingleton<IBookingService, BookingService>()
+            .AddSingleton<IOpenBookings, OpenBookings>()
             .AddSingleton<IBookingNumberGenerator, BookingNumberGenerator>();
 }

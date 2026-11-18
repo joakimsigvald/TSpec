@@ -34,13 +34,16 @@ b. A file exports one component, named after it; the small helpers only it uses 
    same file. (I)
 c. Function components only. A component holds the state it owns, passes data down as props and changes
    up as callbacks; state lives in the lowest component that needs all of it. (IV)
-d. An effect only synchronises with the outside (the initial fetch); work an event causes goes in that
-   event's handler, never in an effect watching state. (III)
+d. An effect only synchronises with an outside the queries (4a) do not cover; work an event causes goes
+   in that event's handler, never in an effect watching state. (III)
 
 ## 4. State
 
-a. The list a view shows is state in that view, loaded once and updated from each reply - the added,
-   saved or removed item - never refetched to see the effect of a call. (V)
+a. What the API holds is read through a query (TanStack Query), one per list, and never copied into
+   component state or patched from a reply. A change, once it succeeds, reloads the queries it can
+   make stale and no others: a room change the rooms; a booking change the bookings and the rooms,
+   since a room states whether it has open bookings. A query also reloads when the window regains
+   focus; the backend pushes nothing. (V)
 b. An update that reads the current state uses the updater form
    (`setRooms(current => ...)`), never the closed-over value. (II)
 c. No state that can be computed from props or other state during render. (I)

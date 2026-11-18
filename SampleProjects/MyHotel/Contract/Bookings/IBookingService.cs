@@ -11,4 +11,5 @@ public interface IBookingService
     Task<Booking> BookingFor(int bookingNumber);
     Task<Booking> Book(BookingRequest request);
     Task Cancel(int bookingNumber);
+    Task CancelOpenBookings(string roomNumber);
 }

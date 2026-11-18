@@ -11,8 +11,8 @@ Return type: HttpResponseMessage
 
 | Specification           | When | Given | Then |
 |-------------------------|-----:|------:|-----:|
-| [Bookings](Bookings.md) |    5 |    14 |   25 |
+| [Bookings](Bookings.md) |    6 |    20 |   34 |
 | [Host](Host.md)         |    1 |     0 |    2 |
-| [Rooms](Rooms.md)       |    6 |    14 |   26 |
-| *All*                   | *12* |  *28* | *53* |
+| [Rooms](Rooms.md)       |    6 |    17 |   30 |
+| *All*                   | *13* |  *37* | *66* |
 

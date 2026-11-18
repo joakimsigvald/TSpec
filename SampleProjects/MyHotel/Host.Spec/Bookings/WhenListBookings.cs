@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using static MyHotel.Contract.Bookings.BookingStatus;
 using static System.Net.HttpStatusCode;
 
 namespace MyHotel.Host.Spec.Bookings;
@@ -25,11 +26,11 @@ public abstract class WhenListBookings : ApiSpec<HttpResponseMessage>
             Having(_ => _.Api.PostAsJsonAsync(
                 "/bookings",
                 new BookingRequest(
-                    The<Room>().RoomNumber, ASecond<string>(), A<DateOnly>(), ASecond<DateOnly>())));
+                    The<Room>().RoomNumber, ASecond<string>(), new(2026, 8, 10), new(2026, 8, 12))));
             Having(_ => _.Api.PostAsJsonAsync(
                 "/bookings",
                 new BookingRequest(
-                    The<Room>().RoomNumber, A<string>(), AThird<DateOnly>(), AFourth<DateOnly>())));
+                    The<Room>().RoomNumber, A<string>(), new(2026, 8, 14), new(2026, 8, 16))));
             Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
         }
 
@@ -40,13 +41,15 @@ public abstract class WhenListBookings : ApiSpec<HttpResponseMessage>
                     10001,
                     The<Room>().RoomNumber,
                     The<string>(),
-                    TheThird<DateOnly>(),
-                    TheFourth<DateOnly>()),
+                    new(2026, 8, 14),
+                    new(2026, 8, 16),
+                    Open),
                 new Booking(
                     10002,
                     The<Room>().RoomNumber,
                     TheSecond<string>(),
-                    The<DateOnly>(),
-                    TheSecond<DateOnly>())]);
+                    new(2026, 8, 10),
+                    new(2026, 8, 12),
+                    Open)]);
     }
 }

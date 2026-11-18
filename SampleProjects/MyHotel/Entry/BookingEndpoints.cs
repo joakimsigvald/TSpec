@@ -13,6 +13,7 @@ public static class BookingEndpoints
         app.MapPost("/bookings", Book);
         app.MapGet("/bookings/{bookingNumber:int}", BookingFor);
         app.MapDelete("/bookings/{bookingNumber:int}", Cancel);
+        app.MapDelete("/rooms/{roomNumber}/bookings", CancelOpenBookings);
     }
 
     private static async Task<IResult> Bookings(IBookingService bookings) =>
@@ -30,6 +31,12 @@ public static class BookingEndpoints
     private static async Task<IResult> Cancel(IBookingService bookings, int bookingNumber)
     {
         await bookings.Cancel(bookingNumber);
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> CancelOpenBookings(IBookingService bookings, string roomNumber)
+    {
+        await bookings.CancelOpenBookings(roomNumber);
         return Results.NoContent();
     }
 }

@@ -18,4 +18,4 @@ export function useAttempt() {
   return { failure, attempt };
 }
 
-const codeOf = (error: unknown) => (error instanceof ApiError ? error.code : 'Unknown');
+export const codeOf = (error: unknown) => (error instanceof ApiError ? error.code : 'Unknown');

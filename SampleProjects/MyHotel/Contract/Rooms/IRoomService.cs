@@ -7,9 +7,9 @@ namespace MyHotel.Contract.Rooms;
 /// </summary>
 public interface IRoomService
 {
-    Task<IReadOnlyList<Room>> Rooms();
-    Task<Room> RoomFor(string roomNumber);
-    Task<Room> Add(Room room);
-    Task<Room> Update(string roomNumber, Room room);
+    Task<IReadOnlyList<RoomOverview>> Rooms();
+    Task<RoomOverview> RoomFor(string roomNumber);
+    Task<RoomOverview> Add(Room room);
+    Task<RoomOverview> Update(string roomNumber, Room room);
     Task Delete(string roomNumber);
 }

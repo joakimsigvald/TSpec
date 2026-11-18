@@ -4,19 +4,44 @@
 `Subject under test: RoomService`
 
 ## [When add room](../Rooms/RoomService/WhenAddRoom.cs)
-`Add(a Room), returns Room`
-
-### Given no such room
-`IRoomStore.Load() returns zero Rooms`
-
-- **return the room** — `Result is the Room`
-- **store it** — `IRoomStore.Save(one Room)`
+`Add(a Room), returns RoomOverview`
 
 ### Given the room number is taken
 `IRoomStore.Load() returns [the Room with { BedCount = any int }]`
 
 - **throw room already exists**\
   `throws RoomAlreadyExists that Message contains the Room's RoomNumber`
+
+### Given no such room
+```
+IRoomStore.Load() returns zero Rooms
+  and IOpenBookings.RoomNumbers() returns zero strings
+```
+
+- **return the room**\
+  `Result is new RoomOverview(the Room's RoomNumber, the Room's BedCount, false)`
+- **store it** — `IRoomStore.Save(one Room)`
+
+## [When list rooms](../Rooms/RoomService/WhenListRooms.cs)
+`Rooms(), returns IReadOnlyList<RoomOverview>`
+
+### Given no rooms
+`IRoomStore.Load() returns zero Rooms`
+
+- **return no rooms** — `Result is empty`
+
+### Given two rooms
+```
+IRoomStore.Load() returns two Rooms
+  and IOpenBookings.RoomNumbers() returns [the second Room's RoomNumber]
+```
+
+- **return them in the order they are stored**
+  ```
+  Result is equal to [new RoomOverview(the first Room's RoomNumber,
+      the first Room's BedCount, false),
+      new RoomOverview(the second Room's RoomNumber, the second Room's BedCount, true)]
+  ```
 
 ## [When delete room](../Rooms/RoomService/WhenDeleteRoom.cs)
 `Delete(a Room's RoomNumber)`
@@ -26,39 +51,51 @@
 
 - **throw not found** — `throws RoomNotFound that Message contains the Room's RoomNumber`
 
+### Given the room has open bookings
+```
+IRoomStore.Load() returns one Room
+  and IOpenBookings.RoomNumbers() returns [the Room's RoomNumber]
+```
+
+- **throw room has open bookings**\
+  `throws RoomHasOpenBookings that Message contains the Room's RoomNumber`
+- **store nothing** — `IRoomStore.Save was not invoked`
+
 ### Given the room is stored
-`IRoomStore.Load() returns one Room`
+```
+IRoomStore.Load() returns one Room
+  and IOpenBookings.RoomNumbers() returns zero strings
+```
 
 - **store what is left** — `IRoomStore.Save(zero Rooms)`
 
 ## [When get room](../Rooms/RoomService/WhenGetRoom.cs)
-`RoomFor(a Room's RoomNumber), returns Room`
+`RoomFor(a Room's RoomNumber), returns RoomOverview`
 
 ### Given no such room
 `IRoomStore.Load() returns zero Rooms`
 
 - **throw not found** — `throws RoomNotFound that Message contains the Room's RoomNumber`
 
+### Given the room has open bookings
+```
+IRoomStore.Load() returns one Room
+  and IOpenBookings.RoomNumbers() returns [the Room's RoomNumber]
+```
+
+- **say so** — `Result.HasOpenBookings is true`
+
 ### Given the room is stored
-`IRoomStore.Load() returns one Room`
+```
+IRoomStore.Load() returns one Room
+  and IOpenBookings.RoomNumbers() returns zero strings
+```
 
-- **return it** — `Result is the Room`
-
-## [When list rooms](../Rooms/RoomService/WhenListRooms.cs)
-`Rooms(), returns IReadOnlyList<Room>`
-
-### Given no rooms
-`IRoomStore.Load() returns zero Rooms`
-
-- **return no rooms** — `Result is empty`
-
-### Given two rooms
-`IRoomStore.Load() returns two Rooms`
-
-- **return them in the order they are stored** — `Result is equal to two Rooms`
+- **return it**\
+  `Result is new RoomOverview(the Room's RoomNumber, the Room's BedCount, false)`
 
 ## [When update room](../Rooms/RoomService/WhenUpdateRoom.cs)
-`Update(a Room's RoomNumber, the UpdatedRoom), returns Room`
+`Update(a Room's RoomNumber, the UpdatedRoom), returns RoomOverview`
 
 ### Given the updated room has another number
 `UpdatedRoom is a second Room`
@@ -86,6 +123,8 @@ UpdatedRoom is the Room with { BedCount = a second int }
 ```
 UpdatedRoom is the Room with { BedCount = a second int }
   and IRoomStore.Load() returns one Room
+  and IOpenBookings.RoomNumbers() returns zero strings
 ```
 
-- **return the updated room** — `Result is the UpdatedRoom`
+- **return the updated room**\
+  `Result is new RoomOverview(the UpdatedRoom's RoomNumber, the UpdatedRoom's BedCount, false)`

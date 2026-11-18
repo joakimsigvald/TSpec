@@ -12,6 +12,7 @@ var version = Assembly.GetExecutingAssembly()
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddCore(new BookingNumberSeed(
     builder.Configuration.GetValue<int?>("BookingNumbers:Seed") ?? 0));
 builder.Services.AddEntry();

@@ -22,4 +22,42 @@ public abstract class WhenDeleteRoom : ApiSpec<HttpResponseMessage>
         public async Task ThenSayThereIsNoSuchRoom() =>
             (await Result.Read<ErrorBody>()).Code.Is("RoomNotFound");
     }
+
+    /// <summary>
+    /// Setups run last-declared-first, so the room exists before it is booked.
+    /// </summary>
+    public class GivenTheRoomHasAnOpenBooking : WhenDeleteRoom
+    {
+        public GivenTheRoomHasAnOpenBooking() =>
+            Having(_ => _.Api.PostAsJsonAsync(
+                "/bookings",
+                new BookingRequest(
+                    The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12))))
+                .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
+
+        [Fact] public void ThenRespondConflict() => Result.StatusCode.Is(Conflict);
+
+        [Fact]
+        public async Task ThenSayTheRoomHasOpenBookings() =>
+            (await Result.Read<ErrorBody>()).Code.Is("RoomHasOpenBookings");
+    }
+
+    /// <summary>
+    /// Setups run last-declared-first: the room exists, it is booked, its open bookings are
+    /// cancelled.
+    /// </summary>
+    public class GivenItsOpenBookingsWereCancelled : WhenDeleteRoom
+    {
+        public GivenItsOpenBookingsWereCancelled()
+        {
+            Having(_ => _.Api.DeleteAsync($"/rooms/{The<Room>().RoomNumber}/bookings"));
+            Having(_ => _.Api.PostAsJsonAsync(
+                "/bookings",
+                new BookingRequest(
+                    The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12))));
+            Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
+        }
+
+        [Fact] public void ThenRespondNoContent() => Result.StatusCode.Is(NoContent);
+    }
 }

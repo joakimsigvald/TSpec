@@ -72,19 +72,24 @@ npm --prefix SampleProjects/MyHotel/Web test
 | `POST` | `/rooms` | `201` with the room and a `Location` header; `409` if the room number is taken |
 | `GET` | `/rooms/{roomNumber}` | `200` with the room, or `404` |
 | `PUT` | `/rooms/{roomNumber}` | `200` with the updated room; `400` if the body carries another room number; `404` if there is no such room |
-| `DELETE` | `/rooms/{roomNumber}` | `204` and the room is gone, or `404` |
-| `GET` | `/bookings` | `200` with every booking in the order it was made; `[]` when there are none |
+| `DELETE` | `/rooms/{roomNumber}` | `204` and the room is gone; `404` if there is no such room; `409` if it has open bookings |
+| `DELETE` | `/rooms/{roomNumber}/bookings` | `204` and the room's open bookings are cancelled |
+| `GET` | `/bookings` | `200` with every booking in the order it was made, cancelled ones included; `[]` when there are none |
 | `POST` | `/bookings` | `201` with the booking and a `Location` header; `400` if the period is not at least one night; `404` if there is no such room; `409` if the room is already booked for any of those nights |
 | `GET` | `/bookings/{bookingNumber}` | `200` with the booking, or `404` |
-| `DELETE` | `/bookings/{bookingNumber}` | `204` and the booking is cancelled, or `404` |
+| `DELETE` | `/bookings/{bookingNumber}` | `204` and the booking is cancelled, but kept; `404` if there is no such booking; `409` if it is past or already cancelled |
 
-A room is `{ "roomNumber": "101", "bedCount": 2 }`. The room number is the identity: it appears in
-the URL and cannot be changed — to renumber a room, delete it and add a new one.
+A room is sent as `{ "roomNumber": "101", "bedCount": 2 }` and answered with
+`"hasOpenBookings"` as well. The room number is the identity: it appears in the URL and cannot be
+changed — to renumber a room, delete it and add a new one.
 
 A booking is `{ "bookingNumber": 10001, "roomNumber": "101", "guestName": "Smith",
-"from": "2026-08-10", "to": "2026-08-12" }`. It is booked with the same fields minus the
-`bookingNumber`, which the hotel assigns. Nights are half-open, `[from, to)`: the guest departs on
-`to`, so that night is free for the next booking and two stays meeting at a date do not collide.
+"from": "2026-08-10", "to": "2026-08-12", "status": "Open" }`. It is booked with the same fields
+minus the `bookingNumber` and `status`, which the hotel works out. Nights are half-open,
+`[from, to)`: the guest departs on `to`, so that night is free for the next booking and two stays
+meeting at a date do not collide. The status is `Open` until the departure day is over, `Past`
+from the day after, and `Cancelled` once cancelled; open bookings are the ones a room must be rid
+of before it can be deleted.
 
 Booking numbers are issued in order from a seed — `BookingNumbers:Seed` in configuration, 10000 as
 shipped, 0 when unset. The seed is the number counted as already used, so the first booking gets the

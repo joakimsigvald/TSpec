@@ -6,36 +6,51 @@ namespace MyHotel.Core.Rooms;
 /// <summary>
 /// Rooms are kept in the order they were created, which is the order the store returns them in.
 /// </summary>
-public class RoomService(IRoomStore store) : IRoomService
+public class RoomService(IRoomStore store, IOpenBookings openBookings) : IRoomService
 {
-    public async Task<IReadOnlyList<Room>> Rooms() => await store.Load();
-    public async Task<Room> RoomFor(string roomNumber) => Existing(await Rooms(), roomNumber);
-
-    public async Task<Room> Add(Room room)
+    public async Task<IReadOnlyList<RoomOverview>> Rooms()
     {
-        var rooms = await Rooms();
+        var open = await openBookings.RoomNumbers();
+        return [.. (await store.Load()).Select(room => Overview(room, open))];
+    }
+
+    public async Task<RoomOverview> RoomFor(string roomNumber) =>
+        await OverviewOf(Existing(await store.Load(), roomNumber));
+
+    public async Task<RoomOverview> Add(Room room)
+    {
+        var rooms = await store.Load();
         if (Find(rooms, room.RoomNumber) is not null)
             throw new RoomAlreadyExists(room.RoomNumber);
         await store.Save([.. rooms, room]);
-        return room;
+        return await OverviewOf(room);
     }
 
-    public async Task<Room> Update(string roomNumber, Room room)
+    public async Task<RoomOverview> Update(string roomNumber, Room room)
     {
         if (room.RoomNumber != roomNumber)
             throw new RoomNumberMismatch(roomNumber, room.RoomNumber);
-        var rooms = await Rooms();
+        var rooms = await store.Load();
         var existing = Existing(rooms, roomNumber);
         await store.Save([.. rooms.Select(stored => stored == existing ? room : stored)]);
-        return room;
+        return await OverviewOf(room);
     }
 
     public async Task Delete(string roomNumber)
     {
-        var rooms = await Rooms();
+        var rooms = await store.Load();
         var existing = Existing(rooms, roomNumber);
+        if ((await openBookings.RoomNumbers()).Contains(roomNumber))
+            throw new RoomHasOpenBookings(roomNumber);
+
         await store.Save([.. rooms.Where(stored => stored != existing)]);
     }
+
+    private async Task<RoomOverview> OverviewOf(Room room) =>
+        Overview(room, await openBookings.RoomNumbers());
+
+    private static RoomOverview Overview(Room room, IReadOnlyList<string> open) =>
+        new(room.RoomNumber, room.BedCount, open.Contains(room.RoomNumber));
 
     private static Room Existing(IEnumerable<Room> rooms, string roomNumber) =>
         Find(rooms, roomNumber) ?? throw new RoomNotFound(roomNumber);

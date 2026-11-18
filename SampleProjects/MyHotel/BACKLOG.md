@@ -32,9 +32,7 @@ notes when that file was retired; rules for changing anything under `SampleProje
    than a route of its own.
 2. **`PUT /bookings/{bookingNumber}`** — amending a booking, re-stating the refusals booking makes.
    Left out of the resource because cancel-and-rebook covered it; asked for explicitly.
-3. **Refuse `DELETE /rooms/{roomNumber}` while the room has bookings** (`409`). The first rule
-   crossing subdomains — watch what it does to Core's layering, since rooms must consult bookings.
-4. **Out of service.** `PUT /rooms/{n}/out-of-service` sets it, `DELETE` on the same path reverses
+3. **Out of service.** `PUT /rooms/{n}/out-of-service` sets it, `DELETE` on the same path reverses
    it, and the state shows in `GET`. The term is hotel usage — *out of order* is maintenance, *out
    of service* is temporarily off inventory — and is the PO's to rename once it can be read in the
    document. A room out of service takes no new bookings; what becomes of the bookings it already

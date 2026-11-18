@@ -1,12 +1,14 @@
-﻿using static TSpec.Times;
+﻿using static MyHotel.Contract.Bookings.BookingStatus;
+using static TSpec.Times;
 
 namespace MyHotel.Core.Spec.Bookings.BookingService;
 
 public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
 {
     protected WhenBook() =>
-        When(_ => _.Book(new BookingRequest(
-            A<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12))));
+        Using(TodayIs(new(2026, 8, 1)))
+            .When(_ => _.Book(new BookingRequest(
+                A<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12))));
 
     public abstract class GivenTheRoomExists : WhenBook
     {
@@ -17,12 +19,17 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
         {
             public WithNoBookings() =>
                 Given<IBookingNumberGenerator>().That(_ => _.Next()).Returns(() => 10001)
-                    .And<IBookingStore>().That(_ => _.Load()).Returns(Zero<Booking>);
+                    .And<IBookingStore>().That(_ => _.Load()).Returns(Zero<StoredBooking>);
 
             [Fact]
             public void ThenReturnTheBookingWithTheNumberItWasGiven() =>
                 Result.Is(new Booking(
-                    10001, The<Room>().RoomNumber, The<string>(), new(2026, 8, 10), new(2026, 8, 12)));
+                    10001,
+                    The<Room>().RoomNumber,
+                    The<string>(),
+                    new(2026, 8, 10),
+                    new(2026, 8, 12),
+                    Open));
 
             [Fact] public void ThenStoreIt() => Then<IBookingStore>(nameof(IBookingStore.Save), Once);
         }
@@ -37,7 +44,7 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
             public ButIsAlreadyBooked() =>
                 Given<IBookingNumberGenerator>().That(_ => _.Next())
                 .First().Returns(() => 10001).AndNext().Returns(() => 10002)
-                .And<IBookingStore>().That(_ => _.Load()).Returns(Zero<Booking>)
+                .And<IBookingStore>().That(_ => _.Load()).Returns(Zero<StoredBooking>)
                 .Having(_ => _.Book(new BookingRequest(
                     The<Room>().RoomNumber, ASecond<string>(), new(2026, 8, 8), new(2026, 8, 10))));
 
@@ -47,16 +54,34 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
         public class WithAnOverlappingBooking : GivenTheRoomExists
         {
             public WithAnOverlappingBooking() =>
-                Given<IBookingStore>().That(_ => _.Load()).Returns(() => [A<Booking>() with
+                Given<IBookingStore>().That(_ => _.Load()).Returns(() => [A<StoredBooking>() with
                 {
                     RoomNumber = The<Room>().RoomNumber,
                     From = new(2026, 8, 11),
                     To = new(2026, 8, 13),
+                    Cancelled = false,
                 }]);
 
             [Fact]
             public void ThenThrowRoomAlreadyBooked() =>
                 Then().Throws<RoomAlreadyBooked>().that.Message.Does().Contain(The<Room>().RoomNumber);
+        }
+
+        /// <summary>
+        /// A cancelled booking holds no nights, so its period can be booked again.
+        /// </summary>
+        public class WithAnOverlappingBookingThatWasCancelled : GivenTheRoomExists
+        {
+            public WithAnOverlappingBookingThatWasCancelled() =>
+                Given<IBookingStore>().That(_ => _.Load()).Returns(() => [A<StoredBooking>() with
+                {
+                    RoomNumber = The<Room>().RoomNumber,
+                    From = new(2026, 8, 11),
+                    To = new(2026, 8, 13),
+                    Cancelled = true,
+                }]);
+
+            [Fact] public void ThenBookTheRoom() => Result.RoomNumber.Is(The<Room>().RoomNumber);
         }
 
         /// <summary>
@@ -66,11 +91,12 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
         public class WithAnAdjacentBooking : GivenTheRoomExists
         {
             public WithAnAdjacentBooking() =>
-                Given<IBookingStore>().That(_ => _.Load()).Returns(() => [A<Booking>() with
+                Given<IBookingStore>().That(_ => _.Load()).Returns(() => [A<StoredBooking>() with
                 {
                     RoomNumber = The<Room>().RoomNumber,
                     From = new(2026, 8, 8),
                     To = new(2026, 8, 10),
+                    Cancelled = false,
                 }]);
 
             [Fact] public void ThenBookTheRoom() => Result.RoomNumber.Is(The<Room>().RoomNumber);

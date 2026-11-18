@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using static MyHotel.Contract.Bookings.BookingStatus;
 using static System.Net.HttpStatusCode;
 
 namespace MyHotel.Host.Spec.Bookings;
@@ -20,7 +21,7 @@ public abstract class WhenBookRoom : ApiSpec<HttpResponseMessage>
         [Fact]
         public async Task ThenReturnTheBookingWithTheSeededNumber() =>
             (await Result.Read<Booking>()).Is(new Booking(
-                10001, The<Room>().RoomNumber, The<string>(), new(2026, 8, 10), new(2026, 8, 12)));
+                10001, The<Room>().RoomNumber, The<string>(), new(2026, 8, 10), new(2026, 8, 12), Open));
 
         [Fact]
         public void ThenPointAtTheNewBooking() =>

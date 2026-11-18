@@ -77,3 +77,40 @@ input[type='number'] {
   width: auto;
   white-space: normal;
 }
+
+dialog {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1rem 1.25rem;
+}
+
+/* The row a dialog asks about: the dialog stands just below it, or above it when the window
+   ends first. A browser without anchor positioning keeps the dialog in the middle. */
+.asking {
+  anchor-name: --asking;
+}
+
+@supports (anchor-name: --asking) {
+  dialog {
+    position-anchor: --asking;
+    top: anchor(bottom);
+    bottom: auto;
+    margin-block: 0.25rem 0;
+    position-try-fallbacks: flip-block;
+  }
+}
+
+dialog h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+dialog p {
+  margin: 0 0 1rem;
+}
+
+.answers {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

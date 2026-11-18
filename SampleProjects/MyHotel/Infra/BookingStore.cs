@@ -1,5 +1,4 @@
 using System.Text.Json;
-using MyHotel.Contract.Bookings;
 using MyHotel.Core.Bookings;
 
 namespace MyHotel.Infra;
@@ -16,9 +15,9 @@ namespace MyHotel.Infra;
 /// </remarks>
 internal sealed class BookingStore(string path) : IBookingStore, IBookingNumberStore
 {
-    public async Task<IReadOnlyList<Booking>> Load() => (await Read()).Bookings;
+    public async Task<IReadOnlyList<StoredBooking>> Load() => (await Read()).Bookings;
 
-    public async Task Save(IReadOnlyList<Booking> bookings) =>
+    public async Task Save(IReadOnlyList<StoredBooking> bookings) =>
         await Write(await Read() with { Bookings = bookings });
 
     public async Task<int?> LoadLastUsed() => (await Read()).LastUsedNumber;
@@ -45,7 +44,7 @@ internal sealed class BookingStore(string path) : IBookingStore, IBookingNumberS
 
     /// What the file holds: the bookings made, and the last number issued - null until the first
     /// one is, which is the one moment the seed applies.
-    private sealed record Book(IReadOnlyList<Booking> Bookings, int? LastUsedNumber)
+    private sealed record Book(IReadOnlyList<StoredBooking> Bookings, int? LastUsedNumber)
     {
         internal static Book Empty => new([], null);
     }

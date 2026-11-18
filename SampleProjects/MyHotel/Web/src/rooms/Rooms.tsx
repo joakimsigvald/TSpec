@@ -1,40 +1,60 @@
-import { useEffect, type Dispatch, type SetStateAction } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { cancelOpenBookings } from '../bookings/bookingsApi';
+import { ConfirmDialog, type Confirmation } from '../ConfirmDialog';
 import { ErrorMessage } from '../ErrorMessage';
+import { useReload, useRooms } from '../queries';
 import { useAttempt } from '../useAttempt';
 import { AddRoomForm } from './AddRoomForm';
 import { RoomRow } from './RoomRow';
-import { addRoom, deleteRoom, listRooms, updateRoom, type Room } from './roomsApi';
+import { addRoom, deleteRoom, updateRoom, type Room } from './roomsApi';
 
-type Props = { rooms: Room[]; onChange: Dispatch<SetStateAction<Room[]>> };
-
-export function Rooms({ rooms, onChange }: Props) {
+export function Rooms() {
   const { t } = useTranslation();
+  const { rooms, failure: loadFailure } = useRooms();
+  const reload = useReload('room');
+  const reloadAfterBookings = useReload('booking');
   const { failure, attempt } = useAttempt();
-
-  useEffect(() => {
-    attempt(async () => onChange(await listRooms()));
-  }, []);
+  const [asking, setAsking] = useState<Asking>();
 
   const add = async (room: Room) => {
-    const added = await addRoom(room);
-    onChange(current => [...current, added]);
+    await addRoom(room);
+    await reload();
   };
 
   const save = (room: Room) => attempt(async () => {
-    const saved = await updateRoom(room);
-    onChange(current => current.map(each => (each.roomNumber === saved.roomNumber ? saved : each)));
+    await updateRoom(room);
+    await reload();
   });
 
-  const remove = (roomNumber: string) => attempt(async () => {
-    await deleteRoom(roomNumber);
-    onChange(current => current.filter(each => each.roomNumber !== roomNumber));
+  const cancelBookings = (roomNumber: string) => setAsking({
+    roomNumber,
+    confirmation: {
+      caption: t('rooms.confirmCancelBookingsCaption'),
+      question: t('rooms.confirmCancelBookings', { roomNumber }),
+      onConfirm: () => attempt(async () => {
+        await cancelOpenBookings(roomNumber);
+        await reloadAfterBookings();
+      }),
+    },
+  });
+
+  const remove = (roomNumber: string) => setAsking({
+    roomNumber,
+    confirmation: {
+      caption: t('rooms.confirmDeleteCaption'),
+      question: t('rooms.confirmDelete', { roomNumber }),
+      onConfirm: () => attempt(async () => {
+        await deleteRoom(roomNumber);
+        await reload();
+      }),
+    },
   });
 
   return (
     <section>
       <h2>{t('rooms.heading')}</h2>
-      <ErrorMessage code={failure} />
+      <ErrorMessage code={failure ?? loadFailure} />
       <table>
         <thead>
           <tr>
@@ -45,11 +65,21 @@ export function Rooms({ rooms, onChange }: Props) {
         </thead>
         <tbody>
           {rooms.map(room => (
-            <RoomRow key={room.roomNumber} room={room} onSave={save} onDelete={remove} />
+            <RoomRow
+              key={room.roomNumber}
+              room={room}
+              asking={asking?.roomNumber === room.roomNumber}
+              onSave={save}
+              onCancelBookings={cancelBookings}
+              onDelete={remove}
+            />
           ))}
         </tbody>
       </table>
       <AddRoomForm onAdd={add} />
+      {asking && <ConfirmDialog {...asking.confirmation} onClose={() => setAsking(undefined)} />}
     </section>
   );
 }
+
+type Asking = { roomNumber: string; confirmation: Confirmation };

@@ -21,7 +21,8 @@ Stop Host, or Web's dev server, as soon as you are done using it, if you started
    (`TESTING.md`). Only then: it is not a step of every feature.
 4. Write a short summary of the feature to `Features/REQUIREMENTS-<code>.md`, then show it to the PO
    in full, not linked or buried in a longer answer. The reply is a short status line, a `---`
-   separator, the summary, and a short question: go ahead to Design, or keep defining?
+   separator, the summary, and a short question: go ahead to Design, or keep defining? To keep
+   defining, ask what the PO wants to change, not questions of your own.
 
 ## Design
 
@@ -31,8 +32,8 @@ Stop Host, or Web's dev server, as soon as you are done using it, if you started
    what parts, what new interactions, any restructuring. No implementation details, and nothing
    every feature does anyway, such as writing specs.
 3. Show it to the PO in full, as at the end of Define: a short status line, a `---` separator, the
-   summary, and a short question: go ahead to Build, or keep designing? Then wait for the go-ahead,
-   or the PO's questions.
+   summary, and a short question: go ahead to Build, or keep designing? To keep designing, ask what
+   the PO wants to change. Answer any questions the PO asks about the design before going on.
 
 ## Build
 

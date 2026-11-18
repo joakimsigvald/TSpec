@@ -1,19 +1,21 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Room } from './roomsApi';
+import type { Room, RoomOverview } from './roomsApi';
 
 type Props = {
-  room: Room;
+  room: RoomOverview;
+  asking: boolean;
   onSave: (room: Room) => void;
+  onCancelBookings: (roomNumber: string) => void;
   onDelete: (roomNumber: string) => void;
 };
 
-export function RoomRow({ room, onSave, onDelete }: Props) {
+export function RoomRow({ room, asking, onSave, onCancelBookings, onDelete }: Props) {
   const { t } = useTranslation();
   const [bedCount, setBedCount] = useState(room.bedCount);
 
   return (
-    <tr>
+    <tr className={asking ? 'asking' : undefined}>
       <td>{room.roomNumber}</td>
       <td>
         <input
@@ -24,8 +26,21 @@ export function RoomRow({ room, onSave, onDelete }: Props) {
         />
       </td>
       <td>
-        <button onClick={() => onSave({ ...room, bedCount })}>{t('rooms.save')}</button>
-        <button onClick={() => onDelete(room.roomNumber)}>{t('rooms.delete')}</button>
+        <button onClick={() => onSave({ roomNumber: room.roomNumber, bedCount })}>{t('rooms.save')}</button>
+        <button
+          disabled={!room.hasOpenBookings}
+          title={room.hasOpenBookings ? undefined : t('rooms.noOpenBookings')}
+          onClick={() => onCancelBookings(room.roomNumber)}
+        >
+          {t('rooms.cancelBookings')}
+        </button>
+        <button
+          disabled={room.hasOpenBookings}
+          title={room.hasOpenBookings ? t('errors.RoomHasOpenBookings') : undefined}
+          onClick={() => onDelete(room.roomNumber)}
+        >
+          {t('rooms.delete')}
+        </button>
       </td>
     </tr>
   );

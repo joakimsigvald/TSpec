@@ -7,3 +7,5 @@ global using MyHotel.Contract.Rooms;
 global using MyHotel.Contract.Rooms.Exceptions;
 global using MyHotel.Core.Bookings;
 global using MyHotel.Core.Rooms;
+global using static MyHotel.Core.Spec.Cancelling;
+global using static MyHotel.Core.Spec.FixedClock;

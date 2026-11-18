@@ -1,6 +1,8 @@
 {
   "app": {
-    "title": "Mitt hotell"
+    "title": "Mitt hotell",
+    "ok": "OK",
+    "cancel": "Avbryt"
   },
   "rooms": {
     "heading": "Rum",
@@ -10,7 +12,13 @@
     "bedsInRoom": "Sängar i rum {{roomNumber}}",
     "add": "Lägg till rum",
     "save": "Spara",
-    "delete": "Ta bort"
+    "delete": "Ta bort",
+    "confirmDeleteCaption": "Ta bort rum",
+    "confirmDelete": "Ta bort rum {{roomNumber}}?",
+    "cancelBookings": "Avboka alla",
+    "confirmCancelBookingsCaption": "Avboka alla bokningar",
+    "confirmCancelBookings": "Avboka alla aktuella och kommande bokningar för rum {{roomNumber}}?",
+    "noOpenBookings": "Rummet har inga aktuella eller kommande bokningar."
   },
   "bookings": {
     "heading": "Bokningar",
@@ -22,15 +30,18 @@
     "from": "Från",
     "to": "Till",
     "book": "Boka",
-    "cancel": "Avboka"
+    "cancel": "Avboka",
+    "cancelled": "Avbokad"
   },
   "errors": {
     "RoomNotFound": "Rummet finns inte.",
     "RoomAlreadyExists": "Rummet finns redan.",
     "RoomNumberMismatch": "Ett rum kan inte byta nummer.",
+    "RoomHasOpenBookings": "Rummet har aktuella eller kommande bokningar.",
     "RoomAlreadyBooked": "Rummet är redan bokat under några av nätterna.",
     "InvalidBookingPeriod": "En bokning måste gälla minst en natt.",
     "BookingNotFound": "Bokningen finns inte.",
+    "BookingNotOpen": "Bokningen är redan avbokad eller passerad.",
     "Unknown": "Något gick fel."
   }
 }

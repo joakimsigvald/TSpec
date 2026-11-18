@@ -2,28 +2,73 @@ using static TSpec.Times;
 
 namespace MyHotel.Core.Spec.Bookings.BookingService;
 
+/// <summary>
+/// Cancelling keeps the booking as a record: it is stored again, marked cancelled. Only an open
+/// booking can be cancelled.
+/// </summary>
 public abstract class WhenCancel : Spec<Core.Bookings.BookingService>
 {
-    protected WhenCancel() => When(_ => _.Cancel(A<Booking>().BookingNumber));
+    private readonly Tag<StoredBooking> _booking = new();
 
-    public class GivenTheBookingExists : WhenCancel
+    protected WhenCancel() =>
+        Using(TodayIs(new(2026, 8, 10)))
+            .When(_ => _.Cancel(The(_booking).BookingNumber));
+
+    /// <summary>
+    /// The guest departs today, so the booking is still current.
+    /// </summary>
+    public class GivenTheBookingIsOpen : WhenCancel
     {
-        public GivenTheBookingExists() =>
-            Given<IBookingStore>().That(_ => _.Load()).Returns(One<Booking>);
+        public GivenTheBookingIsOpen()
+        {
+            Given(_booking).Is(A<StoredBooking>() with { To = new(2026, 8, 10), Cancelled = false });
+            Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The(_booking)]);
+        }
 
         [Fact]
-        public void ThenStoreWhatIsLeft() => Then<IBookingStore>(_ => _.Save(Zero<Booking>()));
+        public void ThenKeepItMarkedCancelled() =>
+            Then<IBookingStore>(_ => _.Save(new[] { MarkedCancelled(The(_booking)) }));
+    }
+
+    public class GivenTheBookingIsPast : WhenCancel
+    {
+        public GivenTheBookingIsPast()
+        {
+            Given(_booking).Is(A<StoredBooking>() with { To = new(2026, 8, 9), Cancelled = false });
+            Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The(_booking)]);
+        }
+
+        [Fact]
+        public void ThenThrowBookingNotOpen() =>
+            Then().Throws<BookingNotOpen>()
+                .that.Message.Does().Contain($"{The(_booking).BookingNumber}");
+
+        [Fact] public void ThenStoreNothing() => Then<IBookingStore>(nameof(IBookingStore.Save), Never);
+    }
+
+    public class GivenTheBookingWasCancelled : WhenCancel
+    {
+        public GivenTheBookingWasCancelled()
+        {
+            Given(_booking).Is(A<StoredBooking>() with { To = new(2026, 8, 12), Cancelled = true });
+            Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The(_booking)]);
+        }
+
+        [Fact]
+        public void ThenThrowBookingNotOpen() =>
+            Then().Throws<BookingNotOpen>()
+                .that.Message.Does().Contain($"{The(_booking).BookingNumber}");
     }
 
     public class GivenNoSuchBooking : WhenCancel
     {
         public GivenNoSuchBooking() =>
-            Given<IBookingStore>().That(_ => _.Load()).Returns(Zero<Booking>);
+            Given<IBookingStore>().That(_ => _.Load()).Returns(Zero<StoredBooking>);
 
         [Fact]
         public void ThenThrowBookingNotFound() =>
             Then().Throws<BookingNotFound>()
-                .that.Message.Does().Contain($"{The<Booking>().BookingNumber}");
+                .that.Message.Does().Contain($"{The(_booking).BookingNumber}");
 
         [Fact] public void ThenStoreNothing() => Then<IBookingStore>(nameof(IBookingStore.Save), Never);
     }

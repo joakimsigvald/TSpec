@@ -30,4 +30,26 @@ public abstract class WhenCancelBooking : ApiSpec<HttpResponseMessage>
         public async Task ThenSayThereIsNoSuchBooking() =>
             (await Result.Read<ErrorBody>()).Code.Is("BookingNotFound");
     }
+
+    /// <summary>
+    /// Setups run last-declared-first: the room exists, it is booked, the booking is cancelled.
+    /// </summary>
+    public class GivenTheBookingWasAlreadyCancelled : WhenCancelBooking
+    {
+        public GivenTheBookingWasAlreadyCancelled()
+        {
+            Having(_ => _.Api.DeleteAsync("/bookings/10001"));
+            Having(_ => _.Api.PostAsJsonAsync(
+                "/bookings",
+                new BookingRequest(
+                    The<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12))));
+            Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
+        }
+
+        [Fact] public void ThenRespondConflict() => Result.StatusCode.Is(Conflict);
+
+        [Fact]
+        public async Task ThenSayTheBookingIsNotOpen() =>
+            (await Result.Read<ErrorBody>()).Code.Is("BookingNotOpen");
+    }
 }
