@@ -1,105 +1,47 @@
 # MyHotel
 
-A small hotel-booking API — the reference application TSpec is developed against, not a shipped
-product.
+A small hotel-management application: an ASP.NET Core API with a React UI. It is the reference
+application TSpec is developed against, not a shipped product: driven out entirely by
+specifications, it is the proving ground for specification generation.
 
-TSpec's own `Core.Test` is a framework testing itself: its specifications describe the TSpec API
-rather than a domain, so they say little about how TSpec reads when applied to real software.
-MyHotel is the counterpart — an ordinary ASP.NET Core minimal API, driven out entirely by
-specifications — and the proving ground for specification generation. What is built and what is
-next: [BACKLOG.md](BACKLOG.md).
+## What it does
 
-Being layered per **Neat**: `Contract` is the public shape and references nothing, `Entry` holds the
-endpoints, `Core` holds the logic, and `Host` wires them together. Entry and Core
-cannot see each other, so nothing internal can leak out through the API by accident. Three spec
-projects state different things: [`Host.Spec`](Host.Spec) the HTTP contract,
-[`Core.Spec`](Core.Spec) the domain rules, and [`Architecture.Spec`](Architecture.Spec) which
-project may reference which, which of Core's sub-domains may use which, and every rule of the coding
-standard that can be checked from the source. [`Web`](Web) is a small React UI over the API.
-Development rules are in [CLAUDE.md](CLAUDE.md), and how the code is written in
-[CODING-STANDARD.md](CODING-STANDARD.md), with the backend's rules in
-[CODING-STANDARD-BACKEND.md](CODING-STANDARD-BACKEND.md) and the frontend's in
-[CODING-STANDARD-FRONTEND.md](CODING-STANDARD-FRONTEND.md).
+The hotel keeps its rooms, each with a room number and a number of beds, and takes bookings: a room
+held for a guest from an arrival date to a departure date. The hotel numbers each booking itself and
+refuses one that overlaps another booking of the same room. A booking can be cancelled while it is
+open; cancelled and past bookings are kept as a record. Rooms can be added, changed and deleted, but
+not while they have open bookings, which can be cancelled all at once. The UI is in Swedish.
+
+The domain's terms are defined in [GLOSSARY.md](GLOSSARY.md). What exactly the application does is
+stated by its generated specifications: [the HTTP contract](Host.Spec/_specification/README.md) and
+[the domain rules](Core.Spec/_specification/README.md). What comes next: [BACKLOG.md](BACKLOG.md).
+
+It is layered per Neat, with Web as a client of the API: how and why is in [CLAUDE.md](CLAUDE.md),
+and how the code is written in [CODING-STANDARD.md](CODING-STANDARD.md).
 
 ## Running it
 
+In Visual Studio, set `Host` and `Web` as startup projects; Visual Studio keeps that choice in
+`MyHotel.slnLaunch.user`, which is not under source control.
+
+From the command line, start the API from its own folder, where it keeps its data (`rooms.json` and
+`bookings.json`). It serves [Scalar](https://scalar.com) at `http://localhost:5167/scalar`, an
+interactive UI over its OpenAPI document.
+
 ```bash
-dotnet run --project SampleProjects/MyHotel/Host
+cd SampleProjects/MyHotel/Host
 ```
 
-Opens [Scalar](https://scalar.com) at `/scalar`, an interactive UI over the OpenAPI document at
-`/openapi/v1.json`. With the API running, start the UI at `http://localhost:5173` (the first run
-needs `npm --prefix SampleProjects/MyHotel/Web install`):
+```bash
+dotnet run
+```
+
+Then start the UI at `http://localhost:5173`, after `npm --prefix SampleProjects/MyHotel/Web install`
+the first time:
 
 ```bash
 npm --prefix SampleProjects/MyHotel/Web run dev
 ```
 
-In Visual Studio, set `Host` and `Web` as startup projects — VS keeps that choice in
-`MyHotel.slnLaunch.user`, which is not under source control.
-
-## Running the specifications
-
-`dotnet test` swallows the xunit v3 runner's output, so run the executable directly:
-
-```bash
-dotnet build SampleProjects/MyHotel/Host.Spec -f net10.0
-```
-
-```bash
-SampleProjects/MyHotel/Host.Spec/bin/Debug/net10.0/MyHotel.Host.Spec.exe
-```
-
-A green run regenerates [`Host.Spec/_specification/`](Host.Spec/_specification) — one file per
-top-level folder, plus `Host.md` for the root. They are
-generated files — review them in diffs, never edit them by hand. Their version comes from `<Version>` in
-[Host.csproj](Host/Host.csproj). `Core.Spec` and `Architecture.Spec` run the same way; a green run of
-`Architecture.Spec` regenerates [`Architecture.Spec/_specification.md`](Architecture.Spec/_specification.md),
-the project graph with every fact below it.
-
-The UI's tests run with npm:
-
-```bash
-npm --prefix SampleProjects/MyHotel/Web test
-```
-
-## Endpoints
-
-| Method | Path | Returns |
-|---|---|---|
-| `GET` | `/version` | `{ "version": "0.1.0" }` — read from the assembly, so it tracks `<Version>` in [Host.csproj](Host/Host.csproj) |
-| `GET` | `/rooms` | `200` with every room in the order it was created; `[]` when there are none |
-| `POST` | `/rooms` | `201` with the room and a `Location` header; `409` if the room number is taken |
-| `GET` | `/rooms/{roomNumber}` | `200` with the room, or `404` |
-| `PUT` | `/rooms/{roomNumber}` | `200` with the updated room; `400` if the body carries another room number; `404` if there is no such room |
-| `DELETE` | `/rooms/{roomNumber}` | `204` and the room is gone; `404` if there is no such room; `409` if it has open bookings |
-| `DELETE` | `/rooms/{roomNumber}/bookings` | `204` and the room's open bookings are cancelled |
-| `GET` | `/bookings` | `200` with every booking in the order it was made, cancelled ones included; `[]` when there are none |
-| `POST` | `/bookings` | `201` with the booking and a `Location` header; `400` if the period is not at least one night; `404` if there is no such room; `409` if the room is already booked for any of those nights |
-| `GET` | `/bookings/{bookingNumber}` | `200` with the booking, or `404` |
-| `DELETE` | `/bookings/{bookingNumber}` | `204` and the booking is cancelled, but kept; `404` if there is no such booking; `409` if it is past or already cancelled |
-
-A room is sent as `{ "roomNumber": "101", "bedCount": 2 }` and answered with
-`"hasOpenBookings"` as well. The room number is the identity: it appears in the URL and cannot be
-changed — to renumber a room, delete it and add a new one.
-
-A booking is `{ "bookingNumber": 10001, "roomNumber": "101", "guestName": "Smith",
-"from": "2026-08-10", "to": "2026-08-12", "status": "Open" }`. It is booked with the same fields
-minus the `bookingNumber` and `status`, which the hotel works out. Nights are half-open,
-`[from, to)`: the guest departs on `to`, so that night is free for the next booking and two stays
-meeting at a date do not collide. The status is `Open` until the departure day is over, `Past`
-from the day after, and `Cancelled` once cancelled; open bookings are the ones a room must be rid
-of before it can be deleted.
-
-Booking numbers are issued in order from a seed — `BookingNumbers:Seed` in configuration, 10000 as
-shipped, 0 when unset. The seed is the number counted as already used, so the first booking gets the
-one after it. A number is spent when it is issued: cancelling a booking does not return its number,
-and a restart carries on from the last one used.
-
-Rooms and bookings are each kept in a JSON file, in creation order, so they outlive the process.
-The booking file holds the number to issue next alongside the bookings themselves.
-
-`400`, `404` and `409` carry `{ "code": "…" }`, naming the refusal — `RoomNotFound`,
-`RoomAlreadyExists`, `RoomNumberMismatch`, `RoomAlreadyBooked`, `InvalidBookingPeriod` or
-`BookingNotFound`. They come from exceptions `Core` throws and `Contract` declares; anything else
-reaches the pipeline unhandled and answers `500`. The UI shows each code in Swedish.
+The specifications run with `dotnet test`, and the UI's tests with npm: see [CLAUDE.md](CLAUDE.md)
+and [TESTING.md](TESTING.md).
