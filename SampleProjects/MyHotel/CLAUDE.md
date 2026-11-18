@@ -30,16 +30,16 @@ this section; its generated `_specification.md` is read only as a diff, when a c
   Bookings may use Rooms, never the reverse (`SubdomainDependencies`), so a rule that has Rooms
   consult Bookings needs a decision there first. Core takes no dependency that would hurt its
   testability.
-- Rooms and bookings are each stored in a JSON file. A store loads and saves the whole list, since
-  one that could find or replace an item would hold rules that belong to Core. Its path comes from
+- Each resource is stored in a JSON file. A store loads and saves the whole list, since one that
+  could find or replace an item would hold rules that belong to Core. Its path comes from
   configuration, so each spec gets a file of its own; a spec that shares one is broken.
 - `GlobalExceptionHandler` maps the exceptions Contract declares to a status and an `ErrorBody`
-  coded with the exception's name, so a new one needs a case there. Anything else is left to the pipeline, which
-  logs it and answers 500.
+  coded with the exception's name, so a new one needs a case there. Anything else is left to the
+  pipeline, which logs it and answers 500.
 - A red coding-standard fact in `Architecture.Spec` is fixed in the code; a rule that does not fit
   is changed in the standard together with its fact, never switched off in the source.
-- Web's dev server forwards `/rooms` and `/bookings` to Host (`vite.config.ts`), so a new top-level
-  route needs an entry there.
+- Web's dev server forwards each of the API's top-level routes to Host (`vite.config.ts`), so a new
+  one needs an entry there.
 
 ## Rules
 

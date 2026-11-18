@@ -42,9 +42,9 @@ d. An effect only synchronises with an outside the queries (4a) do not cover; wo
 
 a. What the API holds is read through a query (TanStack Query), one per list, and never copied into
    component state or patched from a reply. A change, once it succeeds, reloads the queries it can
-   make stale and no others: a room change the rooms; a booking change the bookings and the rooms,
-   since a room states whether it has open bookings. A query also reloads when the window regains
-   focus; the backend pushes nothing. (V)
+   make stale and no others: its own list, and any list that states something about it, as a room
+   states whether it has open bookings. `queries.ts` lists them. A query also reloads when the
+   window regains focus; the backend pushes nothing. (V)
 b. An update that reads the current state uses the updater form
    (`setCount(current => current + 1)`), never the closed-over value. (II)
 c. No state that can be computed from props or other state during render. (I)
