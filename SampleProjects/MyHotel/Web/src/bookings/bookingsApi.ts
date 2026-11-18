@@ -2,12 +2,14 @@ import { get, post, remove } from '../http';
 
 export type BookingStatus = 'Open' | 'Past' | 'Cancelled';
 
+export type BookingPeriod = { from: string; to: string };
+
 export type Booking = {
   bookingNumber: number;
   roomNumber: string;
   guestName: string;
-  from: string;
-  to: string;
+  guestCount: number;
+  period: BookingPeriod;
   status: BookingStatus;
 };
 

@@ -31,6 +31,7 @@ export function Bookings() {
           <tr>
             <th>{t('bookings.booking')}</th>
             <th>{t('bookings.room')}</th>
+            <th>{t('bookings.guests')}</th>
             <th>{t('bookings.guest')}</th>
             <th>{t('bookings.from')}</th>
             <th>{t('bookings.to')}</th>
@@ -42,9 +43,10 @@ export function Bookings() {
             <tr key={booking.bookingNumber}>
               <td>{booking.bookingNumber}</td>
               <td>{booking.roomNumber}</td>
+              <td>{booking.guestCount}</td>
               <td>{booking.guestName}</td>
-              <td>{booking.from}</td>
-              <td>{booking.to}</td>
+              <td>{booking.period.from}</td>
+              <td>{booking.period.to}</td>
               <td>
                 {booking.status === 'Open' && (
                   <button onClick={() => cancel(booking.bookingNumber)}>{t('bookings.cancel')}</button>

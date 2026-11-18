@@ -22,7 +22,7 @@ public abstract class WhenCancelOpenBookings : Spec<Core.Bookings.BookingService
             Given(_booking).Is(A<StoredBooking>() with
             {
                 RoomNumber = The<Room>().RoomNumber,
-                To = new(2026, 8, 10),
+                Period = new(Any<DateOnly>(), new(2026, 8, 10)),
                 Cancelled = false,
             });
             Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The(_booking)]);
@@ -40,7 +40,7 @@ public abstract class WhenCancelOpenBookings : Spec<Core.Bookings.BookingService
             Given(_booking).Is(A<StoredBooking>() with
             {
                 RoomNumber = The<Room>().RoomNumber,
-                To = new(2026, 8, 9),
+                Period = new(Any<DateOnly>(), new(2026, 8, 9)),
                 Cancelled = false,
             });
             Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The(_booking)]);
@@ -56,7 +56,7 @@ public abstract class WhenCancelOpenBookings : Spec<Core.Bookings.BookingService
             Given(_booking).Is(A<StoredBooking>() with
             {
                 RoomNumber = ASecond<Room>().RoomNumber,
-                To = new(2026, 8, 10),
+                Period = new(Any<DateOnly>(), new(2026, 8, 10)),
                 Cancelled = false,
             });
             Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The(_booking)]);

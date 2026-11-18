@@ -5,10 +5,20 @@ import { fakeApi } from '../test/fakeApi';
 import { renderPage } from '../test/renderPage';
 import { Bookings } from './Bookings';
 
-const request = { roomNumber: '101', guestName: 'Smith', from: '2026-08-10', to: '2026-08-12' };
+const request = {
+  roomNumber: '101',
+  guestName: 'Smith',
+  guestCount: 2,
+  period: { from: '2026-08-10', to: '2026-08-12' },
+};
 const booking10001 = { bookingNumber: 10001, ...request, status: 'Open' };
 const booking10002 = {
-  bookingNumber: 10002, roomNumber: '102', guestName: 'Jones', from: '2026-08-11', to: '2026-08-13', status: 'Open',
+  bookingNumber: 10002,
+  roomNumber: '102',
+  guestName: 'Jones',
+  guestCount: 1,
+  period: { from: '2026-08-11', to: '2026-08-13' },
+  status: 'Open',
 };
 const rooms = ['101', '12A', '2', '12'].map(roomNumber => ({ roomNumber, bedCount: 1, hasOpenBookings: false }));
 const roomsReply = { status: 200, body: rooms };
@@ -17,9 +27,10 @@ const rowOf = (bookingNumber: number) => screen.findByRole('row', { name: new Re
 
 const fillIn = async () => {
   await userEvent.selectOptions(await screen.findByLabelText('Rumsnummer'), request.roomNumber);
+  await userEvent.type(screen.getByLabelText('Antal gäster'), String(request.guestCount));
   await userEvent.type(screen.getByLabelText('Gäst'), request.guestName);
-  await userEvent.type(screen.getByLabelText('Från'), request.from);
-  await userEvent.type(screen.getByLabelText('Till'), request.to);
+  await userEvent.type(screen.getByLabelText('Från'), request.period.from);
+  await userEvent.type(screen.getByLabelText('Till'), request.period.to);
 };
 
 const offeredRooms = () =>
@@ -64,8 +75,8 @@ describe('Bookings', () => {
   it('lists the bookings', async () => {
     fakeApi({ 'GET /rooms': roomsReply, 'GET /bookings': { status: 200, body: [booking10001, booking10002] } });
     renderPage(<Bookings />);
-    expect(await rowOf(10001)).toHaveTextContent('10001101Smith2026-08-102026-08-12');
-    expect(await rowOf(10002)).toHaveTextContent('10002102Jones2026-08-112026-08-13');
+    expect(await rowOf(10001)).toHaveTextContent('100011012Smith2026-08-102026-08-12');
+    expect(await rowOf(10002)).toHaveTextContent('100021021Jones2026-08-112026-08-13');
   });
 
   it('offers the rooms in alphanumeric order', async () => {
@@ -101,6 +112,33 @@ describe('Bookings', () => {
     await bookRefusedWith(400, 'InvalidBookingPeriod');
     await waitFor(() =>
       expect(screen.getByLabelText('Till')).toHaveAccessibleDescription('En bokning måste gälla minst en natt.'));
+  });
+
+  it('says under the number of guests that a booking is for at least one guest', async () => {
+    await bookRefusedWith(400, 'InvalidGuestCount');
+    await waitFor(() =>
+      expect(screen.getByLabelText('Antal gäster'))
+        .toHaveAccessibleDescription('En bokning måste gälla minst en gäst.'));
+  });
+
+  it('says under the number of guests that the room has too few beds', async () => {
+    await bookRefusedWith(409, 'TooManyGuests');
+    await waitFor(() =>
+      expect(screen.getByLabelText('Antal gäster')).toHaveAccessibleDescription('Rummet har för få sängar.'));
+  });
+
+  it('asks for the number of guests in an empty number field', () => {
+    openForm();
+    const guestCount = screen.getByRole('spinbutton', { name: 'Antal gäster' });
+    expect(guestCount).toHaveValue(null);
+    expect(guestCount).toBeRequired();
+  });
+
+  it('puts the period first, then the room, the number of guests and the guest', () => {
+    openForm();
+    const fields = ['Från', 'Till', 'Rumsnummer', 'Antal gäster', 'Gäst'].map(label => screen.getByLabelText(label));
+    fields.slice(1).forEach((field, index) =>
+      expect(fields[index].compareDocumentPosition(field) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy());
   });
 
   it('says under the room number that the room is already booked', async () => {
@@ -222,6 +260,7 @@ describe('Bookings', () => {
       renderPage(<Bookings />);
       await waitFor(() => expect(offeredRooms()).toContain(request.roomNumber));
       await userEvent.selectOptions(screen.getByLabelText('Rumsnummer'), request.roomNumber);
+      await userEvent.type(screen.getByLabelText('Antal gäster'), String(request.guestCount));
       await userEvent.type(screen.getByLabelText('Gäst'), request.guestName);
       await click('2 nätter');
       await click('Boka');

@@ -121,8 +121,8 @@ Having Api.PostAsJsonAsync("/room-categories", the RoomCategory)
 ### Given the room has an open booking
 ```
 Having Api.PostAsJsonAsync("/bookings",
-    new BookingRequest(the Room's RoomNumber, a string, new(2026, 8, 10),
-    new(2026, 8, 12)))
+    new BookingRequest(the Room's RoomNumber, a string, 1,
+    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12))))
   after Api.PostAsJsonAsync("/rooms", the Room)
 ```
 
@@ -134,8 +134,8 @@ Having Api.PostAsJsonAsync("/bookings",
 ```
 Having Api.DeleteAsync("/rooms/{the Room's RoomNumber}/bookings")
   after Api.PostAsJsonAsync("/bookings",
-      new BookingRequest(the Room's RoomNumber, a string, new(2026, 8, 10),
-      new(2026, 8, 12)))
+      new BookingRequest(the Room's RoomNumber, a string, 1,
+      new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12))))
   after Api.PostAsJsonAsync("/rooms", the Room)
 ```
 
@@ -167,8 +167,8 @@ Having Restart()
 ### Given the room has an open booking
 ```
 Having Api.PostAsJsonAsync("/bookings",
-    new BookingRequest(the Room's RoomNumber, a string, new(2026, 8, 10),
-    new(2026, 8, 12)))
+    new BookingRequest(the Room's RoomNumber, a string, 1,
+    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12))))
   after Api.PostAsJsonAsync("/rooms", the Room)
 ```
 

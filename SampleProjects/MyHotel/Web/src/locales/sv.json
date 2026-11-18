@@ -42,6 +42,8 @@
     "roomNumber": "Rumsnummer",
     "chooseRoom": "Välj rum",
     "guest": "Gäst",
+    "guests": "Gäster",
+    "guestCount": "Antal gäster",
     "from": "Från",
     "to": "Till",
     "today": "Idag",
@@ -64,6 +66,8 @@
     "RoomCategoryIsLast": "Hotellet måste ha minst en kategori.",
     "RoomAlreadyBooked": "Rummet är redan bokat under några av nätterna.",
     "InvalidBookingPeriod": "En bokning måste gälla minst en natt.",
+    "InvalidGuestCount": "En bokning måste gälla minst en gäst.",
+    "TooManyGuests": "Rummet har för få sängar.",
     "BookingNotFound": "Bokningen finns inte.",
     "BookingNotOpen": "Bokningen är redan avbokad eller passerad.",
     "Unknown": "Något gick fel."

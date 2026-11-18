@@ -9,7 +9,10 @@ public abstract class WhenBookZeroNights : ApiSpec<HttpResponseMessage>
         When(_ => _.Api.PostAsJsonAsync(
             "/bookings",
             new BookingRequest(
-                A<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 10))));
+                A<Room>().RoomNumber,
+                A<string>(),
+                1,
+                new BookingPeriod(new(2026, 8, 10), new(2026, 8, 10)))));
 
     public class GivenTheRoomExists : WhenBookZeroNights
     {

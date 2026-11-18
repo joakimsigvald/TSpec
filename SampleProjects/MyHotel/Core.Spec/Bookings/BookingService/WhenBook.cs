@@ -8,7 +8,10 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
     protected WhenBook() =>
         Using(TodayIs(new(2026, 8, 1)))
             .When(_ => _.Book(new BookingRequest(
-                A<Room>().RoomNumber, A<string>(), new(2026, 8, 10), new(2026, 8, 12))));
+                A<Room>().RoomNumber,
+                A<string>(),
+                1,
+                new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))));
 
     public abstract class GivenTheRoomExists : WhenBook
     {
@@ -27,8 +30,8 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
                     10001,
                     The<Room>().RoomNumber,
                     The<string>(),
-                    new(2026, 8, 10),
-                    new(2026, 8, 12),
+                    1,
+                    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)),
                     Open));
 
             [Fact] public void ThenStoreIt() => Then<IBookingStore>(nameof(IBookingStore.Save), Once);
@@ -46,7 +49,10 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
                 .First().Returns(() => 10001).AndNext().Returns(() => 10002)
                 .And<IBookingStore>().That(_ => _.Load()).Returns(Zero<StoredBooking>)
                 .Having(_ => _.Book(new BookingRequest(
-                    The<Room>().RoomNumber, ASecond<string>(), new(2026, 8, 8), new(2026, 8, 10))));
+                    The<Room>().RoomNumber,
+                    ASecond<string>(),
+                    1,
+                    new BookingPeriod(new(2026, 8, 8), new(2026, 8, 10)))));
 
             [Fact] public void ThenTakeTheSecondNumber() => Result.BookingNumber.Is(10002);
         }
@@ -57,8 +63,7 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
                 Given<IBookingStore>().That(_ => _.Load()).Returns(() => [A<StoredBooking>() with
                 {
                     RoomNumber = The<Room>().RoomNumber,
-                    From = new(2026, 8, 11),
-                    To = new(2026, 8, 13),
+                    Period = new(new(2026, 8, 11), new(2026, 8, 13)),
                     Cancelled = false,
                 }]);
 
@@ -76,8 +81,7 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
                 Given<IBookingStore>().That(_ => _.Load()).Returns(() => [A<StoredBooking>() with
                 {
                     RoomNumber = The<Room>().RoomNumber,
-                    From = new(2026, 8, 11),
-                    To = new(2026, 8, 13),
+                    Period = new(new(2026, 8, 11), new(2026, 8, 13)),
                     Cancelled = true,
                 }]);
 
@@ -94,8 +98,7 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
                 Given<IBookingStore>().That(_ => _.Load()).Returns(() => [A<StoredBooking>() with
                 {
                     RoomNumber = The<Room>().RoomNumber,
-                    From = new(2026, 8, 8),
-                    To = new(2026, 8, 10),
+                    Period = new(new(2026, 8, 8), new(2026, 8, 10)),
                     Cancelled = false,
                 }]);
 

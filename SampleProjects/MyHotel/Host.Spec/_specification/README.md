@@ -10,11 +10,11 @@ Return type: HttpResponseMessage
 Using Room with RoomCategory = "Standard"
 ```
 
-| Specification                       | When | Given | Then |
-|-------------------------------------|-----:|------:|-----:|
-| [Bookings](Bookings.md)             |    6 |    20 |   34 |
-| [Host](Host.md)                     |    1 |     0 |    2 |
-| [RoomCategories](RoomCategories.md) |    5 |    13 |   22 |
-| [Rooms](Rooms.md)                   |    8 |    21 |   38 |
-| *All*                               | *20* |  *54* | *96* |
+| Specification                       | When | Given |  Then |
+|-------------------------------------|-----:|------:|------:|
+| [Bookings](Bookings.md)             |    8 |    22 |    38 |
+| [Host](Host.md)                     |    1 |     0 |     2 |
+| [RoomCategories](RoomCategories.md) |    5 |    13 |    22 |
+| [Rooms](Rooms.md)                   |    8 |    21 |    38 |
+| *All*                               | *22* |  *56* | *100* |
 

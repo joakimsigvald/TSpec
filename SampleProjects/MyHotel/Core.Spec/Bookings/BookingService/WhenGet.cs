@@ -18,8 +18,11 @@ public abstract class WhenGet : Spec<Core.Bookings.BookingService, Booking>
     public class GivenTheBookingDepartsToday : WhenGet
     {
         public GivenTheBookingDepartsToday() =>
-            Given<IBookingStore>().That(_ => _.Load())
-                .Returns(() => [The<StoredBooking>() with { To = new(2026, 8, 10), Cancelled = false }]);
+            Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The<StoredBooking>() with
+            {
+                Period = new(Any<DateOnly>(), new(2026, 8, 10)),
+                Cancelled = false,
+            }]);
 
         [Fact]
         public void ThenReturnTheBooking() =>
@@ -31,8 +34,11 @@ public abstract class WhenGet : Spec<Core.Bookings.BookingService, Booking>
     public class GivenTheBookingDepartedYesterday : WhenGet
     {
         public GivenTheBookingDepartedYesterday() =>
-            Given<IBookingStore>().That(_ => _.Load())
-                .Returns(() => [The<StoredBooking>() with { To = new(2026, 8, 9), Cancelled = false }]);
+            Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The<StoredBooking>() with
+            {
+                Period = new(Any<DateOnly>(), new(2026, 8, 9)),
+                Cancelled = false,
+            }]);
 
         [Fact] public void ThenSayItIsPast() => Result.Status.Is(Past);
     }
@@ -40,8 +46,11 @@ public abstract class WhenGet : Spec<Core.Bookings.BookingService, Booking>
     public class GivenTheBookingWasCancelled : WhenGet
     {
         public GivenTheBookingWasCancelled() =>
-            Given<IBookingStore>().That(_ => _.Load())
-                .Returns(() => [The<StoredBooking>() with { To = new(2026, 8, 12), Cancelled = true }]);
+            Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The<StoredBooking>() with
+            {
+                Period = new(Any<DateOnly>(), new(2026, 8, 12)),
+                Cancelled = true,
+            }]);
 
         [Fact] public void ThenSayItIsCancelled() => Result.Status.Is(Cancelled);
     }

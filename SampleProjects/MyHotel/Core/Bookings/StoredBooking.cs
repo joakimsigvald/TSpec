@@ -10,12 +10,12 @@ public record StoredBooking(
     int BookingNumber,
     string RoomNumber,
     string GuestName,
-    DateOnly From,
-    DateOnly To,
+    int GuestCount,
+    BookingPeriod Period,
     bool Cancelled)
 {
     internal Booking AsOf(DateOnly today) =>
-        new(BookingNumber, RoomNumber, GuestName, From, To, StatusOn(today));
+        new(BookingNumber, RoomNumber, GuestName, GuestCount, Period, StatusOn(today));
 
     internal bool IsOpenOn(DateOnly today) => StatusOn(today) == BookingStatus.Open;
     internal StoredBooking AsCancelled() => this with { Cancelled = true };
@@ -27,7 +27,7 @@ public record StoredBooking(
         this switch
         {
             { Cancelled: true } => BookingStatus.Cancelled,
-            _ when To < today => BookingStatus.Past,
+            _ when Period.To < today => BookingStatus.Past,
             _ => BookingStatus.Open,
         };
 }

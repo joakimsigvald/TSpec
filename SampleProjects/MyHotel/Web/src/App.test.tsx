@@ -9,7 +9,12 @@ import { renderPage } from './test/renderPage';
 const room101 = { roomNumber: '101', bedCount: 2, roomCategory: 'Standard', hasOpenBookings: false };
 const room102 = { roomNumber: '102', bedCount: 1, roomCategory: 'Standard', hasOpenBookings: false };
 const booking10001 = {
-  bookingNumber: 10001, roomNumber: '101', guestName: 'Smith', from: '2026-08-10', to: '2026-08-12', status: 'Open',
+  bookingNumber: 10001,
+  roomNumber: '101',
+  guestName: 'Smith',
+  guestCount: 2,
+  period: { from: '2026-08-10', to: '2026-08-12' },
+  status: 'Open',
 };
 
 const standard = { name: 'Standard', description: 'Standardrum', hasRooms: false };
@@ -112,9 +117,10 @@ describe('App', () => {
     renderPage(<App />);
     await waitFor(() => expect(offered('101')).toBeInTheDocument());
     await userEvent.selectOptions(roomChoice(), '101');
+    await userEvent.type(screen.getByLabelText('Antal gäster'), String(booking10001.guestCount));
     await userEvent.type(screen.getByLabelText('Gäst'), booking10001.guestName);
-    await userEvent.type(screen.getByLabelText('Från'), booking10001.from);
-    await userEvent.type(screen.getByLabelText('Till'), booking10001.to);
+    await userEvent.type(screen.getByLabelText('Från'), booking10001.period.from);
+    await userEvent.type(screen.getByLabelText('Till'), booking10001.period.to);
     await userEvent.click(screen.getByRole('button', { name: 'Boka' }));
     await waitFor(async () => expect(await roomButton('101', 'Ta bort')).toBeDisabled());
   });

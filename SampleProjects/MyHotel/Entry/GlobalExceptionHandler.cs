@@ -40,6 +40,8 @@ internal sealed class GlobalExceptionHandler : IExceptionHandler
             RoomCategoryIsLast => new(Status409Conflict, nameof(RoomCategoryIsLast)),
             RoomAlreadyBooked => new(Status409Conflict, nameof(RoomAlreadyBooked)),
             InvalidBookingPeriod => new(Status400BadRequest, nameof(InvalidBookingPeriod)),
+            InvalidGuestCount => new(Status400BadRequest, nameof(InvalidGuestCount)),
+            TooManyGuests => new(Status409Conflict, nameof(TooManyGuests)),
             BookingNotFound => new(Status404NotFound, nameof(BookingNotFound)),
             BookingNotOpen => new(Status409Conflict, nameof(BookingNotOpen)),
             _ => null,

@@ -1,5 +1,6 @@
 using MyHotel.Contract.Bookings;
 using MyHotel.Contract.Bookings.Exceptions;
+using MyHotel.Contract.Rooms;
 using MyHotel.Contract.Rooms.Exceptions;
 using MyHotel.Core.Rooms;
 
@@ -24,15 +25,23 @@ public class BookingService(
 
     public async Task<Booking> Book(BookingRequest request)
     {
-        if (request.To <= request.From)
-            throw new InvalidBookingPeriod(request.From, request.To);
-        if (!await RoomExists(request.RoomNumber))
-            throw new RoomNotFound(request.RoomNumber);
+        if (request.Period.To <= request.Period.From)
+            throw new InvalidBookingPeriod(request.Period.From, request.Period.To);
+        if (request.GuestCount < 1)
+            throw new InvalidGuestCount(request.GuestCount);
+        var room = await RoomFor(request.RoomNumber);
+        if (request.GuestCount > room.BedCount)
+            throw new TooManyGuests(request.RoomNumber, request.GuestCount);
         var bookings = await store.Load();
         if (bookings.Any(booking => Overlaps(booking, request)))
             throw new RoomAlreadyBooked(request.RoomNumber);
         var booked = new StoredBooking(
-            await numbers.Next(), request.RoomNumber, request.GuestName, request.From, request.To, false);
+            await numbers.Next(),
+            request.RoomNumber,
+            request.GuestName,
+            request.GuestCount,
+            request.Period,
+            false);
         await store.Save([.. bookings, booked]);
         return Sent(booked);
     }
@@ -60,8 +69,9 @@ public class BookingService(
     private Task SaveCancelling(IReadOnlyList<StoredBooking> bookings, Func<StoredBooking, bool> cancels) =>
         store.Save([.. bookings.Select(booking => cancels(booking) ? booking.AsCancelled() : booking)]);
 
-    private async Task<bool> RoomExists(string roomNumber) =>
-        (await rooms.Load()).Any(room => room.RoomNumber == roomNumber);
+    private async Task<Room> RoomFor(string roomNumber) =>
+        (await rooms.Load()).FirstOrDefault(room => room.RoomNumber == roomNumber)
+        ?? throw new RoomNotFound(roomNumber);
 
     private static StoredBooking Existing(IEnumerable<StoredBooking> bookings, int bookingNumber) =>
         bookings.FirstOrDefault(booking => booking.BookingNumber == bookingNumber)
@@ -70,6 +80,6 @@ public class BookingService(
     private static bool Overlaps(StoredBooking booking, BookingRequest request) =>
         !booking.Cancelled
         && booking.RoomNumber == request.RoomNumber
-        && request.From < booking.To
-        && booking.From < request.To;
+        && request.Period.From < booking.Period.To
+        && booking.Period.From < request.Period.To;
 }

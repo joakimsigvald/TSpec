@@ -21,7 +21,11 @@ public abstract class WhenCancel : Spec<Core.Bookings.BookingService>
     {
         public GivenTheBookingIsOpen()
         {
-            Given(_booking).Is(A<StoredBooking>() with { To = new(2026, 8, 10), Cancelled = false });
+            Given(_booking).Is(A<StoredBooking>() with
+            {
+                Period = new(Any<DateOnly>(), new(2026, 8, 10)),
+                Cancelled = false,
+            });
             Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The(_booking)]);
         }
 
@@ -34,7 +38,11 @@ public abstract class WhenCancel : Spec<Core.Bookings.BookingService>
     {
         public GivenTheBookingIsPast()
         {
-            Given(_booking).Is(A<StoredBooking>() with { To = new(2026, 8, 9), Cancelled = false });
+            Given(_booking).Is(A<StoredBooking>() with
+            {
+                Period = new(Any<DateOnly>(), new(2026, 8, 9)),
+                Cancelled = false,
+            });
             Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The(_booking)]);
         }
 
@@ -50,7 +58,11 @@ public abstract class WhenCancel : Spec<Core.Bookings.BookingService>
     {
         public GivenTheBookingWasCancelled()
         {
-            Given(_booking).Is(A<StoredBooking>() with { To = new(2026, 8, 12), Cancelled = true });
+            Given(_booking).Is(A<StoredBooking>() with
+            {
+                Period = new(Any<DateOnly>(), new(2026, 8, 12)),
+                Cancelled = true,
+            });
             Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The(_booking)]);
         }
 

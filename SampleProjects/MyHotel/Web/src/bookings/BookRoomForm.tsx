@@ -11,6 +11,8 @@ type Props = { rooms: Room[]; onBook: (request: BookingRequest) => Promise<void>
 const fieldOf = {
   RoomNotFound: 'roomNumber',
   RoomAlreadyBooked: 'roomNumber',
+  InvalidGuestCount: 'guestCount',
+  TooManyGuests: 'guestCount',
   InvalidBookingPeriod: 'to',
 } as const;
 
@@ -19,6 +21,7 @@ export function BookRoomForm({ rooms, onBook }: Props) {
   const { attempt, failureAt } = useFormAttempt(fieldOf);
   const [bookingsMade, setBookingsMade] = useState(0);
   const roomNumberError = useId();
+  const guestCountError = useId();
   const buttonError = useId();
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -32,6 +35,7 @@ export function BookRoomForm({ rooms, onBook }: Props) {
 
   return (
     <form onSubmit={submit}>
+      <BookingPeriod key={bookingsMade} toFailure={failureAt('to')} />
       <div className="field">
         <label>
           {t('bookings.roomNumber')}
@@ -46,11 +50,17 @@ export function BookRoomForm({ rooms, onBook }: Props) {
       </div>
       <div className="field">
         <label>
+          {t('bookings.guestCount')}
+          <input name="guestCount" type="number" required aria-describedby={guestCountError} />
+        </label>
+        <ErrorMessage id={guestCountError} code={failureAt('guestCount')} />
+      </div>
+      <div className="field">
+        <label>
           {t('bookings.guest')}
           <input name="guestName" required />
         </label>
       </div>
-      <BookingPeriod key={bookingsMade} toFailure={failureAt('to')} />
       <div className="field actions">
         <button aria-describedby={buttonError}>{t('bookings.book')}</button>
         <ErrorMessage id={buttonError} code={failureAt('button')} />
@@ -65,6 +75,6 @@ const inAlphanumericOrder = (rooms: Room[]) =>
 const requestIn = (data: FormData): BookingRequest => ({
   roomNumber: String(data.get('roomNumber')),
   guestName: String(data.get('guestName')),
-  from: String(data.get('from')),
-  to: String(data.get('to')),
+  guestCount: Number(data.get('guestCount')),
+  period: { from: String(data.get('from')), to: String(data.get('to')) },
 });

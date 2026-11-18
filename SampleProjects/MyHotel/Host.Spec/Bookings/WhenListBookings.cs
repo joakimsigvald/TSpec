@@ -26,11 +26,17 @@ public abstract class WhenListBookings : ApiSpec<HttpResponseMessage>
             Having(_ => _.Api.PostAsJsonAsync(
                 "/bookings",
                 new BookingRequest(
-                    The<Room>().RoomNumber, ASecond<string>(), new(2026, 8, 10), new(2026, 8, 12))));
+                    The<Room>().RoomNumber,
+                    ASecond<string>(),
+                    1,
+                    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))));
             Having(_ => _.Api.PostAsJsonAsync(
                 "/bookings",
                 new BookingRequest(
-                    The<Room>().RoomNumber, A<string>(), new(2026, 8, 14), new(2026, 8, 16))));
+                    The<Room>().RoomNumber,
+                    A<string>(),
+                    1,
+                    new BookingPeriod(new(2026, 8, 14), new(2026, 8, 16)))));
             Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
         }
 
@@ -41,15 +47,15 @@ public abstract class WhenListBookings : ApiSpec<HttpResponseMessage>
                     10001,
                     The<Room>().RoomNumber,
                     The<string>(),
-                    new(2026, 8, 14),
-                    new(2026, 8, 16),
+                    1,
+                    new BookingPeriod(new(2026, 8, 14), new(2026, 8, 16)),
                     Open),
                 new Booking(
                     10002,
                     The<Room>().RoomNumber,
                     TheSecond<string>(),
-                    new(2026, 8, 10),
-                    new(2026, 8, 12),
+                    1,
+                    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)),
                     Open)]);
     }
 }

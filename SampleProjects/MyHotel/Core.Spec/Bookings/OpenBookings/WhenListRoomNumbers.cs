@@ -14,9 +14,21 @@ public abstract class WhenListRoomNumbers : Spec<Core.Bookings.OpenBookings, IRe
     {
         public GivenOneBookingOfEachStatus() =>
             Given<IBookingStore>().That(_ => _.Load()).Returns(() => [
-                A<StoredBooking>() with { To = new(2026, 8, 10), Cancelled = false },
-                ASecond<StoredBooking>() with { To = new(2026, 8, 9), Cancelled = false },
-                AThird<StoredBooking>() with { To = new(2026, 8, 12), Cancelled = true }]);
+                A<StoredBooking>() with
+                {
+                    Period = new(Any<DateOnly>(), new(2026, 8, 10)),
+                    Cancelled = false,
+                },
+                ASecond<StoredBooking>() with
+                {
+                    Period = new(Any<DateOnly>(), new(2026, 8, 9)),
+                    Cancelled = false,
+                },
+                AThird<StoredBooking>() with
+                {
+                    Period = new(Any<DateOnly>(), new(2026, 8, 12)),
+                    Cancelled = true,
+                }]);
 
         [Fact]
         public void ThenReturnTheRoomOfTheOpenOne() =>

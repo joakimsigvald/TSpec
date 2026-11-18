@@ -10,8 +10,9 @@ specifications, it is the proving ground for specification generation.
 ## What it does
 
 The hotel keeps its rooms, each with a room number, a number of beds and a room category, and takes
-bookings: a room held for a guest from an arrival date to a departure date. The hotel numbers each
-booking itself and refuses one that overlaps another booking of the same room. A booking can be
+bookings: a room held for a number of guests from an arrival date to a departure date. The hotel
+numbers each booking itself and refuses one that overlaps another booking of the same room, or has
+more guests than the room has beds. A booking can be
 cancelled while it is open; cancelled and past bookings are kept as a record. Rooms can be added and
 changed, and deleted once they have no open bookings; a room's open bookings can be cancelled all at
 once. The UI is in Swedish.

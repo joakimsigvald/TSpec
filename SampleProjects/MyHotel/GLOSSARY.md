@@ -17,7 +17,8 @@ is provisional: the term is not used in code yet, and is the product owner's to 
 | `Booking` | A room held for a guest for a period of nights, identified by its booking number |
 | `BookingNumber` | A booking's identity, issued in order by the hotel and never by the caller |
 | `GuestName` | Who a booking is for |
-| `From`, `To` | A booking's period: the guest arrives on `From` and departs on `To`. Nights are half-open, `[From, To)`, so the departure night is free for the next booking |
+| `GuestCount` | How many guests a booking is for |
+| `BookingPeriod` | A booking's nights: the guest arrives on `From` and departs on `To`. Nights are half-open, `[From, To)`, so the departure night is free for the next booking |
 | `Overlaps` | Two bookings of one room share a night, neither of them cancelled |
 | `Today` | The hotel's date: the server's, in its own time zone |
 | `BookingStatus` | `Open`, `Past` or `Cancelled`: cancelled once cancelled, otherwise worked out from its dates and today |
