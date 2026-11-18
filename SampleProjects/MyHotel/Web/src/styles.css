@@ -48,8 +48,31 @@ label {
 }
 
 /* A button has no label above it, so it steps down to line up with the inputs. */
-form button {
+.actions > button {
   margin-top: var(--label-height);
+}
+
+.shortcuts {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.shortcuts > button {
+  padding: 0.1rem 0.4rem;
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  background: #f4f4f4;
+  color: #222;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.shortcuts > button[aria-pressed='true'] {
+  border-color: #555;
+  background: #555;
+  color: #fff;
+  cursor: default;
 }
 
 input[type='number'] {

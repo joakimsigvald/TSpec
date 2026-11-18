@@ -29,6 +29,10 @@
     "guest": "Gäst",
     "from": "Från",
     "to": "Till",
+    "today": "Idag",
+    "tomorrow": "Imorgon",
+    "nights_one": "{{count}} natt",
+    "nights_other": "{{count}} nätter",
     "book": "Boka",
     "cancel": "Avboka",
     "cancelled": "Avbokad"

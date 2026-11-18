@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeApi } from '../test/fakeApi';
 import { renderPage } from '../test/renderPage';
 import { Bookings } from './Bookings';
@@ -43,6 +43,15 @@ const bookAccepted = () =>
     'GET /bookings': [{ status: 200, body: [] }, { status: 200, body: [booking10001] }],
     'POST /bookings': { status: 201, body: booking10001 },
   });
+
+const openForm = () => {
+  fakeApi({ 'GET /rooms': roomsReply, 'GET /bookings': { status: 200, body: [] } });
+  renderPage(<Bookings />);
+};
+
+const click = (name: string) => userEvent.click(screen.getByRole('button', { name }));
+
+const pressedButtons = () => screen.queryAllByRole('button', { pressed: true }).map(button => button.textContent);
 
 const book = async () => {
   renderPage(<Bookings />);
@@ -134,6 +143,92 @@ describe('Bookings', () => {
     const row = await rowOf(10001);
     expect(within(row).queryByRole('button', { name: 'Avboka' })).not.toBeInTheDocument();
     expect(row).toHaveTextContent(/2026-08-12$/);
+  });
+
+  describe('the date buttons', () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date(2026, 7, 13));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('set the arrival to today', async () => {
+      openForm();
+      await click('Idag');
+      expect(screen.getByLabelText('Från')).toHaveValue('2026-08-13');
+      expect(pressedButtons()).toEqual(['Idag']);
+    });
+
+    it('set the arrival to tomorrow', async () => {
+      openForm();
+      await click('Imorgon');
+      expect(screen.getByLabelText('Från')).toHaveValue('2026-08-14');
+      expect(pressedButtons()).toEqual(['Imorgon']);
+    });
+
+    it('set the departure a number of nights after the arrival', async () => {
+      openForm();
+      await userEvent.type(screen.getByLabelText('Från'), '2026-08-20');
+      await click('3 nätter');
+      expect(screen.getByLabelText('Till')).toHaveValue('2026-08-23');
+      expect(pressedButtons()).toEqual(['3 nätter']);
+    });
+
+    it('set the arrival to today when the nights are chosen first', async () => {
+      openForm();
+      await click('1 natt');
+      expect(screen.getByLabelText('Från')).toHaveValue('2026-08-13');
+      expect(screen.getByLabelText('Till')).toHaveValue('2026-08-14');
+      expect(pressedButtons()).toEqual(['Idag', '1 natt']);
+    });
+
+    it('show as pressed when their date is typed by hand', async () => {
+      openForm();
+      await userEvent.type(screen.getByLabelText('Från'), '2026-08-14');
+      await userEvent.type(screen.getByLabelText('Till'), '2026-08-16');
+      expect(pressedButtons()).toEqual(['Imorgon', '2 nätter']);
+    });
+
+    it('cannot be clicked when pressed', async () => {
+      openForm();
+      await click('Idag');
+      expect(screen.getByRole('button', { name: 'Idag' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Imorgon' })).toBeEnabled();
+    });
+
+    it('move the departure with the arrival when its nights were chosen by button', async () => {
+      openForm();
+      await click('Idag');
+      await click('2 nätter');
+      await click('Imorgon');
+      expect(screen.getByLabelText('Till')).toHaveValue('2026-08-16');
+      expect(pressedButtons()).toEqual(['Imorgon', '2 nätter']);
+    });
+
+    it('keep a departure typed by hand when the arrival changes', async () => {
+      openForm();
+      await click('Idag');
+      await userEvent.type(screen.getByLabelText('Till'), '2026-08-15');
+      await click('Imorgon');
+      expect(screen.getByLabelText('Till')).toHaveValue('2026-08-15');
+      expect(pressedButtons()).toEqual(['Imorgon', '1 natt']);
+    });
+
+    it('show none as pressed after a booking', async () => {
+      bookAccepted();
+      renderPage(<Bookings />);
+      await waitFor(() => expect(offeredRooms()).toContain(request.roomNumber));
+      await userEvent.selectOptions(screen.getByLabelText('Rumsnummer'), request.roomNumber);
+      await userEvent.type(screen.getByLabelText('Gäst'), request.guestName);
+      await click('2 nätter');
+      await click('Boka');
+      await rowOf(10001);
+      expect(screen.getByLabelText('Från')).toHaveValue('');
+      expect(pressedButtons()).toEqual([]);
+    });
   });
 
   it('says above the bookings that a booking past or cancelled was not cancelled', async () => {
