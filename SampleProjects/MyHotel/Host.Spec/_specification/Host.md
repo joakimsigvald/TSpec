@@ -4,6 +4,7 @@
 ```
 Subject under test: Hotel
 Return type: HttpResponseMessage
+Using Room with RoomCategory = "Standard"
 ```
 
 ## [When get version](../WhenGetVersion.cs)

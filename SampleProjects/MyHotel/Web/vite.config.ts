@@ -8,7 +8,7 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
-    proxy: { '/rooms': api, '/bookings': api },
+    proxy: { '/rooms': api, '/room-categories': api, '/bookings': api },
   },
   test: {
     environment: 'jsdom',

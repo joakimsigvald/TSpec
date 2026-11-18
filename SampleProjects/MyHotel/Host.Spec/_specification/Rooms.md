@@ -4,6 +4,7 @@
 ```
 Subject under test: Hotel
 Return type: HttpResponseMessage
+Using Room with RoomCategory = "Standard"
 ```
 
 ## [When add room](../Rooms/WhenAddRoom.cs)
@@ -21,6 +22,21 @@ Return type: HttpResponseMessage
 
 - **respond conflict** — `Result.StatusCode is Conflict`
 - **say the room already exists** — `Result.Read<ErrorBody>().Code is "RoomAlreadyExists"`
+
+## [When add room in another category](../Rooms/WhenAddRoomInAnotherCategory.cs)
+`Api.PostAsJsonAsync("/rooms", a Room with { RoomCategory = a RoomCategory's Name })`
+
+### Given no such room category
+
+- **respond not found** — `Result.StatusCode is NotFound`
+- **say there is no such room category**\
+  `Result.Read<ErrorBody>().Code is "RoomCategoryNotFound"`
+
+### Given the room category exists
+`Having Api.PostAsJsonAsync("/room-categories", the RoomCategory)`
+
+- **respond created** — `Result.StatusCode is Created`
+- **return the room in it** — `Result.Read<Room>().RoomCategory is the RoomCategory's Name`
 
 ## [When renumber room](../Rooms/WhenRenumberRoom.cs)
 ```
@@ -66,6 +82,28 @@ Having Api.PostAsJsonAsync("/rooms", a second Room)
 
 - **return both rooms in the order they were created**\
   `Result.Read<Room[]>() is equal to two Rooms`
+
+## [When move room to another category](../Rooms/WhenMoveRoomToAnotherCategory.cs)
+```
+Api.PutAsJsonAsync("/rooms/{a Room's RoomNumber}",
+    the Room with { RoomCategory = a RoomCategory's Name })
+```
+
+### Given no such room category
+`Having Api.PostAsJsonAsync("/rooms", the Room)`
+
+- **respond not found** — `Result.StatusCode is NotFound`
+- **say there is no such room category**\
+  `Result.Read<ErrorBody>().Code is "RoomCategoryNotFound"`
+
+### Given the room category exists
+```
+Having Api.PostAsJsonAsync("/room-categories", the RoomCategory)
+  after Api.PostAsJsonAsync("/rooms", the Room)
+```
+
+- **respond ok** — `Result.StatusCode is OK`
+- **return the room in it** — `Result.Read<Room>().RoomCategory is the RoomCategory's Name`
 
 ## [When delete room](../Rooms/WhenDeleteRoom.cs)
 `Api.DeleteAsync("/rooms/{a Room's RoomNumber}")`

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { cancelOpenBookings } from '../bookings/bookingsApi';
 import { ConfirmDialog, type Confirmation } from '../ConfirmDialog';
 import { ErrorMessage } from '../ErrorMessage';
-import { useReload, useRooms } from '../queries';
+import { useReload, useRoomCategories, useRooms } from '../queries';
 import { useAttempt } from '../useAttempt';
 import { AddRoomForm } from './AddRoomForm';
 import { RoomRow } from './RoomRow';
@@ -12,6 +12,7 @@ import { addRoom, deleteRoom, updateRoom, type Room } from './roomsApi';
 export function Rooms() {
   const { t } = useTranslation();
   const { rooms, failure: loadFailure } = useRooms();
+  const { roomCategories } = useRoomCategories();
   const reload = useReload('room');
   const reloadAfterBookings = useReload('booking');
   const { failure, attempt } = useAttempt();
@@ -59,6 +60,7 @@ export function Rooms() {
         <thead>
           <tr>
             <th>{t('rooms.room')}</th>
+            <th>{t('rooms.roomCategory')}</th>
             <th>{t('rooms.beds')}</th>
             <th />
           </tr>
@@ -68,6 +70,7 @@ export function Rooms() {
             <RoomRow
               key={room.roomNumber}
               room={room}
+              roomCategories={roomCategories}
               asking={asking?.roomNumber === room.roomNumber}
               onSave={save}
               onCancelBookings={cancelBookings}
@@ -76,7 +79,7 @@ export function Rooms() {
           ))}
         </tbody>
       </table>
-      <AddRoomForm onAdd={add} />
+      <AddRoomForm roomCategories={roomCategories} onAdd={add} />
       {asking && <ConfirmDialog {...asking.confirmation} onClose={() => setAsking(undefined)} />}
     </section>
   );

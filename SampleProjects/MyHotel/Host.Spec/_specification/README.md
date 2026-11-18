@@ -7,12 +7,14 @@ A small hotel booking API: rooms, bookings, and the rules that keep them consist
 ```
 Subject under test: Hotel
 Return type: HttpResponseMessage
+Using Room with RoomCategory = "Standard"
 ```
 
-| Specification           | When | Given | Then |
-|-------------------------|-----:|------:|-----:|
-| [Bookings](Bookings.md) |    6 |    20 |   34 |
-| [Host](Host.md)         |    1 |     0 |    2 |
-| [Rooms](Rooms.md)       |    6 |    17 |   30 |
-| *All*                   | *13* |  *37* | *66* |
+| Specification                       | When | Given | Then |
+|-------------------------------------|-----:|------:|-----:|
+| [Bookings](Bookings.md)             |    6 |    20 |   34 |
+| [Host](Host.md)                     |    1 |     0 |    2 |
+| [RoomCategories](RoomCategories.md) |    5 |    13 |   22 |
+| [Rooms](Rooms.md)                   |    8 |    21 |   38 |
+| *All*                               | *20* |  *54* | *96* |
 

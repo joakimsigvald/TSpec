@@ -7,12 +7,13 @@ namespace MyHotel.Infra;
 public static class DependencyInjection
 {
     public static IServiceCollection AddInfra(
-        this IServiceCollection services, string roomsPath, string bookingsPath)
+        this IServiceCollection services, string roomsPath, string roomCategoriesPath, string bookingsPath)
     {
         // One store for both: the bookings and the number to issue next share a file.
         var bookings = new BookingStore(bookingsPath);
         return services
             .AddSingleton<IRoomStore>(new RoomStore(roomsPath))
+            .AddSingleton<IRoomCategoryStore>(new RoomCategoryStore(roomCategoriesPath))
             .AddSingleton<IBookingStore>(bookings)
             .AddSingleton<IBookingNumberStore>(bookings);
     }

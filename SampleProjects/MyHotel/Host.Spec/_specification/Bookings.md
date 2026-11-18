@@ -4,6 +4,7 @@
 ```
 Subject under test: Hotel
 Return type: HttpResponseMessage
+Using Room with RoomCategory = "Standard"
 ```
 
 ## [When book zero nights](../Bookings/WhenBookZeroNights.cs)

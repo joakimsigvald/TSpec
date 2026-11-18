@@ -7,6 +7,6 @@ The domain rules of My Hotel: rooms, bookings and booking numbers, behind ports 
 | Specification           | When | Given | Then |
 |-------------------------|-----:|------:|-----:|
 | [Bookings](Bookings.md) |    9 |    22 |   30 |
-| [Rooms](Rooms.md)       |    5 |    14 |   16 |
-| *All*                   | *14* |  *36* | *46* |
+| [Rooms](Rooms.md)       |   10 |    30 |   36 |
+| *All*                   | *19* |  *52* | *66* |
 

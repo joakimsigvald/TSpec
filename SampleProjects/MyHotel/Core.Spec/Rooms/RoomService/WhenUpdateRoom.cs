@@ -16,12 +16,18 @@ public abstract class WhenUpdateRoom : Spec<Core.Rooms.RoomService, RoomOverview
         {
             Given(_updatedRoom).Is(The<Room>() with { BedCount = ASecond<int>() });
             Given<IRoomStore>().That(_ => _.Load()).Returns(One<Room>)
+                .And<IRoomCategoryStore>().That(_ => _.Load())
+                .Returns(() => [new RoomCategory(The<Room>().RoomCategory, Any<string>())])
                 .And<IOpenBookings>().That(_ => _.RoomNumbers()).Returns(Zero<string>);
         }
 
         [Fact]
         public void ThenReturnTheUpdatedRoom() =>
-            Result.Is(new RoomOverview(The(_updatedRoom).RoomNumber, The(_updatedRoom).BedCount, false));
+            Result.Is(new RoomOverview(
+                The(_updatedRoom).RoomNumber,
+                The(_updatedRoom).BedCount,
+                The(_updatedRoom).RoomCategory,
+                false));
     }
 
     /// <summary>
@@ -32,7 +38,9 @@ public abstract class WhenUpdateRoom : Spec<Core.Rooms.RoomService, RoomOverview
         public GivenAnotherRoomIsStoredFirst()
         {
             Given(_updatedRoom).Is(The<Room>() with { BedCount = ASecond<int>() });
-            Given<IRoomStore>().That(_ => _.Load()).Returns(() => [ASecond<Room>(), The<Room>()]);
+            Given<IRoomStore>().That(_ => _.Load()).Returns(() => [ASecond<Room>(), The<Room>()])
+                .And<IRoomCategoryStore>().That(_ => _.Load())
+                .Returns(() => [new RoomCategory(The<Room>().RoomCategory, Any<string>())]);
         }
 
         [Fact]
@@ -51,6 +59,21 @@ public abstract class WhenUpdateRoom : Spec<Core.Rooms.RoomService, RoomOverview
         [Fact]
         public void ThenThrowNotFound() =>
             Then().Throws<RoomNotFound>().that.Message.Does().Contain(The<Room>().RoomNumber);
+    }
+
+    public class GivenNoSuchRoomCategory : WhenUpdateRoom
+    {
+        public GivenNoSuchRoomCategory()
+        {
+            Given(_updatedRoom).Is(The<Room>() with { BedCount = ASecond<int>() });
+            Given<IRoomStore>().That(_ => _.Load()).Returns(One<Room>)
+                .And<IRoomCategoryStore>().That(_ => _.Load()).Returns(One<RoomCategory>);
+        }
+
+        [Fact]
+        public void ThenThrowRoomCategoryNotFound() =>
+            Then().Throws<RoomCategoryNotFound>().that.Message
+                .Does().Contain(The(_updatedRoom).RoomCategory);
     }
 
     /// <summary>

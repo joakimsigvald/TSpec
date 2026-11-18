@@ -21,7 +21,15 @@ public abstract class WhenListRooms : Spec<Core.Rooms.RoomService, IReadOnlyList
         [Fact]
         public void ThenReturnThemInTheOrderTheyAreStored() =>
             Result.Is().EqualTo([
-                new RoomOverview(TheFirst<Room>().RoomNumber, TheFirst<Room>().BedCount, false),
-                new RoomOverview(TheSecond<Room>().RoomNumber, TheSecond<Room>().BedCount, true)]);
+                new RoomOverview(
+                    TheFirst<Room>().RoomNumber,
+                    TheFirst<Room>().BedCount,
+                    TheFirst<Room>().RoomCategory,
+                    false),
+                new RoomOverview(
+                    TheSecond<Room>().RoomNumber,
+                    TheSecond<Room>().BedCount,
+                    TheSecond<Room>().RoomCategory,
+                    true)]);
     }
 }

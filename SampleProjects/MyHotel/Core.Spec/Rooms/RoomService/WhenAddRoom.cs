@@ -1,4 +1,6 @@
-﻿namespace MyHotel.Core.Spec.Rooms.RoomService;
+﻿using static TSpec.Times;
+
+namespace MyHotel.Core.Spec.Rooms.RoomService;
 
 public abstract class WhenAddRoom : Spec<Core.Rooms.RoomService, RoomOverview>
 {
@@ -8,11 +10,14 @@ public abstract class WhenAddRoom : Spec<Core.Rooms.RoomService, RoomOverview>
     {
         public GivenNoSuchRoom() =>
             Given<IRoomStore>().That(_ => _.Load()).Returns(Zero<Room>)
+                .And<IRoomCategoryStore>().That(_ => _.Load())
+                .Returns(() => [new RoomCategory(The<Room>().RoomCategory, Any<string>())])
                 .And<IOpenBookings>().That(_ => _.RoomNumbers()).Returns(Zero<string>);
 
         [Fact]
         public void ThenReturnTheRoom() =>
-            Result.Is(new RoomOverview(The<Room>().RoomNumber, The<Room>().BedCount, false));
+            Result.Is(new RoomOverview(
+                The<Room>().RoomNumber, The<Room>().BedCount, The<Room>().RoomCategory, false));
 
         [Fact] public void ThenStoreIt() => Then<IRoomStore>(_ => _.Save(One<Room>()));
     }
@@ -29,5 +34,18 @@ public abstract class WhenAddRoom : Spec<Core.Rooms.RoomService, RoomOverview>
         [Fact]
         public void ThenThrowRoomAlreadyExists() =>
             Then().Throws<RoomAlreadyExists>().that.Message.Does().Contain(The<Room>().RoomNumber);
+    }
+
+    public class GivenNoSuchRoomCategory : WhenAddRoom
+    {
+        public GivenNoSuchRoomCategory() =>
+            Given<IRoomStore>().That(_ => _.Load()).Returns(Zero<Room>)
+                .And<IRoomCategoryStore>().That(_ => _.Load()).Returns(One<RoomCategory>);
+
+        [Fact]
+        public void ThenThrowRoomCategoryNotFound() =>
+            Then().Throws<RoomCategoryNotFound>().that.Message.Does().Contain(The<Room>().RoomCategory);
+
+        [Fact] public void ThenStoreNothing() => Then<IRoomStore>(nameof(IRoomStore.Save), Never);
     }
 }

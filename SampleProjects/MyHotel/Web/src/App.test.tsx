@@ -6,20 +6,29 @@ import { fakeApi } from './test/fakeApi';
 import { answer } from './test/answer';
 import { renderPage } from './test/renderPage';
 
-const room101 = { roomNumber: '101', bedCount: 2, hasOpenBookings: false };
-const room102 = { roomNumber: '102', bedCount: 1, hasOpenBookings: false };
+const room101 = { roomNumber: '101', bedCount: 2, roomCategory: 'Standard', hasOpenBookings: false };
+const room102 = { roomNumber: '102', bedCount: 1, roomCategory: 'Standard', hasOpenBookings: false };
 const booking10001 = {
   bookingNumber: 10001, roomNumber: '101', guestName: 'Smith', from: '2026-08-10', to: '2026-08-12', status: 'Open',
 };
 
+const standard = { name: 'Standard', description: 'Standardrum', hasRooms: false };
+const suite = { name: 'Svit', description: 'Två rum', hasRooms: false };
+
+const fakeHotel = (replies: Parameters<typeof fakeApi>[0]) =>
+  fakeApi({ 'GET /room-categories': { status: 200, body: [standard] }, ...replies });
+
 const roomChoice = () => screen.getByRole('combobox', { name: 'Rumsnummer' });
 const offered = (roomNumber: string) => within(roomChoice()).queryByRole('option', { name: roomNumber });
+const categoryChoice = () => screen.getByRole('combobox', { name: 'Kategori' });
+const categoryOffered = (name: string) => within(categoryChoice()).queryByRole('option', { name });
+const rowOf = (name: string) => screen.findByRole('row', { name: new RegExp(`^${name}`) });
 const roomButton = async (roomNumber: string, name: string) =>
-  within(await screen.findByRole('row', { name: new RegExp(`^${roomNumber}`) })).getByRole('button', { name });
+  within(await rowOf(roomNumber)).getByRole('button', { name });
 
 describe('App', () => {
   it('offers a room for booking as soon as it is added', async () => {
-    fakeApi({
+    fakeHotel({
       'GET /rooms': [{ status: 200, body: [room101] }, { status: 200, body: [room101, room102] }],
       'GET /bookings': { status: 200, body: [] },
       'POST /rooms': { status: 201, body: room102 },
@@ -27,12 +36,61 @@ describe('App', () => {
     renderPage(<App />);
     await userEvent.type(screen.getByRole('textbox', { name: 'Rumsnummer' }), room102.roomNumber);
     await userEvent.type(screen.getByLabelText('Sängar'), String(room102.bedCount));
+    await waitFor(() => expect(categoryOffered('Standard')).toBeInTheDocument());
+    await userEvent.selectOptions(categoryChoice(), 'Standard');
     await userEvent.click(screen.getByRole('button', { name: 'Lägg till rum' }));
     await waitFor(() => expect(offered('102')).toBeInTheDocument());
   });
 
+  it('offers a category for a room as soon as it is added', async () => {
+    fakeHotel({
+      'GET /room-categories': [{ status: 200, body: [standard] }, { status: 200, body: [standard, suite] }],
+      'GET /rooms': { status: 200, body: [] },
+      'GET /bookings': { status: 200, body: [] },
+      'POST /room-categories': { status: 201, body: suite },
+    });
+    renderPage(<App />);
+    await userEvent.type(screen.getByLabelText('Namn'), suite.name);
+    await userEvent.type(screen.getByLabelText('Beskrivning'), suite.description);
+    await userEvent.click(screen.getByRole('button', { name: 'Lägg till kategori' }));
+    await waitFor(() => expect(categoryOffered('Svit')).toBeInTheDocument());
+  });
+
+  it('stops offering a category for a room as soon as it is deleted', async () => {
+    fakeHotel({
+      'GET /room-categories': [{ status: 200, body: [standard, suite] }, { status: 200, body: [standard] }],
+      'GET /rooms': { status: 200, body: [] },
+      'GET /bookings': { status: 200, body: [] },
+      'DELETE /room-categories/Svit': { status: 204 },
+    });
+    renderPage(<App />);
+    await userEvent.click(within(await rowOf('Svit')).getByRole('button', { name: 'Ta bort' }));
+    await answer('Ta bort kategori', 'OK');
+    await waitFor(() => expect(categoryOffered('Svit')).not.toBeInTheDocument());
+  });
+
+  it('stops a category being deleted as soon as a room has it', async () => {
+    fakeHotel({
+      'GET /room-categories': [
+        { status: 200, body: [standard, suite] },
+        { status: 200, body: [standard, { ...suite, hasRooms: true }] },
+      ],
+      'GET /rooms': [{ status: 200, body: [] }, { status: 200, body: [{ ...room101, roomCategory: 'Svit' }] }],
+      'GET /bookings': { status: 200, body: [] },
+      'POST /rooms': { status: 201, body: { ...room101, roomCategory: 'Svit' } },
+    });
+    renderPage(<App />);
+    await userEvent.type(screen.getByRole('textbox', { name: 'Rumsnummer' }), room101.roomNumber);
+    await userEvent.type(screen.getByLabelText('Sängar'), String(room101.bedCount));
+    await waitFor(() => expect(categoryOffered('Svit')).toBeInTheDocument());
+    await userEvent.selectOptions(categoryChoice(), 'Svit');
+    await userEvent.click(screen.getByRole('button', { name: 'Lägg till rum' }));
+    await waitFor(async () =>
+      expect(within(await rowOf('Svit')).getByRole('button', { name: 'Ta bort' })).toBeDisabled());
+  });
+
   it('stops offering a room for booking as soon as it is deleted', async () => {
-    fakeApi({
+    fakeHotel({
       'GET /rooms': [{ status: 200, body: [room101, room102] }, { status: 200, body: [room102] }],
       'GET /bookings': { status: 200, body: [] },
       'DELETE /rooms/101': { status: 204 },
@@ -46,7 +104,7 @@ describe('App', () => {
   });
 
   it('stops a room being deleted as soon as it is booked', async () => {
-    fakeApi({
+    fakeHotel({
       'GET /rooms': [{ status: 200, body: [room101] }, { status: 200, body: [{ ...room101, hasOpenBookings: true }] }],
       'GET /bookings': [{ status: 200, body: [] }, { status: 200, body: [booking10001] }],
       'POST /bookings': { status: 201, body: booking10001 },
@@ -62,7 +120,7 @@ describe('App', () => {
   });
 
   it('lets a room be deleted as soon as its last open booking is cancelled', async () => {
-    fakeApi({
+    fakeHotel({
       'GET /rooms': [{ status: 200, body: [{ ...room101, hasOpenBookings: true }] }, { status: 200, body: [room101] }],
       'GET /bookings': [
         { status: 200, body: [booking10001] },
@@ -77,7 +135,7 @@ describe('App', () => {
   });
 
   it("shows a room's bookings as cancelled as soon as they are cancelled", async () => {
-    fakeApi({
+    fakeHotel({
       'GET /rooms': [{ status: 200, body: [{ ...room101, hasOpenBookings: true }] }, { status: 200, body: [room101] }],
       'GET /bookings': [
         { status: 200, body: [booking10001] },

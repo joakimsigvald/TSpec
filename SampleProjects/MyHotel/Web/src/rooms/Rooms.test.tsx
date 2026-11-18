@@ -7,46 +7,79 @@ import { renderPage } from '../test/renderPage';
 import { Rooms } from './Rooms';
 import type { RoomOverview } from './roomsApi';
 
-const room101 = { roomNumber: '101', bedCount: 2, hasOpenBookings: false };
-const room102 = { roomNumber: '102', bedCount: 1, hasOpenBookings: false };
-const room103 = { roomNumber: '103', bedCount: 3, hasOpenBookings: false };
+const room101 = { roomNumber: '101', bedCount: 2, roomCategory: 'Standard', hasOpenBookings: false };
+const room102 = { roomNumber: '102', bedCount: 1, roomCategory: 'Standard', hasOpenBookings: false };
+const room103 = { roomNumber: '103', bedCount: 3, roomCategory: 'Standard', hasOpenBookings: false };
 const withOpenBookings = (room: RoomOverview) => ({ ...room, hasOpenBookings: true });
+
+const roomCategories = ['Örnrum', 'Ängsrum', 'Svit', 'Åsrum', 'Standard']
+  .map(name => ({ name, description: name, hasRooms: false }));
+
+const fakeHotel = (replies: Parameters<typeof fakeApi>[0]) =>
+  fakeApi({ 'GET /room-categories': { status: 200, body: roomCategories }, ...replies });
 
 const rowOf = (roomNumber: string) => screen.findByRole('row', { name: new RegExp(`^${roomNumber}`) });
 const bedsIn = async (roomNumber: string) => within(await rowOf(roomNumber)).getByRole('spinbutton');
+const categoryIn = async (roomNumber: string) => within(await rowOf(roomNumber)).getByRole('combobox');
 const buttonIn = async (roomNumber: string, name: string) =>
   within(await rowOf(roomNumber)).getByRole('button', { name });
 
-const addRoom = async (roomNumber: string, beds: string) => {
+const categoryChoice = () => screen.getByRole('combobox', { name: 'Kategori' });
+
+const choose = async (choice: HTMLElement, name: string) =>
+  userEvent.selectOptions(choice, await within(choice).findByRole('option', { name }));
+
+const addRoom = async (roomNumber: string, beds: string, roomCategory = 'Standard') => {
   await userEvent.type(screen.getByLabelText('Rumsnummer'), roomNumber);
   await userEvent.type(screen.getByLabelText('Sängar'), beds);
+  await choose(categoryChoice(), roomCategory);
   await userEvent.click(screen.getByRole('button', { name: 'Lägg till rum' }));
 };
 
 describe('Rooms', () => {
-  it('lists the rooms with their beds', async () => {
-    fakeApi({ 'GET /rooms': { status: 200, body: [room101, room102] } });
+  it('lists the rooms with their beds and categories', async () => {
+    fakeHotel({ 'GET /rooms': { status: 200, body: [room101, { ...room102, roomCategory: 'Svit' }] } });
     renderPage(<Rooms />);
     expect(await bedsIn('101')).toHaveValue(2);
     expect(await bedsIn('102')).toHaveValue(1);
+    await waitFor(async () => expect(await categoryIn('101')).toHaveDisplayValue('Standard'));
+    expect(await categoryIn('102')).toHaveDisplayValue('Svit');
   });
 
-  it('adds the room entered', async () => {
-    const api = fakeApi({
+  it('offers the categories by name the Swedish way', async () => {
+    fakeHotel({ 'GET /rooms': { status: 200, body: [] } });
+    renderPage(<Rooms />);
+    await waitFor(() => expect(within(categoryChoice()).getAllByRole('option').map(option => option.textContent))
+      .toEqual(['Välj kategori', 'Standard', 'Svit', 'Åsrum', 'Ängsrum', 'Örnrum']));
+  });
+
+  it('adds the room entered, and empties the form', async () => {
+    const api = fakeHotel({
       'GET /rooms': [{ status: 200, body: [room101] }, { status: 200, body: [room101, room103] }],
       'POST /rooms': { status: 201, body: room103 },
     });
     renderPage(<Rooms />);
-    await addRoom('103', '3');
+    await addRoom('103', '3', 'Svit');
     expect(await bedsIn('103')).toHaveValue(3);
     expect(api).toHaveBeenCalledWith('/rooms', expect.objectContaining({
       method: 'POST',
-      body: JSON.stringify({ roomNumber: '103', bedCount: 3 }),
+      body: JSON.stringify({ roomNumber: '103', bedCount: 3, roomCategory: 'Svit' }),
     }));
+    expect(categoryChoice()).toHaveDisplayValue('Välj kategori');
+  });
+
+  it('says under the category that it does not exist', async () => {
+    fakeHotel({
+      'GET /rooms': { status: 200, body: [room101] },
+      'POST /rooms': { status: 404, body: { code: 'RoomCategoryNotFound' } },
+    });
+    renderPage(<Rooms />);
+    await addRoom('103', '3');
+    await waitFor(() => expect(categoryChoice()).toHaveAccessibleDescription('Kategorin finns inte.'));
   });
 
   it('says under the room number that the room already exists', async () => {
-    fakeApi({
+    fakeHotel({
       'GET /rooms': { status: 200, body: [room101] },
       'POST /rooms': { status: 409, body: { code: 'RoomAlreadyExists' } },
     });
@@ -57,7 +90,7 @@ describe('Rooms', () => {
   });
 
   it('says under the button why a room could not be added for any other reason', async () => {
-    fakeApi({
+    fakeHotel({
       'GET /rooms': { status: 200, body: [room101] },
       'POST /rooms': { status: 500 },
     });
@@ -68,13 +101,13 @@ describe('Rooms', () => {
   });
 
   it('says something went wrong when the API gives no reason', async () => {
-    fakeApi({ 'GET /rooms': { status: 500 } });
+    fakeHotel({ 'GET /rooms': { status: 500 } });
     renderPage(<Rooms />);
     expect(await screen.findByRole('alert')).toHaveTextContent('Något gick fel.');
   });
 
   it('saves the beds entered for a room', async () => {
-    const api = fakeApi({
+    const api = fakeHotel({
       'GET /rooms': [{ status: 200, body: [room101] }, { status: 200, body: [{ ...room101, bedCount: 3 }] }],
       'PUT /rooms/101': { status: 200, body: { ...room101, bedCount: 3 } },
     });
@@ -85,19 +118,33 @@ describe('Rooms', () => {
     await userEvent.click(await buttonIn('101', 'Spara'));
     expect(api).toHaveBeenCalledWith('/rooms/101', expect.objectContaining({
       method: 'PUT',
-      body: JSON.stringify({ roomNumber: '101', bedCount: 3 }),
+      body: JSON.stringify({ roomNumber: '101', bedCount: 3, roomCategory: 'Standard' }),
+    }));
+  });
+
+  it('moves a room to the category chosen', async () => {
+    const api = fakeHotel({
+      'GET /rooms': [{ status: 200, body: [room101] }, { status: 200, body: [{ ...room101, roomCategory: 'Svit' }] }],
+      'PUT /rooms/101': { status: 200, body: { ...room101, roomCategory: 'Svit' } },
+    });
+    renderPage(<Rooms />);
+    await choose(await categoryIn('101'), 'Svit');
+    await userEvent.click(await buttonIn('101', 'Spara'));
+    expect(api).toHaveBeenCalledWith('/rooms/101', expect.objectContaining({
+      method: 'PUT',
+      body: JSON.stringify({ roomNumber: '101', bedCount: 2, roomCategory: 'Svit' }),
     }));
   });
 
   it('asks before deleting a room', async () => {
-    fakeApi({ 'GET /rooms': { status: 200, body: [room101] } });
+    fakeHotel({ 'GET /rooms': { status: 200, body: [room101] } });
     renderPage(<Rooms />);
     await userEvent.click(await buttonIn('101', 'Ta bort'));
     expect(await dialogNamed('Ta bort rum')).toHaveAccessibleDescription('Ta bort rum 101?');
   });
 
   it('removes a deleted room from the list, once confirmed', async () => {
-    fakeApi({
+    fakeHotel({
       'GET /rooms': [{ status: 200, body: [room101, room102] }, { status: 200, body: [room102] }],
       'DELETE /rooms/101': { status: 204 },
     });
@@ -109,7 +156,7 @@ describe('Rooms', () => {
   });
 
   it('keeps a room that was not confirmed deleted', async () => {
-    const api = fakeApi({ 'GET /rooms': { status: 200, body: [room101] } });
+    const api = fakeHotel({ 'GET /rooms': { status: 200, body: [room101] } });
     renderPage(<Rooms />);
     await userEvent.click(await buttonIn('101', 'Ta bort'));
     await answer('Ta bort rum', 'Avbryt');
@@ -118,7 +165,7 @@ describe('Rooms', () => {
   });
 
   it('cannot delete a room with open bookings, and says why', async () => {
-    fakeApi({ 'GET /rooms': { status: 200, body: [withOpenBookings(room101)] } });
+    fakeHotel({ 'GET /rooms': { status: 200, body: [withOpenBookings(room101)] } });
     renderPage(<Rooms />);
     const remove = await buttonIn('101', 'Ta bort');
     expect(remove).toBeDisabled();
@@ -126,7 +173,7 @@ describe('Rooms', () => {
   });
 
   it('says above the rooms that a room with open bookings was not deleted', async () => {
-    fakeApi({
+    fakeHotel({
       'GET /rooms': { status: 200, body: [room101] },
       'DELETE /rooms/101': { status: 409, body: { code: 'RoomHasOpenBookings' } },
     });
@@ -137,7 +184,7 @@ describe('Rooms', () => {
   });
 
   it("asks before cancelling a room's open bookings", async () => {
-    fakeApi({ 'GET /rooms': { status: 200, body: [withOpenBookings(room101)] } });
+    fakeHotel({ 'GET /rooms': { status: 200, body: [withOpenBookings(room101)] } });
     renderPage(<Rooms />);
     await userEvent.click(await buttonIn('101', 'Avboka alla'));
     expect(await dialogNamed('Avboka alla bokningar'))
@@ -145,7 +192,7 @@ describe('Rooms', () => {
   });
 
   it("cancels a room's open bookings, once confirmed", async () => {
-    const api = fakeApi({
+    const api = fakeHotel({
       'GET /rooms': [{ status: 200, body: [withOpenBookings(room101)] }, { status: 200, body: [room101] }],
       'DELETE /rooms/101/bookings': { status: 204 },
     });
@@ -157,7 +204,7 @@ describe('Rooms', () => {
   });
 
   it("keeps a room's open bookings when cancelling them was not confirmed", async () => {
-    const api = fakeApi({ 'GET /rooms': { status: 200, body: [withOpenBookings(room101)] } });
+    const api = fakeHotel({ 'GET /rooms': { status: 200, body: [withOpenBookings(room101)] } });
     renderPage(<Rooms />);
     await userEvent.click(await buttonIn('101', 'Avboka alla'));
     await answer('Avboka alla bokningar', 'Avbryt');
@@ -166,7 +213,7 @@ describe('Rooms', () => {
   });
 
   it('cannot cancel the bookings of a room without open bookings, and says why', async () => {
-    fakeApi({ 'GET /rooms': { status: 200, body: [room101] } });
+    fakeHotel({ 'GET /rooms': { status: 200, body: [room101] } });
     renderPage(<Rooms />);
     const cancelAll = await buttonIn('101', 'Avboka alla');
     expect(cancelAll).toBeDisabled();

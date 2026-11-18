@@ -18,6 +18,7 @@ builder.Services.AddCore(new BookingNumberSeed(
 builder.Services.AddEntry();
 builder.Services.AddInfra(
     builder.Configuration["RoomStore:Path"] ?? "rooms.json",
+    builder.Configuration["RoomCategoryStore:Path"] ?? "room-categories.json",
     builder.Configuration["BookingStore:Path"] ?? "bookings.json");
 
 var app = builder.Build();
@@ -29,6 +30,7 @@ app.MapScalarApiReference();
 
 app.MapVersionEndpoint(version);
 app.MapRoomEndpoints();
+app.MapRoomCategoryEndpoints();
 app.MapBookingEndpoints();
 
 app.Run();

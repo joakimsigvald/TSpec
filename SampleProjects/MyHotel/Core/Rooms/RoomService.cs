@@ -6,7 +6,11 @@ namespace MyHotel.Core.Rooms;
 /// <summary>
 /// Rooms are kept in the order they were created, which is the order the store returns them in.
 /// </summary>
-public class RoomService(IRoomStore store, IOpenBookings openBookings) : IRoomService
+public class RoomService(
+    IRoomStore store,
+    IOpenBookings openBookings,
+    RoomCategoryCatalog roomCategories)
+    : IRoomService
 {
     public async Task<IReadOnlyList<RoomOverview>> Rooms()
     {
@@ -22,6 +26,8 @@ public class RoomService(IRoomStore store, IOpenBookings openBookings) : IRoomSe
         var rooms = await store.Load();
         if (Find(rooms, room.RoomNumber) is not null)
             throw new RoomAlreadyExists(room.RoomNumber);
+        if (!await RoomCategoryExists(room.RoomCategory))
+            throw new RoomCategoryNotFound(room.RoomCategory);
         await store.Save([.. rooms, room]);
         return await OverviewOf(room);
     }
@@ -32,6 +38,8 @@ public class RoomService(IRoomStore store, IOpenBookings openBookings) : IRoomSe
             throw new RoomNumberMismatch(roomNumber, room.RoomNumber);
         var rooms = await store.Load();
         var existing = Existing(rooms, roomNumber);
+        if (!await RoomCategoryExists(room.RoomCategory))
+            throw new RoomCategoryNotFound(room.RoomCategory);
         await store.Save([.. rooms.Select(stored => stored == existing ? room : stored)]);
         return await OverviewOf(room);
     }
@@ -46,11 +54,14 @@ public class RoomService(IRoomStore store, IOpenBookings openBookings) : IRoomSe
         await store.Save([.. rooms.Where(stored => stored != existing)]);
     }
 
+    private async Task<bool> RoomCategoryExists(string name) =>
+        (await roomCategories.Load()).Any(category => category.Name == name);
+
     private async Task<RoomOverview> OverviewOf(Room room) =>
         Overview(room, await openBookings.RoomNumbers());
 
     private static RoomOverview Overview(Room room, IReadOnlyList<string> open) =>
-        new(room.RoomNumber, room.BedCount, open.Contains(room.RoomNumber));
+        new(room.RoomNumber, room.BedCount, room.RoomCategory, open.Contains(room.RoomNumber));
 
     private static Room Existing(IEnumerable<Room> rooms, string roomNumber) =>
         Find(rooms, roomNumber) ?? throw new RoomNotFound(roomNumber);

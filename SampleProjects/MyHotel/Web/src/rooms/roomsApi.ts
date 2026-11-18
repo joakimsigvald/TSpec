@@ -1,6 +1,6 @@
 import { get, post, put, remove } from '../http';
 
-export type Room = { roomNumber: string; bedCount: number };
+export type Room = { roomNumber: string; bedCount: number; roomCategory: string };
 
 export type RoomOverview = Room & { hasOpenBookings: boolean };
 
