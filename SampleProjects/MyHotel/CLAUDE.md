@@ -1,5 +1,8 @@
 # MyHotel — instructions for coding agents
 
+**Purpose:** what an agent needs to work on MyHotel that no other document holds: the architecture,
+which `Architecture.Spec` confirms, and the rules and mechanics of working here.
+
 Applies to everything under `SampleProjects/MyHotel/`; what MyHotel is: [README.md](README.md).
 Before editing code, read [CODING-STANDARD.md](CODING-STANDARD.md) and the backend or frontend one
 for the code touched.

@@ -1,9 +1,10 @@
 # MyHotel - Glossary
 
-The domain terms MyHotel uses that a reader must understand, and the vague concepts that need a clear
-definition: the name to use in code, followed by what it means (CODING-STANDARD-BACKEND.md 1b). No
-detail the code or the specifications already hold. Where the code still uses another word, it is
-renamed on touch; the glossary lists the target, not the variants. The PR that introduces, renames or
+**Purpose:** the domain terms MyHotel uses that a reader must understand, and the vague concepts that
+need a clear definition: the name to use in code, followed by what it means
+(CODING-STANDARD-BACKEND.md 1b), and no detail the code or the specifications already hold.
+
+Where the code still uses another word, it is renamed on touch; the glossary lists the target, not the variants. The PR that introduces, renames or
 retires a concept updates its row. A row marked `*` is provisional: the term is not used in code yet,
 and is the product owner's to rename.
 

@@ -1,7 +1,8 @@
 # MyHotel - Coding standard, backend
 
-How MyHotel's backend code is written. Each rule carries the numeral of the principle it serves; the
-principles, and how the rules are kept, are in [CODING-STANDARD.md](CODING-STANDARD.md).
+**Purpose:** the rules for MyHotel's C# backend, including those for what it is expected to grow
+into, such as SQL and publish-subscribe. Each rule carries the numeral of the principle it serves;
+the principles, and how the rules are kept, are in [CODING-STANDARD.md](CODING-STANDARD.md).
 
 ## Terms
 

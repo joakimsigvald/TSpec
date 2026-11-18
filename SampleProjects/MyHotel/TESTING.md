@@ -1,6 +1,7 @@
 # MyHotel — testing the frontend
 
-Web is tested two ways: by its Vitest tests, and by running the application and using the page.
+**Purpose:** how to test Web, the frontend: by its Vitest tests, and by running the application and
+using the page.
 
 ## Vitest
 

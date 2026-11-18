@@ -1,8 +1,7 @@
 # MyHotel - Coding standard
 
-How MyHotel's code is written, for developers and AI agents alike. This document holds what applies to
-all of it: the philosophy every rule serves, and how the rules are kept. The rules themselves live with
-the code they govern:
+**Purpose:** how MyHotel's code is written, for developers and AI agents alike: the philosophy every
+rule serves, and how the rules are kept. The rules themselves live with the code they govern:
 
 - [CODING-STANDARD-BACKEND.md](CODING-STANDARD-BACKEND.md) - the C# backend. Read it before editing
   backend code.

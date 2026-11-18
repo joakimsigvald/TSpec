@@ -1,5 +1,8 @@
 # MyHotel — backlog
 
+**Purpose:** the features planned for MyHotel, in the order the product owner set, and the open
+questions they raise.
+
 The feature work TSpec's documents are grown against. Moved here from the 2.0.0 generator working
 notes when that file was retired; rules for changing anything under `SampleProjects/MyHotel/` are in
 [CLAUDE.md](CLAUDE.md).

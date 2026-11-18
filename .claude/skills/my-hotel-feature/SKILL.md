@@ -5,6 +5,9 @@ description: Build a MyHotel feature in four phases — Define, Design, Build, V
 
 # Building a MyHotel feature
 
+**Purpose:** take a MyHotel feature from the PO's request to a verified build, keeping agent and PO
+aligned at every phase.
+
 Paths are under `SampleProjects/MyHotel/`. Define and Design each leave an artefact in `Features/`,
 kept as the feature's history and named with a code you make from the initial prompt: at most 8
 characters, mostly a-z, possibly with a numeric suffix.
@@ -61,4 +64,5 @@ Once it is built, go straight on to Verify, unless a problem needs the PO.
    it, clear it up with the PO and update `REQUIREMENTS-<code>.md`, then adjust `DESIGN-<code>.md`
    and the build. Nothing is reverted at this stage.
 5. Hand over with a clear status: the feature is built and verified, and what you fixed on the
-   way, if anything. Then the next step: the PO tests it and commits.
+   way, if anything. Then the next step: the PO tests it and commits. If the feature changed a
+   document `my-hotel-trim-docs` covers, ask whether to run it.

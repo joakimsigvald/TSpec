@@ -1,8 +1,9 @@
 # MyHotel - Coding standard, frontend
 
-How Web, the React frontend, is written. Each rule carries the numeral of the principle it serves; the
-principles, and how the rules are kept, are in [CODING-STANDARD.md](CODING-STANDARD.md). Web is a client
-of the HTTP contract and repeats none of its rules: it shows what the API answers.
+**Purpose:** the rules for Web, MyHotel's React frontend. Each rule carries the numeral of the
+principle it serves; the principles, and how the rules are kept, are in
+[CODING-STANDARD.md](CODING-STANDARD.md). Web is a client of the HTTP contract and repeats none of its
+rules: it shows what the API answers.
 
 ## 1. Language and naming
 

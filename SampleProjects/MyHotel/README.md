@@ -1,5 +1,8 @@
 # MyHotel
 
+**Purpose:** what MyHotel is, what it does as a hotel, and how to run it, for a human meeting it for
+the first time.
+
 A small hotel-management application: an ASP.NET Core API with a React UI. It is the reference
 application TSpec is developed against, not a shipped product: driven out entirely by
 specifications, it is the proving ground for specification generation.
