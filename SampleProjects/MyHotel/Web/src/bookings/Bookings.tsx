@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ErrorMessage } from '../ErrorMessage';
+import type { Room } from '../rooms/roomsApi';
 import { useAttempt } from '../useAttempt';
 import { BookRoomForm } from './BookRoomForm';
 import { bookRoom, cancelBooking, listBookings, type Booking, type BookingRequest } from './bookingsApi';
 
-export function Bookings() {
+type Props = { rooms: Room[] };
+
+export function Bookings({ rooms }: Props) {
   const { t } = useTranslation();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const { failure, attempt } = useAttempt();
@@ -54,7 +57,7 @@ export function Bookings() {
           ))}
         </tbody>
       </table>
-      <BookRoomForm onBook={book} />
+      <BookRoomForm rooms={rooms} onBook={book} />
     </section>
   );
 }

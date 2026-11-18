@@ -1,10 +1,11 @@
 import { useId, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ErrorMessage } from '../ErrorMessage';
+import type { Room } from '../rooms/roomsApi';
 import { useFormAttempt } from '../useFormAttempt';
 import type { BookingRequest } from './bookingsApi';
 
-type Props = { onBook: (request: BookingRequest) => Promise<void> };
+type Props = { rooms: Room[]; onBook: (request: BookingRequest) => Promise<void> };
 
 const fieldOf = {
   RoomNotFound: 'roomNumber',
@@ -12,7 +13,7 @@ const fieldOf = {
   InvalidBookingPeriod: 'to',
 } as const;
 
-export function BookRoomForm({ onBook }: Props) {
+export function BookRoomForm({ rooms, onBook }: Props) {
   const { t } = useTranslation();
   const { attempt, failureAt } = useFormAttempt(fieldOf);
   const roomNumberError = useId();
@@ -31,7 +32,12 @@ export function BookRoomForm({ onBook }: Props) {
       <div className="field">
         <label>
           {t('bookings.roomNumber')}
-          <input name="roomNumber" required aria-describedby={roomNumberError} />
+          <select name="roomNumber" required aria-describedby={roomNumberError}>
+            <option value="">{t('bookings.chooseRoom')}</option>
+            {inAlphanumericOrder(rooms).map(room => (
+              <option key={room.roomNumber}>{room.roomNumber}</option>
+            ))}
+          </select>
         </label>
         <ErrorMessage id={roomNumberError} code={failureAt('roomNumber')} />
       </div>
@@ -61,6 +67,9 @@ export function BookRoomForm({ onBook }: Props) {
     </form>
   );
 }
+
+const inAlphanumericOrder = (rooms: Room[]) =>
+  [...rooms].sort((one, other) => one.roomNumber.localeCompare(other.roomNumber, 'sv', { numeric: true }));
 
 const requestIn = (data: FormData): BookingRequest => ({
   roomNumber: String(data.get('roomNumber')),

@@ -1,8 +1,15 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
 import { fakeApi } from '../test/fakeApi';
 import { Rooms } from './Rooms';
+import type { Room } from './roomsApi';
+
+function RoomsOnPage() {
+  const [rooms, setRooms] = useState<Room[]>([]);
+  return <Rooms rooms={rooms} onChange={setRooms} />;
+}
 
 const room101 = { roomNumber: '101', bedCount: 2 };
 const room102 = { roomNumber: '102', bedCount: 1 };
@@ -19,7 +26,7 @@ const addRoom = async (roomNumber: string, beds: string) => {
 describe('Rooms', () => {
   it('lists the rooms with their beds', async () => {
     fakeApi({ 'GET /rooms': { status: 200, body: [room101, room102] } });
-    render(<Rooms />);
+    render(<RoomsOnPage />);
     expect(await bedsIn('101')).toHaveValue(2);
     expect(await bedsIn('102')).toHaveValue(1);
   });
@@ -29,7 +36,7 @@ describe('Rooms', () => {
       'GET /rooms': { status: 200, body: [room101] },
       'POST /rooms': { status: 201, body: { roomNumber: '103', bedCount: 3 } },
     });
-    render(<Rooms />);
+    render(<RoomsOnPage />);
     await addRoom('103', '3');
     expect(await bedsIn('103')).toHaveValue(3);
     expect(api).toHaveBeenCalledWith('/rooms', expect.objectContaining({
@@ -43,7 +50,7 @@ describe('Rooms', () => {
       'GET /rooms': { status: 200, body: [room101] },
       'POST /rooms': { status: 409, body: { code: 'RoomAlreadyExists' } },
     });
-    render(<Rooms />);
+    render(<RoomsOnPage />);
     await addRoom('101', '2');
     await waitFor(() =>
       expect(screen.getByLabelText('Rumsnummer')).toHaveAccessibleDescription('Rummet finns redan.'));
@@ -54,7 +61,7 @@ describe('Rooms', () => {
       'GET /rooms': { status: 200, body: [room101] },
       'POST /rooms': { status: 500 },
     });
-    render(<Rooms />);
+    render(<RoomsOnPage />);
     await addRoom('103', '3');
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Lägg till rum' })).toHaveAccessibleDescription('Något gick fel.'));
@@ -62,7 +69,7 @@ describe('Rooms', () => {
 
   it('says something went wrong when the API gives no reason', async () => {
     fakeApi({ 'GET /rooms': { status: 500 } });
-    render(<Rooms />);
+    render(<RoomsOnPage />);
     expect(await screen.findByRole('alert')).toHaveTextContent('Något gick fel.');
   });
 
@@ -71,7 +78,7 @@ describe('Rooms', () => {
       'GET /rooms': { status: 200, body: [room101] },
       'PUT /rooms/101': { status: 200, body: { roomNumber: '101', bedCount: 3 } },
     });
-    render(<Rooms />);
+    render(<RoomsOnPage />);
     const beds = await bedsIn('101');
     await userEvent.clear(beds);
     await userEvent.type(beds, '3');
@@ -87,7 +94,7 @@ describe('Rooms', () => {
       'GET /rooms': { status: 200, body: [room101, room102] },
       'DELETE /rooms/101': { status: 204 },
     });
-    render(<Rooms />);
+    render(<RoomsOnPage />);
     await userEvent.click(within(await rowOf('101')).getByRole('button', { name: 'Ta bort' }));
     await rowOf('102');
     expect(screen.queryByRole('row', { name: /^101/ })).not.toBeInTheDocument();

@@ -9,25 +9,30 @@ Paths are under `SampleProjects/MyHotel/`. Define and Design each leave an artef
 kept as the feature's history and named with a code you make from the initial prompt: at most 8
 characters, mostly a-z, possibly with a numeric suffix.
 
+Stop Host, or Web's dev server, as soon as you are done using it, if you started it.
+
 ## Define
 
 1. Read `CLAUDE.md`, `GLOSSARY.md` and the generated `Host.Spec/_specification/` and
    `Core.Spec/_specification/`.
 2. Ask about the feature until you know exactly what the PO wants: one question at a time, each
    concrete enough to answer in a line. A new term's name is agreed here.
-3. Once the questions show the feature touches the UI, run the application and study the page
-   (`TESTING.md`).
-4. Close with a short summary of the feature in `Features/REQUIREMENTS-<code>.md`, for the PO to
-   confirm.
+3. If seeing the application would help you understand the requirement, run it and study it
+   (`TESTING.md`). Only then: it is not a step of every feature.
+4. Write a short summary of the feature to `Features/REQUIREMENTS-<code>.md`, then show it to the PO
+   in full, not linked or buried in a longer answer. The reply is a short status line, a `---`
+   separator, the summary, and a short question: go ahead to Design, or keep defining?
 
 ## Design
 
 1. Study the relevant code, `CODING-STANDARD.md` with the backend or frontend one for the code
    touched, and `Architecture.Spec/_specification.md`.
 2. Summarise the design in `Features/DESIGN-<code>.md`, so the PO understands how it will be built:
-   what parts, what new interactions, any restructuring. No implementation details, and nothing every feature does anyway,
-   such as writing specs.
-3. Wait for the go-ahead, or the PO's questions.
+   what parts, what new interactions, any restructuring. No implementation details, and nothing
+   every feature does anyway, such as writing specs.
+3. Show it to the PO in full, as at the end of Define: a short status line, a `---` separator, the
+   summary, and a short question: go ahead to Build, or keep designing? Then wait for the go-ahead,
+   or the PO's questions.
 
 ## Build
 
@@ -39,6 +44,8 @@ If the design does not hold, stop and state the problem briefly. The PO decides 
 restructuring is built in, or the code changes are reverted and we return to Design. Either way
 `DESIGN-<code>.md` is updated to the design that gets built.
 
+Once it is built, go straight on to Verify, unless a problem needs the PO.
+
 ## Verify
 
 1. Run all suites: `Host.Spec`, `Core.Spec`, `Architecture.Spec` and Web's tests.
@@ -49,4 +56,5 @@ restructuring is built in, or the code changes are reverted and we return to Des
 4. Fix what is small. A misunderstanding that affects the whole feature goes back to Define: report
    it, clear it up with the PO and update `REQUIREMENTS-<code>.md`, then adjust `DESIGN-<code>.md`
    and the build. Nothing is reverted at this stage.
-5. Hand over to the PO for manual testing and commit.
+5. Hand over with a clear status: the feature is built and verified, and what you fixed on the
+   way, if anything. Then the next step: the PO tests it and commits.

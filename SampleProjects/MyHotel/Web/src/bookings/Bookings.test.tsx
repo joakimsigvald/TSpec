@@ -7,11 +7,12 @@ import { Bookings } from './Bookings';
 const request = { roomNumber: '101', guestName: 'Smith', from: '2026-08-10', to: '2026-08-12' };
 const booking10001 = { bookingNumber: 10001, ...request };
 const booking10002 = { bookingNumber: 10002, roomNumber: '102', guestName: 'Jones', from: '2026-08-11', to: '2026-08-13' };
+const rooms = ['101', '12A', '2', '12'].map(roomNumber => ({ roomNumber, bedCount: 1 }));
 
 const rowOf = (bookingNumber: number) => screen.findByRole('row', { name: new RegExp(`^${bookingNumber}`) });
 
 const fillIn = async () => {
-  await userEvent.type(screen.getByLabelText('Rumsnummer'), request.roomNumber);
+  await userEvent.selectOptions(screen.getByLabelText('Rumsnummer'), request.roomNumber);
   await userEvent.type(screen.getByLabelText('Gäst'), request.guestName);
   await userEvent.type(screen.getByLabelText('Från'), request.from);
   await userEvent.type(screen.getByLabelText('Till'), request.to);
@@ -22,7 +23,7 @@ const bookRefusedWith = async (status: number, code: string) => {
     'GET /bookings': { status: 200, body: [] },
     'POST /bookings': { status, body: { code } },
   });
-  render(<Bookings />);
+  render(<Bookings rooms={rooms} />);
   await fillIn();
   await userEvent.click(screen.getByRole('button', { name: 'Boka' }));
 };
@@ -30,17 +31,24 @@ const bookRefusedWith = async (status: number, code: string) => {
 describe('Bookings', () => {
   it('lists the bookings', async () => {
     fakeApi({ 'GET /bookings': { status: 200, body: [booking10001, booking10002] } });
-    render(<Bookings />);
+    render(<Bookings rooms={rooms} />);
     expect(await rowOf(10001)).toHaveTextContent('10001101Smith2026-08-102026-08-12');
     expect(await rowOf(10002)).toHaveTextContent('10002102Jones2026-08-112026-08-13');
   });
 
-  it('books the room entered', async () => {
+  it('offers the rooms in alphanumeric order', async () => {
+    fakeApi({ 'GET /bookings': { status: 200, body: [] } });
+    render(<Bookings rooms={rooms} />);
+    const options = within(screen.getByLabelText('Rumsnummer')).getAllByRole('option');
+    expect(options.map(option => option.textContent)).toEqual(['Välj rum', '2', '12', '12A', '101']);
+  });
+
+  it('books the room chosen', async () => {
     const api = fakeApi({
       'GET /bookings': { status: 200, body: [] },
       'POST /bookings': { status: 201, body: booking10001 },
     });
-    render(<Bookings />);
+    render(<Bookings rooms={rooms} />);
     await fillIn();
     await userEvent.click(screen.getByRole('button', { name: 'Boka' }));
     expect(await rowOf(10001)).toBeInTheDocument();
@@ -48,6 +56,18 @@ describe('Bookings', () => {
       method: 'POST',
       body: JSON.stringify(request),
     }));
+  });
+
+  it('asks for a room again after a booking', async () => {
+    fakeApi({
+      'GET /bookings': { status: 200, body: [] },
+      'POST /bookings': { status: 201, body: booking10001 },
+    });
+    render(<Bookings rooms={rooms} />);
+    await fillIn();
+    await userEvent.click(screen.getByRole('button', { name: 'Boka' }));
+    await rowOf(10001);
+    expect(screen.getByLabelText('Rumsnummer')).toHaveDisplayValue('Välj rum');
   });
 
   it('says under the room number that there is no such room', async () => {
@@ -80,7 +100,7 @@ describe('Bookings', () => {
       'GET /bookings': { status: 200, body: [booking10001, booking10002] },
       'DELETE /bookings/10001': { status: 204 },
     });
-    render(<Bookings />);
+    render(<Bookings rooms={rooms} />);
     await userEvent.click(within(await rowOf(10001)).getByRole('button', { name: 'Avboka' }));
     await rowOf(10002);
     expect(screen.queryByRole('row', { name: /^10001/ })).not.toBeInTheDocument();
