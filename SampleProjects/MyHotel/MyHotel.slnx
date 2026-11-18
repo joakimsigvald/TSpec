@@ -7,6 +7,7 @@
     <File Path="CODING-STANDARD.md" />
     <File Path="GLOSSARY.md" />
     <File Path="README.md" />
+    <File Path="TESTING.md" />
   </Folder>
   <Project Path="Architecture.Spec/Architecture.Spec.csproj" />
   <Project Path="Contract/Contract.csproj" />

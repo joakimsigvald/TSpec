@@ -46,7 +46,7 @@ a. What the API holds is read through a query (TanStack Query), one per list, an
    since a room states whether it has open bookings. A query also reloads when the window regains
    focus; the backend pushes nothing. (V)
 b. An update that reads the current state uses the updater form
-   (`setRooms(current => ...)`), never the closed-over value. (II)
+   (`setCount(current => current + 1)`), never the closed-over value. (II)
 c. No state that can be computed from props or other state during render. (I)
 
 ## 5. The API
@@ -77,15 +77,3 @@ b. Everything the user can see or do is reachable by role and accessible name - 
    query, so an element they cannot find that way is a defect, not a test problem. (II)
 c. Styles live in `styles.css`, on elements and small reusable classes (`field`, `actions`); no inline
    styles, no styling in components. (I)
-
-## 8. Tests
-
-a. Vitest and Testing Library, one test file per view, beside it (`Rooms.test.tsx`). The API is faked by
-   `src/test/fakeApi.ts`: each test declares the replies it needs, and an undeclared request fails
-   it. (II)
-b. A test does what the user does - type, click - and asserts what the user sees, by role, accessible
-   name and description; never component internals, state or class names. (III)
-c. A test of an action also asserts what was sent: the method, the path and the body the API
-   received. (V)
-d. A refusal is asserted as the Swedish text in the place the user finds it
-   (`toHaveAccessibleDescription`), stating both the wording and the link to its field or button. (V)

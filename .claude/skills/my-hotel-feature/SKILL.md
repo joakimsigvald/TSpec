@@ -22,7 +22,7 @@ Stop Host, or Web's dev server, as soon as you are done using it, if you started
 2. Ask about the feature until you know exactly what the PO wants: one question at a time, each
    concrete enough to answer in a line. A new term's name is agreed here.
 3. If seeing the application would help you understand the requirement, run it and study it
-   (`TESTING.md`). Only then: it is not a step of every feature.
+   (`README.md`). Only then: it is not a step of every feature.
 4. Write a short summary of the feature to `Features/REQUIREMENTS-<code>.md`, then show it to the PO
    in full, not linked or buried in a longer answer. The reply is a short status line, a `---`
    separator, the summary, and a short question: go ahead to Design, or keep defining? To keep
@@ -58,7 +58,7 @@ Once it is built, go straight on to Verify, unless a problem needs the PO.
    `REQUIREMENTS-<code>.md`. They need not match word for word, but must show no contradiction and
    no missing spec. `Architecture.Spec/_specification.md` is read only as a diff, when the change
    updated the guard-rails.
-3. When the feature touches the UI, try it in the browser (`TESTING.md`). A small change of UI logic
+3. When the feature touches the UI, try it in the browser (`README.md`). A small change of UI logic
    is verified by Web's tests alone.
 4. Fix what is small. A misunderstanding that affects the whole feature goes back to Define: report
    it, clear it up with the PO and update `REQUIREMENTS-<code>.md`, then adjust `DESIGN-<code>.md`

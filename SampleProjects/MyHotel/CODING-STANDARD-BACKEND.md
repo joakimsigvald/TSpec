@@ -31,8 +31,7 @@ f. Foreign code - anything from outside MyHotel, such as a package or TSpec itse
 ## 1. Language and naming
 
 a. Identifiers and comments are English and pure ASCII. (I)
-b. A domain concept has one term in code, the one `GLOSSARY.md` lists. The PR that introduces, renames or
-   retires a concept updates its row. (I)
+b. A domain concept has one term in code, the one `GLOSSARY.md` lists. (I)
 c. A name says what the thing *is*: a method by what it returns or does (`BookingsFor`, `Book`), a
    variable by its role (`remaining`, `offered`), never by its type or history (`list2`, `newBooking`,
    `tempResult`). (III)
@@ -120,6 +119,9 @@ g. A clause takes no braces when it is a simple statement, and takes them when i
    one selection, and a `using` that runs to the end of its block, which is a declaration
    (`using var reader = ...;`). (VI)
 h. A named step inside a method is a local function, never a lambda held in a variable. (IV)
+i. An endpoint that only returns a value may be an inline lambda (`() => new VersionInfo(version)`).
+   One with logic or calls is a named handler method that calls one service method and builds the
+   response. A service has one method per endpoint. (IV)
 
 ## 5. Async
 
