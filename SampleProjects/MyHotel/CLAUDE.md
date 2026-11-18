@@ -8,22 +8,20 @@ Applies to everything under `SampleProjects/MyHotel/`. What MyHotel is: [README.
 
 ## Architecture — Neat
 
-Folders are named for the layer, assemblies are `MyHotel.<Layer>`.
+Folders are named for the layer, assemblies are `MyHotel.<Layer>`. `Architecture.Spec` confirms
+this section; its generated `_specification.md` is read only as a diff, when a change updates it.
 
 | Project | Assembly | References | Holds |
 |---|---|---|---|
-| `Host` | `MyHotel.Host` | everything | startup and DI, almost nothing else |
+| `Host` | `MyHotel.Host` | Entry, Infra | startup and DI, almost nothing else |
 | `Entry` | `MyHotel.Entry` | Contract | the REST endpoints, as thin as possible |
 | `Contract` | `MyHotel.Contract` | nothing | the models and interfaces Entry needs — the public shape |
 | `Core` | `MyHotel.Core` | Contract | all the logic, and the interfaces it needs storage to satisfy |
-| `Infra` | `MyHotel.Infra` | Core | storage and outward calls; thin and logic-free |
+| `Infra` | `MyHotel.Infra` | Core | storage and outward calls; thin, logic-free, declaring no interface |
 | `Web` | — | nothing; calls the API over HTTP | a React UI, one folder per resource |
 
-**Web is a client of the HTTP contract and repeats none of its rules.** It shows what the API
-answers, and a refusal as the Swedish text `src/locales/sv.json` gives its error code, or a generic
-one for a code it does not know. A form shows it under the field the code concerns, otherwise under
-its button, linked by `aria-describedby`. Its dev server forwards `/rooms` and `/bookings`
-to Host (`vite.config.ts`), so a new top-level route needs an entry there.
+Web's dev server forwards `/rooms` and `/bookings` to Host (`vite.config.ts`), so a new top-level
+route needs an entry there.
 
 **Entry and Core never reference each other**, and the compiler is what enforces it. When Entry needs
 a model that lives in Core there are two moves, both cheap: promote it to Contract, or duplicate it
@@ -33,19 +31,17 @@ in Contract and map. Never add the reference.
 included. One it does not list fails the suite, so adding a reference is an architecture
 decision, made there.
 
-**`Architecture.Spec` also holds the coding standard as facts**, one class per rule a tool can check
-from the source (`LineWidths` is 11a, `GetPrefixes` 4c), each citing its rule. A red fact is fixed in
-the code; a rule that does not fit is changed in `CODING-STANDARD-BACKEND.md` and its fact in the same change,
-never switched off in the source (`Suppressions`).
+**`Architecture.Spec` also checks the coding standard**, one fact per rule a tool can check from the
+source, citing its rule. A red fact is fixed in the code; a rule that does not fit is changed in
+`CODING-STANDARD-BACKEND.md` and its fact in the same change, never switched off in the source.
 
 **Core is structured vertically** — subdomains that name their purpose (`Core/Rooms/`), not another
 horizontal layer inside. Which may use which is `SubdomainDependencies`' graph: Bookings uses Rooms,
 never the reverse, so a rule that has Rooms consult Bookings needs a decision there first. Beyond
 Contract, Core takes no dependency that would hurt its testability.
 
-**Contract is split the same way** — `Contract/Rooms/` and `Contract/Bookings/`, each with its
-exceptions in an `Exceptions/` folder (8g); what both use, `ErrorBody` and `VersionInfo`, stays at
-the root.
+**Contract is split the same way** — `Contract/Rooms/` and `Contract/Bookings/`; what both use
+stays at the root.
 
 **Storage is a JSON file, so rooms outlive the process.** `IRoomStore` is declared in Core and
 implemented in Infra — whole-list load and save, because a store that knew how to find or replace one
@@ -64,8 +60,7 @@ Entry codes against.
 **`GlobalExceptionHandler` maps those exceptions to a status and an `ErrorBody`, and handles nothing
 else.** The body's code is the exception's name. An unrecognised exception is returned to the
 pipeline, which logs it and answers 500 — catching it would replace a real diagnostic with a guess. A
-new Contract exception needs a case there, or it becomes a 500, and its code a text in Web's
-`sv.json`.
+new Contract exception needs a case there, or it becomes a 500.
 
 ## Rules
 
@@ -73,9 +68,8 @@ new Contract exception needs a case there, or it becomes a 500, and its code a t
 validation, error handling or configuration. If the next step looks obvious, say so in a sentence
 and wait.
 
-**Spec first.** Write the spec → run it → watch it fail *for the right reason* → smallest
-implementation → full suite. A compile error, or a 404 where you expected a wrong value, means the
-behaviour has not been observed yet. Never write production code that no failing spec asked for.
+**Spec first**, as the repository's `CLAUDE.md` says. A compile error, or a 404 where you expected a
+wrong value, means the behaviour has not been observed yet.
 
 **Spec at the layer that owns the claim.** Three suites, stating different things:
 
@@ -85,8 +79,8 @@ behaviour has not been observed yet. Never write production code that no failing
 - `Core.Spec` — subject is a Core type with its collaborators mocked, no HTTP. States the *domain
   rules*: what is unique, what order things are kept in, what is refused. One folder per class under
   test (`RoomService/`), one `When…` class per method.
-- `Web` — Vitest and Testing Library, with the API faked (`src/test/fakeApi.ts`). States what the
-  user sees for what the API answers, and what each action sends. One test file per view.
+- `Web` — states what the user sees for what the API answers, and what each action sends
+  (`CODING-STANDARD-FRONTEND.md` 8).
 
 `Contract` and `Entry` hold no logic and get no specs — Entry's mapping is stated end-to-end. Do not
 narrow a spec to a layer when the behaviour is only observable end-to-end, and do not restate a
@@ -105,7 +99,7 @@ itself never returns (409, 400) do not have the problem.
 **Smallest thing that works, within the layout.** The layers are fixed; what goes in them is not.
 Extract a type inside a layer only when leaving it where it is makes the *current* change harder. No
 interface without a mock or a second implementation that needs it, no repository per entity, no
-configuration. Storage stays in memory until asked otherwise.
+configuration.
 
 **The document is the artifact, not the per-test text.** MyHotel exists to exercise
 the generated `_specification/` folder; per-test rendering is already locked by the expectations in `Core.Test`. Do not
@@ -133,12 +127,8 @@ change is caught where it matters: in the committed files' diff.
   dotnet test SampleProjects/MyHotel/Architecture.Spec
   ```
 
-- Web's tests run with npm; `dotnet test` does not run them. Building the solution type-checks and
-  bundles Web, so it needs Node.
-
-  ```bash
-  npm --prefix SampleProjects/MyHotel/Web test
-  ```
+- Web's tests run with npm (`TESTING.md`); `dotnet test` does not run them. Building the solution
+  type-checks and bundles Web, so it needs Node.
 
 - **`Microsoft.OpenApi` stays on the 2.x line.** `Microsoft.AspNetCore.OpenApi`'s source generator
   emits code that only compiles against 2.x's object model; 3.x breaks the build.

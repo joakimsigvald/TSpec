@@ -14,7 +14,8 @@ Stop Host, or Web's dev server, as soon as you are done using it, if you started
 ## Define
 
 1. Read `CLAUDE.md`, `GLOSSARY.md` and the generated `Host.Spec/_specification/` and
-   `Core.Spec/_specification/`.
+   `Core.Spec/_specification/`. In those, start from each `README.md` index and the section captions:
+   read in full what the feature concerns, and skim or skip the rest.
 2. Ask about the feature until you know exactly what the PO wants: one question at a time, each
    concrete enough to answer in a line. A new term's name is agreed here.
 3. If seeing the application would help you understand the requirement, run it and study it
@@ -26,8 +27,8 @@ Stop Host, or Web's dev server, as soon as you are done using it, if you started
 
 ## Design
 
-1. Study the relevant code, `CODING-STANDARD.md` with the backend or frontend one for the code
-   touched, and `Architecture.Spec/_specification.md`.
+1. Study the relevant code, and `CODING-STANDARD.md` with `CODING-STANDARD-BACKEND.md` or
+   `CODING-STANDARD-FRONTEND.md` for each side the feature touches.
 2. Summarise the design in `Features/DESIGN-<code>.md`, so the PO understands how it will be built:
    what parts, what new interactions, any restructuring. No implementation details, and nothing
    every feature does anyway, such as writing specs.
@@ -50,8 +51,10 @@ Once it is built, go straight on to Verify, unless a problem needs the PO.
 ## Verify
 
 1. Run all suites: `Host.Spec`, `Core.Spec`, `Architecture.Spec` and Web's tests.
-2. Read the `_specification` diffs, new files included, against `REQUIREMENTS-<code>.md`.
-   They need not match word for word, but must show no contradiction and no missing spec.
+2. Read the `_specification` diffs of `Host.Spec` and `Core.Spec`, new files included, against
+   `REQUIREMENTS-<code>.md`. They need not match word for word, but must show no contradiction and
+   no missing spec. `Architecture.Spec/_specification.md` is read only as a diff, when the change
+   updated the guard-rails.
 3. When the feature touches the UI, try it in the browser (`TESTING.md`). A small change of UI logic
    is verified by Web's tests alone.
 4. Fix what is small. A misunderstanding that affects the whole feature goes back to Define: report

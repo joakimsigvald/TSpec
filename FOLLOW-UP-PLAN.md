@@ -30,6 +30,7 @@ Each waits for a real spec that is worse without it.
 | D8 | **A run of digits splits apart.** `SplitWords` never advances `prev`, so every digit starts a word and only the acronym merge rejoins single ones: `Item10x` reads `item 1 0x`. Advancing it also turns `GivenX10` from `given x10` into `given x 10`. | Small | Small | 0 |
 | D11 | **A lone capital at the start of a title splits off.** `TSpec` reads `# T Spec`, `EShop` `# E Shop`. Fix it in `AsTitle` only, since `GivenASnake` must still read `given a snake` and `MyHTTPServer` `My HTTP Server`. | Small | Small | 0 |
 | D15 | **Given-headings and bullets could link to their line** once Visual Studio's Markdown preview follows a `#L` anchor. `SourceLocations` already reads lines. | Small | Small | 0 |
+| D17 | **A reader cannot tell from the index what a file states.** An agent picks what to read from the `README.md` index and the captions, but the index gives only counts: MyHotel's Host.Spec shows `[Bookings](Bookings.md) \| 6 \| 20 \| 34`, not its six acts. | Medium | Medium | 0 |
 
 ## E. Documentation
 
