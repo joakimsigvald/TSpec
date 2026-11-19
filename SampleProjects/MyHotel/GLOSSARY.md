@@ -13,6 +13,7 @@ is provisional: the term is not used in code yet, and is the product owner's to 
 | `Room` | A room the hotel can let |
 | `RoomNumber` | A room's identity, which never changes: renumbering a room is deleting it and adding another |
 | `BedCount` | How many beds a room has |
+| `Rules` | The limits on what the hotel accepts, published for Web to offer its choices within |
 | `RoomCategory` | A kind of room the hotel keeps, identified by its name. Every room has one |
 | `Booking` | A room held for a guest for a period of nights, identified by its booking number |
 | `BookingNumber` | A booking's identity, issued in order by the hotel and never by the caller |

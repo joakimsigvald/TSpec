@@ -7,6 +7,12 @@ Return type: HttpResponseMessage
 Using Room with RoomCategory = "Standard"
 ```
 
+## [When add room with ten beds](../Rooms/WhenAddRoomWithTenBeds.cs)
+`Api.PostAsJsonAsync("/rooms", a Room with { BedCount = 10 })`
+
+- **respond bad request** — `Result.StatusCode is BadRequest`
+- **say the bed count is invalid** — `Result.Read<ErrorBody>().Code is "InvalidBedCount"`
+
 ## [When add room](../Rooms/WhenAddRoom.cs)
 `Api.PostAsJsonAsync("/rooms", a Room)`
 
@@ -64,6 +70,17 @@ Having Api.PostAsJsonAsync("/rooms", the Room)
 - **respond ok** — `Result.StatusCode is OK`
 - **return the updated room**\
   `Result.Read<Room>() is the Room with { BedCount = a second int }`
+
+## [When update room with ten beds](../Rooms/WhenUpdateRoomWithTenBeds.cs)
+```
+Api.PutAsJsonAsync("/rooms/{a Room's RoomNumber}", the Room with { BedCount = 10 })
+Having Api.PostAsJsonAsync("/rooms", the Room)
+```
+
+### Given the room exists
+
+- **respond bad request** — `Result.StatusCode is BadRequest`
+- **say the bed count is invalid** — `Result.Read<ErrorBody>().Code is "InvalidBedCount"`
 
 ## [When list rooms](../Rooms/WhenListRooms.cs)
 `Api.GetAsync("/rooms")`

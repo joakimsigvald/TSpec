@@ -5,15 +5,20 @@ import type { RoomCategory } from '../roomCategories/roomCategoriesApi';
 import { useFormAttempt } from '../useFormAttempt';
 import type { Room } from './roomsApi';
 
-type Props = { roomCategories: RoomCategory[]; onAdd: (room: Room) => Promise<void> };
+type Props = { roomCategories: RoomCategory[]; bedCounts: number[]; onAdd: (room: Room) => Promise<void> };
 
-const fieldOf = { RoomAlreadyExists: 'roomNumber', RoomCategoryNotFound: 'roomCategory' } as const;
+const fieldOf = {
+  RoomAlreadyExists: 'roomNumber',
+  RoomCategoryNotFound: 'roomCategory',
+  InvalidBedCount: 'bedCount',
+} as const;
 
-export function AddRoomForm({ roomCategories, onAdd }: Props) {
+export function AddRoomForm({ roomCategories, bedCounts, onAdd }: Props) {
   const { t } = useTranslation();
   const { attempt, failureAt } = useFormAttempt(fieldOf);
   const roomNumberError = useId();
   const roomCategoryError = useId();
+  const bedCountError = useId();
   const buttonError = useId();
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -45,8 +50,11 @@ export function AddRoomForm({ roomCategories, onAdd }: Props) {
       <div className="field">
         <label>
           {t('rooms.beds')}
-          <input name="bedCount" type="number" required />
+          <select name="bedCount" required aria-describedby={bedCountError}>
+            {bedCounts.map(count => <option key={count}>{count}</option>)}
+          </select>
         </label>
+        <ErrorMessage id={bedCountError} code={failureAt('bedCount')} />
       </div>
       <div className="field actions">
         <button aria-describedby={buttonError}>{t('rooms.add')}</button>

@@ -7,6 +7,12 @@ Return type: HttpResponseMessage
 Using Room with RoomCategory = "Standard"
 ```
 
+## [When get rules](../WhenGetRules.cs)
+`Api.GetAsync("/rules")`
+
+- **respond ok** — `Result.StatusCode is OK`
+- **return the bed count limits** — `Result.Read<Rules>() is new Rules(1, 9)`
+
 ## [When get version](../WhenGetVersion.cs)
 `Api.GetAsync("/version")`
 

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { cancelOpenBookings } from '../bookings/bookingsApi';
 import { ConfirmDialog, type Confirmation } from '../ConfirmDialog';
 import { ErrorMessage } from '../ErrorMessage';
-import { useReload, useRoomCategories, useRooms } from '../queries';
+import { useReload, useRoomCategories, useRooms, useRules } from '../queries';
 import { useAttempt } from '../useAttempt';
 import { AddRoomForm } from './AddRoomForm';
 import { RoomRow } from './RoomRow';
@@ -13,6 +13,7 @@ export function Rooms() {
   const { t } = useTranslation();
   const { rooms, failure: loadFailure } = useRooms();
   const { roomCategories } = useRoomCategories();
+  const { bedCounts } = useRules();
   const reload = useReload('room');
   const reloadAfterBookings = useReload('booking');
   const { failure, attempt } = useAttempt();
@@ -71,6 +72,7 @@ export function Rooms() {
               key={room.roomNumber}
               room={room}
               roomCategories={roomCategories}
+              bedCounts={bedCounts}
               asking={asking?.roomNumber === room.roomNumber}
               onSave={save}
               onCancelBookings={cancelBookings}
@@ -79,7 +81,7 @@ export function Rooms() {
           ))}
         </tbody>
       </table>
-      <AddRoomForm roomCategories={roomCategories} onAdd={add} />
+      <AddRoomForm roomCategories={roomCategories} bedCounts={bedCounts} onAdd={add} />
       {asking && <ConfirmDialog {...asking.confirmation} onClose={() => setAsking(undefined)} />}
     </section>
   );

@@ -29,6 +29,7 @@ app.MapOpenApi();
 app.MapScalarApiReference();
 
 app.MapVersionEndpoint(version);
+app.MapRulesEndpoint();
 app.MapRoomEndpoints();
 app.MapRoomCategoryEndpoints();
 app.MapBookingEndpoints();

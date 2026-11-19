@@ -58,6 +58,7 @@
     "RoomNotFound": "Rummet finns inte.",
     "RoomAlreadyExists": "Rummet finns redan.",
     "RoomNumberMismatch": "Ett rum kan inte byta nummer.",
+    "InvalidBedCount": "Otillåtet antal sängar.",
     "RoomHasOpenBookings": "Rummet har aktuella eller kommande bokningar.",
     "RoomCategoryNotFound": "Kategorin finns inte.",
     "RoomCategoryAlreadyExists": "Kategorin finns redan.",

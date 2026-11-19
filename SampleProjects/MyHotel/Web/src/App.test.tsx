@@ -21,8 +21,15 @@ const standard = { name: 'Standard', description: 'Standardrum', hasRooms: false
 const suite = { name: 'Svit', description: 'Två rum', hasRooms: false };
 
 const fakeHotel = (replies: Parameters<typeof fakeApi>[0]) =>
-  fakeApi({ 'GET /room-categories': { status: 200, body: [standard] }, ...replies });
+  fakeApi({
+    'GET /room-categories': { status: 200, body: [standard] },
+    'GET /rules': { status: 200, body: { minBedCount: 1, maxBedCount: 9 } },
+    ...replies,
+  });
 
+const bedsChoice = () => screen.getByRole('combobox', { name: 'Sängar' });
+const chooseBeds = async (count: number) =>
+  userEvent.selectOptions(bedsChoice(), await within(bedsChoice()).findByRole('option', { name: String(count) }));
 const roomChoice = () => screen.getByRole('combobox', { name: 'Rumsnummer' });
 const offered = (roomNumber: string) => within(roomChoice()).queryByRole('option', { name: roomNumber });
 const categoryChoice = () => screen.getByRole('combobox', { name: 'Kategori' });
@@ -40,7 +47,7 @@ describe('App', () => {
     });
     renderPage(<App />);
     await userEvent.type(screen.getByRole('textbox', { name: 'Rumsnummer' }), room102.roomNumber);
-    await userEvent.type(screen.getByLabelText('Sängar'), String(room102.bedCount));
+    await chooseBeds(room102.bedCount);
     await waitFor(() => expect(categoryOffered('Standard')).toBeInTheDocument());
     await userEvent.selectOptions(categoryChoice(), 'Standard');
     await userEvent.click(screen.getByRole('button', { name: 'Lägg till rum' }));
@@ -86,7 +93,7 @@ describe('App', () => {
     });
     renderPage(<App />);
     await userEvent.type(screen.getByRole('textbox', { name: 'Rumsnummer' }), room101.roomNumber);
-    await userEvent.type(screen.getByLabelText('Sängar'), String(room101.bedCount));
+    await chooseBeds(room101.bedCount);
     await waitFor(() => expect(categoryOffered('Svit')).toBeInTheDocument());
     await userEvent.selectOptions(categoryChoice(), 'Svit');
     await userEvent.click(screen.getByRole('button', { name: 'Lägg till rum' }));

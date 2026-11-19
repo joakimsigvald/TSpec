@@ -32,6 +32,7 @@ internal sealed class GlobalExceptionHandler : IExceptionHandler
             RoomNotFound => new(Status404NotFound, nameof(RoomNotFound)),
             RoomAlreadyExists => new(Status409Conflict, nameof(RoomAlreadyExists)),
             RoomNumberMismatch => new(Status400BadRequest, nameof(RoomNumberMismatch)),
+            InvalidBedCount => new(Status400BadRequest, nameof(InvalidBedCount)),
             RoomHasOpenBookings => new(Status409Conflict, nameof(RoomHasOpenBookings)),
             RoomCategoryNotFound => new(Status404NotFound, nameof(RoomCategoryNotFound)),
             RoomCategoryAlreadyExists => new(Status409Conflict, nameof(RoomCategoryAlreadyExists)),

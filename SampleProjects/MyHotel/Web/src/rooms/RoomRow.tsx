@@ -6,13 +6,14 @@ import type { Room, RoomOverview } from './roomsApi';
 type Props = {
   room: RoomOverview;
   roomCategories: RoomCategory[];
+  bedCounts: number[];
   asking: boolean;
   onSave: (room: Room) => void;
   onCancelBookings: (roomNumber: string) => void;
   onDelete: (roomNumber: string) => void;
 };
 
-export function RoomRow({ room, roomCategories, asking, onSave, onCancelBookings, onDelete }: Props) {
+export function RoomRow({ room, roomCategories, bedCounts, asking, onSave, onCancelBookings, onDelete }: Props) {
   const { t } = useTranslation();
   const [bedCount, setBedCount] = useState(room.bedCount);
   const [roomCategory, setRoomCategory] = useState(room.roomCategory);
@@ -30,12 +31,13 @@ export function RoomRow({ room, roomCategories, asking, onSave, onCancelBookings
         </select>
       </td>
       <td>
-        <input
-          type="number"
+        <select
           aria-label={t('rooms.bedsInRoom', { roomNumber: room.roomNumber })}
           value={bedCount}
           onChange={event => setBedCount(Number(event.target.value))}
-        />
+        >
+          {bedCounts.map(count => <option key={count}>{count}</option>)}
+        </select>
       </td>
       <td>
         <button onClick={() => onSave({ roomNumber: room.roomNumber, bedCount, roomCategory })}>
