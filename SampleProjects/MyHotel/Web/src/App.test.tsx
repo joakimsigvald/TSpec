@@ -165,7 +165,7 @@ describe('App', () => {
     await userEvent.click(await roomButton('101', 'Avboka alla'));
     await answer('Avboka alla bokningar', 'OK');
     await waitFor(async () =>
-      expect(await screen.findByRole('row', { name: /^10001/ })).toHaveTextContent(/Avbokad$/));
+      expect(await screen.findByRole('row', { name: /^10001/ })).toHaveTextContent(/AvbokadÄndra$/));
   });
 
   it("stops a room's bookings being cancelled as soon as its guest checks in", async () => {
@@ -181,6 +181,25 @@ describe('App', () => {
     await userEvent.click(within(await rowOf('10001')).getByRole('button', { name: 'Checka in' }));
     await waitFor(async () => expect(await roomButton('101', 'Avboka alla')).toBeDisabled());
     expect(await roomButton('101', 'Ta bort')).toBeDisabled();
+  });
+
+  it('lets a room be deleted as soon as its booking moves to another room', async () => {
+    const moved = { ...booking10001, info: { ...booking10001.info, roomNumber: '102' } };
+    fakeHotel({
+      'GET /rooms': [
+        { status: 200, body: [withBookingsToCancel, room102] },
+        { status: 200, body: [room101, { ...room102, held: true, hasCancellableBookings: true }] },
+      ],
+      'GET /bookings': [{ status: 200, body: [booking10001] }, { status: 200, body: [moved] }],
+      'PUT /bookings/10001': { status: 200, body: moved },
+    });
+    renderPage(<App />);
+    await userEvent.click(within(await rowOf('10001')).getByRole('button', { name: 'Ändra' }));
+    const roomOfBooking = screen.getByRole('combobox', { name: 'Rum i bokning 10001' });
+    await userEvent.selectOptions(roomOfBooking, await within(roomOfBooking).findByRole('option', { name: '102' }));
+    await userEvent.click(within(await rowOf('10001')).getByRole('button', { name: 'Spara' }));
+    await waitFor(async () => expect(await roomButton('101', 'Ta bort')).toBeEnabled());
+    expect(await roomButton('101', 'Avboka alla')).toBeDisabled();
   });
 
   it('lets a room be deleted as soon as its guest checks out', async () => {

@@ -4,22 +4,13 @@ import { ErrorMessage } from '../ErrorMessage';
 import type { Room } from '../rooms/roomsApi';
 import { hasEmptyField, useEntered } from '../useEntered';
 import { useFormAttempt } from '../useFormAttempt';
+import { fieldOf, inAlphanumericOrder, requestOf, roomNumbersOf, type BookingEntry } from './bookingEntry';
 import { BookingPeriodFields } from './BookingPeriodFields';
 import type { BookingRequest } from './bookingsApi';
 
 type Props = { rooms: Room[]; onBook: (request: BookingRequest) => Promise<void> };
 
-type Entered = { from: string; to: string; roomNumber: string; guestCount: string; guestName: string };
-
-const fieldOf = {
-  RoomNotFound: 'roomNumber',
-  RoomAlreadyBooked: 'roomNumber',
-  InvalidGuestCount: 'guestCount',
-  TooManyGuests: 'guestCount',
-  InvalidBookingPeriod: 'to',
-} as const;
-
-const nothingEntered: Entered = { from: '', to: '', roomNumber: '', guestCount: '', guestName: '' };
+const nothingEntered: BookingEntry = { from: '', to: '', roomNumber: '', guestCount: '', guestName: '' };
 
 export function BookRoomForm({ rooms, onBook }: Props) {
   const { t } = useTranslation();
@@ -56,8 +47,8 @@ export function BookRoomForm({ rooms, onBook }: Props) {
             aria-describedby={roomNumberError}
           >
             <option value="">{t('bookings.chooseRoom')}</option>
-            {inAlphanumericOrder(rooms).map(room => (
-              <option key={room.roomNumber}>{room.roomNumber}</option>
+            {inAlphanumericOrder(roomNumbersOf(rooms)).map(roomNumber => (
+              <option key={roomNumber}>{roomNumber}</option>
             ))}
           </select>
         </label>
@@ -89,13 +80,3 @@ export function BookRoomForm({ rooms, onBook }: Props) {
     </form>
   );
 }
-
-const inAlphanumericOrder = (rooms: Room[]) =>
-  [...rooms].sort((one, other) => one.roomNumber.localeCompare(other.roomNumber, 'sv', { numeric: true }));
-
-const requestOf = ({ from, to, roomNumber, guestCount, guestName }: Entered): BookingRequest => ({
-  roomNumber,
-  guestName,
-  guestCount: Number(guestCount),
-  period: { from, to },
-});

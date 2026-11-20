@@ -57,7 +57,15 @@
     "checkOut": "Checka ut",
     "checkedIn": "Incheckad",
     "checkedOut": "Utcheckad",
-    "noShow": "No show"
+    "noShow": "No show",
+    "change": "Ändra",
+    "save": "Spara",
+    "cancelChange": "Avbryt",
+    "roomInBooking": "Rum i bokning {{bookingNumber}}",
+    "guestsInBooking": "Gäster i bokning {{bookingNumber}}",
+    "guestInBooking": "Gäst i bokning {{bookingNumber}}",
+    "fromInBooking": "Från i bokning {{bookingNumber}}",
+    "toInBooking": "Till i bokning {{bookingNumber}}"
   },
   "errors": {
     "RoomNotFound": "Rummet finns inte.",

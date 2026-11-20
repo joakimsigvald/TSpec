@@ -25,16 +25,9 @@ public class BookingService(
 
     public async Task<Booking> Book(BookingRequest request)
     {
-        if (request.Period.To <= request.Period.From)
-            throw new InvalidBookingPeriod(request.Period.From, request.Period.To);
-        if (request.GuestCount < 1)
-            throw new InvalidGuestCount(request.GuestCount);
-        var room = await RoomFor(request.RoomNumber);
-        if (request.GuestCount > room.BedCount)
-            throw new TooManyGuests(request.RoomNumber, request.GuestCount);
+        await EnsureBookable(request);
         var bookings = await store.Load();
-        if (bookings.Any(booking => Overlaps(booking, request)))
-            throw new RoomAlreadyBooked(request.RoomNumber);
+        EnsureRoomFree(request, bookings);
         var booked = new StoredBooking(
             await numbers.Next(),
             request.RoomNumber,
@@ -44,6 +37,18 @@ public class BookingService(
             BookingStage.Booked);
         await store.Save([.. bookings, booked]);
         return Sent(booked);
+    }
+
+    public async Task<Booking> Change(int bookingNumber, BookingRequest request)
+    {
+        await EnsureBookable(request);
+        var bookings = await store.Load();
+        var existing = Existing(bookings, bookingNumber);
+        if (existing.Stage != BookingStage.Cancelled)
+            EnsureRoomFree(request, bookings.Where(booking => booking != existing));
+        var changed = existing.ChangedTo(request);
+        await store.Save([.. bookings.Select(booking => booking == existing ? changed : booking)]);
+        return Sent(changed);
     }
 
     public Task Cancel(int bookingNumber) => Take(BookingAction.Cancel, bookingNumber);
@@ -69,6 +74,17 @@ public class BookingService(
         await SaveTaking(action, bookings, booking => booking == taken);
     }
 
+    private async Task EnsureBookable(BookingRequest request)
+    {
+        if (request.Period.To <= request.Period.From)
+            throw new InvalidBookingPeriod(request.Period.From, request.Period.To);
+        if (request.GuestCount < 1)
+            throw new InvalidGuestCount(request.GuestCount);
+        var room = await RoomFor(request.RoomNumber);
+        if (request.GuestCount > room.BedCount)
+            throw new TooManyGuests(request.RoomNumber, request.GuestCount);
+    }
+
     private Booking Sent(StoredBooking booking) => booking.AsOf(clock.Today());
 
     private Task SaveTaking(
@@ -82,6 +98,12 @@ public class BookingService(
     private static StoredBooking Existing(IEnumerable<StoredBooking> bookings, int bookingNumber) =>
         bookings.FirstOrDefault(booking => booking.BookingNumber == bookingNumber)
         ?? throw new BookingNotFound(bookingNumber);
+
+    private static void EnsureRoomFree(BookingRequest request, IEnumerable<StoredBooking> others)
+    {
+        if (others.Any(booking => Overlaps(booking, request)))
+            throw new RoomAlreadyBooked(request.RoomNumber);
+    }
 
     private static Exception Refusal(BookingAction action, int bookingNumber) =>
         action switch

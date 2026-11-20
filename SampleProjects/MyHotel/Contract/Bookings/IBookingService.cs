@@ -10,6 +10,7 @@ public interface IBookingService
     Task<IReadOnlyList<Booking>> Bookings();
     Task<Booking> BookingFor(int bookingNumber);
     Task<Booking> Book(BookingRequest request);
+    Task<Booking> Change(int bookingNumber, BookingRequest request);
     Task Cancel(int bookingNumber);
     Task CheckIn(int bookingNumber);
     Task CheckOut(int bookingNumber);

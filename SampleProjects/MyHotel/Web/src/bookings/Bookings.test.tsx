@@ -101,6 +101,25 @@ const book = async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Boka' }));
 };
 
+const changeField = (label: string) => screen.getByLabelText(`${label} i bokning 10001`);
+
+const startChanging = async () => {
+  await userEvent.click(within(await rowOf(10001)).getByRole('button', { name: 'Ändra' }));
+  await waitFor(() => expect(changeField('Rum')).toHaveDisplayValue('101'));
+};
+
+const changeRefusedWith = async (status: number, code: string) => {
+  fakeApi({
+    'GET /rooms': roomsReply,
+    'GET /bookings': { status: 200, body: [booking10001] },
+    'PUT /bookings/10001': { status, body: { code } },
+  });
+  renderPage(<Bookings />);
+  await startChanging();
+  await userEvent.type(changeField('Gäst'), 'son');
+  await click('Spara');
+};
+
 const bookTwoNightsByButton = async () => {
   bookAccepted();
   renderPage(<Bookings />);
@@ -218,7 +237,7 @@ describe('Bookings', () => {
     });
     renderPage(<Bookings />);
     await userEvent.click(within(await rowOf(10001)).getByRole('button', { name: 'Avboka' }));
-    await waitFor(async () => expect(await rowOf(10001)).toHaveTextContent(/Avbokad$/));
+    await waitFor(async () => expect(await rowOf(10001)).toHaveTextContent(/AvbokadÄndra$/));
     expect(api).toHaveBeenCalledWith('/bookings/10001', expect.objectContaining({ method: 'DELETE' }));
   });
 
@@ -231,13 +250,13 @@ describe('Bookings', () => {
     showing(inState(booking10001, 'Past', []));
     const row = await rowOf(10001);
     expect(within(row).queryByRole('button', { name: 'Avboka' })).not.toBeInTheDocument();
-    expect(row).toHaveTextContent(/2026-08-12$/);
+    expect(row).toHaveTextContent(/2026-08-12Ändra$/);
   });
 
   it('offers to cancel an open booking, and to check it in when it can be', async () => {
     showing(inState(booking10001, 'Open', ['Cancel', 'CheckIn']), booking10002);
-    expect(buttonsIn(await rowOf(10001))).toEqual(['Avboka', 'Checka in']);
-    expect(buttonsIn(await rowOf(10002))).toEqual(['Avboka']);
+    expect(buttonsIn(await rowOf(10001))).toEqual(['Avboka', 'Checka in', 'Ändra']);
+    expect(buttonsIn(await rowOf(10002))).toEqual(['Avboka', 'Ändra']);
   });
 
   it('checks in a booking, and shows it checked in', async () => {
@@ -251,7 +270,7 @@ describe('Bookings', () => {
     });
     renderPage(<Bookings />);
     await userEvent.click(within(await rowOf(10001)).getByRole('button', { name: 'Checka in' }));
-    await waitFor(async () => expect(await rowOf(10001)).toHaveTextContent(/Incheckad$/));
+    await waitFor(async () => expect(await rowOf(10001)).toHaveTextContent(/IncheckadÄndra$/));
     expect(api).toHaveBeenCalledWith('/bookings/10001/check-in', expect.objectContaining({ method: 'POST' }));
   });
 
@@ -259,8 +278,8 @@ describe('Bookings', () => {
     showing(inState(booking10001, 'CheckedIn', ['CheckOut']), inState(booking10002, 'CheckedIn', []));
     const checkingOut = await rowOf(10001);
     expect(checkingOut).toHaveTextContent('Incheckad');
-    expect(buttonsIn(checkingOut)).toEqual(['Checka ut']);
-    expect(buttonsIn(await rowOf(10002))).toEqual([]);
+    expect(buttonsIn(checkingOut)).toEqual(['Checka ut', 'Ändra']);
+    expect(buttonsIn(await rowOf(10002))).toEqual(['Ändra']);
   });
 
   it('checks out a booking, and shows it checked out', async () => {
@@ -274,8 +293,8 @@ describe('Bookings', () => {
     });
     renderPage(<Bookings />);
     await userEvent.click(within(await rowOf(10001)).getByRole('button', { name: 'Checka ut' }));
-    await waitFor(async () => expect(await rowOf(10001)).toHaveTextContent(/Utcheckad$/));
-    expect(buttonsIn(await rowOf(10001))).toEqual([]);
+    await waitFor(async () => expect(await rowOf(10001)).toHaveTextContent(/UtcheckadÄndra$/));
+    expect(buttonsIn(await rowOf(10001))).toEqual(['Ändra']);
     expect(api).toHaveBeenCalledWith('/bookings/10001/check-out', expect.objectContaining({ method: 'POST' }));
   });
 
@@ -283,9 +302,9 @@ describe('Bookings', () => {
     showing(inState(booking10001, 'NoShow', ['Cancel']), inState(booking10002, 'NoShow', []));
     const cancellable = await rowOf(10001);
     expect(cancellable).toHaveTextContent('No show');
-    expect(buttonsIn(cancellable)).toEqual(['Avboka']);
-    expect(await rowOf(10002)).toHaveTextContent(/No show$/);
-    expect(buttonsIn(await rowOf(10002))).toEqual([]);
+    expect(buttonsIn(cancellable)).toEqual(['Avboka', 'Ändra']);
+    expect(await rowOf(10002)).toHaveTextContent(/No showÄndra$/);
+    expect(buttonsIn(await rowOf(10002))).toEqual(['Ändra']);
   });
 
   it('says above the bookings that a booking was not checked in', async () => {
@@ -388,5 +407,100 @@ describe('Bookings', () => {
   it('says above the bookings that a booking was not cancelled', async () => {
     await refusedWhenClicking('Avboka', booking10001, 'DELETE /bookings/10001', 'BookingNotCancellable');
     expect(await screen.findByRole('alert')).toHaveTextContent('Bokningen kan inte avbokas.');
+  });
+
+  describe('changing a booking', () => {
+    it('is offered for every booking, last in its row', async () => {
+      showing(booking10001, inState(booking10002, 'Cancelled', []));
+      expect(buttonsIn(await rowOf(10001))).toEqual(['Avboka', 'Ändra']);
+      expect(buttonsIn(await rowOf(10002))).toEqual(['Ändra']);
+    });
+
+    it("turns the row into fields holding the booking's values", async () => {
+      showing(booking10001);
+      await startChanging();
+      expect(changeField('Rum')).toHaveDisplayValue('101');
+      expect(changeField('Gäster')).toHaveValue(2);
+      expect(changeField('Gäst')).toHaveValue('Smith');
+      expect(changeField('Från')).toHaveValue('2026-08-10');
+      expect(changeField('Till')).toHaveValue('2026-08-12');
+      expect(buttonsIn(await rowOf(10001))).toEqual(['Spara', 'Avbryt']);
+    });
+
+    it('offers the rooms in alphanumeric order', async () => {
+      showing(booking10001);
+      await startChanging();
+      expect(within(changeField('Rum')).getAllByRole('option').map(option => option.textContent))
+        .toEqual(['2', '12', '12A', '101']);
+    });
+
+    it('holds the room of a booking whose room is gone', async () => {
+      showing({ ...booking10001, info: { ...booking10001.info, roomNumber: '55' } });
+      await userEvent.click(within(await rowOf(10001)).getByRole('button', { name: 'Ändra' }));
+      expect(changeField('Rum')).toHaveDisplayValue('55');
+    });
+
+    it('cannot save until something is changed', async () => {
+      showing(booking10001);
+      await startChanging();
+      expect(screen.getByRole('button', { name: 'Spara' })).toBeDisabled();
+      await userEvent.type(changeField('Gäst'), 'son');
+      expect(screen.getByRole('button', { name: 'Spara' })).toBeEnabled();
+    });
+
+    it.each(['Gäster', 'Gäst', 'Från', 'Till'])('cannot save without %s', async emptied => {
+      showing(booking10001);
+      await startChanging();
+      await userEvent.clear(changeField(emptied));
+      expect(screen.getByRole('button', { name: 'Spara' })).toBeDisabled();
+    });
+
+    it('saves the change, and shows it on the row', async () => {
+      const changed = { ...booking10001, info: { ...booking10001.info, guestName: 'Jones' } };
+      const api = fakeApi({
+        'GET /rooms': roomsReply,
+        'GET /bookings': [{ status: 200, body: [booking10001] }, { status: 200, body: [changed] }],
+        'PUT /bookings/10001': { status: 200, body: changed },
+      });
+      renderPage(<Bookings />);
+      await startChanging();
+      await userEvent.clear(changeField('Gäst'));
+      await userEvent.type(changeField('Gäst'), 'Jones');
+      await click('Spara');
+      await waitFor(async () => expect(buttonsIn(await rowOf(10001))).toEqual(['Avboka', 'Ändra']));
+      expect(await rowOf(10001)).toHaveTextContent('100011012Jones2026-08-102026-08-12');
+      expect(api).toHaveBeenCalledWith('/bookings/10001', expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify({ ...request, guestName: 'Jones' }),
+      }));
+    });
+
+    it('shows the row as it was when the change is abandoned', async () => {
+      showing(booking10001);
+      await startChanging();
+      await userEvent.type(changeField('Gäst'), 'son');
+      await click('Avbryt');
+      expect(await rowOf(10001)).toHaveTextContent('100011012Smith2026-08-102026-08-12');
+      expect(buttonsIn(await rowOf(10001))).toEqual(['Avboka', 'Ändra']);
+      await startChanging();
+      expect(changeField('Gäst')).toHaveValue('Smith');
+    });
+
+    it.each([
+      ['Rum', 'RoomNotFound', 404, 'Rummet finns inte.'],
+      ['Rum', 'RoomAlreadyBooked', 409, 'Rummet är redan bokat under några av nätterna.'],
+      ['Gäster', 'InvalidGuestCount', 400, 'En bokning måste gälla minst en gäst.'],
+      ['Gäster', 'TooManyGuests', 409, 'Rummet har för få sängar.'],
+      ['Till', 'InvalidBookingPeriod', 400, 'En bokning måste gälla minst en natt.'],
+    ])('says under %s that the change was refused as %s', async (field, code, status, text) => {
+      await changeRefusedWith(status, code);
+      await waitFor(() => expect(changeField(field)).toHaveAccessibleDescription(text));
+    });
+
+    it('says under the button that the booking no longer exists', async () => {
+      await changeRefusedWith(404, 'BookingNotFound');
+      await waitFor(() =>
+        expect(screen.getByRole('button', { name: 'Spara' })).toHaveAccessibleDescription('Bokningen finns inte.'));
+    });
   });
 });

@@ -4,7 +4,15 @@ import { useBookings, useReload, useRooms } from '../queries';
 import { useAttempt } from '../useAttempt';
 import { BookingRow } from './BookingRow';
 import { BookRoomForm } from './BookRoomForm';
-import { bookRoom, cancelBooking, checkIn, checkOut, type BookingAction, type BookingRequest } from './bookingsApi';
+import {
+  bookRoom,
+  cancelBooking,
+  changeBooking,
+  checkIn,
+  checkOut,
+  type BookingAction,
+  type BookingRequest,
+} from './bookingsApi';
 
 export function Bookings() {
   const { t } = useTranslation();
@@ -15,6 +23,11 @@ export function Bookings() {
 
   const book = async (request: BookingRequest) => {
     await bookRoom(request);
+    await reload();
+  };
+
+  const save = async (bookingNumber: number, request: BookingRequest) => {
+    await changeBooking(bookingNumber, request);
     await reload();
   };
 
@@ -40,7 +53,9 @@ export function Bookings() {
           </tr>
         </thead>
         <tbody>
-          {bookings.map(booking => <BookingRow key={booking.bookingNumber} booking={booking} onAction={take} />)}
+          {bookings.map(booking => (
+            <BookingRow key={booking.bookingNumber} booking={booking} rooms={rooms} onAction={take} onSave={save} />
+          ))}
         </tbody>
       </table>
       <BookRoomForm rooms={rooms} onBook={book} />

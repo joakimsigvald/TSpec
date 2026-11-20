@@ -1,11 +1,31 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Booking, BookingAction, BookingStatus } from './bookingsApi';
+import type { Room } from '../rooms/roomsApi';
+import type { Booking, BookingAction, BookingRequest, BookingStatus } from './bookingsApi';
+import { ChangeBookingRow } from './ChangeBookingRow';
 
-type Props = { booking: Booking; onAction: (action: BookingAction, bookingNumber: number) => void };
+type Props = {
+  booking: Booking;
+  rooms: Room[];
+  onAction: (action: BookingAction, bookingNumber: number) => void;
+  onSave: (bookingNumber: number, request: BookingRequest) => Promise<void>;
+};
 
-export function BookingRow({ booking: { bookingNumber, info, period, state }, onAction }: Props) {
+export function BookingRow({ booking, rooms, onAction, onSave }: Props) {
   const { t } = useTranslation();
+  const [changing, setChanging] = useState(false);
+  const { bookingNumber, info, period, state } = booking;
   const statusLabel = statusLabels[state.status];
+
+  if (changing)
+    return (
+      <ChangeBookingRow
+        booking={booking}
+        rooms={rooms}
+        onSave={request => onSave(bookingNumber, request)}
+        onClose={() => setChanging(false)}
+      />
+    );
 
   return (
     <tr>
@@ -20,6 +40,7 @@ export function BookingRow({ booking: { bookingNumber, info, period, state }, on
         {state.actions.map(action => (
           <button key={action} onClick={() => onAction(action, bookingNumber)}>{t(actionLabels[action])}</button>
         ))}
+        <button onClick={() => setChanging(true)}>{t('bookings.change')}</button>
       </td>
     </tr>
   );

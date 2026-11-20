@@ -21,6 +21,7 @@ is provisional: the term is not used in code yet, and is the product owner's to 
 | `GuestCount` | How many guests a booking is for |
 | `BookingPeriod` | A booking's nights: the guest arrives on `From` and departs on `To`. Nights are half-open, `[From, To)`, so the departure night is free for the next booking |
 | `Overlaps` | Two bookings of one room share a night, neither of them cancelled |
+| `Change` | To give a booking another room, guest, guest count or period. It keeps its booking number and what has happened to it |
 | `Today` | The hotel's date: the server's, in its own time zone |
 | `BookingStage` | What has happened to a booking, as stored: `Booked`, `CheckedIn`, `CheckedOut` or `Cancelled` |
 | `BookingStatus` | `Open`, `CheckedIn`, `CheckedOut`, `NoShow`, `Past` or `Cancelled`: worked out from the booking's `BookingStage`, its dates and today |

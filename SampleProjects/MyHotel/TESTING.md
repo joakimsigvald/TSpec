@@ -30,6 +30,10 @@ in Core, or a domain rule over HTTP.
   derived from another when the claim rests on how they relate (`The<int>() + 1`), and the domain's
   name for it when it has one, kept in the spec project for every spec to share, as `Time` holds
   `Today` and `Tomorrow`. A literal only when the value itself is the claim.
+- Write out only what the claim rests on and what keeps the rest of the input valid. Leave the rest
+  to generation, with `A<T>() with { … }` or `Using(value)`, rather than spelling it out as
+  mentions, and of the forms that do this, choose the one that reads best. `new T(…)` is the last
+  resort: only when no other form reads better, or it is the shortest of those that read as well.
 - Do not pin rendering with `Specification.Is`: `Core.Test` already locks it, and a rendering change
   shows in the committed `_specification` diff.
 - TSpec usage: the repository's [agent-reference.md](../../agent-reference.md), and

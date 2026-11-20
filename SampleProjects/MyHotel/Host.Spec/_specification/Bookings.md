@@ -60,6 +60,28 @@ Having Api.PostAsJsonAsync("/bookings",
 
 - **respond no content** — `Result.StatusCode is NoContent`
 
+## [When change booking](../Bookings/WhenChangeBooking.cs)
+```
+Api.PutAsJsonAsync("/bookings/10001",
+    new BookingRequest(a Room's RoomNumber, a string, 1,
+    new BookingPeriod(new(2026, 8, 14), new(2026, 8, 16))))
+Having Api.PostAsJsonAsync("/bookings",
+    new BookingRequest(the Room's RoomNumber, a second string, 1,
+    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12))))
+  after Api.PostAsJsonAsync("/rooms", the Room)
+```
+
+### Given the booking exists
+
+- **respond ok** — `Result.StatusCode is OK`
+- **return the changed booking**
+  ```
+  Result.Read<Booking>() is new Booking(10001,
+      new BookingInfo(the Room's RoomNumber, the string, 1),
+      new BookingPeriod(new(2026, 8, 14), new(2026, 8, 16)),
+      new BookingState(Open, [Cancel]))
+  ```
+
 ## [When list bookings](../Bookings/WhenListBookings.cs)
 `Api.GetAsync("/bookings")`
 

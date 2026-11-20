@@ -1,4 +1,4 @@
-import { get, post, postAction, remove } from '../http';
+import { get, post, postAction, put, remove } from '../http';
 
 export type BookingStatus = 'Open' | 'CheckedIn' | 'CheckedOut' | 'NoShow' | 'Past' | 'Cancelled';
 
@@ -17,6 +17,9 @@ export type BookingRequest = BookingInfo & { period: BookingPeriod };
 export const listBookings = () => get<Booking[]>('/bookings');
 
 export const bookRoom = (request: BookingRequest) => post<Booking>('/bookings', request);
+
+export const changeBooking = (bookingNumber: number, request: BookingRequest) =>
+  put<Booking>(`/bookings/${bookingNumber}`, request);
 
 export const cancelBooking = (bookingNumber: number) => remove(`/bookings/${bookingNumber}`);
 

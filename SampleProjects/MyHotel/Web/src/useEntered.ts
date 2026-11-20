@@ -1,11 +1,11 @@
 import { useState } from 'react';
 
-export function useEntered<Fields extends object>(nothingEntered: Fields) {
-  const [entered, setEntered] = useState(nothingEntered);
+export function useEntered<Fields extends object>(initial: Fields) {
+  const [entered, setEntered] = useState(initial);
 
   const enter = (fields: Partial<Fields>) => setEntered(current => ({ ...current, ...fields }));
 
-  const clear = () => setEntered(nothingEntered);
+  const clear = () => setEntered(initial);
 
   return { entered, enter, clear };
 }

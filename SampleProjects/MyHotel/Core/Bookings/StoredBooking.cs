@@ -33,6 +33,15 @@ public record StoredBooking(
     internal bool HoldsItsRoomOn(DateOnly today) => StatusOn(today) == CheckedIn || IsCancellableOn(today);
     internal StoredBooking After(BookingAction action) => this with { Stage = StageAfter(action) };
 
+    internal StoredBooking ChangedTo(BookingRequest request) =>
+        this with
+        {
+            RoomNumber = request.RoomNumber,
+            GuestName = request.GuestName,
+            GuestCount = request.GuestCount,
+            Period = request.Period,
+        };
+
     private BookingState StateOn(DateOnly today) =>
         new(StatusOn(today), [.. Enum.GetValues<BookingAction>().Where(action => Allows(action, today))]);
 

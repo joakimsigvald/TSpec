@@ -12,9 +12,9 @@ Using Room with RoomCategory = "Standard"
 
 | Specification                       | When | Given | Then |
 |-------------------------------------|-----:|------:|-----:|
-| [Bookings](Bookings.md)             |   10 |    19 |   33 |
+| [Bookings](Bookings.md)             |   11 |    20 |   35 |
 | [Host](Host.md)                     |    2 |     0 |    4 |
 | [RoomCategories](RoomCategories.md) |    5 |    11 |   19 |
 | [Rooms](Rooms.md)                   |    8 |    13 |   26 |
-| *All*                               | *25* |  *43* | *82* |
+| *All*                               | *26* |  *44* | *84* |
 
