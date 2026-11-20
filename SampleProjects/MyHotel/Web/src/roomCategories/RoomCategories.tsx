@@ -25,10 +25,10 @@ export function RoomCategories() {
     await reload();
   };
 
-  const save = (roomCategory: RoomCategory) => attempt(async () => {
+  const save = async (roomCategory: RoomCategory) => {
     await updateRoomCategory(roomCategory);
     await reload();
-  });
+  };
 
   const remove = (name: string) => setAsking({
     name,

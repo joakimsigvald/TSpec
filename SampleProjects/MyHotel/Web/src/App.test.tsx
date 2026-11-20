@@ -106,6 +106,25 @@ describe('App', () => {
       expect(within(await rowOf('Svit')).getByRole('button', { name: 'Ta bort' })).toBeDisabled());
   });
 
+  it('lets a category be deleted as soon as its last room moves to another', async () => {
+    fakeHotel({
+      'GET /room-categories': [
+        { status: 200, body: [standard, { ...suite, hasRooms: true }] },
+        { status: 200, body: [standard, suite] },
+      ],
+      'GET /rooms': [{ status: 200, body: [{ ...room101, roomCategory: 'Svit' }] }, { status: 200, body: [room101] }],
+      'GET /bookings': { status: 200, body: [] },
+      'PUT /rooms/101': { status: 200, body: room101 },
+    });
+    renderPage(<App />);
+    await userEvent.click(await roomButton('101', 'Ändra'));
+    const categoryOfRoom = screen.getByRole('combobox', { name: 'Kategori för rum 101' });
+    await userEvent.selectOptions(categoryOfRoom, await within(categoryOfRoom).findByRole('option', { name: 'Standard' }));
+    await userEvent.click(await roomButton('101', 'Spara'));
+    await waitFor(async () =>
+      expect(within(await rowOf('Svit')).getByRole('button', { name: 'Ta bort' })).toBeEnabled());
+  });
+
   it('stops offering a room for booking as soon as it is deleted', async () => {
     fakeHotel({
       'GET /rooms': [{ status: 200, body: [room101, room102] }, { status: 200, body: [room102] }],

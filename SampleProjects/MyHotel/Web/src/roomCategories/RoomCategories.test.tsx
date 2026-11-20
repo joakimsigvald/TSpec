@@ -13,6 +13,9 @@ const rowOf = (name: string) => screen.findByRole('row', { name: new RegExp(`^${
 const descriptionIn = async (name: string) => within(await rowOf(name)).getByRole('textbox');
 const buttonIn = async (name: string, button: string) =>
   within(await rowOf(name)).getByRole('button', { name: button });
+const buttonsIn = async (name: string) =>
+  within(await rowOf(name)).getAllByRole('button').map(button => button.textContent);
+const startChanging = async (name: string) => userEvent.click(await buttonIn(name, 'Ändra'));
 
 const listed = () => screen.getAllByRole('row').slice(1).map(row => within(row).getAllByRole('cell')[0].textContent);
 const addButton = () => screen.getByRole('button', { name: 'Lägg till kategori' });
@@ -27,8 +30,22 @@ describe('RoomCategories', () => {
   it('lists the categories with their descriptions', async () => {
     fakeApi({ 'GET /room-categories': { status: 200, body: [standard, suite] } });
     renderPage(<RoomCategories />);
-    expect(await descriptionIn('Standard')).toHaveValue('Standardrum');
+    expect(await rowOf('Standard')).toHaveTextContent(/^StandardStandardrumTa bort/);
+    expect(await rowOf('Svit')).toHaveTextContent(/^SvitTvå rumTa bort/);
+  });
+
+  it('offers to change a category, last in its row', async () => {
+    fakeApi({ 'GET /room-categories': { status: 200, body: [suite] } });
+    renderPage(<RoomCategories />);
+    expect(await buttonsIn('Svit')).toEqual(['Ta bort', 'Ändra']);
+  });
+
+  it('turns the description into a field holding it', async () => {
+    fakeApi({ 'GET /room-categories': { status: 200, body: [suite] } });
+    renderPage(<RoomCategories />);
+    await startChanging('Svit');
     expect(await descriptionIn('Svit')).toHaveValue('Två rum');
+    expect(await buttonsIn('Svit')).toEqual(['Spara', 'Avbryt']);
   });
 
   it('lists the categories by name the Swedish way', async () => {
@@ -47,7 +64,7 @@ describe('RoomCategories', () => {
     });
     renderPage(<RoomCategories />);
     await addRoomCategory('Svit', 'Två rum');
-    expect(await descriptionIn('Svit')).toHaveValue('Två rum');
+    expect(await rowOf('Svit')).toHaveTextContent(/^SvitTvå rumTa bort/);
     expect(api).toHaveBeenCalledWith('/room-categories', expect.objectContaining({
       method: 'POST',
       body: JSON.stringify({ name: 'Svit', description: 'Två rum' }),
@@ -98,6 +115,7 @@ describe('RoomCategories', () => {
       'PUT /room-categories/Svit': { status: 200, body: { ...suite, description: 'Stor' } },
     });
     renderPage(<RoomCategories />);
+    await startChanging('Svit');
     const description = await descriptionIn('Svit');
     await userEvent.clear(description);
     await userEvent.type(description, 'Stor');
@@ -111,19 +129,29 @@ describe('RoomCategories', () => {
   it('cannot save a category before its description changes', async () => {
     fakeApi({ 'GET /room-categories': { status: 200, body: [suite] } });
     renderPage(<RoomCategories />);
+    await startChanging('Svit');
     expect(await buttonIn('Svit', 'Spara')).toBeDisabled();
   });
 
   it('cannot save a category whose description is changed back', async () => {
     fakeApi({ 'GET /room-categories': { status: 200, body: [suite] } });
     renderPage(<RoomCategories />);
+    await startChanging('Svit');
     const description = await descriptionIn('Svit');
     await userEvent.type(description, '!');
     await userEvent.type(description, '{Backspace}');
     expect(await buttonIn('Svit', 'Spara')).toBeDisabled();
   });
 
-  it('cannot save a category again once it is saved', async () => {
+  it('cannot save a category without a description', async () => {
+    fakeApi({ 'GET /room-categories': { status: 200, body: [suite] } });
+    renderPage(<RoomCategories />);
+    await startChanging('Svit');
+    await userEvent.clear(await descriptionIn('Svit'));
+    expect(await buttonIn('Svit', 'Spara')).toBeDisabled();
+  });
+
+  it('shows a saved change on the row', async () => {
     fakeApi({
       'GET /room-categories': [
         { status: 200, body: [suite] },
@@ -132,23 +160,38 @@ describe('RoomCategories', () => {
       'PUT /room-categories/Svit': { status: 200, body: { ...suite, description: 'Stor' } },
     });
     renderPage(<RoomCategories />);
+    await startChanging('Svit');
     const description = await descriptionIn('Svit');
     await userEvent.clear(description);
     await userEvent.type(description, 'Stor');
     await userEvent.click(await buttonIn('Svit', 'Spara'));
-    await waitFor(async () => expect(await buttonIn('Svit', 'Spara')).toBeDisabled());
+    await waitFor(async () => expect(await buttonsIn('Svit')).toEqual(['Ta bort', 'Ändra']));
+    expect(await rowOf('Svit')).toHaveTextContent(/^SvitStorTa bort/);
   });
 
-  it('asks for a description instead of saving an emptied one', async () => {
-    const api = fakeApi({ 'GET /room-categories': { status: 200, body: [suite] } });
+  it('shows the row as it was when the change is abandoned', async () => {
+    fakeApi({ 'GET /room-categories': { status: 200, body: [suite] } });
     renderPage(<RoomCategories />);
-    const description = await descriptionIn('Svit');
-    await userEvent.clear(description);
-    const save = await buttonIn('Svit', 'Spara');
-    expect(save).toBeEnabled();
-    await userEvent.click(save);
-    expect(description).toBeInvalid();
-    expect(api).not.toHaveBeenCalledWith('/room-categories/Svit', expect.anything());
+    await startChanging('Svit');
+    await userEvent.type(await descriptionIn('Svit'), '!');
+    await userEvent.click(await buttonIn('Svit', 'Avbryt'));
+    expect(await rowOf('Svit')).toHaveTextContent(/^SvitTvå rumTa bort/);
+    expect(await buttonsIn('Svit')).toEqual(['Ta bort', 'Ändra']);
+    await startChanging('Svit');
+    expect(await descriptionIn('Svit')).toHaveValue('Två rum');
+  });
+
+  it('says under the button on the row why a change was refused', async () => {
+    fakeApi({
+      'GET /room-categories': { status: 200, body: [suite] },
+      'PUT /room-categories/Svit': { status: 404, body: { code: 'RoomCategoryNotFound' } },
+    });
+    renderPage(<RoomCategories />);
+    await startChanging('Svit');
+    await userEvent.type(await descriptionIn('Svit'), '!');
+    await userEvent.click(await buttonIn('Svit', 'Spara'));
+    await waitFor(async () =>
+      expect(await buttonIn('Svit', 'Spara')).toHaveAccessibleDescription('Kategorin finns inte.'));
   });
 
   it('asks before deleting a category', async () => {

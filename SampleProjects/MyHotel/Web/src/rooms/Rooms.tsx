@@ -24,10 +24,10 @@ export function Rooms() {
     await reload();
   };
 
-  const save = (room: Room) => attempt(async () => {
+  const save = async (room: Room) => {
     await updateRoom(room);
     await reload();
-  });
+  };
 
   const cancelBookings = (roomNumber: string) => setAsking({
     roomNumber,

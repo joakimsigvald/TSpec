@@ -40,7 +40,7 @@ export function BookingRow({ booking, rooms, onAction, onSave }: Props) {
         {state.actions.map(action => (
           <button key={action} onClick={() => onAction(action, bookingNumber)}>{t(actionLabels[action])}</button>
         ))}
-        <button onClick={() => setChanging(true)}>{t('bookings.change')}</button>
+        <button onClick={() => setChanging(true)}>{t('general.change')}</button>
       </td>
     </tr>
   );

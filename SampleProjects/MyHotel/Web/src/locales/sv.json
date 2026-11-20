@@ -4,6 +4,11 @@
     "ok": "OK",
     "cancel": "Avbryt"
   },
+  "general": {
+    "change": "Ändra",
+    "save": "Spara",
+    "cancelChange": "Avbryt"
+  },
   "rooms": {
     "heading": "Rum",
     "room": "Rum",
@@ -14,7 +19,6 @@
     "roomCategoryOf": "Kategori för rum {{roomNumber}}",
     "chooseRoomCategory": "Välj kategori",
     "add": "Lägg till rum",
-    "save": "Spara",
     "delete": "Ta bort",
     "confirmDeleteCaption": "Ta bort rum",
     "confirmDelete": "Ta bort rum {{roomNumber}}?",
@@ -30,7 +34,6 @@
     "description": "Beskrivning",
     "descriptionOf": "Beskrivning av {{name}}",
     "add": "Lägg till kategori",
-    "save": "Spara",
     "delete": "Ta bort",
     "confirmDeleteCaption": "Ta bort kategori",
     "confirmDelete": "Ta bort kategori {{name}}?"
@@ -58,9 +61,6 @@
     "checkedIn": "Incheckad",
     "checkedOut": "Utcheckad",
     "noShow": "No show",
-    "change": "Ändra",
-    "save": "Spara",
-    "cancelChange": "Avbryt",
     "roomInBooking": "Rum i bokning {{bookingNumber}}",
     "guestsInBooking": "Gäster i bokning {{bookingNumber}}",
     "guestInBooking": "Gäst i bokning {{bookingNumber}}",

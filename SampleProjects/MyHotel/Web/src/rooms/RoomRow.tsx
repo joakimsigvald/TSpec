@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { RoomCategory } from '../roomCategories/roomCategoriesApi';
+import { ChangeRoomRow } from './ChangeRoomRow';
 import type { Room, RoomOverview } from './roomsApi';
 
 type Props = {
@@ -8,42 +9,32 @@ type Props = {
   roomCategories: RoomCategory[];
   bedCounts: number[];
   asking: boolean;
-  onSave: (room: Room) => void;
+  onSave: (room: Room) => Promise<void>;
   onCancelBookings: (roomNumber: string) => void;
   onDelete: (roomNumber: string) => void;
 };
 
 export function RoomRow({ room, roomCategories, bedCounts, asking, onSave, onCancelBookings, onDelete }: Props) {
   const { t } = useTranslation();
-  const [bedCount, setBedCount] = useState(room.bedCount);
-  const [roomCategory, setRoomCategory] = useState(room.roomCategory);
-  const unchanged = bedCount === room.bedCount && roomCategory === room.roomCategory;
+  const [changing, setChanging] = useState(false);
+
+  if (changing)
+    return (
+      <ChangeRoomRow
+        room={room}
+        roomCategories={roomCategories}
+        bedCounts={bedCounts}
+        onSave={onSave}
+        onClose={() => setChanging(false)}
+      />
+    );
 
   return (
     <tr className={asking ? 'asking' : undefined}>
       <td>{room.roomNumber}</td>
+      <td>{room.roomCategory}</td>
+      <td>{room.bedCount}</td>
       <td>
-        <select
-          aria-label={t('rooms.roomCategoryOf', { roomNumber: room.roomNumber })}
-          value={roomCategory}
-          onChange={event => setRoomCategory(event.target.value)}
-        >
-          {roomCategories.map(category => <option key={category.name}>{category.name}</option>)}
-        </select>
-      </td>
-      <td>
-        <select
-          aria-label={t('rooms.bedsInRoom', { roomNumber: room.roomNumber })}
-          value={bedCount}
-          onChange={event => setBedCount(Number(event.target.value))}
-        >
-          {bedCounts.map(count => <option key={count}>{count}</option>)}
-        </select>
-      </td>
-      <td>
-        <button disabled={unchanged} onClick={() => onSave({ roomNumber: room.roomNumber, bedCount, roomCategory })}>
-          {t('rooms.save')}
-        </button>
         <button
           disabled={!room.hasCancellableBookings}
           title={room.hasCancellableBookings ? undefined : t('rooms.noCancellableBookings')}
@@ -58,6 +49,7 @@ export function RoomRow({ room, roomCategories, bedCounts, asking, onSave, onCan
         >
           {t('rooms.delete')}
         </button>
+        <button onClick={() => setChanging(true)}>{t('general.change')}</button>
       </td>
     </tr>
   );

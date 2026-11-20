@@ -4,17 +4,14 @@ import { ErrorMessage } from '../ErrorMessage';
 import type { RoomCategory } from '../roomCategories/roomCategoriesApi';
 import { hasEmptyField, useEntered } from '../useEntered';
 import { useFormAttempt } from '../useFormAttempt';
+import { roomFieldOf } from './roomFieldOf';
 import type { Room } from './roomsApi';
 
 type Props = { roomCategories: RoomCategory[]; bedCounts: number[]; onAdd: (room: Room) => Promise<void> };
 
 type Entered = { roomNumber: string; roomCategory: string; bedCount?: number };
 
-const fieldOf = {
-  RoomAlreadyExists: 'roomNumber',
-  RoomCategoryNotFound: 'roomCategory',
-  InvalidBedCount: 'bedCount',
-} as const;
+const fieldOf = { RoomAlreadyExists: 'roomNumber', ...roomFieldOf } as const;
 
 const nothingEntered: Entered = { roomNumber: '', roomCategory: '' };
 

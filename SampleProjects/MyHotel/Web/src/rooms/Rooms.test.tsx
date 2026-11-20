@@ -31,6 +31,9 @@ const categoryIn = async (roomNumber: string) =>
   within(await rowOf(roomNumber)).getByRole('combobox', { name: `Kategori för rum ${roomNumber}` });
 const buttonIn = async (roomNumber: string, name: string) =>
   within(await rowOf(roomNumber)).getByRole('button', { name });
+const buttonsIn = async (roomNumber: string) =>
+  within(await rowOf(roomNumber)).getAllByRole('button').map(button => button.textContent);
+const startChanging = async (roomNumber: string) => userEvent.click(await buttonIn(roomNumber, 'Ändra'));
 
 const categoryChoice = () => screen.getByRole('combobox', { name: 'Kategori' });
 const bedsChoice = () => screen.getByRole('combobox', { name: 'Sängar' });
@@ -48,13 +51,26 @@ const addRoom = async (roomNumber: string, beds: string, roomCategory = 'Standar
 };
 
 describe('Rooms', () => {
-  it('lists the rooms with their beds and categories', async () => {
+  it('lists the rooms with their categories and beds', async () => {
     fakeHotel({ 'GET /rooms': { status: 200, body: [room101, { ...room102, roomCategory: 'Svit' }] } });
     renderPage(<Rooms />);
-    await waitFor(async () => expect(await bedsIn('101')).toHaveDisplayValue('2'));
-    expect(await bedsIn('102')).toHaveDisplayValue('1');
+    expect(await rowOf('101')).toHaveTextContent(/^101Standard2Avboka/);
+    expect(await rowOf('102')).toHaveTextContent(/^102Svit1Avboka/);
+  });
+
+  it('offers to change a room, last in its row', async () => {
+    fakeHotel({ 'GET /rooms': { status: 200, body: [room101] } });
+    renderPage(<Rooms />);
+    expect(await buttonsIn('101')).toEqual(['Avboka alla', 'Ta bort', 'Ändra']);
+  });
+
+  it("turns the row into fields holding the room's values", async () => {
+    fakeHotel({ 'GET /rooms': { status: 200, body: [room101] } });
+    renderPage(<Rooms />);
+    await startChanging('101');
     await waitFor(async () => expect(await categoryIn('101')).toHaveDisplayValue('Standard'));
-    expect(await categoryIn('102')).toHaveDisplayValue('Svit');
+    await waitFor(async () => expect(await bedsIn('101')).toHaveDisplayValue('2'));
+    expect(await buttonsIn('101')).toEqual(['Spara', 'Avbryt']);
   });
 
   it('offers the numbers of beds the rules allow, in the form and for each room', async () => {
@@ -64,6 +80,7 @@ describe('Rooms', () => {
     });
     renderPage(<Rooms />);
     await waitFor(() => expect(optionsIn(bedsChoice())).toEqual(['2', '3', '4']));
+    await startChanging('101');
     expect(optionsIn(await bedsIn('101'))).toEqual(['2', '3', '4']);
   });
 
@@ -87,7 +104,7 @@ describe('Rooms', () => {
     });
     renderPage(<Rooms />);
     await addRoom('103', '3', 'Svit');
-    expect(await bedsIn('103')).toHaveDisplayValue('3');
+    expect(await rowOf('103')).toBeInTheDocument();
     expect(api).toHaveBeenCalledWith('/rooms', expect.objectContaining({
       method: 'POST',
       body: JSON.stringify({ roomNumber: '103', bedCount: 3, roomCategory: 'Svit' }),
@@ -190,6 +207,7 @@ describe('Rooms', () => {
       'PUT /rooms/101': { status: 200, body: { ...room101, bedCount: 3 } },
     });
     renderPage(<Rooms />);
+    await startChanging('101');
     await choose(await bedsIn('101'), '3');
     await userEvent.click(await buttonIn('101', 'Spara'));
     expect(api).toHaveBeenCalledWith('/rooms/101', expect.objectContaining({
@@ -204,6 +222,7 @@ describe('Rooms', () => {
       'PUT /rooms/101': { status: 200, body: { ...room101, roomCategory: 'Svit' } },
     });
     renderPage(<Rooms />);
+    await startChanging('101');
     await choose(await categoryIn('101'), 'Svit');
     await userEvent.click(await buttonIn('101', 'Spara'));
     expect(api).toHaveBeenCalledWith('/rooms/101', expect.objectContaining({
@@ -215,26 +234,71 @@ describe('Rooms', () => {
   it('cannot save a room before a value on its row changes', async () => {
     fakeHotel({ 'GET /rooms': { status: 200, body: [room101] } });
     renderPage(<Rooms />);
+    await startChanging('101');
     expect(await buttonIn('101', 'Spara')).toBeDisabled();
   });
 
   it('cannot save a room whose value is changed back', async () => {
     fakeHotel({ 'GET /rooms': { status: 200, body: [room101] } });
     renderPage(<Rooms />);
+    await startChanging('101');
     await choose(await bedsIn('101'), '3');
     await choose(await bedsIn('101'), '2');
     expect(await buttonIn('101', 'Spara')).toBeDisabled();
   });
 
-  it('cannot save a room again once it is saved', async () => {
+  it('shows a saved change on the row', async () => {
     fakeHotel({
       'GET /rooms': [{ status: 200, body: [room101] }, { status: 200, body: [{ ...room101, bedCount: 3 }] }],
       'PUT /rooms/101': { status: 200, body: { ...room101, bedCount: 3 } },
     });
     renderPage(<Rooms />);
+    await startChanging('101');
     await choose(await bedsIn('101'), '3');
     await userEvent.click(await buttonIn('101', 'Spara'));
-    await waitFor(async () => expect(await buttonIn('101', 'Spara')).toBeDisabled());
+    await waitFor(async () => expect(await buttonsIn('101')).toEqual(['Avboka alla', 'Ta bort', 'Ändra']));
+    expect(await rowOf('101')).toHaveTextContent(/^101Standard3Avboka/);
+  });
+
+  it('shows the row as it was when the change is abandoned', async () => {
+    fakeHotel({ 'GET /rooms': { status: 200, body: [room101] } });
+    renderPage(<Rooms />);
+    await startChanging('101');
+    await choose(await bedsIn('101'), '3');
+    await userEvent.click(await buttonIn('101', 'Avbryt'));
+    expect(await rowOf('101')).toHaveTextContent(/^101Standard2Avboka/);
+    expect(await buttonsIn('101')).toEqual(['Avboka alla', 'Ta bort', 'Ändra']);
+    await startChanging('101');
+    expect(await bedsIn('101')).toHaveDisplayValue('2');
+  });
+
+  describe('says on the row why a change was refused', () => {
+    const changeRefusedWith = async (status: number, code: string) => {
+      fakeHotel({
+        'GET /rooms': { status: 200, body: [room101] },
+        'PUT /rooms/101': { status, body: { code } },
+      });
+      renderPage(<Rooms />);
+      await startChanging('101');
+      await choose(await bedsIn('101'), '3');
+      await userEvent.click(await buttonIn('101', 'Spara'));
+    };
+
+    it('under the beds, that the number of beds is not allowed', async () => {
+      await changeRefusedWith(400, 'InvalidBedCount');
+      await waitFor(async () => expect(await bedsIn('101')).toHaveAccessibleDescription('Otillåtet antal sängar.'));
+    });
+
+    it('under the category, that it does not exist', async () => {
+      await changeRefusedWith(404, 'RoomCategoryNotFound');
+      await waitFor(async () => expect(await categoryIn('101')).toHaveAccessibleDescription('Kategorin finns inte.'));
+    });
+
+    it('under the button, for any other reason', async () => {
+      await changeRefusedWith(404, 'RoomNotFound');
+      await waitFor(async () =>
+        expect(await buttonIn('101', 'Spara')).toHaveAccessibleDescription('Rummet finns inte.'));
+    });
   });
 
   it('asks before deleting a room', async () => {

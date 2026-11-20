@@ -10,7 +10,8 @@ rules: it shows what the API answers.
 a. Identifiers and comments are English and pure ASCII. Every text the user reads - a heading, a label, a
    button, a refusal (6a) - is Swedish, from `src/locales/sv.json` through `t`; a component writes no text
    of its own. Its key is English, `area.name`: the resource folder (`rooms.add`), `app` for the page
-   itself, and `errors` with the refusal's code (`errors.RoomNotFound`). (I)
+   itself, `general` for a word every resource uses (`general.save`), and `errors` with the refusal's
+   code (`errors.RoomNotFound`). (I)
 b. A domain concept has one term in code, the one `GLOSSARY.md` lists. (I)
 c. A component and its file are PascalCase (`Rooms.tsx`); every other file is camelCase after its main
    export (`useAttempt.ts`, `roomsApi.ts`). (VI)

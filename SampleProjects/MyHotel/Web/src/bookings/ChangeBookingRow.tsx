@@ -60,6 +60,7 @@ export function ChangeBookingRow({ booking, rooms, onSave, onClose }: Props) {
       </td>
       <td>
         <input
+          className="narrow"
           required
           aria-label={nameOf('bookings.guestInBooking')}
           value={entered.guestName}
@@ -92,9 +93,9 @@ export function ChangeBookingRow({ booking, rooms, onSave, onClose }: Props) {
           onClick={save}
           aria-describedby={buttonError}
         >
-          {t('bookings.save')}
+          {t('general.save')}
         </button>
-        <button onClick={onClose}>{t('bookings.cancelChange')}</button>
+        <button onClick={onClose}>{t('general.cancelChange')}</button>
         <ErrorMessage id={buttonError} code={failureAt('button')} />
       </td>
     </tr>

@@ -84,7 +84,7 @@ input[type='number'] {
 }
 
 /* A booking being changed leaves room for its buttons side by side, so the table keeps its layout. */
-.changing input:not([type]) {
+.narrow {
   width: 7rem;
 }
 
