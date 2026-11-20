@@ -1,10 +1,12 @@
 using MyHotel.Contract.Bookings;
+using static MyHotel.Contract.Bookings.BookingStatus;
 
 namespace MyHotel.Core.Bookings;
 
 /// <summary>
-/// A booking as the store keeps it: whether it was cancelled, but not whether it is past, since
-/// that changes with the date while nothing is written.
+/// A booking as the store keeps it: what has happened to it, but not its status, since that changes
+/// with the date while nothing is written. What can be done with it is what it allows, so the actions
+/// it states and the ones it accepts cannot disagree.
 /// </summary>
 public record StoredBooking(
     int BookingNumber,
@@ -12,22 +14,45 @@ public record StoredBooking(
     string GuestName,
     int GuestCount,
     BookingPeriod Period,
-    bool Cancelled)
+    BookingStage Stage)
 {
     internal Booking AsOf(DateOnly today) =>
-        new(BookingNumber, RoomNumber, GuestName, GuestCount, Period, StatusOn(today));
+        new(BookingNumber, new(RoomNumber, GuestName, GuestCount), Period, StateOn(today));
 
-    internal bool IsOpenOn(DateOnly today) => StatusOn(today) == BookingStatus.Open;
-    internal StoredBooking AsCancelled() => this with { Cancelled = true };
+    internal bool Allows(BookingAction action, DateOnly today) =>
+        action switch
+        {
+            BookingAction.Cancel => IsCancellableOn(today),
+            BookingAction.CheckIn => StatusOn(today) == Open && today == Period.From,
+            _ => StatusOn(today) == CheckedIn && today == Period.To,
+        };
+
+    internal bool IsCancellableOn(DateOnly today) =>
+        StatusOn(today) == Open || (StatusOn(today) == NoShow && today <= Period.To);
+
+    internal bool HoldsItsRoomOn(DateOnly today) => StatusOn(today) == CheckedIn || IsCancellableOn(today);
+    internal StoredBooking After(BookingAction action) => this with { Stage = StageAfter(action) };
+
+    private BookingState StateOn(DateOnly today) =>
+        new(StatusOn(today), [.. Enum.GetValues<BookingAction>().Where(action => Allows(action, today))]);
 
     /// <summary>
-    /// The guest's departure day still counts: a booking is past only from the day after.
+    /// The arrival and departure days still count: a booking turns no-show or past only the day after.
     /// </summary>
     private BookingStatus StatusOn(DateOnly today) =>
-        this switch
+        Stage switch
         {
-            { Cancelled: true } => BookingStatus.Cancelled,
-            _ when Period.To < today => BookingStatus.Past,
-            _ => BookingStatus.Open,
+            BookingStage.Booked => today > Period.From ? NoShow : Open,
+            BookingStage.CheckedIn => today > Period.To ? Past : CheckedIn,
+            BookingStage.CheckedOut => CheckedOut,
+            _ => Cancelled,
+        };
+
+    private static BookingStage StageAfter(BookingAction action) =>
+        action switch
+        {
+            BookingAction.Cancel => BookingStage.Cancelled,
+            BookingAction.CheckIn => BookingStage.CheckedIn,
+            _ => BookingStage.CheckedOut,
         };
 }

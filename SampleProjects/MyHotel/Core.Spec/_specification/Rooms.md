@@ -190,7 +190,7 @@ When Update(a Room's RoomNumber, the Room with { BedCount = 10 }), returns RoomO
 ```
 Given IRoomStore.Load() returns zero Rooms
   and IRoomCategoryStore.Load() returns [new RoomCategory(the Room's RoomCategory, any string)]
-  and IOpenBookings.RoomNumbers() returns zero strings
+  and IRoomBookings returns zero strings
 When Add(a Room with { BedCount = 9 }), returns RoomOverview
 ```
 
@@ -202,11 +202,35 @@ When Add(a Room with { BedCount = 9 }), returns RoomOverview
 ```
 Given IRoomStore.Load() returns zero Rooms
   and IRoomCategoryStore.Load() returns [new RoomCategory(the Room's RoomCategory, any string)]
-  and IOpenBookings.RoomNumbers() returns zero strings
+  and IRoomBookings returns zero strings
 When Add(a Room with { BedCount = 1 }), returns RoomOverview
 ```
 
 #### Given no such room
+
+- **return the room with one bed** — `Result.BedCount is 1`
+
+### [When update room with nine beds](../Rooms/RoomService/WhenUpdateRoomWithNineBeds.cs)
+```
+Given IRoomStore.Load() returns one Room
+  and IRoomCategoryStore.Load() returns [new RoomCategory(the Room's RoomCategory, any string)]
+  and IRoomBookings returns zero strings
+When Update(a Room's RoomNumber, the Room with { BedCount = 9 }), returns RoomOverview
+```
+
+#### Given the room is stored
+
+- **return the room with nine beds** — `Result.BedCount is 9`
+
+### [When update room with one bed](../Rooms/RoomService/WhenUpdateRoomWithOneBed.cs)
+```
+Given IRoomStore.Load() returns one Room
+  and IRoomCategoryStore.Load() returns [new RoomCategory(the Room's RoomCategory, any string)]
+  and IRoomBookings returns zero strings
+When Update(a Room's RoomNumber, the Room with { BedCount = 1 }), returns RoomOverview
+```
+
+#### Given the room is stored
 
 - **return the room with one bed** — `Result.BedCount is 1`
 
@@ -221,40 +245,17 @@ When Add(a Room with { BedCount = 1 }), returns RoomOverview
 #### Given two rooms
 ```
 IRoomStore.Load() returns two Rooms
-  and IOpenBookings.RoomNumbers() returns [the second Room's RoomNumber]
+  and IRoomBookings.HeldRooms() returns [the first Room's RoomNumber, the second Room's RoomNumber]
+  and RoomsWithCancellableBookings() returns [the first Room's RoomNumber]
 ```
 
 - **return them in the order they are stored**
   ```
   Result is equal to [new RoomOverview(the first Room's RoomNumber,
-      the first Room's BedCount, the first Room's RoomCategory, false),
+      the first Room's BedCount, the first Room's RoomCategory, true, true),
       new RoomOverview(the second Room's RoomNumber, the second Room's BedCount,
-      the second Room's RoomCategory, true)]
+      the second Room's RoomCategory, true, false)]
   ```
-
-### [When update room with nine beds](../Rooms/RoomService/WhenUpdateRoomWithNineBeds.cs)
-```
-Given IRoomStore.Load() returns one Room
-  and IRoomCategoryStore.Load() returns [new RoomCategory(the Room's RoomCategory, any string)]
-  and IOpenBookings.RoomNumbers() returns zero strings
-When Update(a Room's RoomNumber, the Room with { BedCount = 9 }), returns RoomOverview
-```
-
-#### Given the room is stored
-
-- **return the room with nine beds** — `Result.BedCount is 9`
-
-### [When update room with one bed](../Rooms/RoomService/WhenUpdateRoomWithOneBed.cs)
-```
-Given IRoomStore.Load() returns one Room
-  and IRoomCategoryStore.Load() returns [new RoomCategory(the Room's RoomCategory, any string)]
-  and IOpenBookings.RoomNumbers() returns zero strings
-When Update(a Room's RoomNumber, the Room with { BedCount = 1 }), returns RoomOverview
-```
-
-#### Given the room is stored
-
-- **return the room with one bed** — `Result.BedCount is 1`
 
 ### [When delete room](../Rooms/RoomService/WhenDeleteRoom.cs)
 `Delete(a Room's RoomNumber)`
@@ -264,51 +265,22 @@ When Update(a Room's RoomNumber, the Room with { BedCount = 1 }), returns RoomOv
 
 - **throw not found** — `throws RoomNotFound that Message contains the Room's RoomNumber`
 
-#### Given the room has open bookings
+#### Given the room is held
 ```
 IRoomStore.Load() returns one Room
-  and IOpenBookings.RoomNumbers() returns [the Room's RoomNumber]
+  and IRoomBookings.HeldRooms() returns [the Room's RoomNumber]
 ```
 
-- **throw room has open bookings**\
-  `throws RoomHasOpenBookings that Message contains the Room's RoomNumber`
+- **throw room held** — `throws RoomHeld that Message contains the Room's RoomNumber`
 - **store nothing** — `IRoomStore.Save was not invoked`
 
 #### Given the room is stored
 ```
 IRoomStore.Load() returns one Room
-  and IOpenBookings.RoomNumbers() returns zero strings
+  and IRoomBookings.HeldRooms() returns zero strings
 ```
 
 - **store what is left** — `IRoomStore.Save(zero Rooms)`
-
-### [When get room](../Rooms/RoomService/WhenGetRoom.cs)
-`RoomFor(a Room's RoomNumber), returns RoomOverview`
-
-#### Given no such room
-`IRoomStore.Load() returns zero Rooms`
-
-- **throw not found** — `throws RoomNotFound that Message contains the Room's RoomNumber`
-
-#### Given the room has open bookings
-```
-IRoomStore.Load() returns one Room
-  and IOpenBookings.RoomNumbers() returns [the Room's RoomNumber]
-```
-
-- **say so** — `Result.HasOpenBookings is true`
-
-#### Given the room is stored
-```
-IRoomStore.Load() returns one Room
-  and IOpenBookings.RoomNumbers() returns zero strings
-```
-
-- **return it**
-  ```
-  Result is new RoomOverview(the Room's RoomNumber, the Room's BedCount,
-      the Room's RoomCategory, false)
-  ```
 
 ### [When add room](../Rooms/RoomService/WhenAddRoom.cs)
 `Add(a Room), returns RoomOverview`
@@ -333,15 +305,51 @@ IRoomStore.Load() returns zero Rooms
 ```
 IRoomStore.Load() returns zero Rooms
   and IRoomCategoryStore.Load() returns [new RoomCategory(the Room's RoomCategory, any string)]
-  and IOpenBookings.RoomNumbers() returns zero strings
+  and IRoomBookings returns zero strings
 ```
 
 - **return the room**
   ```
   Result is new RoomOverview(the Room's RoomNumber, the Room's BedCount,
-      the Room's RoomCategory, false)
+      the Room's RoomCategory, false, false)
   ```
 - **store it** — `IRoomStore.Save(one Room)`
+
+### [When get room](../Rooms/RoomService/WhenGetRoom.cs)
+`RoomFor(a Room's RoomNumber), returns RoomOverview`
+
+#### Given no such room
+`IRoomStore.Load() returns zero Rooms`
+
+- **throw not found** — `throws RoomNotFound that Message contains the Room's RoomNumber`
+
+#### Given the room has cancellable bookings
+```
+IRoomStore.Load() returns one Room
+  and IRoomBookings.RoomsWithCancellableBookings() returns [the Room's RoomNumber]
+```
+
+- **say so** — `Result.HasCancellableBookings is true`
+
+#### Given the room is held
+```
+IRoomStore.Load() returns one Room
+  and IRoomBookings.HeldRooms() returns [the Room's RoomNumber]
+```
+
+- **say so** — `Result.Held is true`
+
+#### Given the room is stored
+```
+IRoomStore.Load() returns one Room
+  and IRoomBookings returns zero strings
+```
+
+- **return it**
+  ```
+  Result is new RoomOverview(the Room's RoomNumber, the Room's BedCount,
+      the Room's RoomCategory, false, false)
+  ```
 
 ### [When update room](../Rooms/RoomService/WhenUpdateRoom.cs)
 `Update(a Room's RoomNumber, the UpdatedRoom), returns RoomOverview`
@@ -384,11 +392,11 @@ UpdatedRoom is the Room with { BedCount = a second int }
 UpdatedRoom is the Room with { BedCount = a second int }
   and IRoomStore.Load() returns one Room
   and IRoomCategoryStore.Load() returns [new RoomCategory(the Room's RoomCategory, any string)]
-  and IOpenBookings.RoomNumbers() returns zero strings
+  and IRoomBookings returns zero strings
 ```
 
 - **return the updated room**
   ```
   Result is new RoomOverview(the UpdatedRoom's RoomNumber, the UpdatedRoom's BedCount,
-      the UpdatedRoom's RoomCategory, false)
+      the UpdatedRoom's RoomCategory, false, false)
   ```

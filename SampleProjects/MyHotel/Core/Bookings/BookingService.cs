@@ -41,33 +41,39 @@ public class BookingService(
             request.GuestName,
             request.GuestCount,
             request.Period,
-            false);
+            BookingStage.Booked);
         await store.Save([.. bookings, booked]);
         return Sent(booked);
     }
 
-    public async Task Cancel(int bookingNumber)
-    {
-        var bookings = await store.Load();
-        var cancelled = Existing(bookings, bookingNumber);
-        if (!cancelled.IsOpenOn(clock.Today()))
-            throw new BookingNotOpen(bookingNumber);
+    public Task Cancel(int bookingNumber) => Take(BookingAction.Cancel, bookingNumber);
+    public Task CheckIn(int bookingNumber) => Take(BookingAction.CheckIn, bookingNumber);
+    public Task CheckOut(int bookingNumber) => Take(BookingAction.CheckOut, bookingNumber);
 
-        await SaveCancelling(bookings, booking => booking == cancelled);
-    }
-
-    public async Task CancelOpenBookings(string roomNumber)
+    public async Task CancelBookings(string roomNumber)
     {
         var today = clock.Today();
-        await SaveCancelling(
+        await SaveTaking(
+            BookingAction.Cancel,
             await store.Load(),
-            booking => booking.RoomNumber == roomNumber && booking.IsOpenOn(today));
+            booking => booking.RoomNumber == roomNumber && booking.IsCancellableOn(today));
+    }
+
+    private async Task Take(BookingAction action, int bookingNumber)
+    {
+        var bookings = await store.Load();
+        var taken = Existing(bookings, bookingNumber);
+        if (!taken.Allows(action, clock.Today()))
+            throw Refusal(action, bookingNumber);
+
+        await SaveTaking(action, bookings, booking => booking == taken);
     }
 
     private Booking Sent(StoredBooking booking) => booking.AsOf(clock.Today());
 
-    private Task SaveCancelling(IReadOnlyList<StoredBooking> bookings, Func<StoredBooking, bool> cancels) =>
-        store.Save([.. bookings.Select(booking => cancels(booking) ? booking.AsCancelled() : booking)]);
+    private Task SaveTaking(
+        BookingAction action, IReadOnlyList<StoredBooking> bookings, Func<StoredBooking, bool> takes) =>
+        store.Save([.. bookings.Select(booking => takes(booking) ? booking.After(action) : booking)]);
 
     private async Task<Room> RoomFor(string roomNumber) =>
         (await rooms.Load()).FirstOrDefault(room => room.RoomNumber == roomNumber)
@@ -77,8 +83,16 @@ public class BookingService(
         bookings.FirstOrDefault(booking => booking.BookingNumber == bookingNumber)
         ?? throw new BookingNotFound(bookingNumber);
 
+    private static Exception Refusal(BookingAction action, int bookingNumber) =>
+        action switch
+        {
+            BookingAction.Cancel => new BookingNotCancellable(bookingNumber),
+            BookingAction.CheckIn => new NotDueForCheckIn(bookingNumber),
+            _ => new NotDueForCheckOut(bookingNumber),
+        };
+
     private static bool Overlaps(StoredBooking booking, BookingRequest request) =>
-        !booking.Cancelled
+        booking.Stage != BookingStage.Cancelled
         && booking.RoomNumber == request.RoomNumber
         && request.Period.From < booking.Period.To
         && booking.Period.From < request.Period.To;

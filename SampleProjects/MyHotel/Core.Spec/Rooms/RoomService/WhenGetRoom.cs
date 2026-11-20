@@ -8,21 +8,31 @@ public abstract class WhenGetRoom : Spec<Core.Rooms.RoomService, RoomOverview>
     {
         public GivenTheRoomIsStored() =>
             Given<IRoomStore>().That(_ => _.Load()).Returns(One<Room>)
-                .And<IOpenBookings>().That(_ => _.RoomNumbers()).Returns(Zero<string>);
+                .And<IRoomBookings>().Returns(Zero<string>);
 
         [Fact]
         public void ThenReturnIt() =>
             Result.Is(new RoomOverview(
-                The<Room>().RoomNumber, The<Room>().BedCount, The<Room>().RoomCategory, false));
+                The<Room>().RoomNumber, The<Room>().BedCount, The<Room>().RoomCategory, false, false));
     }
 
-    public class GivenTheRoomHasOpenBookings : WhenGetRoom
+    public class GivenTheRoomIsHeld : WhenGetRoom
     {
-        public GivenTheRoomHasOpenBookings() =>
+        public GivenTheRoomIsHeld() =>
             Given<IRoomStore>().That(_ => _.Load()).Returns(One<Room>)
-                .And<IOpenBookings>().That(_ => _.RoomNumbers()).Returns(() => [The<Room>().RoomNumber]);
+                .And<IRoomBookings>().That(_ => _.HeldRooms()).Returns(() => [The<Room>().RoomNumber]);
 
-        [Fact] public void ThenSaySo() => Result.HasOpenBookings.Is(true);
+        [Fact] public void ThenSaySo() => Result.Held.Is(true);
+    }
+
+    public class GivenTheRoomHasCancellableBookings : WhenGetRoom
+    {
+        public GivenTheRoomHasCancellableBookings() =>
+            Given<IRoomStore>().That(_ => _.Load()).Returns(One<Room>)
+                .And<IRoomBookings>().That(_ => _.RoomsWithCancellableBookings())
+                .Returns(() => [The<Room>().RoomNumber]);
+
+        [Fact] public void ThenSaySo() => Result.HasCancellableBookings.Is(true);
     }
 
     public class GivenNoSuchRoom : WhenGetRoom

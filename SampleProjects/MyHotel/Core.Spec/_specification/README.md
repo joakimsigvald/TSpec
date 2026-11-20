@@ -4,9 +4,9 @@
 
 The domain rules of My Hotel: rooms, bookings and booking numbers, behind ports for storage. Communicate with Data sources and integrations via ports that it owns, not direct dependencies.
 
-| Specification           | When | Given | Then |
-|-------------------------|-----:|------:|-----:|
-| [Bookings](Bookings.md) |   11 |    24 |   34 |
-| [Rooms](Rooms.md)       |   18 |    36 |   44 |
-| *All*                   | *29* |  *60* | *78* |
+| Specification           | When | Given |  Then |
+|-------------------------|-----:|------:|------:|
+| [Bookings](Bookings.md) |   14 |    50 |    64 |
+| [Rooms](Rooms.md)       |   18 |    37 |    45 |
+| *All*                   | *32* |  *87* | *109* |
 

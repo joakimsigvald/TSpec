@@ -144,10 +144,9 @@ Having Api.PostAsJsonAsync("/bookings",
 ```
 
 - **respond conflict** — `Result.StatusCode is Conflict`
-- **say the room has open bookings**\
-  `Result.Read<ErrorBody>().Code is "RoomHasOpenBookings"`
+- **say the room is held** — `Result.Read<ErrorBody>().Code is "RoomHeld"`
 
-### Given its open bookings were cancelled
+### Given its bookings were cancelled
 ```
 Having Api.DeleteAsync("/rooms/{the Room's RoomNumber}/bookings")
   after Api.PostAsJsonAsync("/bookings",
@@ -189,7 +188,11 @@ Having Api.PostAsJsonAsync("/bookings",
   after Api.PostAsJsonAsync("/rooms", the Room)
 ```
 
-- **say so** — `Result.Read<RoomOverview>().HasOpenBookings is true`
+- **say it is held with bookings to cancel**
+  ```
+  Result.Read<RoomOverview>() is new RoomOverview(the Room's RoomNumber,
+      the Room's BedCount, the Room's RoomCategory, true, true)
+  ```
 
 ### Given the room was deleted
 ```

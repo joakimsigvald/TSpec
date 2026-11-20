@@ -7,8 +7,11 @@ each suite is run.
 
 A claim is specified at the layer that owns it:
 
-- `Host.Spec`, subject `Hotel` over HTTP with its own data files, states the HTTP contract — routes,
-  statuses, bodies — and what survives a restart.
+- `Host.Spec`, subject `Hotel` over HTTP with its own data files, states what Core.Spec's mocks
+  stand in for, each once: every route on its success path, every exception Contract declares as
+  its status and code, every store by what a restart reads back and a new hotel starts with, and the
+  wiring and configuration behind each interface Core mocks. A spec that only a bug in Core could
+  fail belongs in Core.Spec.
 - `Core.Spec`, a Core class with its collaborators mocked, states the domain rules: what is unique,
   kept in order, refused. A folder per class, a `When…` class per method.
 - `Web`, by its Vitest tests, states what the user sees and what each action sends.

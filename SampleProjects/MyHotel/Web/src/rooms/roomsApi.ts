@@ -2,7 +2,7 @@ import { get, post, put, remove } from '../http';
 
 export type Room = { roomNumber: string; bedCount: number; roomCategory: string };
 
-export type RoomOverview = Room & { hasOpenBookings: boolean };
+export type RoomOverview = Room & { held: boolean; hasCancellableBookings: boolean };
 
 const roomPath = (roomNumber: string) => `/rooms/${encodeURIComponent(roomNumber)}`;
 

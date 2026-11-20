@@ -20,8 +20,8 @@
     "confirmDelete": "Ta bort rum {{roomNumber}}?",
     "cancelBookings": "Avboka alla",
     "confirmCancelBookingsCaption": "Avboka alla bokningar",
-    "confirmCancelBookings": "Avboka alla aktuella och kommande bokningar för rum {{roomNumber}}?",
-    "noOpenBookings": "Rummet har inga aktuella eller kommande bokningar."
+    "confirmCancelBookings": "Avboka alla bokningar som går att avboka för rum {{roomNumber}}?",
+    "noCancellableBookings": "Rummet har inga bokningar att avboka."
   },
   "roomCategories": {
     "heading": "Kategorier",
@@ -52,14 +52,19 @@
     "nights_other": "{{count}} nätter",
     "book": "Boka",
     "cancel": "Avboka",
-    "cancelled": "Avbokad"
+    "cancelled": "Avbokad",
+    "checkIn": "Checka in",
+    "checkOut": "Checka ut",
+    "checkedIn": "Incheckad",
+    "checkedOut": "Utcheckad",
+    "noShow": "No show"
   },
   "errors": {
     "RoomNotFound": "Rummet finns inte.",
     "RoomAlreadyExists": "Rummet finns redan.",
     "RoomNumberMismatch": "Ett rum kan inte byta nummer.",
     "InvalidBedCount": "Otillåtet antal sängar.",
-    "RoomHasOpenBookings": "Rummet har aktuella eller kommande bokningar.",
+    "RoomHeld": "Rummet har aktuella eller kommande bokningar.",
     "RoomCategoryNotFound": "Kategorin finns inte.",
     "RoomCategoryAlreadyExists": "Kategorin finns redan.",
     "RoomCategoryNameMismatch": "En kategori kan inte byta namn.",
@@ -70,7 +75,9 @@
     "InvalidGuestCount": "En bokning måste gälla minst en gäst.",
     "TooManyGuests": "Rummet har för få sängar.",
     "BookingNotFound": "Bokningen finns inte.",
-    "BookingNotOpen": "Bokningen är redan avbokad eller passerad.",
+    "BookingNotCancellable": "Bokningen kan inte avbokas.",
+    "NotDueForCheckIn": "Bokningen kan inte checkas in.",
+    "NotDueForCheckOut": "Bokningen kan inte checkas ut.",
     "Unknown": "Något gick fel."
   }
 }

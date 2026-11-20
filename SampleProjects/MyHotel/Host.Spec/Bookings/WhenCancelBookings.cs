@@ -3,15 +3,15 @@ using static System.Net.HttpStatusCode;
 
 namespace MyHotel.Host.Spec.Bookings;
 
-public abstract class WhenCancelOpenBookings : ApiSpec<HttpResponseMessage>
+public abstract class WhenCancelBookings : ApiSpec<HttpResponseMessage>
 {
-    protected WhenCancelOpenBookings() =>
+    protected WhenCancelBookings() =>
         When(_ => _.Api.DeleteAsync($"/rooms/{A<Room>().RoomNumber}/bookings"));
 
     /// <summary>
     /// Setups run last-declared-first, so the room exists before it is booked.
     /// </summary>
-    public class GivenTheRoomHasAnOpenBooking : WhenCancelOpenBookings
+    public class GivenTheRoomHasAnOpenBooking : WhenCancelBookings
     {
         public GivenTheRoomHasAnOpenBooking() =>
             Having(_ => _.Api.PostAsJsonAsync(

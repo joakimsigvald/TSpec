@@ -7,10 +7,12 @@ import { renderPage } from '../test/renderPage';
 import { Rooms } from './Rooms';
 import type { RoomOverview } from './roomsApi';
 
-const room101 = { roomNumber: '101', bedCount: 2, roomCategory: 'Standard', hasOpenBookings: false };
-const room102 = { roomNumber: '102', bedCount: 1, roomCategory: 'Standard', hasOpenBookings: false };
-const room103 = { roomNumber: '103', bedCount: 3, roomCategory: 'Standard', hasOpenBookings: false };
-const withOpenBookings = (room: RoomOverview) => ({ ...room, hasOpenBookings: true });
+const unbooked = { held: false, hasCancellableBookings: false };
+const room101 = { roomNumber: '101', bedCount: 2, roomCategory: 'Standard', ...unbooked };
+const room102 = { roomNumber: '102', bedCount: 1, roomCategory: 'Standard', ...unbooked };
+const room103 = { roomNumber: '103', bedCount: 3, roomCategory: 'Standard', ...unbooked };
+const withBookingsToCancel = (room: RoomOverview) => ({ ...room, held: true, hasCancellableBookings: true });
+const withGuestCheckedIn = (room: RoomOverview) => ({ ...room, held: true });
 
 const roomCategories = ['Örnrum', 'Ängsrum', 'Svit', 'Åsrum', 'Standard']
   .map(name => ({ name, description: name, hasRooms: false }));
@@ -263,18 +265,25 @@ describe('Rooms', () => {
     expect(api).not.toHaveBeenCalledWith('/rooms/101', expect.objectContaining({ method: 'DELETE' }));
   });
 
-  it('cannot delete a room with open bookings, and says why', async () => {
-    fakeHotel({ 'GET /rooms': { status: 200, body: [withOpenBookings(room101)] } });
+  it('cannot delete a room a booking holds, and says why', async () => {
+    fakeHotel({ 'GET /rooms': { status: 200, body: [withBookingsToCancel(room101)] } });
     renderPage(<Rooms />);
     const remove = await buttonIn('101', 'Ta bort');
     expect(remove).toBeDisabled();
     expect(remove).toHaveAccessibleDescription('Rummet har aktuella eller kommande bokningar.');
   });
 
-  it('says above the rooms that a room with open bookings was not deleted', async () => {
+  it('cannot delete a room whose guest is checked in, nor cancel its bookings', async () => {
+    fakeHotel({ 'GET /rooms': { status: 200, body: [withGuestCheckedIn(room101)] } });
+    renderPage(<Rooms />);
+    expect(await buttonIn('101', 'Ta bort')).toBeDisabled();
+    expect(await buttonIn('101', 'Avboka alla')).toBeDisabled();
+  });
+
+  it('says above the rooms that a room a booking holds was not deleted', async () => {
     fakeHotel({
       'GET /rooms': { status: 200, body: [room101] },
-      'DELETE /rooms/101': { status: 409, body: { code: 'RoomHasOpenBookings' } },
+      'DELETE /rooms/101': { status: 409, body: { code: 'RoomHeld' } },
     });
     renderPage(<Rooms />);
     await userEvent.click(await buttonIn('101', 'Ta bort'));
@@ -282,17 +291,17 @@ describe('Rooms', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Rummet har aktuella eller kommande bokningar.');
   });
 
-  it("asks before cancelling a room's open bookings", async () => {
-    fakeHotel({ 'GET /rooms': { status: 200, body: [withOpenBookings(room101)] } });
+  it("asks before cancelling a room's bookings", async () => {
+    fakeHotel({ 'GET /rooms': { status: 200, body: [withBookingsToCancel(room101)] } });
     renderPage(<Rooms />);
     await userEvent.click(await buttonIn('101', 'Avboka alla'));
     expect(await dialogNamed('Avboka alla bokningar'))
-      .toHaveAccessibleDescription('Avboka alla aktuella och kommande bokningar för rum 101?');
+      .toHaveAccessibleDescription('Avboka alla bokningar som går att avboka för rum 101?');
   });
 
-  it("cancels a room's open bookings, once confirmed", async () => {
+  it("cancels a room's bookings, once confirmed", async () => {
     const api = fakeHotel({
-      'GET /rooms': [{ status: 200, body: [withOpenBookings(room101)] }, { status: 200, body: [room101] }],
+      'GET /rooms': [{ status: 200, body: [withBookingsToCancel(room101)] }, { status: 200, body: [room101] }],
       'DELETE /rooms/101/bookings': { status: 204 },
     });
     renderPage(<Rooms />);
@@ -302,8 +311,8 @@ describe('Rooms', () => {
     expect(api).toHaveBeenCalledWith('/rooms/101/bookings', expect.objectContaining({ method: 'DELETE' }));
   });
 
-  it("keeps a room's open bookings when cancelling them was not confirmed", async () => {
-    const api = fakeHotel({ 'GET /rooms': { status: 200, body: [withOpenBookings(room101)] } });
+  it("keeps a room's bookings when cancelling them was not confirmed", async () => {
+    const api = fakeHotel({ 'GET /rooms': { status: 200, body: [withBookingsToCancel(room101)] } });
     renderPage(<Rooms />);
     await userEvent.click(await buttonIn('101', 'Avboka alla'));
     await answer('Avboka alla bokningar', 'Avbryt');
@@ -311,11 +320,11 @@ describe('Rooms', () => {
     expect(api).not.toHaveBeenCalledWith('/rooms/101/bookings', expect.anything());
   });
 
-  it('cannot cancel the bookings of a room without open bookings, and says why', async () => {
+  it('cannot cancel the bookings of a room without bookings to cancel, and says why', async () => {
     fakeHotel({ 'GET /rooms': { status: 200, body: [room101] } });
     renderPage(<Rooms />);
     const cancelAll = await buttonIn('101', 'Avboka alla');
     expect(cancelAll).toBeDisabled();
-    expect(cancelAll).toHaveAccessibleDescription('Rummet har inga aktuella eller kommande bokningar.');
+    expect(cancelAll).toHaveAccessibleDescription('Rummet har inga bokningar att avboka.');
   });
 });

@@ -13,7 +13,9 @@ public static class BookingEndpoints
         app.MapPost("/bookings", Book);
         app.MapGet("/bookings/{bookingNumber:int}", BookingFor);
         app.MapDelete("/bookings/{bookingNumber:int}", Cancel);
-        app.MapDelete("/rooms/{roomNumber}/bookings", CancelOpenBookings);
+        app.MapPost("/bookings/{bookingNumber:int}/check-in", CheckIn);
+        app.MapPost("/bookings/{bookingNumber:int}/check-out", CheckOut);
+        app.MapDelete("/rooms/{roomNumber}/bookings", CancelBookings);
     }
 
     private static async Task<IResult> Bookings(IBookingService bookings) =>
@@ -34,9 +36,21 @@ public static class BookingEndpoints
         return Results.NoContent();
     }
 
-    private static async Task<IResult> CancelOpenBookings(IBookingService bookings, string roomNumber)
+    private static async Task<IResult> CheckIn(IBookingService bookings, int bookingNumber)
     {
-        await bookings.CancelOpenBookings(roomNumber);
+        await bookings.CheckIn(bookingNumber);
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> CheckOut(IBookingService bookings, int bookingNumber)
+    {
+        await bookings.CheckOut(bookingNumber);
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> CancelBookings(IBookingService bookings, string roomNumber)
+    {
+        await bookings.CancelBookings(roomNumber);
         return Results.NoContent();
     }
 }

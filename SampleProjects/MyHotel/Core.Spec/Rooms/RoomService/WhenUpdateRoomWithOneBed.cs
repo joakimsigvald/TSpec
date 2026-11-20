@@ -11,7 +11,7 @@ public abstract class WhenUpdateRoomWithOneBed : Spec<Core.Rooms.RoomService, Ro
             Given<IRoomStore>().That(_ => _.Load()).Returns(One<Room>)
                 .And<IRoomCategoryStore>().That(_ => _.Load())
                 .Returns(() => [new RoomCategory(The<Room>().RoomCategory, Any<string>())])
-                .And<IOpenBookings>().That(_ => _.RoomNumbers()).Returns(Zero<string>);
+                .And<IRoomBookings>().Returns(Zero<string>);
 
         [Fact] public void ThenReturnTheRoomWithOneBed() => Result.BedCount.Is(1);
     }

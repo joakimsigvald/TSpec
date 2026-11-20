@@ -10,20 +10,20 @@ public abstract class WhenDeleteRoom : Spec<Core.Rooms.RoomService>
     {
         public GivenTheRoomIsStored() =>
             Given<IRoomStore>().That(_ => _.Load()).Returns(One<Room>)
-                .And<IOpenBookings>().That(_ => _.RoomNumbers()).Returns(Zero<string>);
+                .And<IRoomBookings>().That(_ => _.HeldRooms()).Returns(Zero<string>);
 
         [Fact] public void ThenStoreWhatIsLeft() => Then<IRoomStore>(_ => _.Save(Zero<Room>()));
     }
 
-    public class GivenTheRoomHasOpenBookings : WhenDeleteRoom
+    public class GivenTheRoomIsHeld : WhenDeleteRoom
     {
-        public GivenTheRoomHasOpenBookings() =>
+        public GivenTheRoomIsHeld() =>
             Given<IRoomStore>().That(_ => _.Load()).Returns(One<Room>)
-                .And<IOpenBookings>().That(_ => _.RoomNumbers()).Returns(() => [The<Room>().RoomNumber]);
+                .And<IRoomBookings>().That(_ => _.HeldRooms()).Returns(() => [The<Room>().RoomNumber]);
 
         [Fact]
-        public void ThenThrowRoomHasOpenBookings() =>
-            Then().Throws<RoomHasOpenBookings>().that.Message.Does().Contain(The<Room>().RoomNumber);
+        public void ThenThrowRoomHeld() =>
+            Then().Throws<RoomHeld>().that.Message.Does().Contain(The<Room>().RoomNumber);
 
         [Fact] public void ThenStoreNothing() => Then<IRoomStore>(nameof(IRoomStore.Save), Never);
     }

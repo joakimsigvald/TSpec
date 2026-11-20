@@ -5,17 +5,22 @@ import { App } from './App';
 import { fakeApi } from './test/fakeApi';
 import { answer } from './test/answer';
 import { renderPage } from './test/renderPage';
+import type { Booking, BookingAction, BookingStatus } from './bookings/bookingsApi';
 
-const room101 = { roomNumber: '101', bedCount: 2, roomCategory: 'Standard', hasOpenBookings: false };
-const room102 = { roomNumber: '102', bedCount: 1, roomCategory: 'Standard', hasOpenBookings: false };
-const booking10001 = {
+const unbooked = { held: false, hasCancellableBookings: false };
+const room101 = { roomNumber: '101', bedCount: 2, roomCategory: 'Standard', ...unbooked };
+const room102 = { roomNumber: '102', bedCount: 1, roomCategory: 'Standard', ...unbooked };
+const withBookingsToCancel = { ...room101, held: true, hasCancellableBookings: true };
+const withGuestCheckedIn = { ...room101, held: true };
+const booking10001: Booking = {
   bookingNumber: 10001,
-  roomNumber: '101',
-  guestName: 'Smith',
-  guestCount: 2,
+  info: { roomNumber: '101', guestName: 'Smith', guestCount: 2 },
   period: { from: '2026-08-10', to: '2026-08-12' },
-  status: 'Open',
+  state: { status: 'Open', actions: ['Cancel'] },
 };
+
+const inState = (status: BookingStatus, actions: BookingAction[]): Booking =>
+  ({ ...booking10001, state: { status, actions } });
 
 const standard = { name: 'Standard', description: 'Standardrum', hasRooms: false };
 const suite = { name: 'Svit', description: 'Två rum', hasRooms: false };
@@ -117,15 +122,15 @@ describe('App', () => {
 
   it('stops a room being deleted as soon as it is booked', async () => {
     fakeHotel({
-      'GET /rooms': [{ status: 200, body: [room101] }, { status: 200, body: [{ ...room101, hasOpenBookings: true }] }],
+      'GET /rooms': [{ status: 200, body: [room101] }, { status: 200, body: [withBookingsToCancel] }],
       'GET /bookings': [{ status: 200, body: [] }, { status: 200, body: [booking10001] }],
       'POST /bookings': { status: 201, body: booking10001 },
     });
     renderPage(<App />);
     await waitFor(() => expect(offered('101')).toBeInTheDocument());
     await userEvent.selectOptions(roomChoice(), '101');
-    await userEvent.type(screen.getByLabelText('Antal gäster'), String(booking10001.guestCount));
-    await userEvent.type(screen.getByLabelText('Gäst'), booking10001.guestName);
+    await userEvent.type(screen.getByLabelText('Antal gäster'), String(booking10001.info.guestCount));
+    await userEvent.type(screen.getByLabelText('Gäst'), booking10001.info.guestName);
     await userEvent.type(screen.getByLabelText('Från'), booking10001.period.from);
     await userEvent.type(screen.getByLabelText('Till'), booking10001.period.to);
     await userEvent.click(screen.getByRole('button', { name: 'Boka' }));
@@ -134,10 +139,10 @@ describe('App', () => {
 
   it('lets a room be deleted as soon as its last open booking is cancelled', async () => {
     fakeHotel({
-      'GET /rooms': [{ status: 200, body: [{ ...room101, hasOpenBookings: true }] }, { status: 200, body: [room101] }],
+      'GET /rooms': [{ status: 200, body: [withBookingsToCancel] }, { status: 200, body: [room101] }],
       'GET /bookings': [
         { status: 200, body: [booking10001] },
-        { status: 200, body: [{ ...booking10001, status: 'Cancelled' }] },
+        { status: 200, body: [inState('Cancelled', [])] },
       ],
       'DELETE /bookings/10001': { status: 204 },
     });
@@ -149,10 +154,10 @@ describe('App', () => {
 
   it("shows a room's bookings as cancelled as soon as they are cancelled", async () => {
     fakeHotel({
-      'GET /rooms': [{ status: 200, body: [{ ...room101, hasOpenBookings: true }] }, { status: 200, body: [room101] }],
+      'GET /rooms': [{ status: 200, body: [withBookingsToCancel] }, { status: 200, body: [room101] }],
       'GET /bookings': [
         { status: 200, body: [booking10001] },
-        { status: 200, body: [{ ...booking10001, status: 'Cancelled' }] },
+        { status: 200, body: [inState('Cancelled', [])] },
       ],
       'DELETE /rooms/101/bookings': { status: 204 },
     });
@@ -161,5 +166,34 @@ describe('App', () => {
     await answer('Avboka alla bokningar', 'OK');
     await waitFor(async () =>
       expect(await screen.findByRole('row', { name: /^10001/ })).toHaveTextContent(/Avbokad$/));
+  });
+
+  it("stops a room's bookings being cancelled as soon as its guest checks in", async () => {
+    fakeHotel({
+      'GET /rooms': [{ status: 200, body: [withBookingsToCancel] }, { status: 200, body: [withGuestCheckedIn] }],
+      'GET /bookings': [
+        { status: 200, body: [inState('Open', ['Cancel', 'CheckIn'])] },
+        { status: 200, body: [inState('CheckedIn', [])] },
+      ],
+      'POST /bookings/10001/check-in': { status: 204 },
+    });
+    renderPage(<App />);
+    await userEvent.click(within(await rowOf('10001')).getByRole('button', { name: 'Checka in' }));
+    await waitFor(async () => expect(await roomButton('101', 'Avboka alla')).toBeDisabled());
+    expect(await roomButton('101', 'Ta bort')).toBeDisabled();
+  });
+
+  it('lets a room be deleted as soon as its guest checks out', async () => {
+    fakeHotel({
+      'GET /rooms': [{ status: 200, body: [withGuestCheckedIn] }, { status: 200, body: [room101] }],
+      'GET /bookings': [
+        { status: 200, body: [inState('CheckedIn', ['CheckOut'])] },
+        { status: 200, body: [inState('CheckedOut', [])] },
+      ],
+      'POST /bookings/10001/check-out': { status: 204 },
+    });
+    renderPage(<App />);
+    await userEvent.click(within(await rowOf('10001')).getByRole('button', { name: 'Checka ut' }));
+    await waitFor(async () => expect(await roomButton('101', 'Ta bort')).toBeEnabled());
   });
 });

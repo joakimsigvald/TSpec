@@ -1,19 +1,18 @@
-import { get, post, remove } from '../http';
+import { get, post, postAction, remove } from '../http';
 
-export type BookingStatus = 'Open' | 'Past' | 'Cancelled';
+export type BookingStatus = 'Open' | 'CheckedIn' | 'CheckedOut' | 'NoShow' | 'Past' | 'Cancelled';
+
+export type BookingAction = 'Cancel' | 'CheckIn' | 'CheckOut';
+
+export type BookingInfo = { roomNumber: string; guestName: string; guestCount: number };
 
 export type BookingPeriod = { from: string; to: string };
 
-export type Booking = {
-  bookingNumber: number;
-  roomNumber: string;
-  guestName: string;
-  guestCount: number;
-  period: BookingPeriod;
-  status: BookingStatus;
-};
+export type BookingState = { status: BookingStatus; actions: BookingAction[] };
 
-export type BookingRequest = Omit<Booking, 'bookingNumber' | 'status'>;
+export type Booking = { bookingNumber: number; info: BookingInfo; period: BookingPeriod; state: BookingState };
+
+export type BookingRequest = BookingInfo & { period: BookingPeriod };
 
 export const listBookings = () => get<Booking[]>('/bookings');
 
@@ -21,5 +20,8 @@ export const bookRoom = (request: BookingRequest) => post<Booking>('/bookings', 
 
 export const cancelBooking = (bookingNumber: number) => remove(`/bookings/${bookingNumber}`);
 
-export const cancelOpenBookings = (roomNumber: string) =>
-  remove(`/rooms/${encodeURIComponent(roomNumber)}/bookings`);
+export const checkIn = (bookingNumber: number) => postAction(`/bookings/${bookingNumber}/check-in`);
+
+export const checkOut = (bookingNumber: number) => postAction(`/bookings/${bookingNumber}/check-out`);
+
+export const cancelRoomBookings = (roomNumber: string) => remove(`/rooms/${encodeURIComponent(roomNumber)}/bookings`);

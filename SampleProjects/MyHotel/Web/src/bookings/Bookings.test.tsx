@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeApi } from '../test/fakeApi';
 import { renderPage } from '../test/renderPage';
 import { Bookings } from './Bookings';
+import type { Booking, BookingAction, BookingStatus } from './bookingsApi';
 
 const request = {
   roomNumber: '101',
@@ -11,19 +12,42 @@ const request = {
   guestCount: 2,
   period: { from: '2026-08-10', to: '2026-08-12' },
 };
-const booking10001 = { bookingNumber: 10001, ...request, status: 'Open' };
-const booking10002 = {
-  bookingNumber: 10002,
-  roomNumber: '102',
-  guestName: 'Jones',
-  guestCount: 1,
-  period: { from: '2026-08-11', to: '2026-08-13' },
-  status: 'Open',
+const booking10001: Booking = {
+  bookingNumber: 10001,
+  info: { roomNumber: '101', guestName: 'Smith', guestCount: 2 },
+  period: request.period,
+  state: { status: 'Open', actions: ['Cancel'] },
 };
-const rooms = ['101', '12A', '2', '12'].map(roomNumber => ({ roomNumber, bedCount: 1, hasOpenBookings: false }));
+const booking10002: Booking = {
+  bookingNumber: 10002,
+  info: { roomNumber: '102', guestName: 'Jones', guestCount: 1 },
+  period: { from: '2026-08-11', to: '2026-08-13' },
+  state: { status: 'Open', actions: ['Cancel'] },
+};
+const rooms = ['101', '12A', '2', '12']
+  .map(roomNumber => ({ roomNumber, bedCount: 1, held: false, hasCancellableBookings: false }));
 const roomsReply = { status: 200, body: rooms };
 
+const inState = (booking: Booking, status: BookingStatus, actions: BookingAction[]): Booking =>
+  ({ ...booking, state: { status, actions } });
+
 const rowOf = (bookingNumber: number) => screen.findByRole('row', { name: new RegExp(`^${bookingNumber}`) });
+const buttonsIn = (row: HTMLElement) => within(row).queryAllByRole('button').map(button => button.textContent);
+
+const showing = (...bookings: Booking[]) => {
+  fakeApi({ 'GET /rooms': roomsReply, 'GET /bookings': { status: 200, body: bookings } });
+  renderPage(<Bookings />);
+};
+
+const refusedWhenClicking = async (button: string, booking: Booking, request: string, code: string) => {
+  fakeApi({
+    'GET /rooms': roomsReply,
+    'GET /bookings': { status: 200, body: [booking] },
+    [request]: { status: 409, body: { code } },
+  });
+  renderPage(<Bookings />);
+  await userEvent.click(within(await rowOf(booking.bookingNumber)).getByRole('button', { name: button }));
+};
 
 const fillers: Record<string, () => Promise<void>> = {
   Från: () => userEvent.type(screen.getByLabelText('Från'), request.period.from),
@@ -188,7 +212,7 @@ describe('Bookings', () => {
       'GET /rooms': roomsReply,
       'GET /bookings': [
         { status: 200, body: [booking10001, booking10002] },
-        { status: 200, body: [{ ...booking10001, status: 'Cancelled' }, booking10002] },
+        { status: 200, body: [inState(booking10001, 'Cancelled', []), booking10002] },
       ],
       'DELETE /bookings/10001': { status: 204 },
     });
@@ -199,17 +223,81 @@ describe('Bookings', () => {
   });
 
   it('offers no cancelling of a cancelled booking', async () => {
-    fakeApi({ 'GET /rooms': roomsReply, 'GET /bookings': { status: 200, body: [{ ...booking10001, status: 'Cancelled' }] } });
-    renderPage(<Bookings />);
+    showing(inState(booking10001, 'Cancelled', []));
     expect(within(await rowOf(10001)).queryByRole('button', { name: 'Avboka' })).not.toBeInTheDocument();
   });
 
   it('offers no cancelling of a past booking, nor calls it cancelled', async () => {
-    fakeApi({ 'GET /rooms': roomsReply, 'GET /bookings': { status: 200, body: [{ ...booking10001, status: 'Past' }] } });
-    renderPage(<Bookings />);
+    showing(inState(booking10001, 'Past', []));
     const row = await rowOf(10001);
     expect(within(row).queryByRole('button', { name: 'Avboka' })).not.toBeInTheDocument();
     expect(row).toHaveTextContent(/2026-08-12$/);
+  });
+
+  it('offers to cancel an open booking, and to check it in when it can be', async () => {
+    showing(inState(booking10001, 'Open', ['Cancel', 'CheckIn']), booking10002);
+    expect(buttonsIn(await rowOf(10001))).toEqual(['Avboka', 'Checka in']);
+    expect(buttonsIn(await rowOf(10002))).toEqual(['Avboka']);
+  });
+
+  it('checks in a booking, and shows it checked in', async () => {
+    const api = fakeApi({
+      'GET /rooms': roomsReply,
+      'GET /bookings': [
+        { status: 200, body: [inState(booking10001, 'Open', ['Cancel', 'CheckIn'])] },
+        { status: 200, body: [inState(booking10001, 'CheckedIn', [])] },
+      ],
+      'POST /bookings/10001/check-in': { status: 204 },
+    });
+    renderPage(<Bookings />);
+    await userEvent.click(within(await rowOf(10001)).getByRole('button', { name: 'Checka in' }));
+    await waitFor(async () => expect(await rowOf(10001)).toHaveTextContent(/Incheckad$/));
+    expect(api).toHaveBeenCalledWith('/bookings/10001/check-in', expect.objectContaining({ method: 'POST' }));
+  });
+
+  it('shows a checked-in booking as checked in, and offers to check it out when it can be', async () => {
+    showing(inState(booking10001, 'CheckedIn', ['CheckOut']), inState(booking10002, 'CheckedIn', []));
+    const checkingOut = await rowOf(10001);
+    expect(checkingOut).toHaveTextContent('Incheckad');
+    expect(buttonsIn(checkingOut)).toEqual(['Checka ut']);
+    expect(buttonsIn(await rowOf(10002))).toEqual([]);
+  });
+
+  it('checks out a booking, and shows it checked out', async () => {
+    const api = fakeApi({
+      'GET /rooms': roomsReply,
+      'GET /bookings': [
+        { status: 200, body: [inState(booking10001, 'CheckedIn', ['CheckOut'])] },
+        { status: 200, body: [inState(booking10001, 'CheckedOut', [])] },
+      ],
+      'POST /bookings/10001/check-out': { status: 204 },
+    });
+    renderPage(<Bookings />);
+    await userEvent.click(within(await rowOf(10001)).getByRole('button', { name: 'Checka ut' }));
+    await waitFor(async () => expect(await rowOf(10001)).toHaveTextContent(/Utcheckad$/));
+    expect(buttonsIn(await rowOf(10001))).toEqual([]);
+    expect(api).toHaveBeenCalledWith('/bookings/10001/check-out', expect.objectContaining({ method: 'POST' }));
+  });
+
+  it('shows a no-show as a no-show, and offers to cancel it while it can be', async () => {
+    showing(inState(booking10001, 'NoShow', ['Cancel']), inState(booking10002, 'NoShow', []));
+    const cancellable = await rowOf(10001);
+    expect(cancellable).toHaveTextContent('No show');
+    expect(buttonsIn(cancellable)).toEqual(['Avboka']);
+    expect(await rowOf(10002)).toHaveTextContent(/No show$/);
+    expect(buttonsIn(await rowOf(10002))).toEqual([]);
+  });
+
+  it('says above the bookings that a booking was not checked in', async () => {
+    const checkingIn = inState(booking10001, 'Open', ['CheckIn']);
+    await refusedWhenClicking('Checka in', checkingIn, 'POST /bookings/10001/check-in', 'NotDueForCheckIn');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Bokningen kan inte checkas in.');
+  });
+
+  it('says above the bookings that a booking was not checked out', async () => {
+    const checkingOut = inState(booking10001, 'CheckedIn', ['CheckOut']);
+    await refusedWhenClicking('Checka ut', checkingOut, 'POST /bookings/10001/check-out', 'NotDueForCheckOut');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Bokningen kan inte checkas ut.');
   });
 
   describe('the date buttons', () => {
@@ -297,14 +385,8 @@ describe('Bookings', () => {
     });
   });
 
-  it('says above the bookings that a booking past or cancelled was not cancelled', async () => {
-    fakeApi({
-      'GET /rooms': roomsReply,
-      'GET /bookings': { status: 200, body: [booking10001] },
-      'DELETE /bookings/10001': { status: 409, body: { code: 'BookingNotOpen' } },
-    });
-    renderPage(<Bookings />);
-    await userEvent.click(within(await rowOf(10001)).getByRole('button', { name: 'Avboka' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Bokningen är redan avbokad eller passerad.');
+  it('says above the bookings that a booking was not cancelled', async () => {
+    await refusedWhenClicking('Avboka', booking10001, 'DELETE /bookings/10001', 'BookingNotCancellable');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Bokningen kan inte avbokas.');
   });
 });

@@ -6,6 +6,9 @@ namespace MyHotel.Contract.Bookings;
 public enum BookingStatus
 {
     Open,
+    CheckedIn,
+    CheckedOut,
+    NoShow,
     Past,
     Cancelled,
 }

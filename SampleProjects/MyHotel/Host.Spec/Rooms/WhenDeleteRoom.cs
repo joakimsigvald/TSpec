@@ -41,17 +41,16 @@ public abstract class WhenDeleteRoom : ApiSpec<HttpResponseMessage>
         [Fact] public void ThenRespondConflict() => Result.StatusCode.Is(Conflict);
 
         [Fact]
-        public async Task ThenSayTheRoomHasOpenBookings() =>
-            (await Result.Read<ErrorBody>()).Code.Is("RoomHasOpenBookings");
+        public async Task ThenSayTheRoomIsHeld() =>
+            (await Result.Read<ErrorBody>()).Code.Is("RoomHeld");
     }
 
     /// <summary>
-    /// Setups run last-declared-first: the room exists, it is booked, its open bookings are
-    /// cancelled.
+    /// Setups run last-declared-first: the room exists, it is booked, its bookings are cancelled.
     /// </summary>
-    public class GivenItsOpenBookingsWereCancelled : WhenDeleteRoom
+    public class GivenItsBookingsWereCancelled : WhenDeleteRoom
     {
-        public GivenItsOpenBookingsWereCancelled()
+        public GivenItsBookingsWereCancelled()
         {
             Having(_ => _.Api.DeleteAsync($"/rooms/{The<Room>().RoomNumber}/bookings"));
             Having(_ => _.Api.PostAsJsonAsync(

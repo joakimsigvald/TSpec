@@ -2,8 +2,9 @@ import { useTranslation } from 'react-i18next';
 import { ErrorMessage } from '../ErrorMessage';
 import { useBookings, useReload, useRooms } from '../queries';
 import { useAttempt } from '../useAttempt';
+import { BookingRow } from './BookingRow';
 import { BookRoomForm } from './BookRoomForm';
-import { bookRoom, cancelBooking, type BookingRequest } from './bookingsApi';
+import { bookRoom, cancelBooking, checkIn, checkOut, type BookingAction, type BookingRequest } from './bookingsApi';
 
 export function Bookings() {
   const { t } = useTranslation();
@@ -17,8 +18,8 @@ export function Bookings() {
     await reload();
   };
 
-  const cancel = (bookingNumber: number) => attempt(async () => {
-    await cancelBooking(bookingNumber);
+  const take = (action: BookingAction, bookingNumber: number) => attempt(async () => {
+    await calls[action](bookingNumber);
     await reload();
   });
 
@@ -39,25 +40,16 @@ export function Bookings() {
           </tr>
         </thead>
         <tbody>
-          {bookings.map(booking => (
-            <tr key={booking.bookingNumber}>
-              <td>{booking.bookingNumber}</td>
-              <td>{booking.roomNumber}</td>
-              <td>{booking.guestCount}</td>
-              <td>{booking.guestName}</td>
-              <td>{booking.period.from}</td>
-              <td>{booking.period.to}</td>
-              <td>
-                {booking.status === 'Open' && (
-                  <button onClick={() => cancel(booking.bookingNumber)}>{t('bookings.cancel')}</button>
-                )}
-                {booking.status === 'Cancelled' && t('bookings.cancelled')}
-              </td>
-            </tr>
-          ))}
+          {bookings.map(booking => <BookingRow key={booking.bookingNumber} booking={booking} onAction={take} />)}
         </tbody>
       </table>
       <BookRoomForm rooms={rooms} onBook={book} />
     </section>
   );
 }
+
+const calls: Record<BookingAction, (bookingNumber: number) => Promise<void>> = {
+  Cancel: cancelBooking,
+  CheckIn: checkIn,
+  CheckOut: checkOut,
+};

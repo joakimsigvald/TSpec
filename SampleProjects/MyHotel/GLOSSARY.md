@@ -22,9 +22,17 @@ is provisional: the term is not used in code yet, and is the product owner's to 
 | `BookingPeriod` | A booking's nights: the guest arrives on `From` and departs on `To`. Nights are half-open, `[From, To)`, so the departure night is free for the next booking |
 | `Overlaps` | Two bookings of one room share a night, neither of them cancelled |
 | `Today` | The hotel's date: the server's, in its own time zone |
-| `BookingStatus` | `Open`, `Past` or `Cancelled`: cancelled once cancelled, otherwise worked out from its dates and today |
-| `Open` | A booking that is not cancelled and departs today or later |
-| `Past` | A booking that departed before today |
-| `Cancel` | To mark an open booking cancelled. It is kept as a record, and its nights are free again |
+| `BookingStage` | What has happened to a booking, as stored: `Booked`, `CheckedIn`, `CheckedOut` or `Cancelled` |
+| `BookingStatus` | `Open`, `CheckedIn`, `CheckedOut`, `NoShow`, `Past` or `Cancelled`: worked out from the booking's `BookingStage`, its dates and today |
+| `Open` | A booking neither checked in nor cancelled whose arrival day has not passed |
+| `CheckIn` | To mark an open booking checked in, on its arrival day |
+| `CheckedIn` | A checked-in booking whose departure day has not passed |
+| `CheckOut` | To mark a checked-in booking checked out, on its departure day |
+| `CheckedOut` | A booking that was checked out, for good |
+| `NoShow` | A booking whose arrival day passed while it was open, for good |
+| `Past` | A checked-in booking whose departure day passed without a check-out |
+| `Cancellable` | An open booking, or a no-show whose departure day has not passed |
+| `Cancel` | To mark a cancellable booking cancelled. It is kept as a record, and its nights are free again |
+| `Held` | A room an open or checked-in booking, or a cancellable no-show, still holds; it cannot be deleted |
 | `Refusal` | A request the hotel turns down, answered with an error code |
 | `OutOfService` * | A room temporarily off inventory, taking no new bookings. Hotel usage - *out of order* is maintenance |

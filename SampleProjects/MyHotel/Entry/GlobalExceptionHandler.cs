@@ -33,7 +33,7 @@ internal sealed class GlobalExceptionHandler : IExceptionHandler
             RoomAlreadyExists => new(Status409Conflict, nameof(RoomAlreadyExists)),
             RoomNumberMismatch => new(Status400BadRequest, nameof(RoomNumberMismatch)),
             InvalidBedCount => new(Status400BadRequest, nameof(InvalidBedCount)),
-            RoomHasOpenBookings => new(Status409Conflict, nameof(RoomHasOpenBookings)),
+            RoomHeld => new(Status409Conflict, nameof(RoomHeld)),
             RoomCategoryNotFound => new(Status404NotFound, nameof(RoomCategoryNotFound)),
             RoomCategoryAlreadyExists => new(Status409Conflict, nameof(RoomCategoryAlreadyExists)),
             RoomCategoryNameMismatch => new(Status400BadRequest, nameof(RoomCategoryNameMismatch)),
@@ -44,7 +44,9 @@ internal sealed class GlobalExceptionHandler : IExceptionHandler
             InvalidGuestCount => new(Status400BadRequest, nameof(InvalidGuestCount)),
             TooManyGuests => new(Status409Conflict, nameof(TooManyGuests)),
             BookingNotFound => new(Status404NotFound, nameof(BookingNotFound)),
-            BookingNotOpen => new(Status409Conflict, nameof(BookingNotOpen)),
+            BookingNotCancellable => new(Status409Conflict, nameof(BookingNotCancellable)),
+            NotDueForCheckIn => new(Status409Conflict, nameof(NotDueForCheckIn)),
+            NotDueForCheckOut => new(Status409Conflict, nameof(NotDueForCheckOut)),
             _ => null,
         };
 

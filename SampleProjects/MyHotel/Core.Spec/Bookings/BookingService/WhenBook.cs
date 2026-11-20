@@ -1,4 +1,5 @@
-﻿using static MyHotel.Contract.Bookings.BookingStatus;
+﻿using static MyHotel.Contract.Bookings.BookingAction;
+using static MyHotel.Contract.Bookings.BookingStatus;
 using static TSpec.Times;
 
 namespace MyHotel.Core.Spec.Bookings.BookingService;
@@ -31,11 +32,9 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
             public void ThenReturnTheBookingWithTheNumberItWasGiven() =>
                 Result.Is(new Booking(
                     The<int>(),
-                    The<Room>().RoomNumber,
-                    The<string>(),
-                    1,
+                    new BookingInfo(The<Room>().RoomNumber, The<string>(), 1),
                     new BookingPeriod(Arrival, Departure),
-                    Open));
+                    new BookingState(Open, [Cancel])));
 
             [Fact] public void ThenStoreIt() => Then<IBookingStore>(nameof(IBookingStore.Save), Once);
         }
@@ -67,7 +66,7 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
                 {
                     RoomNumber = The<Room>().RoomNumber,
                     Period = new(Arrival.AddDays(1), Departure.AddDays(1)),
-                    Cancelled = false,
+                    Stage = BookingStage.Booked,
                 }]);
 
             [Fact]
@@ -85,10 +84,10 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
                 {
                     RoomNumber = The<Room>().RoomNumber,
                     Period = new(Arrival.AddDays(1), Departure.AddDays(1)),
-                    Cancelled = true,
+                    Stage = BookingStage.Cancelled,
                 }]);
 
-            [Fact] public void ThenBookTheRoom() => Result.RoomNumber.Is(The<Room>().RoomNumber);
+            [Fact] public void ThenBookTheRoom() => Result.Info.RoomNumber.Is(The<Room>().RoomNumber);
         }
 
         /// <summary>
@@ -102,10 +101,10 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
                 {
                     RoomNumber = The<Room>().RoomNumber,
                     Period = new(Today, Arrival),
-                    Cancelled = false,
+                    Stage = BookingStage.Booked,
                 }]);
 
-            [Fact] public void ThenBookTheRoom() => Result.RoomNumber.Is(The<Room>().RoomNumber);
+            [Fact] public void ThenBookTheRoom() => Result.Info.RoomNumber.Is(The<Room>().RoomNumber);
         }
     }
 

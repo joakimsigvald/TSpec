@@ -55,7 +55,7 @@ public abstract class WhenCancelBooking : ApiSpec<HttpResponseMessage>
         [Fact] public void ThenRespondConflict() => Result.StatusCode.Is(Conflict);
 
         [Fact]
-        public async Task ThenSayTheBookingIsNotOpen() =>
-            (await Result.Read<ErrorBody>()).Code.Is("BookingNotOpen");
+        public async Task ThenSayTheBookingIsNotCancellable() =>
+            (await Result.Read<ErrorBody>()).Code.Is("BookingNotCancellable");
     }
 }

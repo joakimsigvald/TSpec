@@ -8,14 +8,15 @@ namespace MyHotel.Core.Rooms;
 /// </summary>
 public class RoomService(
     IRoomStore store,
-    IOpenBookings openBookings,
+    IRoomBookings roomBookings,
     RoomCategoryCatalog roomCategories)
     : IRoomService
 {
     public async Task<IReadOnlyList<RoomOverview>> Rooms()
     {
-        var open = await openBookings.RoomNumbers();
-        return [.. (await store.Load()).Select(room => Overview(room, open))];
+        var held = await roomBookings.HeldRooms();
+        var cancellable = await roomBookings.RoomsWithCancellableBookings();
+        return [.. (await store.Load()).Select(room => Overview(room, held, cancellable))];
     }
 
     public async Task<RoomOverview> RoomFor(string roomNumber) =>
@@ -52,8 +53,8 @@ public class RoomService(
     {
         var rooms = await store.Load();
         var existing = Existing(rooms, roomNumber);
-        if ((await openBookings.RoomNumbers()).Contains(roomNumber))
-            throw new RoomHasOpenBookings(roomNumber);
+        if ((await roomBookings.HeldRooms()).Contains(roomNumber))
+            throw new RoomHeld(roomNumber);
 
         await store.Save([.. rooms.Where(stored => stored != existing)]);
     }
@@ -65,10 +66,16 @@ public class RoomService(
         (await roomCategories.Load()).Any(category => category.Name == name);
 
     private async Task<RoomOverview> OverviewOf(Room room) =>
-        Overview(room, await openBookings.RoomNumbers());
+        Overview(room, await roomBookings.HeldRooms(), await roomBookings.RoomsWithCancellableBookings());
 
-    private static RoomOverview Overview(Room room, IReadOnlyList<string> open) =>
-        new(room.RoomNumber, room.BedCount, room.RoomCategory, open.Contains(room.RoomNumber));
+    private static RoomOverview Overview(
+        Room room, IReadOnlyList<string> held, IReadOnlyList<string> cancellable) =>
+        new(
+            room.RoomNumber,
+            room.BedCount,
+            room.RoomCategory,
+            held.Contains(room.RoomNumber),
+            cancellable.Contains(room.RoomNumber));
 
     private static Room Existing(IEnumerable<Room> rooms, string roomNumber) =>
         Find(rooms, roomNumber) ?? throw new RoomNotFound(roomNumber);

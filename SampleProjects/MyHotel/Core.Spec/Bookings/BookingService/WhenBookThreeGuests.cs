@@ -30,6 +30,6 @@ public abstract class WhenBookThreeGuests : Spec<Core.Bookings.BookingService, B
         public GivenTheRoomHasThreeBeds() =>
             Given<IRoomStore>().That(_ => _.Load()).Returns(() => [The<Room>() with { BedCount = 3 }]);
 
-        [Fact] public void ThenBookItForThreeGuests() => Result.GuestCount.Is(3);
+        [Fact] public void ThenBookItForThreeGuests() => Result.Info.GuestCount.Is(3);
     }
 }

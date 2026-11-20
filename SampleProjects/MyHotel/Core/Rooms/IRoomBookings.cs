@@ -4,10 +4,8 @@ namespace MyHotel.Core.Rooms;
 /// What Rooms asks of the bookings, declared here so that Bookings answers it and the dependency
 /// keeps running from Bookings to Rooms (Architecture.Spec, SubdomainDependencies).
 /// </summary>
-public interface IOpenBookings
+public interface IRoomBookings
 {
-    /// <summary>
-    /// The rooms with a current or future booking that is not cancelled.
-    /// </summary>
-    Task<IReadOnlyList<string>> RoomNumbers();
+    Task<IReadOnlyList<string>> HeldRooms();
+    Task<IReadOnlyList<string>> RoomsWithCancellableBookings();
 }

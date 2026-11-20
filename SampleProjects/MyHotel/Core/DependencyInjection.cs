@@ -15,6 +15,6 @@ public static class DependencyInjection
             .AddSingleton<RoomCategoryCatalog>()
             .AddSingleton<IRoomCategoryService, RoomCategoryService>()
             .AddSingleton<IBookingService, BookingService>()
-            .AddSingleton<IOpenBookings, OpenBookings>()
+            .AddSingleton<IRoomBookings, RoomBookings>()
             .AddSingleton<IBookingNumberGenerator, BookingNumberGenerator>();
 }

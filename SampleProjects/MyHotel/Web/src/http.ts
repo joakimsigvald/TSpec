@@ -16,6 +16,10 @@ export const remove = async (path: string): Promise<void> => {
   await call('DELETE', path);
 };
 
+export const postAction = async (path: string): Promise<void> => {
+  await call('POST', path);
+};
+
 async function call(method: string, path: string, body?: unknown): Promise<Response> {
   const response = await fetch(path, {
     method,

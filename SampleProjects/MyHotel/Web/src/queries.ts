@@ -10,9 +10,9 @@ const roomCategories = ['roomCategories'];
 const bookings = ['bookings'];
 const rules = ['rules'];
 
-// A room states whether it has open bookings, and a category whether a room has it, so a change
-// makes those lists stale too. The rules never change while the hotel runs, so no change makes
-// them stale.
+// A room states whether a booking holds it and whether it has bookings to cancel, and a category
+// whether a room has it, so a change makes those lists stale too. The rules never change while the
+// hotel runs, so no change makes them stale.
 const staleAfter = { room: [rooms, roomCategories], roomCategory: [roomCategories], booking: [bookings, rooms] };
 
 // A refusal is the API's answer, so asking again would only delay it.

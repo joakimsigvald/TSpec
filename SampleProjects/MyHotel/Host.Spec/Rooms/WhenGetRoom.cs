@@ -31,7 +31,9 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact]
-        public async Task ThenSaySo() => (await Result.Read<RoomOverview>()).HasOpenBookings.Is(true);
+        public async Task ThenSayItIsHeldWithBookingsToCancel() =>
+            (await Result.Read<RoomOverview>()).Is(new RoomOverview(
+                The<Room>().RoomNumber, The<Room>().BedCount, The<Room>().RoomCategory, true, true));
     }
 
     public class GivenNoSuchRoom : WhenGetRoom

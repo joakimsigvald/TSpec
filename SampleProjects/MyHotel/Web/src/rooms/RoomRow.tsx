@@ -45,15 +45,15 @@ export function RoomRow({ room, roomCategories, bedCounts, asking, onSave, onCan
           {t('rooms.save')}
         </button>
         <button
-          disabled={!room.hasOpenBookings}
-          title={room.hasOpenBookings ? undefined : t('rooms.noOpenBookings')}
+          disabled={!room.hasCancellableBookings}
+          title={room.hasCancellableBookings ? undefined : t('rooms.noCancellableBookings')}
           onClick={() => onCancelBookings(room.roomNumber)}
         >
           {t('rooms.cancelBookings')}
         </button>
         <button
-          disabled={room.hasOpenBookings}
-          title={room.hasOpenBookings ? t('errors.RoomHasOpenBookings') : undefined}
+          disabled={room.held}
+          title={room.held ? t('errors.RoomHeld') : undefined}
           onClick={() => onDelete(room.roomNumber)}
         >
           {t('rooms.delete')}

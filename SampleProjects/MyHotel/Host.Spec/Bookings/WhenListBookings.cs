@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using static MyHotel.Contract.Bookings.BookingAction;
 using static MyHotel.Contract.Bookings.BookingStatus;
 using static System.Net.HttpStatusCode;
 
@@ -45,17 +46,13 @@ public abstract class WhenListBookings : ApiSpec<HttpResponseMessage>
             (await Result.Read<Booking[]>()).Is().EqualTo([
                 new Booking(
                     10001,
-                    The<Room>().RoomNumber,
-                    The<string>(),
-                    1,
+                    new BookingInfo(The<Room>().RoomNumber, The<string>(), 1),
                     new BookingPeriod(new(2026, 8, 14), new(2026, 8, 16)),
-                    Open),
+                    new BookingState(Open, [Cancel])),
                 new Booking(
                     10002,
-                    The<Room>().RoomNumber,
-                    TheSecond<string>(),
-                    1,
+                    new BookingInfo(The<Room>().RoomNumber, TheSecond<string>(), 1),
                     new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)),
-                    Open)]);
+                    new BookingState(Open, [Cancel]))]);
     }
 }

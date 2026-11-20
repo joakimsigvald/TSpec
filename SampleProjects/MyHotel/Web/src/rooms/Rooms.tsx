@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { cancelOpenBookings } from '../bookings/bookingsApi';
+import { cancelRoomBookings } from '../bookings/bookingsApi';
 import { ConfirmDialog, type Confirmation } from '../ConfirmDialog';
 import { ErrorMessage } from '../ErrorMessage';
 import { useReload, useRoomCategories, useRooms, useRules } from '../queries';
@@ -35,7 +35,7 @@ export function Rooms() {
       caption: t('rooms.confirmCancelBookingsCaption'),
       question: t('rooms.confirmCancelBookings', { roomNumber }),
       onConfirm: () => attempt(async () => {
-        await cancelOpenBookings(roomNumber);
+        await cancelRoomBookings(roomNumber);
         await reloadAfterBookings();
       }),
     },
