@@ -1,27 +1,32 @@
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ErrorMessage } from '../ErrorMessage';
+import type { BookingPeriod } from './bookingsApi';
 import { ShortcutButton } from './ShortcutButton';
 
-type Props = { toFailure?: string };
-
-type ToChoice = { typed: string } | { nights: number };
+type Props = { period: BookingPeriod; onChange: (period: BookingPeriod) => void; toFailure?: string };
 
 const nightChoices = [1, 2, 3];
 
-export function BookingPeriod({ toFailure }: Props) {
+export function BookingPeriod({ period: { from, to }, onChange, toFailure }: Props) {
   const { t } = useTranslation();
-  const [from, setFrom] = useState('');
-  const [toChoice, setToChoice] = useState<ToChoice>({ typed: '' });
+  const [nightsChosen, setNightsChosen] = useState<number>();
   const toError = useId();
   const today = isoDate(new Date());
   const tomorrow = daysAfter(today, 1);
-  const nightsAfterFrom = (nights: number) => (from ? daysAfter(from, nights) : undefined);
-  const to = 'nights' in toChoice ? nightsAfterFrom(toChoice.nights) ?? '' : toChoice.typed;
+
+  const arrive = (arrival: string) =>
+    onChange({ from: arrival, to: nightsChosen === undefined ? to : nightsAfter(arrival, nightsChosen) ?? '' });
+
+  const depart = (departure: string) => {
+    setNightsChosen(undefined);
+    onChange({ from, to: departure });
+  };
 
   const chooseNights = (nights: number) => {
-    setFrom(current => current || today);
-    setToChoice({ nights });
+    const arrival = from || today;
+    setNightsChosen(nights);
+    onChange({ from: arrival, to: daysAfter(arrival, nights) });
   };
 
   return (
@@ -29,13 +34,13 @@ export function BookingPeriod({ toFailure }: Props) {
       <div className="field">
         <label>
           {t('bookings.from')}
-          <input name="from" type="date" required value={from} onChange={event => setFrom(event.target.value)} />
+          <input type="date" required value={from} onChange={event => arrive(event.target.value)} />
         </label>
         <div className="shortcuts">
-          <ShortcutButton pressed={from === today} onClick={() => setFrom(today)}>
+          <ShortcutButton pressed={from === today} onClick={() => arrive(today)}>
             {t('bookings.today')}
           </ShortcutButton>
-          <ShortcutButton pressed={from === tomorrow} onClick={() => setFrom(tomorrow)}>
+          <ShortcutButton pressed={from === tomorrow} onClick={() => arrive(tomorrow)}>
             {t('bookings.tomorrow')}
           </ShortcutButton>
         </div>
@@ -44,17 +49,16 @@ export function BookingPeriod({ toFailure }: Props) {
         <label>
           {t('bookings.to')}
           <input
-            name="to"
             type="date"
             required
             value={to}
-            onChange={event => setToChoice({ typed: event.target.value })}
+            onChange={event => depart(event.target.value)}
             aria-describedby={toError}
           />
         </label>
         <div className="shortcuts">
           {nightChoices.map(nights => (
-            <ShortcutButton key={nights} pressed={to === nightsAfterFrom(nights)} onClick={() => chooseNights(nights)}>
+            <ShortcutButton key={nights} pressed={to === nightsAfter(from, nights)} onClick={() => chooseNights(nights)}>
               {t('bookings.nights', { count: nights })}
             </ShortcutButton>
           ))}
@@ -64,6 +68,8 @@ export function BookingPeriod({ toFailure }: Props) {
     </>
   );
 }
+
+const nightsAfter = (arrival: string, nights: number) => (arrival ? daysAfter(arrival, nights) : undefined);
 
 function daysAfter(date: string, days: number) {
   const [year, month, day] = date.split('-').map(Number);

@@ -2,7 +2,7 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 
 public abstract class WhenList : Spec<Core.Bookings.BookingService, IReadOnlyList<Booking>>
 {
-    protected WhenList() => Using(TodayIs(new(2026, 8, 10))).When(_ => _.Bookings());
+    protected WhenList() => Using(TodayIs(Today)).When(_ => _.Bookings());
 
     public class GivenNoBookings : WhenList
     {

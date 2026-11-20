@@ -2,11 +2,14 @@ import { useId, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ErrorMessage } from '../ErrorMessage';
 import type { Room } from '../rooms/roomsApi';
+import { hasEmptyField, useEntered } from '../useEntered';
 import { useFormAttempt } from '../useFormAttempt';
 import { BookingPeriod } from './BookingPeriod';
 import type { BookingRequest } from './bookingsApi';
 
 type Props = { rooms: Room[]; onBook: (request: BookingRequest) => Promise<void> };
+
+type Entered = { from: string; to: string; roomNumber: string; guestCount: string; guestName: string };
 
 const fieldOf = {
   RoomNotFound: 'roomNumber',
@@ -16,9 +19,12 @@ const fieldOf = {
   InvalidBookingPeriod: 'to',
 } as const;
 
+const nothingEntered: Entered = { from: '', to: '', roomNumber: '', guestCount: '', guestName: '' };
+
 export function BookRoomForm({ rooms, onBook }: Props) {
   const { t } = useTranslation();
   const { attempt, failureAt } = useFormAttempt(fieldOf);
+  const { entered, enter, clear } = useEntered(nothingEntered);
   const [bookingsMade, setBookingsMade] = useState(0);
   const roomNumberError = useId();
   const guestCountError = useId();
@@ -26,20 +32,29 @@ export function BookRoomForm({ rooms, onBook }: Props) {
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const form = event.currentTarget;
-    if (await attempt(() => onBook(requestIn(new FormData(form))))) {
-      form.reset();
+    if (await attempt(() => onBook(requestOf(entered)))) {
+      clear();
       setBookingsMade(count => count + 1);
     }
   };
 
   return (
     <form onSubmit={submit}>
-      <BookingPeriod key={bookingsMade} toFailure={failureAt('to')} />
+      <BookingPeriod
+        key={bookingsMade}
+        period={{ from: entered.from, to: entered.to }}
+        onChange={enter}
+        toFailure={failureAt('to')}
+      />
       <div className="field">
         <label>
           {t('bookings.roomNumber')}
-          <select name="roomNumber" required aria-describedby={roomNumberError}>
+          <select
+            required
+            value={entered.roomNumber}
+            onChange={event => enter({ roomNumber: event.target.value })}
+            aria-describedby={roomNumberError}
+          >
             <option value="">{t('bookings.chooseRoom')}</option>
             {inAlphanumericOrder(rooms).map(room => (
               <option key={room.roomNumber}>{room.roomNumber}</option>
@@ -51,18 +66,24 @@ export function BookRoomForm({ rooms, onBook }: Props) {
       <div className="field">
         <label>
           {t('bookings.guestCount')}
-          <input name="guestCount" type="number" required aria-describedby={guestCountError} />
+          <input
+            type="number"
+            required
+            value={entered.guestCount}
+            onChange={event => enter({ guestCount: event.target.value })}
+            aria-describedby={guestCountError}
+          />
         </label>
         <ErrorMessage id={guestCountError} code={failureAt('guestCount')} />
       </div>
       <div className="field">
         <label>
           {t('bookings.guest')}
-          <input name="guestName" required />
+          <input required value={entered.guestName} onChange={event => enter({ guestName: event.target.value })} />
         </label>
       </div>
       <div className="field actions">
-        <button aria-describedby={buttonError}>{t('bookings.book')}</button>
+        <button disabled={hasEmptyField(entered)} aria-describedby={buttonError}>{t('bookings.book')}</button>
         <ErrorMessage id={buttonError} code={failureAt('button')} />
       </div>
     </form>
@@ -72,9 +93,9 @@ export function BookRoomForm({ rooms, onBook }: Props) {
 const inAlphanumericOrder = (rooms: Room[]) =>
   [...rooms].sort((one, other) => one.roomNumber.localeCompare(other.roomNumber, 'sv', { numeric: true }));
 
-const requestIn = (data: FormData): BookingRequest => ({
-  roomNumber: String(data.get('roomNumber')),
-  guestName: String(data.get('guestName')),
-  guestCount: Number(data.get('guestCount')),
-  period: { from: String(data.get('from')), to: String(data.get('to')) },
+const requestOf = ({ from, to, roomNumber, guestCount, guestName }: Entered): BookingRequest => ({
+  roomNumber,
+  guestName,
+  guestCount: Number(guestCount),
+  period: { from, to },
 });

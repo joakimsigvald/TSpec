@@ -11,7 +11,7 @@ public abstract class WhenCancel : Spec<Core.Bookings.BookingService>
     private readonly Tag<StoredBooking> _booking = new();
 
     protected WhenCancel() =>
-        Using(TodayIs(new(2026, 8, 10)))
+        Using(TodayIs(Today))
             .When(_ => _.Cancel(The(_booking).BookingNumber));
 
     /// <summary>
@@ -23,7 +23,7 @@ public abstract class WhenCancel : Spec<Core.Bookings.BookingService>
         {
             Given(_booking).Is(A<StoredBooking>() with
             {
-                Period = new(Any<DateOnly>(), new(2026, 8, 10)),
+                Period = new(EarlierDay, Today),
                 Cancelled = false,
             });
             Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The(_booking)]);
@@ -40,7 +40,7 @@ public abstract class WhenCancel : Spec<Core.Bookings.BookingService>
         {
             Given(_booking).Is(A<StoredBooking>() with
             {
-                Period = new(Any<DateOnly>(), new(2026, 8, 9)),
+                Period = new(EarlierDay, Yesterday),
                 Cancelled = false,
             });
             Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The(_booking)]);
@@ -60,7 +60,7 @@ public abstract class WhenCancel : Spec<Core.Bookings.BookingService>
         {
             Given(_booking).Is(A<StoredBooking>() with
             {
-                Period = new(Any<DateOnly>(), new(2026, 8, 12)),
+                Period = new(EarlierDay, Tomorrow),
                 Cancelled = true,
             });
             Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The(_booking)]);

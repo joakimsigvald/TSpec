@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/Assets/">
+    <File Path=".editorconfig" />
     <File Path="BACKLOG.md" />
     <File Path="CLAUDE.md" />
     <File Path="CODING-STANDARD-BACKEND.md" />

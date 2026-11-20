@@ -4,7 +4,7 @@ public class WhenBookZeroGuests : Spec<Core.Bookings.BookingService, Booking>
 {
     public WhenBookZeroGuests() =>
         When(_ => _.Book(new BookingRequest(
-            A<string>(), ASecond<string>(), 0, new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))));
+            A<string>(), ASecond<string>(), 0, new BookingPeriod(Today, LaterDay))));
 
     [Fact]
     public void ThenThrowInvalidGuestCount() =>

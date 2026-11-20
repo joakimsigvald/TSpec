@@ -35,7 +35,7 @@ export function RoomCategoryRow({ roomCategory, asking, onSave, onDelete }: Prop
       </td>
       <td>
         <form id={form} onSubmit={submit}>
-          <button>{t('roomCategories.save')}</button>
+          <button disabled={description === roomCategory.description}>{t('roomCategories.save')}</button>
           <button
             type="button"
             disabled={roomCategory.hasRooms}

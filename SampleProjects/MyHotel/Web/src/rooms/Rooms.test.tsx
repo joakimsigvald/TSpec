@@ -33,6 +33,7 @@ const buttonIn = async (roomNumber: string, name: string) =>
 const categoryChoice = () => screen.getByRole('combobox', { name: 'Kategori' });
 const bedsChoice = () => screen.getByRole('combobox', { name: 'Sängar' });
 const optionsIn = (choice: HTMLElement) => within(choice).getAllByRole('option').map(option => option.textContent);
+const addButton = () => screen.getByRole('button', { name: 'Lägg till rum' });
 
 const choose = async (choice: HTMLElement, name: string) =>
   userEvent.selectOptions(choice, await within(choice).findByRole('option', { name }));
@@ -41,7 +42,7 @@ const addRoom = async (roomNumber: string, beds: string, roomCategory = 'Standar
   await userEvent.type(screen.getByLabelText('Rumsnummer'), roomNumber);
   await choose(bedsChoice(), beds);
   await choose(categoryChoice(), roomCategory);
-  await userEvent.click(screen.getByRole('button', { name: 'Lägg till rum' }));
+  await userEvent.click(addButton());
 };
 
 describe('Rooms', () => {
@@ -93,6 +94,30 @@ describe('Rooms', () => {
     expect(bedsChoice()).toHaveDisplayValue('1');
   });
 
+  it('cannot add a room without a room number', async () => {
+    fakeHotel({ 'GET /rooms': { status: 200, body: [] } });
+    renderPage(<Rooms />);
+    await choose(categoryChoice(), 'Standard');
+    expect(addButton()).toBeDisabled();
+  });
+
+  it('cannot add a room without a category', async () => {
+    fakeHotel({ 'GET /rooms': { status: 200, body: [] } });
+    renderPage(<Rooms />);
+    await userEvent.type(screen.getByLabelText('Rumsnummer'), '103');
+    expect(addButton()).toBeDisabled();
+  });
+
+  it('cannot add a room again until another is entered', async () => {
+    fakeHotel({
+      'GET /rooms': [{ status: 200, body: [room101] }, { status: 200, body: [room101, room103] }],
+      'POST /rooms': { status: 201, body: room103 },
+    });
+    renderPage(<Rooms />);
+    await addRoom('103', '3');
+    await waitFor(() => expect(addButton()).toBeDisabled());
+  });
+
   it('says under the beds that the number of beds is not allowed', async () => {
     fakeHotel({
       'GET /rooms': { status: 200, body: [room101] },
@@ -131,8 +156,7 @@ describe('Rooms', () => {
     });
     renderPage(<Rooms />);
     await addRoom('103', '3');
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Lägg till rum' })).toHaveAccessibleDescription('Något gick fel.'));
+    await waitFor(() => expect(addButton()).toHaveAccessibleDescription('Något gick fel.'));
   });
 
   it('says something went wrong when the API gives no reason', async () => {
@@ -167,6 +191,31 @@ describe('Rooms', () => {
       method: 'PUT',
       body: JSON.stringify({ roomNumber: '101', bedCount: 2, roomCategory: 'Svit' }),
     }));
+  });
+
+  it('cannot save a room before a value on its row changes', async () => {
+    fakeHotel({ 'GET /rooms': { status: 200, body: [room101] } });
+    renderPage(<Rooms />);
+    expect(await buttonIn('101', 'Spara')).toBeDisabled();
+  });
+
+  it('cannot save a room whose value is changed back', async () => {
+    fakeHotel({ 'GET /rooms': { status: 200, body: [room101] } });
+    renderPage(<Rooms />);
+    await choose(await bedsIn('101'), '3');
+    await choose(await bedsIn('101'), '2');
+    expect(await buttonIn('101', 'Spara')).toBeDisabled();
+  });
+
+  it('cannot save a room again once it is saved', async () => {
+    fakeHotel({
+      'GET /rooms': [{ status: 200, body: [room101] }, { status: 200, body: [{ ...room101, bedCount: 3 }] }],
+      'PUT /rooms/101': { status: 200, body: { ...room101, bedCount: 3 } },
+    });
+    renderPage(<Rooms />);
+    await choose(await bedsIn('101'), '3');
+    await userEvent.click(await buttonIn('101', 'Spara'));
+    await waitFor(async () => expect(await buttonIn('101', 'Spara')).toBeDisabled());
   });
 
   it('asks before deleting a room', async () => {

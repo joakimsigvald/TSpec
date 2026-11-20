@@ -2,10 +2,13 @@ import { useId, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ErrorMessage } from '../ErrorMessage';
 import type { RoomCategory } from '../roomCategories/roomCategoriesApi';
+import { hasEmptyField, useEntered } from '../useEntered';
 import { useFormAttempt } from '../useFormAttempt';
 import type { Room } from './roomsApi';
 
 type Props = { roomCategories: RoomCategory[]; bedCounts: number[]; onAdd: (room: Room) => Promise<void> };
+
+type Entered = { roomNumber: string; roomCategory: string; bedCount?: number };
 
 const fieldOf = {
   RoomAlreadyExists: 'roomNumber',
@@ -13,9 +16,13 @@ const fieldOf = {
   InvalidBedCount: 'bedCount',
 } as const;
 
+const nothingEntered: Entered = { roomNumber: '', roomCategory: '' };
+
 export function AddRoomForm({ roomCategories, bedCounts, onAdd }: Props) {
   const { t } = useTranslation();
   const { attempt, failureAt } = useFormAttempt(fieldOf);
+  const { entered, enter, clear } = useEntered(nothingEntered);
+  const room = roomOf(entered, bedCounts[0]);
   const roomNumberError = useId();
   const roomCategoryError = useId();
   const bedCountError = useId();
@@ -23,9 +30,8 @@ export function AddRoomForm({ roomCategories, bedCounts, onAdd }: Props) {
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const form = event.currentTarget;
-    if (await attempt(() => onAdd(roomIn(new FormData(form)))))
-      form.reset();
+    if (await attempt(() => onAdd(room)))
+      clear();
   };
 
   return (
@@ -33,14 +39,24 @@ export function AddRoomForm({ roomCategories, bedCounts, onAdd }: Props) {
       <div className="field">
         <label>
           {t('rooms.roomNumber')}
-          <input name="roomNumber" required aria-describedby={roomNumberError} />
+          <input
+            required
+            value={room.roomNumber}
+            onChange={event => enter({ roomNumber: event.target.value })}
+            aria-describedby={roomNumberError}
+          />
         </label>
         <ErrorMessage id={roomNumberError} code={failureAt('roomNumber')} />
       </div>
       <div className="field">
         <label>
           {t('rooms.roomCategory')}
-          <select name="roomCategory" required aria-describedby={roomCategoryError}>
+          <select
+            required
+            value={room.roomCategory}
+            onChange={event => enter({ roomCategory: event.target.value })}
+            aria-describedby={roomCategoryError}
+          >
             <option value="">{t('rooms.chooseRoomCategory')}</option>
             {roomCategories.map(category => <option key={category.name}>{category.name}</option>)}
           </select>
@@ -50,22 +66,27 @@ export function AddRoomForm({ roomCategories, bedCounts, onAdd }: Props) {
       <div className="field">
         <label>
           {t('rooms.beds')}
-          <select name="bedCount" required aria-describedby={bedCountError}>
+          <select
+            required
+            value={room.bedCount}
+            onChange={event => enter({ bedCount: Number(event.target.value) })}
+            aria-describedby={bedCountError}
+          >
             {bedCounts.map(count => <option key={count}>{count}</option>)}
           </select>
         </label>
         <ErrorMessage id={bedCountError} code={failureAt('bedCount')} />
       </div>
       <div className="field actions">
-        <button aria-describedby={buttonError}>{t('rooms.add')}</button>
+        <button disabled={hasEmptyField(room)} aria-describedby={buttonError}>{t('rooms.add')}</button>
         <ErrorMessage id={buttonError} code={failureAt('button')} />
       </div>
     </form>
   );
 }
 
-const roomIn = (data: FormData): Room => ({
-  roomNumber: String(data.get('roomNumber')),
-  bedCount: Number(data.get('bedCount')),
-  roomCategory: String(data.get('roomCategory')),
+const roomOf = ({ roomNumber, roomCategory, bedCount }: Entered, fewestBeds: number): Room => ({
+  roomNumber,
+  bedCount: bedCount ?? fewestBeds,
+  roomCategory,
 });

@@ -6,12 +6,12 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
 {
     protected WhenBook() =>
-        Using(TodayIs(new(2026, 8, 1)))
+        Using(TodayIs(Today))
             .When(_ => _.Book(new BookingRequest(
                 A<Room>().RoomNumber,
                 A<string>(),
                 1,
-                new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))));
+                new BookingPeriod(LaterDay, LaterDay.AddDays(2)))));
 
     public abstract class GivenTheRoomExists : WhenBook
     {
@@ -31,7 +31,7 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
                     The<Room>().RoomNumber,
                     The<string>(),
                     1,
-                    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)),
+                    new BookingPeriod(LaterDay, LaterDay.AddDays(2)),
                     Open));
 
             [Fact] public void ThenStoreIt() => Then<IBookingStore>(nameof(IBookingStore.Save), Once);
@@ -52,7 +52,7 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
                     The<Room>().RoomNumber,
                     ASecond<string>(),
                     1,
-                    new BookingPeriod(new(2026, 8, 8), new(2026, 8, 10)))));
+                    new BookingPeriod(LaterDay.AddDays(-2), LaterDay))));
 
             [Fact] public void ThenTakeTheSecondNumber() => Result.BookingNumber.Is(10002);
         }
@@ -63,7 +63,7 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
                 Given<IBookingStore>().That(_ => _.Load()).Returns(() => [A<StoredBooking>() with
                 {
                     RoomNumber = The<Room>().RoomNumber,
-                    Period = new(new(2026, 8, 11), new(2026, 8, 13)),
+                    Period = new(LaterDay.AddDays(1), LaterDay.AddDays(3)),
                     Cancelled = false,
                 }]);
 
@@ -81,7 +81,7 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
                 Given<IBookingStore>().That(_ => _.Load()).Returns(() => [A<StoredBooking>() with
                 {
                     RoomNumber = The<Room>().RoomNumber,
-                    Period = new(new(2026, 8, 11), new(2026, 8, 13)),
+                    Period = new(LaterDay.AddDays(1), LaterDay.AddDays(3)),
                     Cancelled = true,
                 }]);
 
@@ -98,7 +98,7 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
                 Given<IBookingStore>().That(_ => _.Load()).Returns(() => [A<StoredBooking>() with
                 {
                     RoomNumber = The<Room>().RoomNumber,
-                    Period = new(new(2026, 8, 8), new(2026, 8, 10)),
+                    Period = new(LaterDay.AddDays(-2), LaterDay),
                     Cancelled = false,
                 }]);
 

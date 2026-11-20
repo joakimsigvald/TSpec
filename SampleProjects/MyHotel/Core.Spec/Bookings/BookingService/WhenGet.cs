@@ -9,7 +9,7 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 public abstract class WhenGet : Spec<Core.Bookings.BookingService, Booking>
 {
     protected WhenGet() =>
-        Using(TodayIs(new(2026, 8, 10)))
+        Using(TodayIs(Today))
             .When(_ => _.BookingFor(A<StoredBooking>().BookingNumber));
 
     /// <summary>
@@ -20,7 +20,7 @@ public abstract class WhenGet : Spec<Core.Bookings.BookingService, Booking>
         public GivenTheBookingDepartsToday() =>
             Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The<StoredBooking>() with
             {
-                Period = new(Any<DateOnly>(), new(2026, 8, 10)),
+                Period = new(EarlierDay, Today),
                 Cancelled = false,
             }]);
 
@@ -36,7 +36,7 @@ public abstract class WhenGet : Spec<Core.Bookings.BookingService, Booking>
         public GivenTheBookingDepartedYesterday() =>
             Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The<StoredBooking>() with
             {
-                Period = new(Any<DateOnly>(), new(2026, 8, 9)),
+                Period = new(EarlierDay, Yesterday),
                 Cancelled = false,
             }]);
 
@@ -48,7 +48,7 @@ public abstract class WhenGet : Spec<Core.Bookings.BookingService, Booking>
         public GivenTheBookingWasCancelled() =>
             Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The<StoredBooking>() with
             {
-                Period = new(Any<DateOnly>(), new(2026, 8, 12)),
+                Period = new(EarlierDay, Tomorrow),
                 Cancelled = true,
             }]);
 

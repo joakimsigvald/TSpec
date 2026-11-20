@@ -7,7 +7,7 @@ namespace MyHotel.Core.Spec.Bookings.OpenBookings;
 public abstract class WhenListRoomNumbers : Spec<Core.Bookings.OpenBookings, IReadOnlyList<string>>
 {
     protected WhenListRoomNumbers() =>
-        Using(TodayIs(new(2026, 8, 10)))
+        Using(TodayIs(Today))
             .When(_ => _.RoomNumbers());
 
     public class GivenOneBookingOfEachStatus : WhenListRoomNumbers
@@ -16,17 +16,17 @@ public abstract class WhenListRoomNumbers : Spec<Core.Bookings.OpenBookings, IRe
             Given<IBookingStore>().That(_ => _.Load()).Returns(() => [
                 A<StoredBooking>() with
                 {
-                    Period = new(Any<DateOnly>(), new(2026, 8, 10)),
+                    Period = new(EarlierDay, Today),
                     Cancelled = false,
                 },
                 ASecond<StoredBooking>() with
                 {
-                    Period = new(Any<DateOnly>(), new(2026, 8, 9)),
+                    Period = new(EarlierDay, Yesterday),
                     Cancelled = false,
                 },
                 AThird<StoredBooking>() with
                 {
-                    Period = new(Any<DateOnly>(), new(2026, 8, 12)),
+                    Period = new(EarlierDay, Tomorrow),
                     Cancelled = true,
                 }]);
 

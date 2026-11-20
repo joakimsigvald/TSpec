@@ -1,6 +1,7 @@
 import { useId, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ErrorMessage } from '../ErrorMessage';
+import { hasEmptyField, useEntered } from '../useEntered';
 import { useFormAttempt } from '../useFormAttempt';
 import type { RoomCategory } from './roomCategoriesApi';
 
@@ -8,17 +9,19 @@ type Props = { onAdd: (roomCategory: RoomCategory) => Promise<void> };
 
 const fieldOf = { RoomCategoryAlreadyExists: 'name' } as const;
 
+const nothingEntered: RoomCategory = { name: '', description: '' };
+
 export function AddRoomCategoryForm({ onAdd }: Props) {
   const { t } = useTranslation();
   const { attempt, failureAt } = useFormAttempt(fieldOf);
+  const { entered, enter, clear } = useEntered(nothingEntered);
   const nameError = useId();
   const buttonError = useId();
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const form = event.currentTarget;
-    if (await attempt(() => onAdd(roomCategoryIn(new FormData(form)))))
-      form.reset();
+    if (await attempt(() => onAdd(entered)))
+      clear();
   };
 
   return (
@@ -26,25 +29,25 @@ export function AddRoomCategoryForm({ onAdd }: Props) {
       <div className="field">
         <label>
           {t('roomCategories.name')}
-          <input name="name" required aria-describedby={nameError} />
+          <input
+            required
+            value={entered.name}
+            onChange={event => enter({ name: event.target.value })}
+            aria-describedby={nameError}
+          />
         </label>
         <ErrorMessage id={nameError} code={failureAt('name')} />
       </div>
       <div className="field">
         <label>
           {t('roomCategories.description')}
-          <input name="description" required />
+          <input required value={entered.description} onChange={event => enter({ description: event.target.value })} />
         </label>
       </div>
       <div className="field actions">
-        <button aria-describedby={buttonError}>{t('roomCategories.add')}</button>
+        <button disabled={hasEmptyField(entered)} aria-describedby={buttonError}>{t('roomCategories.add')}</button>
         <ErrorMessage id={buttonError} code={failureAt('button')} />
       </div>
     </form>
   );
 }
-
-const roomCategoryIn = (data: FormData): RoomCategory => ({
-  name: String(data.get('name')),
-  description: String(data.get('description')),
-});

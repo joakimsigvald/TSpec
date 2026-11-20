@@ -15,11 +15,12 @@ const buttonIn = async (name: string, button: string) =>
   within(await rowOf(name)).getByRole('button', { name: button });
 
 const listed = () => screen.getAllByRole('row').slice(1).map(row => within(row).getAllByRole('cell')[0].textContent);
+const addButton = () => screen.getByRole('button', { name: 'Lägg till kategori' });
 
 const addRoomCategory = async (name: string, description: string) => {
   await userEvent.type(screen.getByLabelText('Namn'), name);
   await userEvent.type(screen.getByLabelText('Beskrivning'), description);
-  await userEvent.click(screen.getByRole('button', { name: 'Lägg till kategori' }));
+  await userEvent.click(addButton());
 };
 
 describe('RoomCategories', () => {
@@ -53,6 +54,30 @@ describe('RoomCategories', () => {
     }));
   });
 
+  it('cannot add a category without a name', async () => {
+    fakeApi({ 'GET /room-categories': { status: 200, body: [standard] } });
+    renderPage(<RoomCategories />);
+    await userEvent.type(screen.getByLabelText('Beskrivning'), 'Två rum');
+    expect(addButton()).toBeDisabled();
+  });
+
+  it('cannot add a category without a description', async () => {
+    fakeApi({ 'GET /room-categories': { status: 200, body: [standard] } });
+    renderPage(<RoomCategories />);
+    await userEvent.type(screen.getByLabelText('Namn'), 'Svit');
+    expect(addButton()).toBeDisabled();
+  });
+
+  it('cannot add a category again until another is entered', async () => {
+    fakeApi({
+      'GET /room-categories': [{ status: 200, body: [standard] }, { status: 200, body: [standard, suite] }],
+      'POST /room-categories': { status: 201, body: suite },
+    });
+    renderPage(<RoomCategories />);
+    await addRoomCategory('Svit', 'Två rum');
+    await waitFor(() => expect(addButton()).toBeDisabled());
+  });
+
   it('says under the name that the category already exists', async () => {
     fakeApi({
       'GET /room-categories': { status: 200, body: [standard] },
@@ -81,6 +106,49 @@ describe('RoomCategories', () => {
       method: 'PUT',
       body: JSON.stringify({ name: 'Svit', description: 'Stor' }),
     }));
+  });
+
+  it('cannot save a category before its description changes', async () => {
+    fakeApi({ 'GET /room-categories': { status: 200, body: [suite] } });
+    renderPage(<RoomCategories />);
+    expect(await buttonIn('Svit', 'Spara')).toBeDisabled();
+  });
+
+  it('cannot save a category whose description is changed back', async () => {
+    fakeApi({ 'GET /room-categories': { status: 200, body: [suite] } });
+    renderPage(<RoomCategories />);
+    const description = await descriptionIn('Svit');
+    await userEvent.type(description, '!');
+    await userEvent.type(description, '{Backspace}');
+    expect(await buttonIn('Svit', 'Spara')).toBeDisabled();
+  });
+
+  it('cannot save a category again once it is saved', async () => {
+    fakeApi({
+      'GET /room-categories': [
+        { status: 200, body: [suite] },
+        { status: 200, body: [{ ...suite, description: 'Stor' }] },
+      ],
+      'PUT /room-categories/Svit': { status: 200, body: { ...suite, description: 'Stor' } },
+    });
+    renderPage(<RoomCategories />);
+    const description = await descriptionIn('Svit');
+    await userEvent.clear(description);
+    await userEvent.type(description, 'Stor');
+    await userEvent.click(await buttonIn('Svit', 'Spara'));
+    await waitFor(async () => expect(await buttonIn('Svit', 'Spara')).toBeDisabled());
+  });
+
+  it('asks for a description instead of saving an emptied one', async () => {
+    const api = fakeApi({ 'GET /room-categories': { status: 200, body: [suite] } });
+    renderPage(<RoomCategories />);
+    const description = await descriptionIn('Svit');
+    await userEvent.clear(description);
+    const save = await buttonIn('Svit', 'Spara');
+    expect(save).toBeEnabled();
+    await userEvent.click(save);
+    expect(description).toBeInvalid();
+    expect(api).not.toHaveBeenCalledWith('/room-categories/Svit', expect.anything());
   });
 
   it('asks before deleting a category', async () => {

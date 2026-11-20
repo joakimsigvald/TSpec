@@ -17,6 +17,7 @@ export function RoomRow({ room, roomCategories, bedCounts, asking, onSave, onCan
   const { t } = useTranslation();
   const [bedCount, setBedCount] = useState(room.bedCount);
   const [roomCategory, setRoomCategory] = useState(room.roomCategory);
+  const unchanged = bedCount === room.bedCount && roomCategory === room.roomCategory;
 
   return (
     <tr className={asking ? 'asking' : undefined}>
@@ -40,7 +41,7 @@ export function RoomRow({ room, roomCategories, bedCounts, asking, onSave, onCan
         </select>
       </td>
       <td>
-        <button onClick={() => onSave({ roomNumber: room.roomNumber, bedCount, roomCategory })}>
+        <button disabled={unchanged} onClick={() => onSave({ roomNumber: room.roomNumber, bedCount, roomCategory })}>
           {t('rooms.save')}
         </button>
         <button

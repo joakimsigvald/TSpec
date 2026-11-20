@@ -9,7 +9,7 @@ namespace MyHotel.Core.Spec.Bookings.BookingNumberGenerator;
 public abstract class WhenNext : Spec<Core.Bookings.BookingNumberGenerator, int>
 {
     protected WhenNext() =>
-        Using(new BookingNumberSeed(10000))
+        Using(new BookingNumberSeed(An<int>()))
             .When(_ => _.Next());
 
     public class GivenNoNumberWasIssuedYet : WhenNext
@@ -17,22 +17,22 @@ public abstract class WhenNext : Spec<Core.Bookings.BookingNumberGenerator, int>
         public GivenNoNumberWasIssuedYet() =>
             Given<IBookingNumberStore>().That(_ => _.LoadLastUsed()).Returns(() => null);
 
-        [Fact] public void ThenIssueTheOneAfterTheSeed() => Result.Is(10001);
+        [Fact] public void ThenIssueTheOneAfterTheSeed() => Result.Is(The<int>() + 1);
 
         [Fact]
         public void ThenRecordItAsTheLastUsed() =>
-            Then<IBookingNumberStore>(_ => _.SaveLastUsed(10001), Once);
+            Then<IBookingNumberStore>(_ => _.SaveLastUsed(The<int>() + 1), Once);
     }
 
     public class GivenANumberWasIssued : WhenNext
     {
         public GivenANumberWasIssued() =>
-            Given<IBookingNumberStore>().That(_ => _.LoadLastUsed()).Returns(() => 10042);
+            Given<IBookingNumberStore>().That(_ => _.LoadLastUsed()).Returns(() => The<int>() + 2);
 
-        [Fact] public void ThenIssueTheOneAfterIt() => Result.Is(10043);
+        [Fact] public void ThenIssueTheOneAfterIt() => Result.Is(The<int>() + 3);
 
         [Fact]
         public void ThenRecordItAsTheLastUsed() =>
-            Then<IBookingNumberStore>(_ => _.SaveLastUsed(10043), Once);
+            Then<IBookingNumberStore>(_ => _.SaveLastUsed(The<int>() + 3), Once);
     }
 }

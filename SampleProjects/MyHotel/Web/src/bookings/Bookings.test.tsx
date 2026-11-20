@@ -25,12 +25,18 @@ const roomsReply = { status: 200, body: rooms };
 
 const rowOf = (bookingNumber: number) => screen.findByRole('row', { name: new RegExp(`^${bookingNumber}`) });
 
-const fillIn = async () => {
-  await userEvent.selectOptions(await screen.findByLabelText('Rumsnummer'), request.roomNumber);
-  await userEvent.type(screen.getByLabelText('Antal gäster'), String(request.guestCount));
-  await userEvent.type(screen.getByLabelText('Gäst'), request.guestName);
-  await userEvent.type(screen.getByLabelText('Från'), request.period.from);
-  await userEvent.type(screen.getByLabelText('Till'), request.period.to);
+const fillers: Record<string, () => Promise<void>> = {
+  Från: () => userEvent.type(screen.getByLabelText('Från'), request.period.from),
+  Till: () => userEvent.type(screen.getByLabelText('Till'), request.period.to),
+  Rumsnummer: () => userEvent.selectOptions(screen.getByLabelText('Rumsnummer'), request.roomNumber),
+  'Antal gäster': () => userEvent.type(screen.getByLabelText('Antal gäster'), String(request.guestCount)),
+  Gäst: () => userEvent.type(screen.getByLabelText('Gäst'), request.guestName),
+};
+const fields = Object.keys(fillers);
+
+const fillIn = async (filled = fields) => {
+  for (const field of filled)
+    await fillers[field]();
 };
 
 const offeredRooms = () =>
@@ -100,6 +106,19 @@ describe('Bookings', () => {
     await book();
     await rowOf(10001);
     expect(screen.getByLabelText('Rumsnummer')).toHaveDisplayValue('Välj rum');
+  });
+
+  it.each(fields)('cannot book without %s', async empty => {
+    openForm();
+    await waitFor(() => expect(offeredRooms()).toContain(request.roomNumber));
+    await fillIn(fields.filter(field => field !== empty));
+    expect(screen.getByRole('button', { name: 'Boka' })).toBeDisabled();
+  });
+
+  it('cannot book again until another booking is entered', async () => {
+    bookAccepted();
+    await book();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Boka' })).toBeDisabled());
   });
 
   it('says under the room number that there is no such room', async () => {

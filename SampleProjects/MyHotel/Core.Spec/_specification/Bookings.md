@@ -6,13 +6,12 @@
 ```
 Subject under test: OpenBookings
 Return type: IReadOnlyList<string>
-Using today is new(2026, 8, 10)
+Using today is Today
 Given IBookingStore.Load() returns [a StoredBooking with
-    { Period = new(any DateOnly, new(2026, 8, 10)), Cancelled = false },
+    { Period = new(EarlierDay, Today), Cancelled = false },
     a second StoredBooking with
-    { Period = new(any DateOnly, new(2026, 8, 9)), Cancelled = false },
-    a third StoredBooking with
-    { Period = new(any DateOnly, new(2026, 8, 12)), Cancelled = true }]
+    { Period = new(EarlierDay, Yesterday), Cancelled = false },
+    a third StoredBooking with { Period = new(EarlierDay, Tomorrow), Cancelled = true }]
 ```
 
 ### [When list room numbers](../Bookings/OpenBookings/WhenListRoomNumbers.cs)
@@ -27,34 +26,33 @@ Given IBookingStore.Load() returns [a StoredBooking with
 ```
 Subject under test: BookingNumberGenerator
 Return type: int
-Using new BookingNumberSeed(10000)
+Using new BookingNumberSeed(an int)
 ```
 
 ### [When next](../Bookings/BookingNumberGenerator/WhenNext.cs)
 `Next()`
 
 #### Given a number was issued
-`IBookingNumberStore.LoadLastUsed() returns 10042`
+`IBookingNumberStore.LoadLastUsed() returns the int + 2`
 
-- **issue the one after it** — `Result is 10043`
+- **issue the one after it** — `Result is the int + 3`
 - **record it as the last used**\
-  `IBookingNumberStore.SaveLastUsed(10043) was invoked once`
+  `IBookingNumberStore.SaveLastUsed(the int + 3) was invoked once`
 
 #### Given no number was issued yet
 `IBookingNumberStore.LoadLastUsed() returns null`
 
-- **issue the one after the seed** — `Result is 10001`
+- **issue the one after the seed** — `Result is the int + 1`
 - **record it as the last used**\
-  `IBookingNumberStore.SaveLastUsed(10001) was invoked once`
+  `IBookingNumberStore.SaveLastUsed(the int + 1) was invoked once`
 
 ## Booking Service
 `Subject under test: BookingService`
 
 ### [When book departure before arrival](../Bookings/BookingService/WhenBookDepartureBeforeArrival.cs)
 ```
-Book(
-    new BookingRequest(a string, a second string, 1,
-    new BookingPeriod(new(2026, 8, 12), new(2026, 8, 10)))), returns Booking
+Book(new BookingRequest(a string, a second string, 1, new BookingPeriod(Tomorrow, Today)))
+Return type: Booking
 ```
 
 - **throw invalid booking period**\
@@ -62,9 +60,8 @@ Book(
 
 ### [When book zero guests](../Bookings/BookingService/WhenBookZeroGuests.cs)
 ```
-Book(
-    new BookingRequest(a string, a second string, 0,
-    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))), returns Booking
+Book(new BookingRequest(a string, a second string, 0, new BookingPeriod(Today, Today.AddDays(2))))
+Return type: Booking
 ```
 
 - **throw invalid guest count**\
@@ -81,7 +78,7 @@ Return type: Booking
 
 ### [When list](../Bookings/BookingService/WhenList.cs)
 ```
-Using today is new(2026, 8, 10)
+Using today is Today
 When Bookings(), returns IReadOnlyList<Booking>
 ```
 
@@ -101,11 +98,11 @@ When Bookings(), returns IReadOnlyList<Booking>
 
 ### [When book three guests](../Bookings/BookingService/WhenBookThreeGuests.cs)
 ```
-Using today is new(2026, 8, 1)
+Using today is Today
 Given IBookingStore.Load() returns zero StoredBookings
 When Book(
     new BookingRequest(a Room's RoomNumber, a string, 3,
-    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))), returns Booking
+    new BookingPeriod(LaterDay, LaterDay.AddDays(2)))), returns Booking
 ```
 
 #### Given the room has three beds
@@ -122,7 +119,7 @@ When Book(
 
 ### [When cancel open bookings](../Bookings/BookingService/WhenCancelOpenBookings.cs)
 ```
-Using today is new(2026, 8, 10)
+Using today is Today
 Given IBookingStore.Load() returns [the Booking]
 When CancelOpenBookings(a Room's RoomNumber)
 ```
@@ -130,7 +127,7 @@ When CancelOpenBookings(a Room's RoomNumber)
 #### Given a past booking of the room
 ```
 Booking is a StoredBooking with
-    { RoomNumber = the Room's RoomNumber, Period = new(any DateOnly, new(2026, 8, 9)),
+    { RoomNumber = the Room's RoomNumber, Period = new(EarlierDay, Yesterday),
     Cancelled = false }
 ```
 
@@ -139,8 +136,8 @@ Booking is a StoredBooking with
 #### Given an open booking of another room
 ```
 Booking is a StoredBooking with
-    { RoomNumber = a second Room's RoomNumber,
-    Period = new(any DateOnly, new(2026, 8, 10)), Cancelled = false }
+    { RoomNumber = a second Room's RoomNumber, Period = new(EarlierDay, Today),
+    Cancelled = false }
 ```
 
 - **keep it as it is** — `IBookingStore.Save([the Booking])`
@@ -148,7 +145,7 @@ Booking is a StoredBooking with
 #### Given an open booking of the room
 ```
 Booking is a StoredBooking with
-    { RoomNumber = the Room's RoomNumber, Period = new(any DateOnly, new(2026, 8, 10)),
+    { RoomNumber = the Room's RoomNumber, Period = new(EarlierDay, Today),
     Cancelled = false }
 ```
 
@@ -156,7 +153,7 @@ Booking is a StoredBooking with
 
 ### [When get](../Bookings/BookingService/WhenGet.cs)
 ```
-Using today is new(2026, 8, 10)
+Using today is Today
 When BookingFor(a StoredBooking's BookingNumber), returns Booking
 ```
 
@@ -169,7 +166,7 @@ When BookingFor(a StoredBooking's BookingNumber), returns Booking
 #### Given the booking departed yesterday
 ```
 IBookingStore.Load() returns [the StoredBooking with
-    { Period = new(any DateOnly, new(2026, 8, 9)), Cancelled = false }]
+    { Period = new(EarlierDay, Yesterday), Cancelled = false }]
 ```
 
 - **say it is past** — `Result.Status is Past`
@@ -177,7 +174,7 @@ IBookingStore.Load() returns [the StoredBooking with
 #### Given the booking departs today
 ```
 IBookingStore.Load() returns [the StoredBooking with
-    { Period = new(any DateOnly, new(2026, 8, 10)), Cancelled = false }]
+    { Period = new(EarlierDay, Today), Cancelled = false }]
 ```
 
 - **return the booking** — `Result.BookingNumber is the StoredBooking's BookingNumber`
@@ -186,14 +183,14 @@ IBookingStore.Load() returns [the StoredBooking with
 #### Given the booking was cancelled
 ```
 IBookingStore.Load() returns [the StoredBooking with
-    { Period = new(any DateOnly, new(2026, 8, 12)), Cancelled = true }]
+    { Period = new(EarlierDay, Tomorrow), Cancelled = true }]
 ```
 
 - **say it is cancelled** — `Result.Status is Cancelled`
 
 ### [When cancel](../Bookings/BookingService/WhenCancel.cs)
 ```
-Using today is new(2026, 8, 10)
+Using today is Today
 When Cancel(the Booking's BookingNumber)
 ```
 
@@ -206,7 +203,7 @@ When Cancel(the Booking's BookingNumber)
 
 #### Given the booking is open
 ```
-Booking is a StoredBooking with { Period = new(any DateOnly, new(2026, 8, 10)), Cancelled = false }
+Booking is a StoredBooking with { Period = new(EarlierDay, Today), Cancelled = false }
   and IBookingStore.Load() returns [the Booking]
 ```
 
@@ -214,7 +211,7 @@ Booking is a StoredBooking with { Period = new(any DateOnly, new(2026, 8, 10)), 
 
 #### Given the booking is past
 ```
-Booking is a StoredBooking with { Period = new(any DateOnly, new(2026, 8, 9)), Cancelled = false }
+Booking is a StoredBooking with { Period = new(EarlierDay, Yesterday), Cancelled = false }
   and IBookingStore.Load() returns [the Booking]
 ```
 
@@ -224,7 +221,7 @@ Booking is a StoredBooking with { Period = new(any DateOnly, new(2026, 8, 9)), C
 
 #### Given the booking was cancelled
 ```
-Booking is a StoredBooking with { Period = new(any DateOnly, new(2026, 8, 12)), Cancelled = true }
+Booking is a StoredBooking with { Period = new(EarlierDay, Tomorrow), Cancelled = true }
   and IBookingStore.Load() returns [the Booking]
 ```
 
@@ -233,10 +230,10 @@ Booking is a StoredBooking with { Period = new(any DateOnly, new(2026, 8, 12)), 
 
 ### [When book](../Bookings/BookingService/WhenBook.cs)
 ```
-Using today is new(2026, 8, 1)
+Using today is Today
 When Book(
     new BookingRequest(a Room's RoomNumber, a string, 1,
-    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))), returns Booking
+    new BookingPeriod(LaterDay, LaterDay.AddDays(2)))), returns Booking
 ```
 
 #### Given no such room
@@ -249,8 +246,8 @@ When Book(
 ```
 IRoomStore.Load() returns [the Room]
   and IBookingStore.Load() returns [a StoredBooking with
-      { RoomNumber = the Room's RoomNumber,
-      Period = new(new(2026, 8, 8), new(2026, 8, 10)), Cancelled = false }]
+      { RoomNumber = the Room's RoomNumber, Period = new(LaterDay.AddDays(-2), LaterDay),
+      Cancelled = false }]
 ```
 
 - **book the room** — `Result.RoomNumber is the Room's RoomNumber`
@@ -260,7 +257,7 @@ IRoomStore.Load() returns [the Room]
 IRoomStore.Load() returns [the Room]
   and IBookingStore.Load() returns [a StoredBooking with
       { RoomNumber = the Room's RoomNumber,
-      Period = new(new(2026, 8, 11), new(2026, 8, 13)), Cancelled = false }]
+      Period = new(LaterDay.AddDays(1), LaterDay.AddDays(3)), Cancelled = false }]
 ```
 
 - **throw room already booked**\
@@ -271,7 +268,7 @@ IRoomStore.Load() returns [the Room]
 IRoomStore.Load() returns [the Room]
   and IBookingStore.Load() returns [a StoredBooking with
       { RoomNumber = the Room's RoomNumber,
-      Period = new(new(2026, 8, 11), new(2026, 8, 13)), Cancelled = true }]
+      Period = new(LaterDay.AddDays(1), LaterDay.AddDays(3)), Cancelled = true }]
 ```
 
 - **book the room** — `Result.RoomNumber is the Room's RoomNumber`
@@ -286,7 +283,7 @@ IRoomStore.Load() returns [the Room]
 - **return the booking with the number it was given**
   ```
   Result is new Booking(10001, the Room's RoomNumber, the string, 1,
-      new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)), Open)
+      new BookingPeriod(LaterDay, LaterDay.AddDays(2)), Open)
   ```
 - **store it** — `IBookingStore.Save was invoked once`
 
@@ -298,7 +295,7 @@ IRoomStore.Load() returns [the Room]
   and IBookingStore.Load() returns zero StoredBookings
 Having Book(
     new BookingRequest(the Room's RoomNumber, a second string, 1,
-    new BookingPeriod(new(2026, 8, 8), new(2026, 8, 10))))
+    new BookingPeriod(LaterDay.AddDays(-2), LaterDay)))
 ```
 
 - **take the second number** — `Result.BookingNumber is 10002`

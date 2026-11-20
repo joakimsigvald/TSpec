@@ -5,12 +5,12 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 public abstract class WhenBookThreeGuests : Spec<Core.Bookings.BookingService, Booking>
 {
     protected WhenBookThreeGuests() =>
-        Using(TodayIs(new(2026, 8, 1)))
+        Using(TodayIs(Today))
             .When(_ => _.Book(new BookingRequest(
                 A<Room>().RoomNumber,
                 A<string>(),
                 3,
-                new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))))
+                new BookingPeriod(LaterDay, LaterDay.AddDays(2)))))
             .Given<IBookingStore>().That(_ => _.Load()).Returns(Zero<StoredBooking>);
 
     public class GivenTheRoomHasTwoBeds : WhenBookThreeGuests
