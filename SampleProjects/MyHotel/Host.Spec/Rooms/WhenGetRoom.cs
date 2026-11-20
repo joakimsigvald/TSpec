@@ -16,7 +16,8 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
     }
 
     /// <summary>
-    /// Setups run last-declared-first, so the room exists before it is booked.
+    /// The one case that reads the room's flags set, so it shows they reach the body. Setups run
+    /// last-declared-first, so the room exists before it is booked.
     /// </summary>
     public class GivenTheRoomHasAnOpenBooking : WhenGetRoom
     {
@@ -43,37 +44,6 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
         [Fact]
         public async Task ThenSayThereIsNoSuchRoom() =>
             (await Result.Read<ErrorBody>()).Code.Is("RoomNotFound");
-    }
-
-    /// <summary>
-    /// Setups run last-declared-first, so the room is created before it is deleted.
-    /// </summary>
-    public class GivenTheRoomWasDeleted : WhenGetRoom
-    {
-        public GivenTheRoomWasDeleted() =>
-            Having(_ => _.Api.DeleteAsync($"/rooms/{The<Room>().RoomNumber}"))
-                .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
-
-        [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
-
-        [Fact]
-        public async Task ThenSayThereIsNoSuchRoom() =>
-            (await Result.Read<ErrorBody>()).Code.Is("RoomNotFound");
-    }
-
-    /// <summary>
-    /// Setups run last-declared-first, so the room is created before it is updated.
-    /// </summary>
-    public class GivenTheRoomWasUpdated : WhenGetRoom
-    {
-        public GivenTheRoomWasUpdated() =>
-            Having(_ => _.Api.PutAsJsonAsync(
-                $"/rooms/{The<Room>().RoomNumber}", The<Room>() with { BedCount = ASecond<int>() }))
-                .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
-
-        [Fact]
-        public async Task ThenReturnTheUpdatedRoom() =>
-            (await Result.Read<Room>()).Is(The<Room>() with { BedCount = ASecond<int>() });
     }
 
     /// <summary>

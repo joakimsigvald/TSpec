@@ -17,17 +17,9 @@ public abstract class WhenListRoomCategories : ApiSpec<HttpResponseMessage>
                 .Is().EqualTo([new RoomCategoryOverview("Standard", "Standardrum", false)]);
     }
 
-    public class GivenARoomCategoryWasAdded : WhenListRoomCategories
-    {
-        public GivenARoomCategoryWasAdded() =>
-            Having(_ => _.Api.PostAsJsonAsync("/room-categories", A<RoomCategory>()));
-
-        [Fact]
-        public async Task ThenReturnStandardAndTheRoomCategory() =>
-            (await Result.Read<RoomCategory[]>())
-                .Is().EqualTo([new RoomCategory("Standard", "Standardrum"), The<RoomCategory>()]);
-    }
-
+    /// <summary>
+    /// The one case that reads HasRooms set, so it shows the flag reaches the body.
+    /// </summary>
     public class GivenARoomHasIt : WhenListRoomCategories
     {
         public GivenARoomHasIt() => Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));

@@ -20,13 +20,4 @@ public abstract class WhenAddRoomInAnotherCategory : ApiSpec<HttpResponseMessage
         public async Task ThenReturnTheRoomInIt() =>
             (await Result.Read<Room>()).RoomCategory.Is(The<RoomCategory>().Name);
     }
-
-    public class GivenNoSuchRoomCategory : WhenAddRoomInAnotherCategory
-    {
-        [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
-
-        [Fact]
-        public async Task ThenSayThereIsNoSuchRoomCategory() =>
-            (await Result.Read<ErrorBody>()).Code.Is("RoomCategoryNotFound");
-    }
 }

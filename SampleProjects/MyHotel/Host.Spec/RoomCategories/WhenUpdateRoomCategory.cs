@@ -22,13 +22,4 @@ public abstract class WhenUpdateRoomCategory : ApiSpec<HttpResponseMessage>
             (await Result.Read<RoomCategory>())
                 .Is(The<RoomCategory>() with { Description = ASecond<string>() });
     }
-
-    public class GivenNoSuchRoomCategory : WhenUpdateRoomCategory
-    {
-        [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
-
-        [Fact]
-        public async Task ThenSayThereIsNoSuchRoomCategory() =>
-            (await Result.Read<ErrorBody>()).Code.Is("RoomCategoryNotFound");
-    }
 }

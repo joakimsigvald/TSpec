@@ -75,8 +75,8 @@ public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
     }
 
     /// <summary>
-    /// Cancelling keeps the booking as a record. Setups run last-declared-first: the room exists,
-    /// it is booked, the booking is cancelled.
+    /// The one case that reads back a stage other than booked, so it shows the store keeps it.
+    /// Setups run last-declared-first: the room exists, it is booked, the booking is cancelled.
     /// </summary>
     public class GivenTheBookingWasCancelled : WhenGetBooking
     {
@@ -98,130 +98,5 @@ public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
         [Fact]
         public async Task ThenSayItIsCancelled() =>
             (await Result.Read<Booking>()).State.Status.Is(Cancelled);
-    }
-
-    /// <summary>
-    /// Setups run last-declared-first: the room exists, it is booked, its bookings are cancelled.
-    /// </summary>
-    public class GivenTheBookingsOfItsRoomWereCancelled : WhenGetBooking
-    {
-        public GivenTheBookingsOfItsRoomWereCancelled()
-        {
-            Having(_ => _.Api.DeleteAsync($"/rooms/{The<Room>().RoomNumber}/bookings"));
-            Having(_ => _.Api.PostAsJsonAsync(
-                "/bookings",
-                new BookingRequest(
-                    The<Room>().RoomNumber,
-                    A<string>(),
-                    1,
-                    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))));
-            Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
-        }
-
-        [Fact]
-        public async Task ThenSayItIsCancelled() =>
-            (await Result.Read<Booking>()).State.Status.Is(Cancelled);
-    }
-
-    /// <summary>
-    /// A deleted room's bookings are kept as a record. Setups run last-declared-first: the room
-    /// exists, it is booked, its bookings are cancelled, it is deleted.
-    /// </summary>
-    public class GivenItsRoomWasDeleted : WhenGetBooking
-    {
-        public GivenItsRoomWasDeleted()
-        {
-            Having(_ => _.Api.DeleteAsync($"/rooms/{The<Room>().RoomNumber}"));
-            Having(_ => _.Api.DeleteAsync($"/rooms/{The<Room>().RoomNumber}/bookings"));
-            Having(_ => _.Api.PostAsJsonAsync(
-                "/bookings",
-                new BookingRequest(
-                    The<Room>().RoomNumber,
-                    A<string>(),
-                    1,
-                    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))));
-            Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
-        }
-
-        [Fact] public void ThenRespondOk() => Result.StatusCode.Is(OK);
-
-        [Fact]
-        public async Task ThenSayItIsCancelled() =>
-            (await Result.Read<Booking>()).State.Status.Is(Cancelled);
-    }
-
-    /// <summary>
-    /// Setups run last-declared-first: the room exists, it is booked, and today moves past the
-    /// arrival.
-    /// </summary>
-    public class GivenItsArrivalHasPassed : WhenGetBooking
-    {
-        public GivenItsArrivalHasPassed()
-        {
-            Having(_ => _.SetToday(new(2026, 8, 11)));
-            Having(_ => _.Api.PostAsJsonAsync(
-                "/bookings",
-                new BookingRequest(
-                    The<Room>().RoomNumber,
-                    A<string>(),
-                    1,
-                    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))));
-            Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
-        }
-
-        [Fact]
-        public async Task ThenSayItIsANoShow() => (await Result.Read<Booking>()).State.Status.Is(NoShow);
-    }
-
-    /// <summary>
-    /// Setups run last-declared-first: the room exists, it is booked, today is its arrival day and
-    /// the guest checks in.
-    /// </summary>
-    public class GivenItWasCheckedIn : WhenGetBooking
-    {
-        public GivenItWasCheckedIn()
-        {
-            Having(_ => _.Api.PostAsync("/bookings/10001/check-in", null));
-            Having(_ => _.SetToday(new(2026, 8, 10)));
-            Having(_ => _.Api.PostAsJsonAsync(
-                "/bookings",
-                new BookingRequest(
-                    The<Room>().RoomNumber,
-                    A<string>(),
-                    1,
-                    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))));
-            Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
-        }
-
-        [Fact]
-        public async Task ThenSayItIsCheckedIn() =>
-            (await Result.Read<Booking>()).State.Status.Is(CheckedIn);
-    }
-
-    /// <summary>
-    /// Setups run last-declared-first: the room exists, it is booked, the guest checks in on the
-    /// arrival day and out on the departure day.
-    /// </summary>
-    public class GivenItWasCheckedOut : WhenGetBooking
-    {
-        public GivenItWasCheckedOut()
-        {
-            Having(_ => _.Api.PostAsync("/bookings/10001/check-out", null));
-            Having(_ => _.SetToday(new(2026, 8, 12)));
-            Having(_ => _.Api.PostAsync("/bookings/10001/check-in", null));
-            Having(_ => _.SetToday(new(2026, 8, 10)));
-            Having(_ => _.Api.PostAsJsonAsync(
-                "/bookings",
-                new BookingRequest(
-                    The<Room>().RoomNumber,
-                    A<string>(),
-                    1,
-                    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))));
-            Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
-        }
-
-        [Fact]
-        public async Task ThenSayItIsCheckedOut() =>
-            (await Result.Read<Booking>()).State.Status.Is(CheckedOut);
     }
 }

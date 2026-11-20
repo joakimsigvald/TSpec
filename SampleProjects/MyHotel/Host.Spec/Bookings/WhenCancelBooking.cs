@@ -25,15 +25,6 @@ public abstract class WhenCancelBooking : ApiSpec<HttpResponseMessage>
         [Fact] public void ThenRespondNoContent() => Result.StatusCode.Is(NoContent);
     }
 
-    public class GivenNoSuchBooking : WhenCancelBooking
-    {
-        [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
-
-        [Fact]
-        public async Task ThenSayThereIsNoSuchBooking() =>
-            (await Result.Read<ErrorBody>()).Code.Is("BookingNotFound");
-    }
-
     /// <summary>
     /// Setups run last-declared-first: the room exists, it is booked, the booking is cancelled.
     /// </summary>

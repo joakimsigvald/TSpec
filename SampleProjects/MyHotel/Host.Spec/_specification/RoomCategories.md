@@ -39,16 +39,10 @@ Having Api.PostAsJsonAsync("/room-categories", the RoomCategory)
 ```
 Api.PutAsJsonAsync("/room-categories/{a RoomCategory's Name}",
     the RoomCategory with { Description = a second string })
+Having Api.PostAsJsonAsync("/room-categories", the RoomCategory)
 ```
 
-### Given no such room category
-
-- **respond not found** — `Result.StatusCode is NotFound`
-- **say there is no such room category**\
-  `Result.Read<ErrorBody>().Code is "RoomCategoryNotFound"`
-
 ### Given the room category exists
-`Having Api.PostAsJsonAsync("/room-categories", the RoomCategory)`
 
 - **respond ok** — `Result.StatusCode is OK`
 - **return the updated room category**\
@@ -65,15 +59,6 @@ Api.PutAsJsonAsync("/room-categories/{a RoomCategory's Name}",
   ```
   Result.Read<RoomCategoryOverview[]>() is equal to
       [new RoomCategoryOverview("Standard", "Standardrum", false)]
-  ```
-
-### Given a room category was added
-`Having Api.PostAsJsonAsync("/room-categories", a RoomCategory)`
-
-- **return standard and the room category**
-  ```
-  Result.Read<RoomCategory[]>() is equal to
-      [new RoomCategory("Standard", "Standardrum"), the RoomCategory]
   ```
 
 ### Given a room has it

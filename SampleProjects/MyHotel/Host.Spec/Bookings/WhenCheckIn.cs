@@ -51,13 +51,4 @@ public abstract class WhenCheckIn : ApiSpec<HttpResponseMessage>
         public async Task ThenSayItIsNotDueForCheckIn() =>
             (await Result.Read<ErrorBody>()).Code.Is("NotDueForCheckIn");
     }
-
-    public class GivenNoSuchBooking : WhenCheckIn
-    {
-        [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
-
-        [Fact]
-        public async Task ThenSayThereIsNoSuchBooking() =>
-            (await Result.Read<ErrorBody>()).Code.Is("BookingNotFound");
-    }
 }

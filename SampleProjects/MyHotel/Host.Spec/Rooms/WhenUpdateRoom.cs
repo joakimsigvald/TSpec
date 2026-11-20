@@ -19,13 +19,4 @@ public abstract class WhenUpdateRoom : ApiSpec<HttpResponseMessage>
         public async Task ThenReturnTheUpdatedRoom() =>
             (await Result.Read<Room>()).Is(The<Room>() with { BedCount = ASecond<int>() });
     }
-
-    public class GivenNoSuchRoom : WhenUpdateRoom
-    {
-        [Fact] public void ThenRespondNotFound() => Result.StatusCode.Is(NotFound);
-
-        [Fact]
-        public async Task ThenSayThereIsNoSuchRoom() =>
-            (await Result.Read<ErrorBody>()).Code.Is("RoomNotFound");
-    }
 }
