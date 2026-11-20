@@ -64,3 +64,9 @@ a green run: never edit them, and read their diff when reviewing a change.
 ```bash
 npm --prefix SampleProjects/MyHotel/Web test
 ```
+
+Web is green only when its lint is too:
+
+```bash
+npm --prefix SampleProjects/MyHotel/Web run lint
+```

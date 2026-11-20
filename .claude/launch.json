@@ -13,6 +13,26 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "SampleProjects/MyHotel/Web", "run", "dev"],
       "port": 5173
+    },
+    {
+      "name": "MyHotel Host (check)",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": [
+        "run", "--no-launch-profile", "--",
+        "--environment", "Development",
+        "--urls", "http://localhost:5168",
+        "--RoomStore:Path=check/rooms.json",
+        "--RoomCategoryStore:Path=check/room-categories.json",
+        "--BookingStore:Path=check/bookings.json"
+      ],
+      "cwd": "SampleProjects/MyHotel/Host",
+      "port": 5168
+    },
+    {
+      "name": "MyHotel Web (check)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "SampleProjects/MyHotel/Web", "run", "dev", "--", "--mode", "check"],
+      "port": 5174
     }
   ]
 }

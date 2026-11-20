@@ -53,8 +53,9 @@ this section; its generated `_specification.md` is read only as a diff, when a c
 ## Mechanics
 
 - net10.0 only, warnings are errors. MyHotel's `.editorconfig` replaces the repository's and holds
-  the backend standard's analyzer rules; `BannedSymbols.txt` bans the calls 5c and 8e forbid. Fix
-  what they flag, never suppress it.
+  the backend standard's analyzer rules; `BannedSymbols.txt` bans the calls 5c and 8e forbid. Web's
+  `eslint.config.js` holds the frontend standard's rules a tool can check. Fix what they flag, never
+  suppress it.
 - Building the solution bundles Web, so it needs Node.
 - `Microsoft.OpenApi` stays on 2.x: `Microsoft.AspNetCore.OpenApi`'s source generator only compiles
   against 2.x's object model.

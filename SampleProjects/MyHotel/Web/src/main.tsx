@@ -8,7 +8,11 @@ import './styles.css';
 
 document.title = i18n.t('app.title');
 
-createRoot(document.getElementById('root')!).render(
+const root = document.getElementById('root');
+if (!root)
+  throw new Error('index.html holds no element with the id root.');
+
+createRoot(root).render(
   <StrictMode>
     <QueryClientProvider client={newQueryClient()}>
       <App />

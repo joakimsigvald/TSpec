@@ -17,7 +17,8 @@ and stop. Check asks the PO nothing.
 
 A re-check checks only what the last review proposed. Read `Features/Check/REVIEW-<code>.md`,
 confirm each proposal is made, except one `Features/Refine/REFINE-NOTES-<code>.md` lists as
-declined, and take steps 1 to 4 over the changes those proposals made alone.
+declined, and take steps 1 to 4 over the changes those proposals made alone. It opens the browser
+only for a proposal no test can confirm, such as a layout, and looks at that alone.
 
 1. Read the `_specification` diffs of the behaviour specifications, new files included, against
    `Features/Define/REQUIREMENTS-<code>.md`. They need not match word for word, but must show no
@@ -29,8 +30,11 @@ declined, and take steps 1 to 4 over the changes those proposals made alone.
 3. Compare the code with `Features/Design/DESIGN-<code>.md`: it need not match exactly, but must not
    be more complicated than the design calls for. A deviation `BUILD-NOTES-<code>.md` gives a reason
    for is decided, unless the reason does not hold.
-4. When the feature touches the UI, try it in the browser (`README.md`), and stop the application
-   when you are done. A small change of UI logic is checked by the UI's tests alone.
+4. When the feature touches the UI, try it in the browser on a copy of the PO's data: copy the
+   Host's JSON files into `Host/check/`, then start `MyHotel Host (check)` and
+   `MyHotel Web (check)` from `.claude/launch.json`, which run on ports of their own and keep that
+   copy as their data. Stop both when you are done. A small change of UI logic is checked by the
+   UI's tests alone.
 5. Write `Features/Check/REVIEW-<code>.md`, replacing any earlier one: each departure as a numbered
    proposal, saying what is wrong and the adjustment, or that there is nothing to propose. Number
    them in the order to make them, so none redoes another's work. A misunderstanding that affects
