@@ -21,7 +21,8 @@ Takes the product and the feature code. Paths are under `SampleProjects/<product
    `Features/Define/REQUIREMENTS-<code>.md`, and one that changes the design
    `Features/Design/DESIGN-<code>.md`.
 3. If anything changed, run every suite `TESTING.md` names until all are green, invoke
-   `product-check` with the product and the code, and start again from step 1 with its review.
+   `product-check` with the product, the code and `recheck`, and start again from step 1 with its
+   review.
    `Host.Spec` runs the application in-process over HTTP, so it is slower than the rest.
 4. Otherwise the feature is finished. Hand over with a clear status: the feature is built and
    checked, and what was refined on the way, if anything. End the reply with a `## Next step`

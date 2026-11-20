@@ -10,10 +10,11 @@ type Props = {
 };
 
 // A form cannot span table cells, so the description joins the buttons' form by its id: an empty
-// description is then stopped there, as in the form that adds a category.
+// description is then stopped there.
 export function RoomCategoryRow({ roomCategory, asking, onSave, onDelete }: Props) {
   const { t } = useTranslation();
   const [description, setDescription] = useState(roomCategory.description);
+  const unchanged = description === roomCategory.description;
   const form = useId();
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -35,7 +36,7 @@ export function RoomCategoryRow({ roomCategory, asking, onSave, onDelete }: Prop
       </td>
       <td>
         <form id={form} onSubmit={submit}>
-          <button disabled={description === roomCategory.description}>{t('roomCategories.save')}</button>
+          <button disabled={unchanged}>{t('roomCategories.save')}</button>
           <button
             type="button"
             disabled={roomCategory.hasRooms}

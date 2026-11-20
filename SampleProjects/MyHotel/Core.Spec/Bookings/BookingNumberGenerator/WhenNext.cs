@@ -27,12 +27,12 @@ public abstract class WhenNext : Spec<Core.Bookings.BookingNumberGenerator, int>
     public class GivenANumberWasIssued : WhenNext
     {
         public GivenANumberWasIssued() =>
-            Given<IBookingNumberStore>().That(_ => _.LoadLastUsed()).Returns(() => The<int>() + 2);
+            Given<IBookingNumberStore>().That(_ => _.LoadLastUsed()).Returns(() => ASecond<int>());
 
-        [Fact] public void ThenIssueTheOneAfterIt() => Result.Is(The<int>() + 3);
+        [Fact] public void ThenIssueTheOneAfterIt() => Result.Is(TheSecond<int>() + 1);
 
         [Fact]
         public void ThenRecordItAsTheLastUsed() =>
-            Then<IBookingNumberStore>(_ => _.SaveLastUsed(The<int>() + 3), Once);
+            Then<IBookingNumberStore>(_ => _.SaveLastUsed(TheSecond<int>() + 1), Once);
     }
 }

@@ -22,6 +22,11 @@ in Core, or a domain rule over HTTP.
   flag, and its effect under the read that observes it. Design Core's interfaces with that in mind.
 - A refusal also states something only its handler could produce, such as the room number in the
   error body: a 404 alone holds just as well when the route does not exist.
+- Each value shows what the precondition needs of it, never an arbitrary pick: a mention when any
+  value will do, a tag when any will do but the claim names its role (`Tag<int> bedCount`), one
+  derived from another when the claim rests on how they relate (`The<int>() + 1`), and the domain's
+  name for it when it has one, kept in the spec project for every spec to share, as `Time` holds
+  `Today` and `Tomorrow`. A literal only when the value itself is the claim.
 - Do not pin rendering with `Specification.Is`: `Core.Test` already locks it, and a rendering change
   shows in the committed `_specification` diff.
 - TSpec usage: the repository's [agent-reference.md](../../agent-reference.md), and

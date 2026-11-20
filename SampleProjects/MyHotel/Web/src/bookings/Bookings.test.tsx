@@ -32,11 +32,11 @@ const fillers: Record<string, () => Promise<void>> = {
   'Antal gäster': () => userEvent.type(screen.getByLabelText('Antal gäster'), String(request.guestCount)),
   Gäst: () => userEvent.type(screen.getByLabelText('Gäst'), request.guestName),
 };
-const fields = Object.keys(fillers);
+const labels = Object.keys(fillers);
 
-const fillIn = async (filled = fields) => {
-  for (const field of filled)
-    await fillers[field]();
+const fillIn = async (filled = labels) => {
+  for (const label of filled)
+    await fillers[label]();
 };
 
 const offeredRooms = () =>
@@ -77,6 +77,16 @@ const book = async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Boka' }));
 };
 
+const bookTwoNightsByButton = async () => {
+  bookAccepted();
+  renderPage(<Bookings />);
+  await waitFor(() => expect(offeredRooms()).toContain(request.roomNumber));
+  await fillIn(['Rumsnummer', 'Antal gäster', 'Gäst']);
+  await click('2 nätter');
+  await click('Boka');
+  await rowOf(10001);
+};
+
 describe('Bookings', () => {
   it('lists the bookings', async () => {
     fakeApi({ 'GET /rooms': roomsReply, 'GET /bookings': { status: 200, body: [booking10001, booking10002] } });
@@ -108,10 +118,10 @@ describe('Bookings', () => {
     expect(screen.getByLabelText('Rumsnummer')).toHaveDisplayValue('Välj rum');
   });
 
-  it.each(fields)('cannot book without %s', async empty => {
+  it.each(labels)('cannot book without %s', async empty => {
     openForm();
     await waitFor(() => expect(offeredRooms()).toContain(request.roomNumber));
-    await fillIn(fields.filter(field => field !== empty));
+    await fillIn(labels.filter(label => label !== empty));
     expect(screen.getByRole('button', { name: 'Boka' })).toBeDisabled();
   });
 
@@ -275,17 +285,15 @@ describe('Bookings', () => {
     });
 
     it('show none as pressed after a booking', async () => {
-      bookAccepted();
-      renderPage(<Bookings />);
-      await waitFor(() => expect(offeredRooms()).toContain(request.roomNumber));
-      await userEvent.selectOptions(screen.getByLabelText('Rumsnummer'), request.roomNumber);
-      await userEvent.type(screen.getByLabelText('Antal gäster'), String(request.guestCount));
-      await userEvent.type(screen.getByLabelText('Gäst'), request.guestName);
-      await click('2 nätter');
-      await click('Boka');
-      await rowOf(10001);
+      await bookTwoNightsByButton();
       expect(screen.getByLabelText('Från')).toHaveValue('');
       expect(pressedButtons()).toEqual([]);
+    });
+
+    it('forget the nights chosen once a booking is made', async () => {
+      await bookTwoNightsByButton();
+      await userEvent.type(screen.getByLabelText('Från'), '2026-08-20');
+      expect(screen.getByLabelText('Till')).toHaveValue('');
     });
   });
 

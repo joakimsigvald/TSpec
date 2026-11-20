@@ -8,7 +8,7 @@ type Props = { period: BookingPeriod; onChange: (period: BookingPeriod) => void;
 
 const nightChoices = [1, 2, 3];
 
-export function BookingPeriod({ period: { from, to }, onChange, toFailure }: Props) {
+export function BookingPeriodFields({ period: { from, to }, onChange, toFailure }: Props) {
   const { t } = useTranslation();
   const [nightsChosen, setNightsChosen] = useState<number>();
   const toError = useId();

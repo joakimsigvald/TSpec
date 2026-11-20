@@ -4,7 +4,7 @@ import { ErrorMessage } from '../ErrorMessage';
 import type { Room } from '../rooms/roomsApi';
 import { hasEmptyField, useEntered } from '../useEntered';
 import { useFormAttempt } from '../useFormAttempt';
-import { BookingPeriod } from './BookingPeriod';
+import { BookingPeriodFields } from './BookingPeriodFields';
 import type { BookingRequest } from './bookingsApi';
 
 type Props = { rooms: Room[]; onBook: (request: BookingRequest) => Promise<void> };
@@ -40,7 +40,7 @@ export function BookRoomForm({ rooms, onBook }: Props) {
 
   return (
     <form onSubmit={submit}>
-      <BookingPeriod
+      <BookingPeriodFields
         key={bookingsMade}
         period={{ from: entered.from, to: entered.to }}
         onChange={enter}

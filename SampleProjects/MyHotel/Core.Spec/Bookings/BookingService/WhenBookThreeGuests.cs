@@ -10,7 +10,7 @@ public abstract class WhenBookThreeGuests : Spec<Core.Bookings.BookingService, B
                 A<Room>().RoomNumber,
                 A<string>(),
                 3,
-                new BookingPeriod(LaterDay, LaterDay.AddDays(2)))))
+                new BookingPeriod(Today, LaterDay))))
             .Given<IBookingStore>().That(_ => _.Load()).Returns(Zero<StoredBooking>);
 
     public class GivenTheRoomHasTwoBeds : WhenBookThreeGuests

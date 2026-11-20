@@ -10,9 +10,14 @@ background: false
 **Purpose:** find where the built feature departs from what the PO asked for, the design or the
 coding standards, and propose adjustments in the order to make them.
 
-Takes the product and the feature code: $ARGUMENTS. Paths are under `SampleProjects/<product>/`.
-Unless `Features/Build/BUILD-NOTES-<code>.md` says the feature is built, there is nothing to check:
-say so and stop. Check asks the PO nothing.
+Takes the product and the feature code, followed by `recheck` when `product-refine` asks for a
+re-check: $ARGUMENTS. Paths are under `SampleProjects/<product>/`. Unless
+`Features/Build/BUILD-NOTES-<code>.md` says the feature is built, there is nothing to check: say so
+and stop. Check asks the PO nothing.
+
+A re-check checks only what the last review proposed. Read `Features/Check/REVIEW-<code>.md`,
+confirm each proposal is made, except one `Features/Refine/REFINE-NOTES-<code>.md` lists as
+declined, and take steps 1 to 4 over the changes those proposals made alone.
 
 1. Read the `_specification` diffs of the behaviour specifications, new files included, against
    `Features/Define/REQUIREMENTS-<code>.md`. They need not match word for word, but must show no

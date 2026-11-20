@@ -4,7 +4,7 @@ public class WhenBookDepartureBeforeArrival : Spec<Core.Bookings.BookingService,
 {
     public WhenBookDepartureBeforeArrival() =>
         When(_ => _.Book(new BookingRequest(
-            A<string>(), ASecond<string>(), 1, new BookingPeriod(Tomorrow, Today))));
+            Any<string>(), Any<string>(), 1, new BookingPeriod(Tomorrow, Today))));
 
     [Fact]
     public void ThenThrowInvalidBookingPeriod() =>

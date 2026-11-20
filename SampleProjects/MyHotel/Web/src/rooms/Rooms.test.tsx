@@ -94,6 +94,23 @@ describe('Rooms', () => {
     expect(bedsChoice()).toHaveDisplayValue('1');
   });
 
+  it('adds a room with the fewest beds when no number of beds is chosen', async () => {
+    const api = fakeHotel({
+      'GET /rooms': [{ status: 200, body: [] }, { status: 200, body: [room102] }],
+      'POST /rooms': { status: 201, body: room102 },
+    });
+    renderPage(<Rooms />);
+    await waitFor(() => expect(bedsChoice()).toHaveDisplayValue('1'));
+    await userEvent.type(screen.getByLabelText('Rumsnummer'), '102');
+    await choose(categoryChoice(), 'Standard');
+    await userEvent.click(addButton());
+    await rowOf('102');
+    expect(api).toHaveBeenCalledWith('/rooms', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ roomNumber: '102', bedCount: 1, roomCategory: 'Standard' }),
+    }));
+  });
+
   it('cannot add a room without a room number', async () => {
     fakeHotel({ 'GET /rooms': { status: 200, body: [] } });
     renderPage(<Rooms />);

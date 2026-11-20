@@ -5,13 +5,16 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 
 public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
 {
+    private static readonly DateOnly Arrival = LaterDay;
+    private static readonly DateOnly Departure = LaterDay.AddDays(2);
+
     protected WhenBook() =>
         Using(TodayIs(Today))
             .When(_ => _.Book(new BookingRequest(
                 A<Room>().RoomNumber,
                 A<string>(),
                 1,
-                new BookingPeriod(LaterDay, LaterDay.AddDays(2)))));
+                new BookingPeriod(Arrival, Departure))));
 
     public abstract class GivenTheRoomExists : WhenBook
     {
@@ -21,17 +24,17 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
         public class WithNoBookings : GivenTheRoomExists
         {
             public WithNoBookings() =>
-                Given<IBookingNumberGenerator>().That(_ => _.Next()).Returns(() => 10001)
+                Given<IBookingNumberGenerator>().That(_ => _.Next()).Returns(An<int>)
                     .And<IBookingStore>().That(_ => _.Load()).Returns(Zero<StoredBooking>);
 
             [Fact]
             public void ThenReturnTheBookingWithTheNumberItWasGiven() =>
                 Result.Is(new Booking(
-                    10001,
+                    The<int>(),
                     The<Room>().RoomNumber,
                     The<string>(),
                     1,
-                    new BookingPeriod(LaterDay, LaterDay.AddDays(2)),
+                    new BookingPeriod(Arrival, Departure),
                     Open));
 
             [Fact] public void ThenStoreIt() => Then<IBookingStore>(nameof(IBookingStore.Save), Once);
@@ -46,15 +49,15 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
         {
             public ButIsAlreadyBooked() =>
                 Given<IBookingNumberGenerator>().That(_ => _.Next())
-                .First().Returns(() => 10001).AndNext().Returns(() => 10002)
+                .First().Returns(An<int>).AndNext().Returns(ASecond<int>)
                 .And<IBookingStore>().That(_ => _.Load()).Returns(Zero<StoredBooking>)
                 .Having(_ => _.Book(new BookingRequest(
                     The<Room>().RoomNumber,
                     ASecond<string>(),
                     1,
-                    new BookingPeriod(LaterDay.AddDays(-2), LaterDay))));
+                    new BookingPeriod(Today, Arrival))));
 
-            [Fact] public void ThenTakeTheSecondNumber() => Result.BookingNumber.Is(10002);
+            [Fact] public void ThenTakeTheSecondNumber() => Result.BookingNumber.Is(TheSecond<int>());
         }
 
         public class WithAnOverlappingBooking : GivenTheRoomExists
@@ -63,7 +66,7 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
                 Given<IBookingStore>().That(_ => _.Load()).Returns(() => [A<StoredBooking>() with
                 {
                     RoomNumber = The<Room>().RoomNumber,
-                    Period = new(LaterDay.AddDays(1), LaterDay.AddDays(3)),
+                    Period = new(Arrival.AddDays(1), Departure.AddDays(1)),
                     Cancelled = false,
                 }]);
 
@@ -81,7 +84,7 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
                 Given<IBookingStore>().That(_ => _.Load()).Returns(() => [A<StoredBooking>() with
                 {
                     RoomNumber = The<Room>().RoomNumber,
-                    Period = new(LaterDay.AddDays(1), LaterDay.AddDays(3)),
+                    Period = new(Arrival.AddDays(1), Departure.AddDays(1)),
                     Cancelled = true,
                 }]);
 
@@ -98,7 +101,7 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
                 Given<IBookingStore>().That(_ => _.Load()).Returns(() => [A<StoredBooking>() with
                 {
                     RoomNumber = The<Room>().RoomNumber,
-                    Period = new(LaterDay.AddDays(-2), LaterDay),
+                    Period = new(Today, Arrival),
                     Cancelled = false,
                 }]);
 
