@@ -1,1 +1,5 @@
-export const roomFieldOf = { RoomCategoryNotFound: 'roomCategory', InvalidBedCount: 'bedCount' } as const;
+export const roomFieldOf = {
+  RoomCategoryNotFound: 'roomCategory',
+  InvalidBedCount: 'bedCount',
+  InvalidPricePerNight: 'pricePerNight',
+} as const;

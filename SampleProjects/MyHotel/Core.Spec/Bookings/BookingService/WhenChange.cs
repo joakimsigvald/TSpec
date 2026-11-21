@@ -24,6 +24,9 @@ public abstract class WhenChange : BookingServiceSpec<Booking>
         protected GivenTheRoomExists() =>
             Given<IRoomStore>().That(_ => _.Load()).Returns(() => [The<Room>()]);
 
+        /// <summary>
+        /// Its old room is gone, so it takes the new room's price per night.
+        /// </summary>
         public class WithTheBookingOpen : GivenTheRoomExists
         {
             public WithTheBookingOpen()
@@ -43,7 +46,8 @@ public abstract class WhenChange : BookingServiceSpec<Booking>
                     The(_booking).BookingNumber,
                     The<BookingInfo>(),
                     new BookingPeriod(Today, LaterDay),
-                    new BookingState(Open, [Cancel, CheckIn])));
+                    new BookingState(Open, [Cancel, CheckIn, Pay]),
+                    new BookingPayment(9 * The<Room>().PricePerNight, false)));
 
             [Fact]
             public void ThenStoreItChanged() =>
@@ -51,7 +55,31 @@ public abstract class WhenChange : BookingServiceSpec<Booking>
                     The(_booking).BookingNumber,
                     The<BookingInfo>(),
                     new BookingPeriod(Today, LaterDay),
-                    BookingStage.Booked) }));
+                    The<Room>().PricePerNight,
+                    BookingStage.Booked,
+                    false) }));
+        }
+
+        /// <summary>
+        /// It stays in its room for a night more, so its price rises.
+        /// </summary>
+        public class WithTheBookingPaid : GivenTheRoomExists
+        {
+            public WithTheBookingPaid()
+            {
+                Given(_booking).Is(A<StoredBooking>() with
+                {
+                    Info = The<BookingInfo>(),
+                    Period = new(Tomorrow, LaterDay),
+                    Stage = BookingStage.Booked,
+                    Paid = true,
+                });
+                Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The(_booking)]);
+            }
+
+            [Fact]
+            public void ThenKeepItPaidAtItsHigherPrice() =>
+                Result.Payment.Is(new BookingPayment(9 * The(_booking).PricePerNight, true));
         }
 
         public class WithTheBookingCheckedIn : GivenTheRoomExists
@@ -66,7 +94,7 @@ public abstract class WhenChange : BookingServiceSpec<Booking>
                 Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The(_booking)]);
             }
 
-            [Fact] public void ThenKeepItCheckedIn() => Result.State.Is(new BookingState(CheckedIn, []));
+            [Fact] public void ThenKeepItCheckedIn() => Result.State.Is(new BookingState(CheckedIn, [Pay]));
         }
 
         public class WithTheBookingCheckedOut : GivenTheRoomExists

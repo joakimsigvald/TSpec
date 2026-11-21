@@ -19,13 +19,18 @@ export function ChangeRoomRow({ room, roomCategories, bedCounts, onSave, onClose
   const { attempt, failureAt } = useFormAttempt(roomFieldOf);
   const [bedCount, setBedCount] = useState(room.bedCount);
   const [roomCategory, setRoomCategory] = useState(room.roomCategory);
-  const unchanged = bedCount === room.bedCount && roomCategory === room.roomCategory;
+  const [pricePerNight, setPricePerNight] = useState(String(room.pricePerNight));
+  const unchanged = bedCount === room.bedCount
+    && roomCategory === room.roomCategory
+    && pricePerNight === String(room.pricePerNight);
   const roomCategoryError = useId();
   const bedCountError = useId();
+  const pricePerNightError = useId();
   const buttonError = useId();
 
   const save = async () => {
-    if (await attempt(() => onSave({ roomNumber: room.roomNumber, bedCount, roomCategory })))
+    const changed = { roomNumber: room.roomNumber, bedCount, roomCategory, pricePerNight: Number(pricePerNight) };
+    if (await attempt(() => onSave(changed)))
       onClose();
   };
 
@@ -55,7 +60,20 @@ export function ChangeRoomRow({ room, roomCategories, bedCounts, onSave, onClose
         <ErrorMessage id={bedCountError} code={failureAt('bedCount')} />
       </td>
       <td>
-        <button disabled={unchanged} onClick={save} aria-describedby={buttonError}>{t('general.save')}</button>
+        <input
+          type="number"
+          required
+          aria-label={t('rooms.pricePerNightOf', { roomNumber: room.roomNumber })}
+          value={pricePerNight}
+          onChange={event => setPricePerNight(event.target.value)}
+          aria-describedby={pricePerNightError}
+        />
+        <ErrorMessage id={pricePerNightError} code={failureAt('pricePerNight')} />
+      </td>
+      <td>
+        <button disabled={unchanged || pricePerNight === ''} onClick={save} aria-describedby={buttonError}>
+          {t('general.save')}
+        </button>
         <button onClick={onClose}>{t('general.cancelChange')}</button>
         <ErrorMessage id={buttonError} code={failureAt('button')} />
       </td>

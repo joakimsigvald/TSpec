@@ -8,8 +8,8 @@ import { renderPage } from './test/renderPage';
 import type { Booking, BookingAction, BookingStatus } from './bookings/bookingsApi';
 
 const unbooked = { held: false, hasCancellableBookings: false };
-const room101 = { roomNumber: '101', bedCount: 2, roomCategory: 'Standard', ...unbooked };
-const room102 = { roomNumber: '102', bedCount: 1, roomCategory: 'Standard', ...unbooked };
+const room101 = { roomNumber: '101', bedCount: 2, roomCategory: 'Standard', pricePerNight: 1000, ...unbooked };
+const room102 = { roomNumber: '102', bedCount: 1, roomCategory: 'Standard', pricePerNight: 800, ...unbooked };
 const withBookingsToCancel = { ...room101, held: true, hasCancellableBookings: true };
 const withGuestCheckedIn = { ...room101, held: true };
 const booking10001: Booking = {
@@ -17,6 +17,7 @@ const booking10001: Booking = {
   info: { roomNumber: '101', guestName: 'Smith', guestCount: 2 },
   period: { from: '2026-08-10', to: '2026-08-12' },
   state: { status: 'Open', actions: ['Cancel'] },
+  payment: { price: 2000, paid: false },
 };
 
 const inState = (status: BookingStatus, actions: BookingAction[]): Booking =>
@@ -39,6 +40,8 @@ const roomChoice = () => screen.getByRole('combobox', { name: 'Rumsnummer' });
 const offered = (roomNumber: string) => within(roomChoice()).queryByRole('option', { name: roomNumber });
 const categoryChoice = () => screen.getByRole('combobox', { name: 'Kategori' });
 const categoryOffered = (name: string) => within(categoryChoice()).queryByRole('option', { name });
+const enterPrice = (pricePerNight: number) =>
+  userEvent.type(screen.getByRole('spinbutton', { name: 'Pris per natt' }), String(pricePerNight));
 const rowOf = (name: string) => screen.findByRole('row', { name: new RegExp(`^${name}`) });
 const roomButton = async (roomNumber: string, name: string) =>
   within(await rowOf(roomNumber)).getByRole('button', { name });
@@ -55,6 +58,7 @@ describe('App', () => {
     await chooseBeds(room102.bedCount);
     await waitFor(() => expect(categoryOffered('Standard')).toBeInTheDocument());
     await userEvent.selectOptions(categoryChoice(), 'Standard');
+    await enterPrice(room102.pricePerNight);
     await userEvent.click(screen.getByRole('button', { name: 'Lägg till rum' }));
     await waitFor(() => expect(offered('102')).toBeInTheDocument());
   });
@@ -101,6 +105,7 @@ describe('App', () => {
     await chooseBeds(room101.bedCount);
     await waitFor(() => expect(categoryOffered('Svit')).toBeInTheDocument());
     await userEvent.selectOptions(categoryChoice(), 'Svit');
+    await enterPrice(room101.pricePerNight);
     await userEvent.click(screen.getByRole('button', { name: 'Lägg till rum' }));
     await waitFor(async () =>
       expect(within(await rowOf('Svit')).getByRole('button', { name: 'Ta bort' })).toBeDisabled());

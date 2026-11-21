@@ -30,6 +30,7 @@ Using new BookingNumberSeed(an int)
 ```
 Subject under test: BookingService
 Using new BookingPeriod(Today, LaterDay)
+  and StoredBooking with Paid = false
 ```
 
 ### [When book](../Bookings/BookingService/WhenBook.cs)
@@ -50,9 +51,15 @@ IRoomStore.Load() returns [the Room]
 - **return the booking with the number it was given**
   ```
   Result is new Booking(the int, the BookingInfo, the BookingPeriod,
-      new BookingState(Open, [Cancel]))
+      new BookingState(Open, [Cancel, Pay]),
+      new BookingPayment(2 * the Room's PricePerNight, false))
   ```
-- **store it** — `IBookingStore.Save was invoked once`
+- **store it at the price per night of its room**
+  ```
+  IBookingStore.Save(
+      [new StoredBooking(the int, the BookingInfo, the BookingPeriod,
+      the Room's PricePerNight, BookingStage.Booked, false)])
+  ```
 
 #### Given the room exists, but is already booked
 ```
@@ -165,6 +172,15 @@ Booking is a StoredBooking with { Period = new(Tomorrow, LaterDay), Stage = Book
 
 - **keep it marked cancelled** — `IBookingStore.Save([MarkedCancelled(the Booking)])`
 
+#### Given the booking is open and paid
+```
+Booking is a StoredBooking with
+    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked, Paid = true }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **keep it marked cancelled** — `IBookingStore.Save([MarkedCancelled(the Booking)])`
+
 #### Given the booking is a no show departing today
 ```
 Booking is a StoredBooking with { Period = new(Yesterday, Today), Stage = BookingStage.Booked }
@@ -269,14 +285,28 @@ Booking is a StoredBooking with
 - **return it changed**
   ```
   Result is new Booking(the Booking's BookingNumber, the BookingInfo,
-      new BookingPeriod(Today, LaterDay), new BookingState(Open, [Cancel, CheckIn]))
+      new BookingPeriod(Today, LaterDay), new BookingState(Open, [Cancel, CheckIn, Pay]),
+      new BookingPayment(9 * the Room's PricePerNight, false))
   ```
 - **store it changed**
   ```
   IBookingStore.Save(
       [new StoredBooking(the Booking's BookingNumber, the BookingInfo,
-      new BookingPeriod(Today, LaterDay), BookingStage.Booked)])
+      new BookingPeriod(Today, LaterDay), the Room's PricePerNight, BookingStage.Booked,
+      false)])
   ```
+
+#### Given the room exists, with the booking paid
+```
+Booking is a StoredBooking with
+    { Info = the BookingInfo, Period = new(Tomorrow, LaterDay),
+    Stage = BookingStage.Booked, Paid = true }
+  and IRoomStore.Load() returns [the Room]
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **keep it paid at its higher price**\
+  `Result.Payment is new BookingPayment(9 * the Booking's PricePerNight, true)`
 
 #### Given the room exists, with the booking checked in
 ```
@@ -286,7 +316,7 @@ Booking is a StoredBooking with
   and IBookingStore.Load() returns [the Booking]
 ```
 
-- **keep it checked in** — `Result.State is new BookingState(CheckedIn, [])`
+- **keep it checked in** — `Result.State is new BookingState(CheckedIn, [Pay])`
 
 #### Given the room exists, with the booking checked out
 ```
@@ -363,6 +393,54 @@ When Change(any int, a BookingRequest), returns Booking
 - **throw too many guests**\
   `throws TooManyGuests that Message contains the Room's RoomNumber`
 - **store nothing** — `IBookingStore.Save was not invoked`
+
+### [When change to two nights](../Bookings/BookingService/WhenChangeToTwoNights.cs)
+```
+Using today is Today
+  and new BookingInfo(a Room's RoomNumber, a string, 1)
+When Change(a StoredBooking's BookingNumber,
+    a BookingRequest with { Period = new(Today, Today.AddDays(2)) }), returns Booking
+```
+
+#### Given it stays in its room
+```
+IRoomStore.Load() returns [the Room]
+  and IBookingStore.Load() returns [the StoredBooking]
+```
+
+- **keep its price per night**\
+  `Result.Payment.Price is 2 * the StoredBooking's PricePerNight`
+
+#### Given it is in another room, of the same category
+```
+IBookingStore.Load() returns [the StoredBooking with
+    { Info = the BookingInfo with { RoomNumber = a second Room's RoomNumber } }]
+  and IRoomStore.Load()
+      returns [the Room, a second Room with { RoomCategory = the Room's RoomCategory }]
+```
+
+- **keep its price per night**\
+  `Result.Payment.Price is 2 * the StoredBooking's PricePerNight`
+
+#### Given it is in another room, of another category
+```
+IBookingStore.Load() returns [the StoredBooking with
+    { Info = the BookingInfo with { RoomNumber = a second Room's RoomNumber } }]
+  and IRoomStore.Load() returns [the Room, a second Room]
+```
+
+- **take the price per night of the new room**\
+  `Result.Payment.Price is 2 * the Room's PricePerNight`
+
+#### Given it is in another room, that is gone
+```
+IBookingStore.Load() returns [the StoredBooking with
+    { Info = the BookingInfo with { RoomNumber = a second Room's RoomNumber } }]
+  and IRoomStore.Load() returns [the Room]
+```
+
+- **take the price per night of the new room**\
+  `Result.Payment.Price is 2 * the Room's PricePerNight`
 
 ### [When change to zero guests](../Bookings/BookingService/WhenChangeToZeroGuests.cs)
 ```
@@ -514,8 +592,8 @@ IBookingStore.Load() returns [the StoredBooking with
 ```
 
 - **return the booking** — `Result.BookingNumber is the StoredBooking's BookingNumber`
-- **say it is open and can be cancelled or checked in**\
-  `Result.State is new BookingState(Open, [Cancel, CheckIn])`
+- **say it is open and can be checked in as well as cancelled or paid**\
+  `Result.State is new BookingState(Open, [Cancel, CheckIn, Pay])`
 
 #### Given it is booked and arrives tomorrow
 ```
@@ -523,8 +601,27 @@ IBookingStore.Load() returns [the StoredBooking with
     { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked }]
 ```
 
+- **say it is open and can be cancelled or paid**\
+  `Result.State is new BookingState(Open, [Cancel, Pay])`
+
+#### Given it is open and paid
+```
+IBookingStore.Load() returns [the StoredBooking with
+    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked, Paid = true }]
+```
+
+- **say it is paid** — `Result.Payment.Paid is true`
 - **say it is open and can be cancelled**\
   `Result.State is new BookingState(Open, [Cancel])`
+
+#### Given it is for two nights
+```
+IBookingStore.Load()
+    returns [the StoredBooking with { Period = new(Tomorrow, Tomorrow.AddDays(2)) }]
+```
+
+- **price it at twice its price per night**\
+  `Result.Payment.Price is 2 * the StoredBooking's PricePerNight`
 
 #### Given it is booked and departs today
 ```
@@ -549,8 +646,8 @@ IBookingStore.Load() returns [the StoredBooking with
     { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedIn }]
 ```
 
-- **say it is checked in and can be checked out**\
-  `Result.State is new BookingState(CheckedIn, [CheckOut])`
+- **say it is checked in and can be checked out or paid**\
+  `Result.State is new BookingState(CheckedIn, [CheckOut, Pay])`
 
 #### Given it is checked in and departs tomorrow
 ```
@@ -558,7 +655,8 @@ IBookingStore.Load() returns [the StoredBooking with
     { Period = new(EarlierDay, Tomorrow), Stage = BookingStage.CheckedIn }]
 ```
 
-- **say it is checked in** — `Result.State is new BookingState(CheckedIn, [])`
+- **say it is checked in and can be paid**\
+  `Result.State is new BookingState(CheckedIn, [Pay])`
 
 #### Given it is checked in and departed yesterday
 ```
@@ -609,6 +707,84 @@ When Bookings(), returns IReadOnlyList<Booking>
   Result.Select(_ => _.BookingNumber) is equal to
       [the first StoredBooking's BookingNumber, the second StoredBooking's BookingNumber]
   ```
+
+### [When pay](../Bookings/BookingService/WhenPay.cs)
+```
+Using today is Today
+When Pay(the Booking's BookingNumber)
+```
+
+#### Given the booking is open
+```
+Booking is a StoredBooking with { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **keep it marked paid** — `IBookingStore.Save([MarkedPaid(the Booking)])`
+
+#### Given the booking is checked in
+```
+Booking is a StoredBooking with
+    { Period = new(Yesterday, Tomorrow), Stage = BookingStage.CheckedIn }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **keep it marked paid** — `IBookingStore.Save([MarkedPaid(the Booking)])`
+
+#### Given the booking is paid
+```
+Booking is a StoredBooking with
+    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked, Paid = true }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **throw booking not payable**\
+  `throws BookingNotPayable that Message contains "{the Booking's BookingNumber}"`
+- **store nothing** — `IBookingStore.Save was not invoked`
+
+#### Given the booking is a no show
+```
+Booking is a StoredBooking with { Period = new(Yesterday, Today), Stage = BookingStage.Booked }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **throw booking not payable**\
+  `throws BookingNotPayable that Message contains "{the Booking's BookingNumber}"`
+
+#### Given the booking is past
+```
+Booking is a StoredBooking with
+    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.CheckedIn }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **throw booking not payable**\
+  `throws BookingNotPayable that Message contains "{the Booking's BookingNumber}"`
+
+#### Given the booking was checked out
+```
+Booking is a StoredBooking with { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedOut }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **throw booking not payable**\
+  `throws BookingNotPayable that Message contains "{the Booking's BookingNumber}"`
+
+#### Given the booking was cancelled
+```
+Booking is a StoredBooking with { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Cancelled }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **throw booking not payable**\
+  `throws BookingNotPayable that Message contains "{the Booking's BookingNumber}"`
+
+#### Given no such booking
+`IBookingStore.Load() returns zero StoredBookings`
+
+- **throw booking not found**\
+  `throws BookingNotFound that Message contains "{the Booking's BookingNumber}"`
+- **store nothing** — `IBookingStore.Save was not invoked`
 
 ## Room Bookings
 ```

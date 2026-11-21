@@ -8,9 +8,9 @@ import { Rooms } from './Rooms';
 import type { RoomOverview } from './roomsApi';
 
 const unbooked = { held: false, hasCancellableBookings: false };
-const room101 = { roomNumber: '101', bedCount: 2, roomCategory: 'Standard', ...unbooked };
-const room102 = { roomNumber: '102', bedCount: 1, roomCategory: 'Standard', ...unbooked };
-const room103 = { roomNumber: '103', bedCount: 3, roomCategory: 'Standard', ...unbooked };
+const room101 = { roomNumber: '101', bedCount: 2, roomCategory: 'Standard', pricePerNight: 1000, ...unbooked };
+const room102 = { roomNumber: '102', bedCount: 1, roomCategory: 'Standard', pricePerNight: 800, ...unbooked };
+const room103 = { roomNumber: '103', bedCount: 3, roomCategory: 'Standard', pricePerNight: 1500, ...unbooked };
 const withBookingsToCancel = (room: RoomOverview) => ({ ...room, held: true, hasCancellableBookings: true });
 const withGuestCheckedIn = (room: RoomOverview) => ({ ...room, held: true });
 
@@ -29,6 +29,8 @@ const bedsIn = async (roomNumber: string) =>
   within(await rowOf(roomNumber)).getByRole('combobox', { name: `Sängar i rum ${roomNumber}` });
 const categoryIn = async (roomNumber: string) =>
   within(await rowOf(roomNumber)).getByRole('combobox', { name: `Kategori för rum ${roomNumber}` });
+const priceIn = async (roomNumber: string) =>
+  within(await rowOf(roomNumber)).getByRole('spinbutton', { name: `Pris per natt för rum ${roomNumber}` });
 const buttonIn = async (roomNumber: string, name: string) =>
   within(await rowOf(roomNumber)).getByRole('button', { name });
 const buttonsIn = async (roomNumber: string) =>
@@ -37,6 +39,7 @@ const startChanging = async (roomNumber: string) => userEvent.click(await button
 
 const categoryChoice = () => screen.getByRole('combobox', { name: 'Kategori' });
 const bedsChoice = () => screen.getByRole('combobox', { name: 'Sängar' });
+const priceField = () => screen.getByRole('spinbutton', { name: 'Pris per natt' });
 const optionsIn = (choice: HTMLElement) => within(choice).getAllByRole('option').map(option => option.textContent);
 const addButton = () => screen.getByRole('button', { name: 'Lägg till rum' });
 
@@ -47,15 +50,23 @@ const addRoom = async (roomNumber: string, beds: string, roomCategory = 'Standar
   await userEvent.type(screen.getByLabelText('Rumsnummer'), roomNumber);
   await choose(bedsChoice(), beds);
   await choose(categoryChoice(), roomCategory);
+  await userEvent.type(priceField(), '1500');
   await userEvent.click(addButton());
 };
 
+const enterPrice = async (roomNumber: string, price: string) => {
+  await userEvent.clear(await priceIn(roomNumber));
+  await userEvent.type(await priceIn(roomNumber), price);
+};
+
 describe('Rooms', () => {
-  it('lists the rooms with their categories and beds', async () => {
-    fakeHotel({ 'GET /rooms': { status: 200, body: [room101, { ...room102, roomCategory: 'Svit' }] } });
+  it('lists the rooms with their categories, beds and prices per night', async () => {
+    fakeHotel({
+      'GET /rooms': { status: 200, body: [{ ...room101, pricePerNight: 12500 }, { ...room102, roomCategory: 'Svit' }] },
+    });
     renderPage(<Rooms />);
-    expect(await rowOf('101')).toHaveTextContent(/^101Standard2Avboka/);
-    expect(await rowOf('102')).toHaveTextContent(/^102Svit1Avboka/);
+    expect(await rowOf('101')).toHaveTextContent(/^101Standard212 500 krAvboka/);
+    expect(await rowOf('102')).toHaveTextContent(/^102Svit1800 krAvboka/);
   });
 
   it('offers to change a room, last in its row', async () => {
@@ -70,6 +81,7 @@ describe('Rooms', () => {
     await startChanging('101');
     await waitFor(async () => expect(await categoryIn('101')).toHaveDisplayValue('Standard'));
     await waitFor(async () => expect(await bedsIn('101')).toHaveDisplayValue('2'));
+    expect(await priceIn('101')).toHaveValue(1000);
     expect(await buttonsIn('101')).toEqual(['Spara', 'Avbryt']);
   });
 
@@ -107,10 +119,11 @@ describe('Rooms', () => {
     expect(await rowOf('103')).toBeInTheDocument();
     expect(api).toHaveBeenCalledWith('/rooms', expect.objectContaining({
       method: 'POST',
-      body: JSON.stringify({ roomNumber: '103', bedCount: 3, roomCategory: 'Svit' }),
+      body: JSON.stringify({ roomNumber: '103', bedCount: 3, roomCategory: 'Svit', pricePerNight: 1500 }),
     }));
     expect(categoryChoice()).toHaveDisplayValue('Välj kategori');
     expect(bedsChoice()).toHaveDisplayValue('1');
+    expect(priceField()).toHaveValue(null);
   });
 
   it('adds a room with the fewest beds when no number of beds is chosen', async () => {
@@ -122,11 +135,12 @@ describe('Rooms', () => {
     await waitFor(() => expect(bedsChoice()).toHaveDisplayValue('1'));
     await userEvent.type(screen.getByLabelText('Rumsnummer'), '102');
     await choose(categoryChoice(), 'Standard');
+    await userEvent.type(priceField(), '800');
     await userEvent.click(addButton());
     await rowOf('102');
     expect(api).toHaveBeenCalledWith('/rooms', expect.objectContaining({
       method: 'POST',
-      body: JSON.stringify({ roomNumber: '102', bedCount: 1, roomCategory: 'Standard' }),
+      body: JSON.stringify({ roomNumber: '102', bedCount: 1, roomCategory: 'Standard', pricePerNight: 800 }),
     }));
   });
 
@@ -134,6 +148,7 @@ describe('Rooms', () => {
     fakeHotel({ 'GET /rooms': { status: 200, body: [] } });
     renderPage(<Rooms />);
     await choose(categoryChoice(), 'Standard');
+    await userEvent.type(priceField(), '1500');
     expect(addButton()).toBeDisabled();
   });
 
@@ -141,7 +156,23 @@ describe('Rooms', () => {
     fakeHotel({ 'GET /rooms': { status: 200, body: [] } });
     renderPage(<Rooms />);
     await userEvent.type(screen.getByLabelText('Rumsnummer'), '103');
+    await userEvent.type(priceField(), '1500');
     expect(addButton()).toBeDisabled();
+  });
+
+  it('cannot add a room without a price per night', async () => {
+    fakeHotel({ 'GET /rooms': { status: 200, body: [] } });
+    renderPage(<Rooms />);
+    await userEvent.type(screen.getByLabelText('Rumsnummer'), '103');
+    await choose(categoryChoice(), 'Standard');
+    expect(addButton()).toBeDisabled();
+  });
+
+  it('asks for the price per night in an empty number field', () => {
+    fakeHotel({ 'GET /rooms': { status: 200, body: [] } });
+    renderPage(<Rooms />);
+    expect(priceField()).toHaveValue(null);
+    expect(priceField()).toBeRequired();
   });
 
   it('cannot add a room again until another is entered', async () => {
@@ -162,6 +193,16 @@ describe('Rooms', () => {
     renderPage(<Rooms />);
     await addRoom('103', '3');
     await waitFor(() => expect(bedsChoice()).toHaveAccessibleDescription('Otillåtet antal sängar.'));
+  });
+
+  it('says under the price per night that the price is not allowed', async () => {
+    fakeHotel({
+      'GET /rooms': { status: 200, body: [room101] },
+      'POST /rooms': { status: 400, body: { code: 'InvalidPricePerNight' } },
+    });
+    renderPage(<Rooms />);
+    await addRoom('103', '3');
+    await waitFor(() => expect(priceField()).toHaveAccessibleDescription('Otillåtet pris per natt.'));
   });
 
   it('says under the category that it does not exist', async () => {
@@ -212,7 +253,22 @@ describe('Rooms', () => {
     await userEvent.click(await buttonIn('101', 'Spara'));
     expect(api).toHaveBeenCalledWith('/rooms/101', expect.objectContaining({
       method: 'PUT',
-      body: JSON.stringify({ roomNumber: '101', bedCount: 3, roomCategory: 'Standard' }),
+      body: JSON.stringify({ roomNumber: '101', bedCount: 3, roomCategory: 'Standard', pricePerNight: 1000 }),
+    }));
+  });
+
+  it('saves the price per night entered for a room', async () => {
+    const api = fakeHotel({
+      'GET /rooms': [{ status: 200, body: [room101] }, { status: 200, body: [{ ...room101, pricePerNight: 1200 }] }],
+      'PUT /rooms/101': { status: 200, body: { ...room101, pricePerNight: 1200 } },
+    });
+    renderPage(<Rooms />);
+    await startChanging('101');
+    await enterPrice('101', '1200');
+    await userEvent.click(await buttonIn('101', 'Spara'));
+    expect(api).toHaveBeenCalledWith('/rooms/101', expect.objectContaining({
+      method: 'PUT',
+      body: JSON.stringify({ roomNumber: '101', bedCount: 2, roomCategory: 'Standard', pricePerNight: 1200 }),
     }));
   });
 
@@ -227,7 +283,7 @@ describe('Rooms', () => {
     await userEvent.click(await buttonIn('101', 'Spara'));
     expect(api).toHaveBeenCalledWith('/rooms/101', expect.objectContaining({
       method: 'PUT',
-      body: JSON.stringify({ roomNumber: '101', bedCount: 2, roomCategory: 'Svit' }),
+      body: JSON.stringify({ roomNumber: '101', bedCount: 2, roomCategory: 'Svit', pricePerNight: 1000 }),
     }));
   });
 
@@ -247,6 +303,15 @@ describe('Rooms', () => {
     expect(await buttonIn('101', 'Spara')).toBeDisabled();
   });
 
+  it('cannot save a room without a price per night', async () => {
+    fakeHotel({ 'GET /rooms': { status: 200, body: [room101] } });
+    renderPage(<Rooms />);
+    await startChanging('101');
+    await choose(await bedsIn('101'), '3');
+    await userEvent.clear(await priceIn('101'));
+    expect(await buttonIn('101', 'Spara')).toBeDisabled();
+  });
+
   it('shows a saved change on the row', async () => {
     fakeHotel({
       'GET /rooms': [{ status: 200, body: [room101] }, { status: 200, body: [{ ...room101, bedCount: 3 }] }],
@@ -257,7 +322,7 @@ describe('Rooms', () => {
     await choose(await bedsIn('101'), '3');
     await userEvent.click(await buttonIn('101', 'Spara'));
     await waitFor(async () => expect(await buttonsIn('101')).toEqual(['Avboka alla', 'Ta bort', 'Ändra']));
-    expect(await rowOf('101')).toHaveTextContent(/^101Standard3Avboka/);
+    expect(await rowOf('101')).toHaveTextContent(/^101Standard31 000 krAvboka/);
   });
 
   it('shows the row as it was when the change is abandoned', async () => {
@@ -266,7 +331,7 @@ describe('Rooms', () => {
     await startChanging('101');
     await choose(await bedsIn('101'), '3');
     await userEvent.click(await buttonIn('101', 'Avbryt'));
-    expect(await rowOf('101')).toHaveTextContent(/^101Standard2Avboka/);
+    expect(await rowOf('101')).toHaveTextContent(/^101Standard21 000 krAvboka/);
     expect(await buttonsIn('101')).toEqual(['Avboka alla', 'Ta bort', 'Ändra']);
     await startChanging('101');
     expect(await bedsIn('101')).toHaveDisplayValue('2');
@@ -287,6 +352,12 @@ describe('Rooms', () => {
     it('under the beds, that the number of beds is not allowed', async () => {
       await changeRefusedWith(400, 'InvalidBedCount');
       await waitFor(async () => expect(await bedsIn('101')).toHaveAccessibleDescription('Otillåtet antal sängar.'));
+    });
+
+    it('under the price per night, that it is not allowed', async () => {
+      await changeRefusedWith(400, 'InvalidPricePerNight');
+      await waitFor(async () =>
+        expect(await priceIn('101')).toHaveAccessibleDescription('Otillåtet pris per natt.'));
     });
 
     it('under the category, that it does not exist', async () => {

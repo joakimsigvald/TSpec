@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ErrorMessage } from '../ErrorMessage';
+import { kronor } from '../kronor';
 import type { Room } from '../rooms/roomsApi';
 import { hasEmptyField, useEntered } from '../useEntered';
 import { useFormAttempt } from '../useFormAttempt';
@@ -87,6 +88,7 @@ export function ChangeBookingRow({ booking, rooms, onSave, onClose }: Props) {
         />
         <ErrorMessage id={toError} code={failureAt('to')} />
       </td>
+      <td>{kronor(booking.payment.price)}</td>
       <td>
         <button
           disabled={sameEntry(entered, original) || hasEmptyField(entered)}

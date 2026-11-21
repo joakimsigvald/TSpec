@@ -14,5 +14,6 @@ public interface IBookingService
     Task Cancel(int bookingNumber);
     Task CheckIn(int bookingNumber);
     Task CheckOut(int bookingNumber);
+    Task Pay(int bookingNumber);
     Task CancelBookings(string roomNumber);
 }

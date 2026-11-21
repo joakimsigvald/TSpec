@@ -1,6 +1,5 @@
 ﻿using static MyHotel.Contract.Bookings.BookingAction;
 using static MyHotel.Contract.Bookings.BookingStatus;
-using static TSpec.Times;
 
 namespace MyHotel.Core.Spec.Bookings.BookingService;
 
@@ -32,9 +31,18 @@ public abstract class WhenBook : BookingServiceSpec<Booking>
                     The<int>(),
                     The<BookingInfo>(),
                     The<BookingPeriod>(),
-                    new BookingState(Open, [Cancel])));
+                    new BookingState(Open, [Cancel, Pay]),
+                    new BookingPayment(2 * The<Room>().PricePerNight, false)));
 
-            [Fact] public void ThenStoreIt() => Then<IBookingStore>(nameof(IBookingStore.Save), Once);
+            [Fact]
+            public void ThenStoreItAtThePricePerNightOfItsRoom() =>
+                Then<IBookingStore>(_ => _.Save(new[] { new StoredBooking(
+                    The<int>(),
+                    The<BookingInfo>(),
+                    The<BookingPeriod>(),
+                    The<Room>().PricePerNight,
+                    BookingStage.Booked,
+                    false) }));
         }
 
         /// <summary>

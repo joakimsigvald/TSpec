@@ -16,6 +16,7 @@ public static class BookingEndpoints
         app.MapDelete("/bookings/{bookingNumber:int}", Cancel);
         app.MapPost("/bookings/{bookingNumber:int}/check-in", CheckIn);
         app.MapPost("/bookings/{bookingNumber:int}/check-out", CheckOut);
+        app.MapPost("/bookings/{bookingNumber:int}/pay", Pay);
         app.MapDelete("/rooms/{roomNumber}/bookings", CancelBookings);
     }
 
@@ -50,6 +51,12 @@ public static class BookingEndpoints
     private static async Task<IResult> CheckOut(IBookingService bookings, int bookingNumber)
     {
         await bookings.CheckOut(bookingNumber);
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> Pay(IBookingService bookings, int bookingNumber)
+    {
+        await bookings.Pay(bookingNumber);
         return Results.NoContent();
     }
 

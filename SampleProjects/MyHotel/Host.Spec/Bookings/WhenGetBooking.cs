@@ -29,7 +29,26 @@ public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
                 10001,
                 The<BookingInfo>(),
                 new BookingPeriod(Tomorrow, LaterDay),
-                new BookingState(Open, [Cancel])));
+                new BookingState(Open, [Cancel, Pay]),
+                new BookingPayment(8 * The<Room>().PricePerNight, false)));
+    }
+
+    /// <summary>
+    /// Setups run last-declared-first: the room exists, it is booked, the room gets another price.
+    /// </summary>
+    public class GivenTheRoomGotAnotherPrice : WhenGetBooking
+    {
+        public GivenTheRoomGotAnotherPrice()
+        {
+            Having(_ => _.Api.PutAsJsonAsync(
+                $"/rooms/{The<Room>().RoomNumber}", The<Room>() with { PricePerNight = ASecond<int>() }));
+            Having(_ => _.Api.PostAsJsonAsync("/bookings", A<BookingRequest>()));
+            Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
+        }
+
+        [Fact]
+        public async Task ThenKeepThePriceItWasBookedAt() =>
+            (await Result.Read<Booking>()).Payment.Price.Is(8 * The<Room>().PricePerNight);
     }
 
     public class GivenNoSuchBooking : WhenGetBooking
@@ -63,7 +82,8 @@ public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
                 10001,
                 The<BookingInfo>(),
                 new BookingPeriod(Tomorrow, LaterDay),
-                new BookingState(Open, [Cancel])));
+                new BookingState(Open, [Cancel, Pay]),
+                new BookingPayment(8 * The<Room>().PricePerNight, false)));
     }
 
     /// <summary>
@@ -84,5 +104,22 @@ public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
         [Fact]
         public async Task ThenSayItIsCancelled() =>
             (await Result.Read<Booking>()).State.Status.Is(Cancelled);
+    }
+
+    /// <summary>
+    /// The one case that reads back a paid booking, so it shows the store keeps it. Setups run
+    /// last-declared-first: the room exists, it is booked, the booking is paid.
+    /// </summary>
+    public class GivenTheBookingWasPaid : WhenGetBooking
+    {
+        public GivenTheBookingWasPaid()
+        {
+            Having(_ => _.Api.PostAsync("/bookings/10001/pay", null));
+            Having(_ => _.Api.PostAsJsonAsync("/bookings", A<BookingRequest>()));
+            Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
+        }
+
+        [Fact] public void ThenRespondOk() => Result.StatusCode.Is(OK);
+        [Fact] public async Task ThenSayItIsPaid() => (await Result.Read<Booking>()).Payment.Paid.Is(true);
     }
 }

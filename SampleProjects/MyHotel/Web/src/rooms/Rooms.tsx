@@ -63,6 +63,7 @@ export function Rooms() {
             <th>{t('rooms.room')}</th>
             <th>{t('rooms.roomCategory')}</th>
             <th>{t('rooms.beds')}</th>
+            <th>{t('rooms.pricePerNight')}</th>
             <th />
           </tr>
         </thead>

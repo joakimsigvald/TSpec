@@ -24,7 +24,8 @@ public abstract class WhenBookRoom : ApiSpec<HttpResponseMessage>
                 10001,
                 The<BookingInfo>(),
                 new BookingPeriod(Tomorrow, LaterDay),
-                new BookingState(Open, [Cancel])));
+                new BookingState(Open, [Cancel, Pay]),
+                new BookingPayment(8 * The<Room>().PricePerNight, false)));
 
         [Fact]
         public void ThenPointAtTheNewBooking() =>

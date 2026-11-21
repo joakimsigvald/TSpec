@@ -13,6 +13,7 @@ is provisional: the term is not used in code yet, and is the product owner's to 
 | `Room` | A room the hotel can let |
 | `RoomNumber` | A room's identity, which never changes: renumbering a room is deleting it and adding another |
 | `BedCount` | How many beds a room has |
+| `PricePerNight` | What a night costs, in whole kronor. A booking takes its room's when it is made and keeps it, unless it moves to a room of another category |
 | `Rules` | The limits on what the hotel accepts, published for Web to offer its choices within |
 | `RoomCategory` | A kind of room the hotel keeps, identified by its name. Every room has one |
 | `Booking` | A room held for a guest for a period of nights, identified by its booking number |
@@ -35,5 +36,8 @@ is provisional: the term is not used in code yet, and is the product owner's to 
 | `Cancellable` | An open booking, or a no-show whose departure day has not passed |
 | `Cancel` | To mark a cancellable booking cancelled. It is kept as a record, and its nights are free again |
 | `Held` | A room an open or checked-in booking, or a cancellable no-show, still holds; it cannot be deleted |
+| `Price` | What a booking costs: its nights times its price per night |
+| `Pay` | To mark an open or checked-in booking paid, its whole price at once |
+| `Paid` | A booking that was paid. It stays paid whatever happens to it, even when a change raises its price |
 | `Refusal` | A request the hotel turns down, answered with an error code |
 | `OutOfService` * | A room temporarily off inventory, taking no new bookings. Hotel usage - *out of order* is maintenance |

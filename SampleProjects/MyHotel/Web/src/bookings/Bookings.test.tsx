@@ -15,12 +15,14 @@ const booking10001: Booking = {
   info: request.info,
   period: request.period,
   state: { status: 'Open', actions: ['Cancel'] },
+  payment: { price: 2000, paid: false },
 };
 const booking10002: Booking = {
   bookingNumber: 10002,
   info: { roomNumber: '102', guestName: 'Jones', guestCount: 1 },
   period: { from: '2026-08-11', to: '2026-08-13' },
   state: { status: 'Open', actions: ['Cancel'] },
+  payment: { price: 12500, paid: false },
 };
 const rooms = ['101', '12A', '2', '12']
   .map(roomNumber => ({ roomNumber, bedCount: 1, held: false, hasCancellableBookings: false }));
@@ -28,6 +30,7 @@ const roomsReply = { status: 200, body: rooms };
 
 const inState = (booking: Booking, status: BookingStatus, actions: BookingAction[]): Booking =>
   ({ ...booking, state: { status, actions } });
+const paid = (booking: Booking): Booking => ({ ...booking, payment: { ...booking.payment, paid: true } });
 
 const rowOf = (bookingNumber: number) => screen.findByRole('row', { name: new RegExp(`^${bookingNumber}`) });
 const buttonsIn = (row: HTMLElement) => within(row).queryAllByRole('button').map(button => button.textContent);
@@ -129,11 +132,11 @@ const bookTwoNightsByButton = async () => {
 };
 
 describe('Bookings', () => {
-  it('lists the bookings', async () => {
+  it('lists the bookings with their prices', async () => {
     fakeApi({ 'GET /rooms': roomsReply, 'GET /bookings': { status: 200, body: [booking10001, booking10002] } });
     renderPage(<Bookings />);
-    expect(await rowOf(10001)).toHaveTextContent('100011012Smith2026-08-102026-08-12');
-    expect(await rowOf(10002)).toHaveTextContent('100021021Jones2026-08-112026-08-13');
+    expect(await rowOf(10001)).toHaveTextContent('100011012Smith2026-08-102026-08-122 000 kr');
+    expect(await rowOf(10002)).toHaveTextContent('100021021Jones2026-08-112026-08-1312 500 kr');
   });
 
   it('offers the rooms in alphanumeric order', async () => {
@@ -248,7 +251,7 @@ describe('Bookings', () => {
     showing(inState(booking10001, 'Past', []));
     const row = await rowOf(10001);
     expect(within(row).queryByRole('button', { name: 'Avboka' })).not.toBeInTheDocument();
-    expect(row).toHaveTextContent(/2026-08-12Ändra$/);
+    expect(row).toHaveTextContent(/2 000 krÄndra$/);
   });
 
   it('offers to cancel an open booking, and to check it in when it can be', async () => {
@@ -303,6 +306,40 @@ describe('Bookings', () => {
     expect(buttonsIn(cancellable)).toEqual(['Avboka', 'Ändra']);
     expect(await rowOf(10002)).toHaveTextContent(/No showÄndra$/);
     expect(buttonsIn(await rowOf(10002))).toEqual(['Ändra']);
+  });
+
+  it('offers to pay an open or checked-in booking, last before Ändra', async () => {
+    showing(inState(booking10001, 'Open', ['Cancel', 'CheckIn', 'Pay']), inState(booking10002, 'CheckedIn', ['Pay']));
+    expect(buttonsIn(await rowOf(10001))).toEqual(['Avboka', 'Checka in', 'Betala', 'Ändra']);
+    expect(buttonsIn(await rowOf(10002))).toEqual(['Betala', 'Ändra']);
+  });
+
+  it('pays a booking, and shows it paid where Betala stood', async () => {
+    const api = fakeApi({
+      'GET /rooms': roomsReply,
+      'GET /bookings': [
+        { status: 200, body: [inState(booking10001, 'Open', ['Cancel', 'Pay'])] },
+        { status: 200, body: [paid(booking10001)] },
+      ],
+      'POST /bookings/10001/pay': { status: 204 },
+    });
+    renderPage(<Bookings />);
+    await userEvent.click(within(await rowOf(10001)).getByRole('button', { name: 'Betala' }));
+    await waitFor(async () => expect(await rowOf(10001)).toHaveTextContent(/AvbokaBetaldÄndra$/));
+    expect(buttonsIn(await rowOf(10001))).toEqual(['Avboka', 'Ändra']);
+    expect(api).toHaveBeenCalledWith('/bookings/10001/pay', expect.objectContaining({ method: 'POST' }));
+  });
+
+  it('shows a paid booking as paid, whatever has happened to it', async () => {
+    showing(paid(inState(booking10001, 'CheckedIn', [])), paid(inState(booking10002, 'Cancelled', [])));
+    expect(await rowOf(10001)).toHaveTextContent(/IncheckadBetaldÄndra$/);
+    expect(await rowOf(10002)).toHaveTextContent(/AvbokadBetaldÄndra$/);
+  });
+
+  it('says above the bookings that a booking was not paid', async () => {
+    const paying = inState(booking10001, 'Open', ['Pay']);
+    await refusedWhenClicking('Betala', paying, 'POST /bookings/10001/pay', 'BookingNotPayable');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Bokningen kan inte betalas.');
   });
 
   it('says above the bookings that a booking was not checked in', async () => {
@@ -422,6 +459,7 @@ describe('Bookings', () => {
       expect(changeField('Gäst')).toHaveValue('Smith');
       expect(changeField('Från')).toHaveValue('2026-08-10');
       expect(changeField('Till')).toHaveValue('2026-08-12');
+      expect(await rowOf(10001)).toHaveTextContent('2 000 krSparaAvbryt');
       expect(buttonsIn(await rowOf(10001))).toEqual(['Spara', 'Avbryt']);
     });
 

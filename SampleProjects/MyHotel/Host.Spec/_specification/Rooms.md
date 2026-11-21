@@ -24,6 +24,13 @@ Using Room with RoomCategory = "Standard"
 - **respond conflict** — `Result.StatusCode is Conflict`
 - **say the room already exists** — `Result.Read<ErrorBody>().Code is "RoomAlreadyExists"`
 
+## [When add room at zero kronor](../Rooms/WhenAddRoomAtZeroKronor.cs)
+`Api.PostAsJsonAsync("/rooms", a Room with { PricePerNight = 0 })`
+
+- **respond bad request** — `Result.StatusCode is BadRequest`
+- **say the price per night is invalid**\
+  `Result.Read<ErrorBody>().Code is "InvalidPricePerNight"`
+
 ## [When add room in another category](../Rooms/WhenAddRoomInAnotherCategory.cs)
 ```
 Api.PostAsJsonAsync("/rooms", a Room with { RoomCategory = a RoomCategory's Name })
@@ -78,7 +85,7 @@ Having Api.PostAsJsonAsync("/bookings", a BookingRequest)
 - **say it is held with bookings to cancel**
   ```
   Result.Read<RoomOverview>() is new RoomOverview(the Room's RoomNumber,
-      the Room's BedCount, the Room's RoomCategory, true, true)
+      the Room's BedCount, the Room's RoomCategory, the Room's PricePerNight, true, true)
   ```
 
 ### Given no such room

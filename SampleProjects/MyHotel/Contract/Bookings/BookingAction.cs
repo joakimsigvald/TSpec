@@ -8,4 +8,5 @@ public enum BookingAction
     Cancel,
     CheckIn,
     CheckOut,
+    Pay,
 }

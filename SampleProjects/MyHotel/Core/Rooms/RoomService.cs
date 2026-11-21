@@ -12,6 +12,8 @@ public class RoomService(
     RoomCategoryCatalog roomCategories)
     : IRoomService
 {
+    private const int LowestPricePerNight = 1;
+
     public async Task<IReadOnlyList<RoomOverview>> Rooms()
     {
         var held = await roomBookings.HeldRooms();
@@ -24,8 +26,7 @@ public class RoomService(
 
     public async Task<RoomOverview> Add(Room room)
     {
-        if (!HasAllowedBedCount(room))
-            throw new InvalidBedCount(room.BedCount);
+        EnsureAllowed(room);
         var rooms = await store.Load();
         if (Find(rooms, room.RoomNumber) is not null)
             throw new RoomAlreadyExists(room.RoomNumber);
@@ -37,8 +38,7 @@ public class RoomService(
 
     public async Task<RoomOverview> Update(string roomNumber, Room room)
     {
-        if (!HasAllowedBedCount(room))
-            throw new InvalidBedCount(room.BedCount);
+        EnsureAllowed(room);
         if (room.RoomNumber != roomNumber)
             throw new RoomNumberMismatch(roomNumber, room.RoomNumber);
         var rooms = await store.Load();
@@ -59,8 +59,13 @@ public class RoomService(
         await store.Save([.. rooms.Where(stored => stored != existing)]);
     }
 
-    private static bool HasAllowedBedCount(Room room) =>
-        room.BedCount is >= BedCountLimits.Min and <= BedCountLimits.Max;
+    private static void EnsureAllowed(Room room)
+    {
+        if (room.BedCount is < BedCountLimits.Min or > BedCountLimits.Max)
+            throw new InvalidBedCount(room.BedCount);
+        if (room.PricePerNight < LowestPricePerNight)
+            throw new InvalidPricePerNight(room.PricePerNight);
+    }
 
     private async Task<bool> RoomCategoryExists(string name) =>
         (await roomCategories.Load()).Any(category => category.Name == name);
@@ -74,6 +79,7 @@ public class RoomService(
             room.RoomNumber,
             room.BedCount,
             room.RoomCategory,
+            room.PricePerNight,
             held.Contains(room.RoomNumber),
             cancellable.Contains(room.RoomNumber));
 

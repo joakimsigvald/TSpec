@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { kronor } from '../kronor';
 import type { RoomCategory } from '../roomCategories/roomCategoriesApi';
 import { ChangeRoomRow } from './ChangeRoomRow';
 import type { Room, RoomOverview } from './roomsApi';
@@ -34,6 +35,7 @@ export function RoomRow({ room, roomCategories, bedCounts, asking, onSave, onCan
       <td>{room.roomNumber}</td>
       <td>{room.roomCategory}</td>
       <td>{room.bedCount}</td>
+      <td>{kronor(room.pricePerNight)}</td>
       <td>
         <button
           disabled={!room.hasCancellableBookings}

@@ -8,5 +8,6 @@ public record RoomOverview(
     string RoomNumber,
     int BedCount,
     string RoomCategory,
+    int PricePerNight,
     bool Held,
     bool HasCancellableBookings);

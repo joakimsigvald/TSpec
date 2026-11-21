@@ -25,23 +25,28 @@ public class BookingService(
 
     public async Task<Booking> Book(BookingRequest request)
     {
-        await EnsureBookable(request);
+        var room = await BookableRoomFor(request);
         var bookings = await store.Load();
         EnsureRoomFree(request, bookings);
         var booked = new StoredBooking(
-            await numbers.Next(), request.Info, request.Period, BookingStage.Booked);
+            await numbers.Next(),
+            request.Info,
+            request.Period,
+            room.PricePerNight,
+            BookingStage.Booked,
+            Paid: false);
         await store.Save([.. bookings, booked]);
         return Sent(booked);
     }
 
     public async Task<Booking> Change(int bookingNumber, BookingRequest request)
     {
-        await EnsureBookable(request);
+        var room = await BookableRoomFor(request);
         var bookings = await store.Load();
         var existing = Existing(bookings, bookingNumber);
         if (existing.Stage != BookingStage.Cancelled)
             EnsureRoomFree(request, bookings.Where(booking => booking != existing));
-        var changed = existing.ChangedTo(request);
+        var changed = existing.ChangedTo(request, await PricePerNightIn(room, existing));
         await store.Save([.. bookings.Select(booking => booking == existing ? changed : booking)]);
         return Sent(changed);
     }
@@ -49,6 +54,7 @@ public class BookingService(
     public Task Cancel(int bookingNumber) => Take(BookingAction.Cancel, bookingNumber);
     public Task CheckIn(int bookingNumber) => Take(BookingAction.CheckIn, bookingNumber);
     public Task CheckOut(int bookingNumber) => Take(BookingAction.CheckOut, bookingNumber);
+    public Task Pay(int bookingNumber) => Take(BookingAction.Pay, bookingNumber);
 
     public async Task CancelBookings(string roomNumber)
     {
@@ -69,16 +75,26 @@ public class BookingService(
         await SaveTaking(action, bookings, booking => booking == taken);
     }
 
-    private async Task EnsureBookable(BookingRequest request)
+    private async Task<Room> BookableRoomFor(BookingRequest request)
     {
         if (request.Period.To <= request.Period.From)
             throw new InvalidBookingPeriod(request.Period.From, request.Period.To);
         if (request.Info.GuestCount < 1)
             throw new InvalidGuestCount(request.Info.GuestCount);
         var room = await RoomFor(request.Info.RoomNumber);
-        if (request.Info.GuestCount > room.BedCount)
-            throw new TooManyGuests(request.Info.RoomNumber, request.Info.GuestCount);
+        return request.Info.GuestCount > room.BedCount
+            ? throw new TooManyGuests(request.Info.RoomNumber, request.Info.GuestCount)
+            : room;
     }
+
+    /// <summary>
+    /// A booking moved within its room's category keeps its price per night. The categories compared are
+    /// the rooms' today, and a room no longer there counts as another category.
+    /// </summary>
+    private async Task<int> PricePerNightIn(Room room, StoredBooking booking) =>
+        (await Find(booking.Info.RoomNumber))?.RoomCategory == room.RoomCategory
+            ? booking.PricePerNight
+            : room.PricePerNight;
 
     private Booking Sent(StoredBooking booking) => booking.AsOf(clock.Today());
 
@@ -87,8 +103,10 @@ public class BookingService(
         store.Save([.. bookings.Select(booking => takes(booking) ? booking.After(action) : booking)]);
 
     private async Task<Room> RoomFor(string roomNumber) =>
-        (await rooms.Load()).FirstOrDefault(room => room.RoomNumber == roomNumber)
-        ?? throw new RoomNotFound(roomNumber);
+        await Find(roomNumber) ?? throw new RoomNotFound(roomNumber);
+
+    private async Task<Room?> Find(string roomNumber) =>
+        (await rooms.Load()).FirstOrDefault(room => room.RoomNumber == roomNumber);
 
     private static StoredBooking Existing(IEnumerable<StoredBooking> bookings, int bookingNumber) =>
         bookings.FirstOrDefault(booking => booking.BookingNumber == bookingNumber)
@@ -105,7 +123,8 @@ public class BookingService(
         {
             BookingAction.Cancel => new BookingNotCancellable(bookingNumber),
             BookingAction.CheckIn => new NotDueForCheckIn(bookingNumber),
-            _ => new NotDueForCheckOut(bookingNumber),
+            BookingAction.CheckOut => new NotDueForCheckOut(bookingNumber),
+            _ => new BookingNotPayable(bookingNumber),
         };
 
     private static bool Overlaps(StoredBooking booking, BookingRequest request) =>

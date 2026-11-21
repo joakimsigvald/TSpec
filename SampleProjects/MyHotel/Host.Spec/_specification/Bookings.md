@@ -22,7 +22,8 @@ When Api.PostAsJsonAsync("/bookings", a BookingRequest)
 - **return the booking with the seeded number**
   ```
   Result.Read<Booking>() is new Booking(10001, the BookingInfo,
-      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel]))
+      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel, Pay]),
+      new BookingPayment(8 * the Room's PricePerNight, false))
   ```
 - **point at the new booking** — `Result.Headers.Location.ToString() is "/bookings/10001"`
 
@@ -139,7 +140,8 @@ Having Api.PostAsJsonAsync("/bookings",
 - **return the changed booking**
   ```
   Result.Read<Booking>() is new Booking(10001, the BookingInfo,
-      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel]))
+      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel, Pay]),
+      new BookingPayment(8 * the Room's PricePerNight, false))
   ```
 
 ## [When check in](../Bookings/WhenCheckIn.cs)
@@ -206,8 +208,20 @@ Having Api.PostAsJsonAsync("/bookings", a BookingRequest)
 - **return the booking**
   ```
   Result.Read<Booking>() is new Booking(10001, the BookingInfo,
-      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel]))
+      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel, Pay]),
+      new BookingPayment(8 * the Room's PricePerNight, false))
   ```
+
+### Given the room got another price
+```
+Having Api.PutAsJsonAsync("/rooms/{the Room's RoomNumber}",
+    the Room with { PricePerNight = a second int })
+  after Api.PostAsJsonAsync("/bookings", a BookingRequest)
+  after Api.PostAsJsonAsync("/rooms", a Room)
+```
+
+- **keep the price it was booked at**\
+  `Result.Read<Booking>().Payment.Price is 8 * the Room's PricePerNight`
 
 ### Given no such booking
 
@@ -226,7 +240,8 @@ Having Restart()
 - **return the booking**
   ```
   Result.Read<Booking>() is new Booking(10001, the BookingInfo,
-      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel]))
+      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel, Pay]),
+      new BookingPayment(8 * the Room's PricePerNight, false))
   ```
 
 ### Given the booking was cancelled
@@ -238,6 +253,16 @@ Having Api.DeleteAsync("/bookings/10001")
 
 - **respond ok** — `Result.StatusCode is OK`
 - **say it is cancelled** — `Result.Read<Booking>().State.Status is Cancelled`
+
+### Given the booking was paid
+```
+Having Api.PostAsync("/bookings/10001/pay", null)
+  after Api.PostAsJsonAsync("/bookings", a BookingRequest)
+  after Api.PostAsJsonAsync("/rooms", a Room)
+```
+
+- **respond ok** — `Result.StatusCode is OK`
+- **say it is paid** — `Result.Read<Booking>().Payment.Paid is true`
 
 ## [When list bookings](../Bookings/WhenListBookings.cs)
 `Api.GetAsync("/bookings")`
@@ -262,7 +287,34 @@ Having Api.PostAsJsonAsync("/bookings",
   ```
   Result.Read<Booking[]>() is equal to [new Booking(10001, the BookingInfo,
       new BookingPeriod(LaterDay, LaterDay.AddDays(2)),
-      new BookingState(Open, [Cancel])),
+      new BookingState(Open, [Cancel, Pay]),
+      new BookingPayment(2 * the Room's PricePerNight, false)),
       new Booking(10002, the BookingInfo, new BookingPeriod(Tomorrow, LaterDay),
-      new BookingState(Open, [Cancel]))]
+      new BookingState(Open, [Cancel, Pay]),
+      new BookingPayment(8 * the Room's PricePerNight, false))]
   ```
+
+## [When pay booking](../Bookings/WhenPayBooking.cs)
+```
+Using a BookingInfo with { RoomNumber = the Room's RoomNumber, GuestCount = 1 }
+When Api.PostAsync("/bookings/10001/pay", null)
+```
+
+### Given the booking is open
+```
+Having Api.PostAsJsonAsync("/bookings", a BookingRequest)
+  after Api.PostAsJsonAsync("/rooms", a Room)
+```
+
+- **respond no content** — `Result.StatusCode is NoContent`
+
+### Given the booking was already paid
+```
+Having Api.PostAsync("/bookings/10001/pay", null)
+  after Api.PostAsJsonAsync("/bookings", a BookingRequest)
+  after Api.PostAsJsonAsync("/rooms", a Room)
+```
+
+- **respond conflict** — `Result.StatusCode is Conflict`
+- **say the booking is not payable**\
+  `Result.Read<ErrorBody>().Code is "BookingNotPayable"`

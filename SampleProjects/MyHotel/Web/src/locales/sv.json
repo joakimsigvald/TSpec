@@ -15,6 +15,8 @@
     "roomNumber": "Rumsnummer",
     "beds": "Sängar",
     "bedsInRoom": "Sängar i rum {{roomNumber}}",
+    "pricePerNight": "Pris per natt",
+    "pricePerNightOf": "Pris per natt för rum {{roomNumber}}",
     "roomCategory": "Kategori",
     "roomCategoryOf": "Kategori för rum {{roomNumber}}",
     "chooseRoomCategory": "Välj kategori",
@@ -49,6 +51,7 @@
     "guestCount": "Antal gäster",
     "from": "Från",
     "to": "Till",
+    "price": "Pris",
     "today": "Idag",
     "tomorrow": "Imorgon",
     "nights_one": "{{count}} natt",
@@ -60,6 +63,8 @@
     "checkOut": "Checka ut",
     "checkedIn": "Incheckad",
     "checkedOut": "Utcheckad",
+    "pay": "Betala",
+    "paid": "Betald",
     "noShow": "No show",
     "roomInBooking": "Rum i bokning {{bookingNumber}}",
     "guestsInBooking": "Gäster i bokning {{bookingNumber}}",
@@ -72,6 +77,7 @@
     "RoomAlreadyExists": "Rummet finns redan.",
     "RoomNumberMismatch": "Ett rum kan inte byta nummer.",
     "InvalidBedCount": "Otillåtet antal sängar.",
+    "InvalidPricePerNight": "Otillåtet pris per natt.",
     "RoomHeld": "Rummet har aktuella eller kommande bokningar.",
     "RoomCategoryNotFound": "Kategorin finns inte.",
     "RoomCategoryAlreadyExists": "Kategorin finns redan.",
@@ -86,6 +92,7 @@
     "BookingNotCancellable": "Bokningen kan inte avbokas.",
     "NotDueForCheckIn": "Bokningen kan inte checkas in.",
     "NotDueForCheckOut": "Bokningen kan inte checkas ut.",
+    "BookingNotPayable": "Bokningen kan inte betalas.",
     "Unknown": "Något gick fel."
   }
 }

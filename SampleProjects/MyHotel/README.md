@@ -9,14 +9,16 @@ specifications, it is the proving ground for specification generation.
 
 ## What it does
 
-The hotel keeps its rooms, each with a room number, a number of beds and a room category, and takes
-bookings: a room held for a number of guests from an arrival date to a departure date. The hotel
-numbers each booking itself and refuses one that overlaps another booking of the same room, or has
-more guests than the room has beds. A guest is checked in on the day they arrive and checked out on
-the day they depart, and a guest who never arrives is a no-show. A booking can be cancelled while it
-is open, and a no-show until its departure day; every booking is kept as a record. Rooms can be added
-and changed, and deleted once no booking holds them; a room's bookings that can be cancelled can be
-cancelled all at once. The UI is in Swedish.
+The hotel keeps its rooms, each with a room number, a number of beds, a room category and a price
+per night, and takes bookings: a room held for a number of guests from an arrival date to a
+departure date. The hotel numbers each booking itself and refuses one that overlaps another booking
+of the same room, or has more guests than the room has beds. A booking costs its nights at a price
+per night it takes from its room, and is paid in full while it is open or checked in. A guest is
+checked in on the day they arrive and checked out on the day they depart, and a guest who never
+arrives is a no-show. A booking can be cancelled while it is open, and a no-show until its departure
+day; every booking is kept as a record. Rooms can be added and changed, and deleted once no booking
+holds them; a room's bookings that can be cancelled can be cancelled all at once. The UI is in
+Swedish.
 
 The domain's terms are defined in [GLOSSARY.md](GLOSSARY.md). What exactly the application does is
 stated by its generated specifications: [the HTTP contract](Host.Spec/_specification/README.md) and

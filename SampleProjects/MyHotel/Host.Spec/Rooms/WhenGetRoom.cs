@@ -29,7 +29,12 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
         [Fact]
         public async Task ThenSayItIsHeldWithBookingsToCancel() =>
             (await Result.Read<RoomOverview>()).Is(new RoomOverview(
-                The<Room>().RoomNumber, The<Room>().BedCount, The<Room>().RoomCategory, true, true));
+                The<Room>().RoomNumber,
+                The<Room>().BedCount,
+                The<Room>().RoomCategory,
+                The<Room>().PricePerNight,
+                true,
+                true));
     }
 
     public class GivenNoSuchRoom : WhenGetRoom

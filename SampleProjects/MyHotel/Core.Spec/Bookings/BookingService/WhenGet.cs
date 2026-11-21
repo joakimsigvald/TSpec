@@ -5,8 +5,8 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 
 /// <summary>
 /// A booking's state - its status and what can be done with it today - is worked out from its stage,
-/// its dates and today's date, so what the store holds only says what has happened to it. The
-/// arrival and departure days still count: a booking turns no-show or past only the day after.
+/// whether it is paid, its dates and today's date, so what the store holds only says what has happened
+/// to it. The arrival and departure days still count: a booking turns no-show or past only the day after.
 /// </summary>
 public abstract class WhenGet : BookingServiceSpec<Booking>
 {
@@ -28,8 +28,8 @@ public abstract class WhenGet : BookingServiceSpec<Booking>
             Result.BookingNumber.Is(The<StoredBooking>().BookingNumber);
 
         [Fact]
-        public void ThenSayItIsOpenAndCanBeCancelledOrCheckedIn() =>
-            Result.State.Is(new BookingState(Open, [Cancel, CheckIn]));
+        public void ThenSayItIsOpenAndCanBeCheckedInAsWellAsCancelledOrPaid() =>
+            Result.State.Is(new BookingState(Open, [Cancel, CheckIn, Pay]));
     }
 
     public class GivenItIsBookedAndArrivesTomorrow : WhenGet
@@ -42,7 +42,35 @@ public abstract class WhenGet : BookingServiceSpec<Booking>
             }]);
 
         [Fact]
+        public void ThenSayItIsOpenAndCanBeCancelledOrPaid() =>
+            Result.State.Is(new BookingState(Open, [Cancel, Pay]));
+    }
+
+    public class GivenItIsOpenAndPaid : WhenGet
+    {
+        public GivenItIsOpenAndPaid() =>
+            Given<IBookingStore>().That(_ => _.Load()).Returns(() => [The<StoredBooking>() with
+            {
+                Period = new(Tomorrow, LaterDay),
+                Stage = BookingStage.Booked,
+                Paid = true,
+            }]);
+
+        [Fact] public void ThenSayItIsPaid() => Result.Payment.Paid.Is(true);
+
+        [Fact]
         public void ThenSayItIsOpenAndCanBeCancelled() => Result.State.Is(new BookingState(Open, [Cancel]));
+    }
+
+    public class GivenItIsForTwoNights : WhenGet
+    {
+        public GivenItIsForTwoNights() =>
+            Given<IBookingStore>().That(_ => _.Load())
+                .Returns(() => [The<StoredBooking>() with { Period = new(Tomorrow, Tomorrow.AddDays(2)) }]);
+
+        [Fact]
+        public void ThenPriceItAtTwiceItsPricePerNight() =>
+            Result.Payment.Price.Is(2 * The<StoredBooking>().PricePerNight);
     }
 
     public class GivenItIsBookedAndDepartsToday : WhenGet
@@ -81,8 +109,8 @@ public abstract class WhenGet : BookingServiceSpec<Booking>
             }]);
 
         [Fact]
-        public void ThenSayItIsCheckedInAndCanBeCheckedOut() =>
-            Result.State.Is(new BookingState(CheckedIn, [CheckOut]));
+        public void ThenSayItIsCheckedInAndCanBeCheckedOutOrPaid() =>
+            Result.State.Is(new BookingState(CheckedIn, [CheckOut, Pay]));
     }
 
     public class GivenItIsCheckedInAndDepartsTomorrow : WhenGet
@@ -94,7 +122,8 @@ public abstract class WhenGet : BookingServiceSpec<Booking>
                 Stage = BookingStage.CheckedIn,
             }]);
 
-        [Fact] public void ThenSayItIsCheckedIn() => Result.State.Is(new BookingState(CheckedIn, []));
+        [Fact]
+        public void ThenSayItIsCheckedInAndCanBePaid() => Result.State.Is(new BookingState(CheckedIn, [Pay]));
     }
 
     public class GivenItIsCheckedInAndDepartedYesterday : WhenGet

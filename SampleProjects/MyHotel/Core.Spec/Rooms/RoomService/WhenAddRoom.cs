@@ -17,7 +17,12 @@ public abstract class WhenAddRoom : Spec<Core.Rooms.RoomService, RoomOverview>
         [Fact]
         public void ThenReturnTheRoom() =>
             Result.Is(new RoomOverview(
-                The<Room>().RoomNumber, The<Room>().BedCount, The<Room>().RoomCategory, false, false));
+                The<Room>().RoomNumber,
+                The<Room>().BedCount,
+                The<Room>().RoomCategory,
+                The<Room>().PricePerNight,
+                false,
+                false));
 
         [Fact] public void ThenStoreIt() => Then<IRoomStore>(_ => _.Save(One<Room>()));
     }

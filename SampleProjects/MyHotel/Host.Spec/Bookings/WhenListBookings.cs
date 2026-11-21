@@ -41,11 +41,13 @@ public abstract class WhenListBookings : ApiSpec<HttpResponseMessage>
                     10001,
                     The<BookingInfo>(),
                     new BookingPeriod(LaterDay, LaterDay.AddDays(2)),
-                    new BookingState(Open, [Cancel])),
+                    new BookingState(Open, [Cancel, Pay]),
+                    new BookingPayment(2 * The<Room>().PricePerNight, false)),
                 new Booking(
                     10002,
                     The<BookingInfo>(),
                     new BookingPeriod(Tomorrow, LaterDay),
-                    new BookingState(Open, [Cancel]))]);
+                    new BookingState(Open, [Cancel, Pay]),
+                    new BookingPayment(8 * The<Room>().PricePerNight, false))]);
     }
 }

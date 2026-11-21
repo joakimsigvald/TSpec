@@ -10,6 +10,7 @@ import {
   changeBooking,
   checkIn,
   checkOut,
+  pay,
   type BookingAction,
   type BookingRequest,
 } from './bookingsApi';
@@ -49,6 +50,7 @@ export function Bookings() {
             <th>{t('bookings.guest')}</th>
             <th>{t('bookings.from')}</th>
             <th>{t('bookings.to')}</th>
+            <th>{t('bookings.price')}</th>
             <th />
           </tr>
         </thead>
@@ -67,4 +69,5 @@ const calls: Record<BookingAction, (bookingNumber: number) => Promise<void>> = {
   Cancel: cancelBooking,
   CheckIn: checkIn,
   CheckOut: checkOut,
+  Pay: pay,
 };

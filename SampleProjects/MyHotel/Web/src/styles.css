@@ -6,7 +6,7 @@ body {
 }
 
 main {
-  max-width: 48rem;
+  max-width: 54rem;
   margin: 0 auto;
   padding: 1rem;
 }
@@ -75,7 +75,9 @@ label {
   cursor: default;
 }
 
-.status + button {
+.status + button,
+.status + .status,
+button + .status {
   margin-left: 0.5rem;
 }
 

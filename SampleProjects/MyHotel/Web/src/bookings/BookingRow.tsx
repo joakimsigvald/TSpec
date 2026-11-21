@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { kronor } from '../kronor';
 import type { Room } from '../rooms/roomsApi';
 import type { Booking, BookingAction, BookingRequest, BookingStatus } from './bookingsApi';
 import { ChangeBookingRow } from './ChangeBookingRow';
@@ -14,7 +15,7 @@ type Props = {
 export function BookingRow({ booking, rooms, onAction, onSave }: Props) {
   const { t } = useTranslation();
   const [changing, setChanging] = useState(false);
-  const { bookingNumber, info, period, state } = booking;
+  const { bookingNumber, info, period, state, payment } = booking;
   const statusLabel = statusLabels[state.status];
 
   if (changing)
@@ -35,11 +36,13 @@ export function BookingRow({ booking, rooms, onAction, onSave }: Props) {
       <td>{info.guestName}</td>
       <td>{period.from}</td>
       <td>{period.to}</td>
+      <td>{kronor(payment.price)}</td>
       <td>
         {statusLabel && <span className="status">{t(statusLabel)}</span>}
         {state.actions.map(action => (
           <button key={action} onClick={() => onAction(action, bookingNumber)}>{t(actionLabels[action])}</button>
         ))}
+        {payment.paid && <span className="status">{t('bookings.paid')}</span>}
         <button onClick={() => setChanging(true)}>{t('general.change')}</button>
       </td>
     </tr>
@@ -50,6 +53,7 @@ const actionLabels: Record<BookingAction, string> = {
   Cancel: 'bookings.cancel',
   CheckIn: 'bookings.checkIn',
   CheckOut: 'bookings.checkOut',
+  Pay: 'bookings.pay',
 };
 
 // An open or past booking shows no status: an open one shows what can be done with it instead.

@@ -1,7 +1,7 @@
 namespace MyHotel.Core.Spec;
 
 /// <summary>
-/// What the store is handed for a booking that was cancelled, checked in or checked out. A
+/// What the store is handed for a booking that was cancelled, checked in, checked out or paid. A
 /// verification states it through these, since an expression tree cannot hold a with-expression.
 /// </summary>
 internal static class Marking
@@ -14,4 +14,6 @@ internal static class Marking
 
     internal static StoredBooking MarkedCheckedOut(StoredBooking booking) =>
         booking with { Stage = BookingStage.CheckedOut };
+
+    internal static StoredBooking MarkedPaid(StoredBooking booking) => booking with { Paid = true };
 }

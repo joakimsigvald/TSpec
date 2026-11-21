@@ -165,7 +165,7 @@ IRoomStore.Load() returns zero Rooms
 - **return the room**
   ```
   Result is new RoomOverview(the Room's RoomNumber, the Room's BedCount,
-      the Room's RoomCategory, false, false)
+      the Room's RoomCategory, the Room's PricePerNight, false, false)
   ```
 - **store it** — `IRoomStore.Save(one Room)`
 
@@ -184,6 +184,24 @@ IRoomStore.Load() returns zero Rooms
 - **throw room category not found**\
   `throws RoomCategoryNotFound that Message contains the Room's RoomCategory`
 - **store nothing** — `IRoomStore.Save was not invoked`
+
+### [When add room at one krona](../Rooms/RoomService/WhenAddRoomAtOneKrona.cs)
+```
+Given IRoomStore.Load() returns zero Rooms
+  and IRoomCategoryStore.Load() returns [a RoomCategory with { Name = the Room's RoomCategory }]
+  and IRoomBookings returns zero strings
+When Add(a Room with { PricePerNight = 1 }), returns RoomOverview
+```
+
+#### Given no such room
+
+- **return the room at one krona** — `Result.PricePerNight is 1`
+
+### [When add room at zero kronor](../Rooms/RoomService/WhenAddRoomAtZeroKronor.cs)
+`Add(a Room with { PricePerNight = 0 }), returns RoomOverview`
+
+- **throw invalid price per night**\
+  `throws InvalidPricePerNight that Message contains "cannot be 0 kr"`
 
 ### [When add room with nine beds](../Rooms/RoomService/WhenAddRoomWithNineBeds.cs)
 ```
@@ -263,7 +281,7 @@ IRoomStore.Load() returns one Room
 - **return it**
   ```
   Result is new RoomOverview(the Room's RoomNumber, the Room's BedCount,
-      the Room's RoomCategory, false, false)
+      the Room's RoomCategory, the Room's PricePerNight, false, false)
   ```
 
 #### Given the room is held
@@ -305,9 +323,10 @@ IRoomStore.Load() returns two Rooms
 - **return them in the order they are stored**
   ```
   Result is equal to [new RoomOverview(the first Room's RoomNumber,
-      the first Room's BedCount, the first Room's RoomCategory, true, true),
+      the first Room's BedCount, the first Room's RoomCategory,
+      the first Room's PricePerNight, true, true),
       new RoomOverview(the second Room's RoomNumber, the second Room's BedCount,
-      the second Room's RoomCategory, true, false)]
+      the second Room's RoomCategory, the second Room's PricePerNight, true, false)]
   ```
 
 ### [When update room](../Rooms/RoomService/WhenUpdateRoom.cs)
@@ -315,7 +334,7 @@ IRoomStore.Load() returns two Rooms
 
 #### Given the room is stored
 ```
-UpdatedRoom is the Room with { BedCount = a second int }
+UpdatedRoom is the Room with { BedCount = a second int, PricePerNight = a third int }
   and IRoomStore.Load() returns one Room
   and IRoomCategoryStore.Load() returns [a RoomCategory with { Name = the Room's RoomCategory }]
   and IRoomBookings returns zero strings
@@ -324,7 +343,7 @@ UpdatedRoom is the Room with { BedCount = a second int }
 - **return the updated room**
   ```
   Result is new RoomOverview(the UpdatedRoom's RoomNumber, the UpdatedRoom's BedCount,
-      the UpdatedRoom's RoomCategory, false, false)
+      the UpdatedRoom's RoomCategory, the UpdatedRoom's PricePerNight, false, false)
   ```
 
 #### Given another room is stored first
@@ -359,6 +378,24 @@ UpdatedRoom is the Room with { BedCount = a second int }
 
 - **throw room number mismatch**\
   `throws RoomNumberMismatch that Message contains the UpdatedRoom's RoomNumber`
+
+### [When update room to one krona](../Rooms/RoomService/WhenUpdateRoomToOneKrona.cs)
+```
+Given IRoomStore.Load() returns one Room
+  and IRoomCategoryStore.Load() returns [a RoomCategory with { Name = the Room's RoomCategory }]
+  and IRoomBookings returns zero strings
+When Update(a Room's RoomNumber, the Room with { PricePerNight = 1 }), returns RoomOverview
+```
+
+#### Given the room is stored
+
+- **return the room at one krona** — `Result.PricePerNight is 1`
+
+### [When update room to zero kronor](../Rooms/RoomService/WhenUpdateRoomToZeroKronor.cs)
+`Update(a Room's RoomNumber, the Room with { PricePerNight = 0 }), returns RoomOverview`
+
+- **throw invalid price per night**\
+  `throws InvalidPricePerNight that Message contains "cannot be 0 kr"`
 
 ### [When update room with nine beds](../Rooms/RoomService/WhenUpdateRoomWithNineBeds.cs)
 ```

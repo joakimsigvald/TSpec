@@ -30,12 +30,14 @@ public abstract class WhenListRooms : Spec<Core.Rooms.RoomService, IReadOnlyList
                     TheFirst<Room>().RoomNumber,
                     TheFirst<Room>().BedCount,
                     TheFirst<Room>().RoomCategory,
+                    TheFirst<Room>().PricePerNight,
                     true,
                     true),
                 new RoomOverview(
                     TheSecond<Room>().RoomNumber,
                     TheSecond<Room>().BedCount,
                     TheSecond<Room>().RoomCategory,
+                    TheSecond<Room>().PricePerNight,
                     true,
                     false)]);
     }

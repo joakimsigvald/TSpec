@@ -9,11 +9,11 @@ import type { Room } from './roomsApi';
 
 type Props = { roomCategories: RoomCategory[]; bedCounts: number[]; onAdd: (room: Room) => Promise<void> };
 
-type Entered = { roomNumber: string; roomCategory: string; bedCount?: number };
+type Entered = { roomNumber: string; roomCategory: string; bedCount?: number; pricePerNight: string };
 
 const fieldOf = { RoomAlreadyExists: 'roomNumber', ...roomFieldOf } as const;
 
-const nothingEntered: Entered = { roomNumber: '', roomCategory: '' };
+const nothingEntered: Entered = { roomNumber: '', roomCategory: '', pricePerNight: '' };
 
 export function AddRoomForm({ roomCategories, bedCounts, onAdd }: Props) {
   const { t } = useTranslation();
@@ -23,6 +23,7 @@ export function AddRoomForm({ roomCategories, bedCounts, onAdd }: Props) {
   const roomNumberError = useId();
   const roomCategoryError = useId();
   const bedCountError = useId();
+  const pricePerNightError = useId();
   const buttonError = useId();
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -74,16 +75,32 @@ export function AddRoomForm({ roomCategories, bedCounts, onAdd }: Props) {
         </label>
         <ErrorMessage id={bedCountError} code={failureAt('bedCount')} />
       </div>
+      <div className="field">
+        <label>
+          {t('rooms.pricePerNight')}
+          <input
+            type="number"
+            required
+            value={entered.pricePerNight}
+            onChange={event => enter({ pricePerNight: event.target.value })}
+            aria-describedby={pricePerNightError}
+          />
+        </label>
+        <ErrorMessage id={pricePerNightError} code={failureAt('pricePerNight')} />
+      </div>
       <div className="field actions">
-        <button disabled={hasEmptyField(room)} aria-describedby={buttonError}>{t('rooms.add')}</button>
+        <button disabled={hasEmptyField(room) || entered.pricePerNight === ''} aria-describedby={buttonError}>
+          {t('rooms.add')}
+        </button>
         <ErrorMessage id={buttonError} code={failureAt('button')} />
       </div>
     </form>
   );
 }
 
-const roomOf = ({ roomNumber, roomCategory, bedCount }: Entered, fewestBeds: number): Room => ({
+const roomOf = ({ roomNumber, roomCategory, bedCount, pricePerNight }: Entered, fewestBeds: number): Room => ({
   roomNumber,
   bedCount: bedCount ?? fewestBeds,
   roomCategory,
+  pricePerNight: Number(pricePerNight),
 });
