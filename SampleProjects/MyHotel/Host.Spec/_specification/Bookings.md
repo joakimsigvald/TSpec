@@ -11,8 +11,8 @@ Using Room with RoomCategory = "Standard"
 ## [When book room](../Bookings/WhenBookRoom.cs)
 ```
 Using new BookingPeriod(Tomorrow, LaterDay)
-When Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = a Room's RoomNumber, GuestCount = 1 })
+  and new BookingInfo(a Room's RoomNumber, a string, 1)
+When Api.PostAsJsonAsync("/bookings", a BookingRequest)
 ```
 
 ### Given the room exists
@@ -21,8 +21,7 @@ When Api.PostAsJsonAsync("/bookings",
 - **respond created** — `Result.StatusCode is Created`
 - **return the booking with the seeded number**
   ```
-  Result.Read<Booking>() is new Booking(10001,
-      new BookingInfo(the Room's RoomNumber, the BookingRequest's GuestName, 1),
+  Result.Read<Booking>() is new Booking(10001, the BookingInfo,
       new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel]))
   ```
 - **point at the new booking** — `Result.Headers.Location.ToString() is "/bookings/10001"`
@@ -31,9 +30,7 @@ When Api.PostAsJsonAsync("/bookings",
 ```
 Having Restart()
   after Api.PostAsJsonAsync("/bookings",
-      a second BookingRequest with
-      { RoomNumber = the Room's RoomNumber, GuestCount = 1,
-      Period = new BookingPeriod(Today, Tomorrow) })
+      a second BookingRequest with { Period = new BookingPeriod(Today, Tomorrow) })
   after Api.PostAsJsonAsync("/rooms", the Room)
 ```
 
@@ -43,9 +40,7 @@ Having Restart()
 ### Given an overlapping booking
 ```
 Having Api.PostAsJsonAsync("/bookings",
-    a second BookingRequest with
-    { RoomNumber = the Room's RoomNumber, GuestCount = 1,
-    Period = new BookingPeriod(Today, LaterDay) })
+    a second BookingRequest with { Period = new BookingPeriod(Today, LaterDay) })
   after Api.PostAsJsonAsync("/rooms", the Room)
 ```
 
@@ -55,8 +50,8 @@ Having Api.PostAsJsonAsync("/bookings",
 
 ## [When book three guests](../Bookings/WhenBookThreeGuests.cs)
 ```
-Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = a Room's RoomNumber, GuestCount = 3 })
+Using a BookingInfo with { RoomNumber = a Room's RoomNumber, GuestCount = 3 }
+When Api.PostAsJsonAsync("/bookings", a BookingRequest)
 Having Api.PostAsJsonAsync("/rooms", the Room with { BedCount = 2 })
 ```
 
@@ -67,8 +62,8 @@ Having Api.PostAsJsonAsync("/rooms", the Room with { BedCount = 2 })
 
 ## [When book zero guests](../Bookings/WhenBookZeroGuests.cs)
 ```
-Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = a Room's RoomNumber, GuestCount = 0 })
+Using a BookingInfo with { RoomNumber = a Room's RoomNumber, GuestCount = 0 }
+When Api.PostAsJsonAsync("/bookings", a BookingRequest)
 Having Api.PostAsJsonAsync("/rooms", the Room)
 ```
 
@@ -81,8 +76,8 @@ Having Api.PostAsJsonAsync("/rooms", the Room)
 ## [When book zero nights](../Bookings/WhenBookZeroNights.cs)
 ```
 Using new BookingPeriod(Tomorrow, Tomorrow)
-When Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = a Room's RoomNumber, GuestCount = 1 })
+  and a BookingInfo with { RoomNumber = a Room's RoomNumber, GuestCount = 1 }
+When Api.PostAsJsonAsync("/bookings", a BookingRequest)
 Having Api.PostAsJsonAsync("/rooms", the Room)
 ```
 
@@ -92,12 +87,14 @@ Having Api.PostAsJsonAsync("/rooms", the Room)
 - **say the period is invalid** — `Result.Read<ErrorBody>().Code is "InvalidBookingPeriod"`
 
 ## [When cancel booking](../Bookings/WhenCancelBooking.cs)
-`Api.DeleteAsync("/bookings/10001")`
+```
+Using a BookingInfo with { RoomNumber = the Room's RoomNumber, GuestCount = 1 }
+When Api.DeleteAsync("/bookings/10001")
+```
 
 ### Given the booking exists
 ```
-Having Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+Having Api.PostAsJsonAsync("/bookings", a BookingRequest)
   after Api.PostAsJsonAsync("/rooms", a Room)
 ```
 
@@ -106,8 +103,7 @@ Having Api.PostAsJsonAsync("/bookings",
 ### Given the booking was already cancelled
 ```
 Having Api.DeleteAsync("/bookings/10001")
-  after Api.PostAsJsonAsync("/bookings",
-      a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+  after Api.PostAsJsonAsync("/bookings", a BookingRequest)
   after Api.PostAsJsonAsync("/rooms", a Room)
 ```
 
@@ -117,9 +113,9 @@ Having Api.DeleteAsync("/bookings/10001")
 
 ## [When cancel bookings](../Bookings/WhenCancelBookings.cs)
 ```
-Api.DeleteAsync("/rooms/{a Room's RoomNumber}/bookings")
-Having Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+Using a BookingInfo with { RoomNumber = the Room's RoomNumber, GuestCount = 1 }
+When Api.DeleteAsync("/rooms/{a Room's RoomNumber}/bookings")
+Having Api.PostAsJsonAsync("/bookings", a BookingRequest)
   after Api.PostAsJsonAsync("/rooms", the Room)
 ```
 
@@ -130,12 +126,10 @@ Having Api.PostAsJsonAsync("/bookings",
 ## [When change booking](../Bookings/WhenChangeBooking.cs)
 ```
 Using new BookingPeriod(Tomorrow, LaterDay)
-When Api.PutAsJsonAsync("/bookings/10001",
-    a BookingRequest with { RoomNumber = a Room's RoomNumber, GuestCount = 1 })
+  and new BookingInfo(a Room's RoomNumber, a string, 1)
+When Api.PutAsJsonAsync("/bookings/10001", a BookingRequest)
 Having Api.PostAsJsonAsync("/bookings",
-    a second BookingRequest with
-    { RoomNumber = the Room's RoomNumber, GuestCount = 1,
-    Period = new BookingPeriod(Today, Tomorrow) })
+    a second BookingRequest with { Period = new BookingPeriod(Today, Tomorrow) })
   after Api.PostAsJsonAsync("/rooms", the Room)
 ```
 
@@ -144,16 +138,15 @@ Having Api.PostAsJsonAsync("/bookings",
 - **respond ok** — `Result.StatusCode is OK`
 - **return the changed booking**
   ```
-  Result.Read<Booking>() is new Booking(10001,
-      new BookingInfo(the Room's RoomNumber, the BookingRequest's GuestName, 1),
+  Result.Read<Booking>() is new Booking(10001, the BookingInfo,
       new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel]))
   ```
 
 ## [When check in](../Bookings/WhenCheckIn.cs)
 ```
-Api.PostAsync("/bookings/10001/check-in", null)
-Having Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+Using a BookingInfo with { RoomNumber = the Room's RoomNumber, GuestCount = 1 }
+When Api.PostAsync("/bookings/10001/check-in", null)
+Having Api.PostAsJsonAsync("/bookings", a BookingRequest)
   after Api.PostAsJsonAsync("/rooms", a Room)
 ```
 
@@ -171,7 +164,8 @@ Having Api.PostAsJsonAsync("/bookings",
 
 ## [When check out](../Bookings/WhenCheckOut.cs)
 ```
-Using new BookingPeriod(Today, Tomorrow)
+Using a BookingInfo with { RoomNumber = the Room's RoomNumber, GuestCount = 1 }
+  and new BookingPeriod(Today, Tomorrow)
 When Api.PostAsync("/bookings/10001/check-out", null)
 Having SetToday(Tomorrow)
 ```
@@ -179,8 +173,7 @@ Having SetToday(Tomorrow)
 ### Given its departure day
 ```
 Having Api.PostAsync("/bookings/10001/check-in", null)
-  after Api.PostAsJsonAsync("/bookings",
-      a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+  after Api.PostAsJsonAsync("/bookings", a BookingRequest)
   after Api.PostAsJsonAsync("/rooms", a Room)
 ```
 
@@ -188,8 +181,7 @@ Having Api.PostAsync("/bookings/10001/check-in", null)
 
 ### Given it was not checked in
 ```
-Having Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+Having Api.PostAsJsonAsync("/bookings", a BookingRequest)
   after Api.PostAsJsonAsync("/rooms", a Room)
 ```
 
@@ -198,21 +190,22 @@ Having Api.PostAsJsonAsync("/bookings",
   `Result.Read<ErrorBody>().Code is "NotDueForCheckOut"`
 
 ## [When get booking](../Bookings/WhenGetBooking.cs)
-`Api.GetAsync("/bookings/10001")`
+```
+Using new BookingInfo(the Room's RoomNumber, a string, 1)
+When Api.GetAsync("/bookings/10001")
+```
 
 ### Given the booking exists
 ```
 Using new BookingPeriod(Tomorrow, LaterDay)
-Having Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+Having Api.PostAsJsonAsync("/bookings", a BookingRequest)
   after Api.PostAsJsonAsync("/rooms", a Room)
 ```
 
 - **respond ok** — `Result.StatusCode is OK`
 - **return the booking**
   ```
-  Result.Read<Booking>() is new Booking(10001,
-      new BookingInfo(the Room's RoomNumber, the BookingRequest's GuestName, 1),
+  Result.Read<Booking>() is new Booking(10001, the BookingInfo,
       new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel]))
   ```
 
@@ -225,24 +218,21 @@ Having Api.PostAsJsonAsync("/bookings",
 ```
 Using new BookingPeriod(Tomorrow, LaterDay)
 Having Restart()
-  after Api.PostAsJsonAsync("/bookings",
-      a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+  after Api.PostAsJsonAsync("/bookings", a BookingRequest)
   after Api.PostAsJsonAsync("/rooms", a Room)
 ```
 
 - **respond ok** — `Result.StatusCode is OK`
 - **return the booking**
   ```
-  Result.Read<Booking>() is new Booking(10001,
-      new BookingInfo(the Room's RoomNumber, the BookingRequest's GuestName, 1),
+  Result.Read<Booking>() is new Booking(10001, the BookingInfo,
       new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel]))
   ```
 
 ### Given the booking was cancelled
 ```
 Having Api.DeleteAsync("/bookings/10001")
-  after Api.PostAsJsonAsync("/bookings",
-      a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+  after Api.PostAsJsonAsync("/bookings", a BookingRequest)
   after Api.PostAsJsonAsync("/rooms", a Room)
 ```
 
@@ -260,24 +250,19 @@ Having Api.DeleteAsync("/bookings/10001")
 
 ### Given two bookings
 ```
+Using new BookingInfo(the Room's RoomNumber, a string, 1)
 Having Api.PostAsJsonAsync("/bookings",
-    a second BookingRequest with
-    { RoomNumber = the Room's RoomNumber, GuestCount = 1,
-    Period = new BookingPeriod(Tomorrow, LaterDay) })
+    a second BookingRequest with { Period = new BookingPeriod(Tomorrow, LaterDay) })
   after Api.PostAsJsonAsync("/bookings",
-      a BookingRequest with
-      { RoomNumber = the Room's RoomNumber, GuestCount = 1,
-      Period = new BookingPeriod(LaterDay, LaterDay.AddDays(2)) })
+      a BookingRequest with { Period = new BookingPeriod(LaterDay, LaterDay.AddDays(2)) })
   after Api.PostAsJsonAsync("/rooms", a Room)
 ```
 
 - **return both bookings in the order they were made**
   ```
-  Result.Read<Booking[]>() is equal to [new Booking(10001,
-      new BookingInfo(the Room's RoomNumber, the BookingRequest's GuestName, 1),
+  Result.Read<Booking[]>() is equal to [new Booking(10001, the BookingInfo,
       new BookingPeriod(LaterDay, LaterDay.AddDays(2)),
       new BookingState(Open, [Cancel])),
-      new Booking(10002,
-      new BookingInfo(the Room's RoomNumber, the second BookingRequest's GuestName, 1),
-      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel]))]
+      new Booking(10002, the BookingInfo, new BookingPeriod(Tomorrow, LaterDay),
+      new BookingState(Open, [Cancel]))]
   ```

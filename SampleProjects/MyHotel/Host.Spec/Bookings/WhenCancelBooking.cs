@@ -5,7 +5,9 @@ namespace MyHotel.Host.Spec.Bookings;
 
 public abstract class WhenCancelBooking : ApiSpec<HttpResponseMessage>
 {
-    protected WhenCancelBooking() => When(_ => _.Api.DeleteAsync("/bookings/10001"));
+    protected WhenCancelBooking() =>
+        Using(A<BookingInfo>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 })
+            .When(_ => _.Api.DeleteAsync("/bookings/10001"));
 
     /// <summary>
     /// Setups run last-declared-first, so the room exists before it is booked.
@@ -13,9 +15,7 @@ public abstract class WhenCancelBooking : ApiSpec<HttpResponseMessage>
     public class GivenTheBookingExists : WhenCancelBooking
     {
         public GivenTheBookingExists() =>
-            Having(_ => _.Api.PostAsJsonAsync(
-                "/bookings",
-                A<BookingRequest>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 }))
+            Having(_ => _.Api.PostAsJsonAsync("/bookings", A<BookingRequest>()))
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
 
         [Fact] public void ThenRespondNoContent() => Result.StatusCode.Is(NoContent);
@@ -29,9 +29,7 @@ public abstract class WhenCancelBooking : ApiSpec<HttpResponseMessage>
         public GivenTheBookingWasAlreadyCancelled()
         {
             Having(_ => _.Api.DeleteAsync("/bookings/10001"));
-            Having(_ => _.Api.PostAsJsonAsync(
-                "/bookings",
-                A<BookingRequest>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 }));
+            Having(_ => _.Api.PostAsJsonAsync("/bookings", A<BookingRequest>()));
             Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
         }
 

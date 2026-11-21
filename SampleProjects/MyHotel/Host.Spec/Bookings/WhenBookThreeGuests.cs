@@ -6,9 +6,8 @@ namespace MyHotel.Host.Spec.Bookings;
 public abstract class WhenBookThreeGuests : ApiSpec<HttpResponseMessage>
 {
     protected WhenBookThreeGuests() =>
-        When(_ => _.Api.PostAsJsonAsync(
-            "/bookings",
-            A<BookingRequest>() with { RoomNumber = A<Room>().RoomNumber, GuestCount = 3 }));
+        Using(A<BookingInfo>() with { RoomNumber = A<Room>().RoomNumber, GuestCount = 3 })
+            .When(_ => _.Api.PostAsJsonAsync("/bookings", A<BookingRequest>()));
 
     public class GivenTheRoomHasTwoBeds : WhenBookThreeGuests
     {

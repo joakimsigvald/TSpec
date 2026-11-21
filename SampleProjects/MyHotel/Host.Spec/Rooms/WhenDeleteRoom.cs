@@ -20,9 +20,8 @@ public abstract class WhenDeleteRoom : ApiSpec<HttpResponseMessage>
     public class GivenTheRoomHasAnOpenBooking : WhenDeleteRoom
     {
         public GivenTheRoomHasAnOpenBooking() =>
-            Having(_ => _.Api.PostAsJsonAsync(
-                "/bookings",
-                A<BookingRequest>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 }))
+            Using(A<BookingInfo>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 })
+                .Having(_ => _.Api.PostAsJsonAsync("/bookings", A<BookingRequest>()))
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact] public void ThenRespondConflict() => Result.StatusCode.Is(Conflict);

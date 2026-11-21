@@ -5,7 +5,9 @@ namespace MyHotel.Host.Spec.Bookings;
 
 public abstract class WhenCheckIn : ApiSpec<HttpResponseMessage>
 {
-    protected WhenCheckIn() => When(_ => _.Api.PostAsync("/bookings/10001/check-in", null));
+    protected WhenCheckIn() =>
+        Using(A<BookingInfo>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 })
+            .When(_ => _.Api.PostAsync("/bookings/10001/check-in", null));
 
     /// <summary>
     /// Setups run last-declared-first, so the room exists before it is booked.
@@ -15,9 +17,7 @@ public abstract class WhenCheckIn : ApiSpec<HttpResponseMessage>
         public GivenItsArrivalDay()
         {
             Using(new BookingPeriod(Today, LaterDay));
-            Having(_ => _.Api.PostAsJsonAsync(
-                "/bookings",
-                A<BookingRequest>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 }));
+            Having(_ => _.Api.PostAsJsonAsync("/bookings", A<BookingRequest>()));
             Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
         }
 
@@ -32,9 +32,7 @@ public abstract class WhenCheckIn : ApiSpec<HttpResponseMessage>
     {
         public GivenItsArrivalIsLater() =>
             Using(new BookingPeriod(Tomorrow, LaterDay))
-                .Having(_ => _.Api.PostAsJsonAsync(
-                    "/bookings",
-                    A<BookingRequest>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 }))
+                .Having(_ => _.Api.PostAsJsonAsync("/bookings", A<BookingRequest>()))
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
 
         [Fact] public void ThenRespondConflict() => Result.StatusCode.Is(Conflict);

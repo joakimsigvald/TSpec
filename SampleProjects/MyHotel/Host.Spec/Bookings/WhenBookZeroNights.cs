@@ -7,9 +7,8 @@ public abstract class WhenBookZeroNights : ApiSpec<HttpResponseMessage>
 {
     protected WhenBookZeroNights() =>
         Using(new BookingPeriod(Tomorrow, Tomorrow))
-            .When(_ => _.Api.PostAsJsonAsync(
-                "/bookings",
-                A<BookingRequest>() with { RoomNumber = A<Room>().RoomNumber, GuestCount = 1 }));
+            .And(A<BookingInfo>() with { RoomNumber = A<Room>().RoomNumber, GuestCount = 1 })
+            .When(_ => _.Api.PostAsJsonAsync("/bookings", A<BookingRequest>()));
 
     public class GivenTheRoomExists : WhenBookZeroNights
     {

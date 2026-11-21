@@ -7,7 +7,9 @@ namespace MyHotel.Host.Spec.Bookings;
 
 public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
 {
-    protected WhenGetBooking() => When(_ => _.Api.GetAsync("/bookings/10001"));
+    protected WhenGetBooking() =>
+        Using(new BookingInfo(The<Room>().RoomNumber, A<string>(), 1))
+            .When(_ => _.Api.GetAsync("/bookings/10001"));
 
     /// <summary>
     /// Setups run last-declared-first, so the room exists before it is booked.
@@ -16,9 +18,7 @@ public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
     {
         public GivenTheBookingExists() =>
             Using(new BookingPeriod(Tomorrow, LaterDay))
-                .Having(_ => _.Api.PostAsJsonAsync(
-                    "/bookings",
-                    A<BookingRequest>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 }))
+                .Having(_ => _.Api.PostAsJsonAsync("/bookings", A<BookingRequest>()))
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
 
         [Fact] public void ThenRespondOk() => Result.StatusCode.Is(OK);
@@ -27,7 +27,7 @@ public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
         public async Task ThenReturnTheBooking() =>
             (await Result.Read<Booking>()).Is(new Booking(
                 10001,
-                new BookingInfo(The<Room>().RoomNumber, The<BookingRequest>().GuestName, 1),
+                The<BookingInfo>(),
                 new BookingPeriod(Tomorrow, LaterDay),
                 new BookingState(Open, [Cancel])));
     }
@@ -51,9 +51,7 @@ public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
         {
             Using(new BookingPeriod(Tomorrow, LaterDay));
             Having(_ => _.Restart());
-            Having(_ => _.Api.PostAsJsonAsync(
-                "/bookings",
-                A<BookingRequest>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 }));
+            Having(_ => _.Api.PostAsJsonAsync("/bookings", A<BookingRequest>()));
             Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
         }
 
@@ -63,7 +61,7 @@ public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
         public async Task ThenReturnTheBooking() =>
             (await Result.Read<Booking>()).Is(new Booking(
                 10001,
-                new BookingInfo(The<Room>().RoomNumber, The<BookingRequest>().GuestName, 1),
+                The<BookingInfo>(),
                 new BookingPeriod(Tomorrow, LaterDay),
                 new BookingState(Open, [Cancel])));
     }
@@ -77,9 +75,7 @@ public abstract class WhenGetBooking : ApiSpec<HttpResponseMessage>
         public GivenTheBookingWasCancelled()
         {
             Having(_ => _.Api.DeleteAsync("/bookings/10001"));
-            Having(_ => _.Api.PostAsJsonAsync(
-                "/bookings",
-                A<BookingRequest>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 }));
+            Having(_ => _.Api.PostAsJsonAsync("/bookings", A<BookingRequest>()));
             Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
         }
 

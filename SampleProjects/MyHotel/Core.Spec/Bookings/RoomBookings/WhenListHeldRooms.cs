@@ -36,9 +36,9 @@ public abstract class WhenListHeldRooms : Spec<Core.Bookings.RoomBookings, IRead
         [Fact]
         public void ThenReturnTheirRooms() =>
             Result.Is().EqualTo([
-                TheFirst<StoredBooking>().RoomNumber,
-                TheSecond<StoredBooking>().RoomNumber,
-                TheThird<StoredBooking>().RoomNumber]);
+                TheFirst<StoredBooking>().Info.RoomNumber,
+                TheSecond<StoredBooking>().Info.RoomNumber,
+                TheThird<StoredBooking>().Info.RoomNumber]);
     }
 
     /// <summary>

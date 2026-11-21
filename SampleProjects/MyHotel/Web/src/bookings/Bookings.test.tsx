@@ -7,14 +7,12 @@ import { Bookings } from './Bookings';
 import type { Booking, BookingAction, BookingStatus } from './bookingsApi';
 
 const request = {
-  roomNumber: '101',
-  guestName: 'Smith',
-  guestCount: 2,
+  info: { roomNumber: '101', guestName: 'Smith', guestCount: 2 },
   period: { from: '2026-08-10', to: '2026-08-12' },
 };
 const booking10001: Booking = {
   bookingNumber: 10001,
-  info: { roomNumber: '101', guestName: 'Smith', guestCount: 2 },
+  info: request.info,
   period: request.period,
   state: { status: 'Open', actions: ['Cancel'] },
 };
@@ -52,9 +50,9 @@ const refusedWhenClicking = async (button: string, booking: Booking, request: st
 const fillers: Record<string, () => Promise<void>> = {
   Från: () => userEvent.type(screen.getByLabelText('Från'), request.period.from),
   Till: () => userEvent.type(screen.getByLabelText('Till'), request.period.to),
-  Rumsnummer: () => userEvent.selectOptions(screen.getByLabelText('Rumsnummer'), request.roomNumber),
-  'Antal gäster': () => userEvent.type(screen.getByLabelText('Antal gäster'), String(request.guestCount)),
-  Gäst: () => userEvent.type(screen.getByLabelText('Gäst'), request.guestName),
+  Rumsnummer: () => userEvent.selectOptions(screen.getByLabelText('Rumsnummer'), request.info.roomNumber),
+  'Antal gäster': () => userEvent.type(screen.getByLabelText('Antal gäster'), String(request.info.guestCount)),
+  Gäst: () => userEvent.type(screen.getByLabelText('Gäst'), request.info.guestName),
 };
 const labels = Object.keys(fillers);
 
@@ -73,7 +71,7 @@ const bookRefusedWith = async (status: number, code: string) => {
     'POST /bookings': { status, body: { code } },
   });
   renderPage(<Bookings />);
-  await waitFor(() => expect(offeredRooms()).toContain(request.roomNumber));
+  await waitFor(() => expect(offeredRooms()).toContain(request.info.roomNumber));
   await fillIn();
   await userEvent.click(screen.getByRole('button', { name: 'Boka' }));
 };
@@ -96,7 +94,7 @@ const pressedButtons = () => screen.queryAllByRole('button', { pressed: true }).
 
 const book = async () => {
   renderPage(<Bookings />);
-  await waitFor(() => expect(offeredRooms()).toContain(request.roomNumber));
+  await waitFor(() => expect(offeredRooms()).toContain(request.info.roomNumber));
   await fillIn();
   await userEvent.click(screen.getByRole('button', { name: 'Boka' }));
 };
@@ -123,7 +121,7 @@ const changeRefusedWith = async (status: number, code: string) => {
 const bookTwoNightsByButton = async () => {
   bookAccepted();
   renderPage(<Bookings />);
-  await waitFor(() => expect(offeredRooms()).toContain(request.roomNumber));
+  await waitFor(() => expect(offeredRooms()).toContain(request.info.roomNumber));
   await fillIn(['Rumsnummer', 'Antal gäster', 'Gäst']);
   await click('2 nätter');
   await click('Boka');
@@ -163,7 +161,7 @@ describe('Bookings', () => {
 
   it.each(labels)('cannot book without %s', async empty => {
     openForm();
-    await waitFor(() => expect(offeredRooms()).toContain(request.roomNumber));
+    await waitFor(() => expect(offeredRooms()).toContain(request.info.roomNumber));
     await fillIn(labels.filter(label => label !== empty));
     expect(screen.getByRole('button', { name: 'Boka' })).toBeDisabled();
   });
@@ -471,7 +469,7 @@ describe('Bookings', () => {
       expect(await rowOf(10001)).toHaveTextContent('100011012Jones2026-08-102026-08-12');
       expect(api).toHaveBeenCalledWith('/bookings/10001', expect.objectContaining({
         method: 'PUT',
-        body: JSON.stringify({ ...request, guestName: 'Jones' }),
+        body: JSON.stringify({ ...request, info: { ...request.info, guestName: 'Jones' } }),
       }));
     });
 

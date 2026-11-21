@@ -16,9 +16,8 @@ public abstract class WhenChange : BookingServiceSpec<Booking>
     protected WhenChange() =>
         Using(TodayIs(Today))
             .And(new BookingPeriod(Today, LaterDay))
-            .When(_ => _.Change(
-                The(_booking).BookingNumber,
-                A<BookingRequest>() with { RoomNumber = A<Room>().RoomNumber, GuestCount = 1 }));
+            .And(new BookingInfo(A<Room>().RoomNumber, A<string>(), 1))
+            .When(_ => _.Change(The(_booking).BookingNumber, A<BookingRequest>()));
 
     public abstract class GivenTheRoomExists : WhenChange
     {
@@ -31,6 +30,7 @@ public abstract class WhenChange : BookingServiceSpec<Booking>
             {
                 Given(_booking).Is(A<StoredBooking>() with
                 {
+                    Info = new BookingInfo(ASecond<Room>().RoomNumber, ASecond<string>(), 2),
                     Period = new(Tomorrow, LaterDay),
                     Stage = BookingStage.Booked,
                 });
@@ -41,7 +41,7 @@ public abstract class WhenChange : BookingServiceSpec<Booking>
             public void ThenReturnItChanged() =>
                 Result.Is(new Booking(
                     The(_booking).BookingNumber,
-                    new BookingInfo(The<Room>().RoomNumber, The<BookingRequest>().GuestName, 1),
+                    The<BookingInfo>(),
                     new BookingPeriod(Today, LaterDay),
                     new BookingState(Open, [Cancel, CheckIn])));
 
@@ -49,9 +49,7 @@ public abstract class WhenChange : BookingServiceSpec<Booking>
             public void ThenStoreItChanged() =>
                 Then<IBookingStore>(_ => _.Save(new[] { new StoredBooking(
                     The(_booking).BookingNumber,
-                    The<Room>().RoomNumber,
-                    The<BookingRequest>().GuestName,
-                    1,
+                    The<BookingInfo>(),
                     new BookingPeriod(Today, LaterDay),
                     BookingStage.Booked) }));
         }
@@ -95,7 +93,7 @@ public abstract class WhenChange : BookingServiceSpec<Booking>
             {
                 Given(_booking).Is(A<StoredBooking>() with
                 {
-                    RoomNumber = The<Room>().RoomNumber,
+                    Info = The<BookingInfo>(),
                     Period = new(Tomorrow, LaterDay),
                     Stage = BookingStage.Booked,
                 });
@@ -112,7 +110,7 @@ public abstract class WhenChange : BookingServiceSpec<Booking>
                 Given(_booking).Is(A<StoredBooking>() with { Stage = BookingStage.Booked });
                 Given(_otherBooking).Is(ASecond<StoredBooking>() with
                 {
-                    RoomNumber = The<Room>().RoomNumber,
+                    Info = The<BookingInfo>(),
                     Period = new(Tomorrow, LaterDay),
                     Stage = BookingStage.Booked,
                 });
@@ -136,7 +134,7 @@ public abstract class WhenChange : BookingServiceSpec<Booking>
                 Given(_booking).Is(A<StoredBooking>() with { Stage = BookingStage.Cancelled });
                 Given(_otherBooking).Is(ASecond<StoredBooking>() with
                 {
-                    RoomNumber = The<Room>().RoomNumber,
+                    Info = The<BookingInfo>(),
                     Period = new(Tomorrow, LaterDay),
                     Stage = BookingStage.Booked,
                 });

@@ -3,7 +3,8 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 public class WhenChangeToZeroGuests : BookingServiceSpec<Booking>
 {
     public WhenChangeToZeroGuests() =>
-        When(_ => _.Change(Any<int>(), A<BookingRequest>() with { GuestCount = 0 }));
+        Using(A<BookingInfo>() with { GuestCount = 0 })
+            .When(_ => _.Change(Any<int>(), A<BookingRequest>()));
 
     [Fact]
     public void ThenThrowInvalidGuestCount() =>

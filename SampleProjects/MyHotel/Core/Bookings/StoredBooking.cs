@@ -8,16 +8,9 @@ namespace MyHotel.Core.Bookings;
 /// with the date while nothing is written. What can be done with it is what it allows, so the actions
 /// it states and the ones it accepts cannot disagree.
 /// </summary>
-public record StoredBooking(
-    int BookingNumber,
-    string RoomNumber,
-    string GuestName,
-    int GuestCount,
-    BookingPeriod Period,
-    BookingStage Stage)
+public record StoredBooking(int BookingNumber, BookingInfo Info, BookingPeriod Period, BookingStage Stage)
 {
-    internal Booking AsOf(DateOnly today) =>
-        new(BookingNumber, new(RoomNumber, GuestName, GuestCount), Period, StateOn(today));
+    internal Booking AsOf(DateOnly today) => new(BookingNumber, Info, Period, StateOn(today));
 
     internal bool Allows(BookingAction action, DateOnly today) =>
         action switch
@@ -34,13 +27,7 @@ public record StoredBooking(
     internal StoredBooking After(BookingAction action) => this with { Stage = StageAfter(action) };
 
     internal StoredBooking ChangedTo(BookingRequest request) =>
-        this with
-        {
-            RoomNumber = request.RoomNumber,
-            GuestName = request.GuestName,
-            GuestCount = request.GuestCount,
-            Period = request.Period,
-        };
+        this with { Info = request.Info, Period = request.Period };
 
     private BookingState StateOn(DateOnly today) =>
         new(StatusOn(today), [.. Enum.GetValues<BookingAction>().Where(action => Allows(action, today))]);

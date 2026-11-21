@@ -4,7 +4,8 @@ public class WhenBookDepartureBeforeArrival : BookingServiceSpec<Booking>
 {
     public WhenBookDepartureBeforeArrival() =>
         Using(new BookingPeriod(Tomorrow, Today))
-        .When(_ => _.Book(A<BookingRequest>() with { GuestCount = 1 }));
+            .And(A<BookingInfo>() with { GuestCount = 1 })
+            .When(_ => _.Book(A<BookingRequest>()));
 
     [Fact]
     public void ThenThrowInvalidBookingPeriod() =>

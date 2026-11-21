@@ -12,7 +12,7 @@ export type BookingState = { status: BookingStatus; actions: BookingAction[] };
 
 export type Booking = { bookingNumber: number; info: BookingInfo; period: BookingPeriod; state: BookingState };
 
-export type BookingRequest = BookingInfo & { period: BookingPeriod };
+export type BookingRequest = { info: BookingInfo; period: BookingPeriod };
 
 export const listBookings = () => get<Booking[]>('/bookings');
 

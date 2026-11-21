@@ -7,7 +7,8 @@ public class WhenChangeToZeroNights : BookingServiceSpec<Booking>
 {
     public WhenChangeToZeroNights() =>
         Using(new BookingPeriod(Tomorrow, Tomorrow))
-            .When(_ => _.Change(Any<int>(), A<BookingRequest>() with { GuestCount = 1 }));
+            .And(A<BookingInfo>() with { GuestCount = 1 })
+            .When(_ => _.Change(Any<int>(), A<BookingRequest>()));
 
     [Fact]
     public void ThenThrowInvalidBookingPeriod() =>

@@ -10,6 +10,7 @@ public abstract class WhenCancelBookings : BookingServiceSpec<Core.Bookings.Book
 
     protected WhenCancelBookings() =>
         Using(TodayIs(Today))
+            .And(A<BookingInfo>() with { RoomNumber = A<Room>().RoomNumber })
             .When(_ => _.CancelBookings(A<Room>().RoomNumber));
 
     public class GivenAnOpenBookingOfTheRoom : WhenCancelBookings
@@ -18,7 +19,6 @@ public abstract class WhenCancelBookings : BookingServiceSpec<Core.Bookings.Book
         {
             Given(_booking).Is(A<StoredBooking>() with
             {
-                RoomNumber = The<Room>().RoomNumber,
                 Period = new(Tomorrow, LaterDay),
                 Stage = BookingStage.Booked,
             });
@@ -36,7 +36,6 @@ public abstract class WhenCancelBookings : BookingServiceSpec<Core.Bookings.Book
         {
             Given(_booking).Is(A<StoredBooking>() with
             {
-                RoomNumber = The<Room>().RoomNumber,
                 Period = new(Yesterday, Today),
                 Stage = BookingStage.Booked,
             });
@@ -54,7 +53,6 @@ public abstract class WhenCancelBookings : BookingServiceSpec<Core.Bookings.Book
         {
             Given(_booking).Is(A<StoredBooking>() with
             {
-                RoomNumber = The<Room>().RoomNumber,
                 Period = new(EarlierDay, Yesterday),
                 Stage = BookingStage.Booked,
             });
@@ -70,7 +68,6 @@ public abstract class WhenCancelBookings : BookingServiceSpec<Core.Bookings.Book
         {
             Given(_booking).Is(A<StoredBooking>() with
             {
-                RoomNumber = The<Room>().RoomNumber,
                 Period = new(Yesterday, Tomorrow),
                 Stage = BookingStage.CheckedIn,
             });
@@ -86,7 +83,7 @@ public abstract class WhenCancelBookings : BookingServiceSpec<Core.Bookings.Book
         {
             Given(_booking).Is(A<StoredBooking>() with
             {
-                RoomNumber = ASecond<Room>().RoomNumber,
+                Info = A<BookingInfo>() with { RoomNumber = ASecond<Room>().RoomNumber },
                 Period = new(Tomorrow, LaterDay),
                 Stage = BookingStage.Booked,
             });

@@ -32,8 +32,8 @@ public abstract class WhenListRoomsWithCancellableBookings
         [Fact]
         public void ThenReturnTheirRooms() =>
             Result.Is().EqualTo([
-                TheFirst<StoredBooking>().RoomNumber,
-                TheSecond<StoredBooking>().RoomNumber]);
+                TheFirst<StoredBooking>().Info.RoomNumber,
+                TheSecond<StoredBooking>().Info.RoomNumber]);
     }
 
     /// <summary>

@@ -9,9 +9,8 @@ public abstract class WhenBookRoom : ApiSpec<HttpResponseMessage>
 {
     protected WhenBookRoom() =>
         Using(new BookingPeriod(Tomorrow, LaterDay))
-            .When(_ => _.Api.PostAsJsonAsync(
-                "/bookings",
-                A<BookingRequest>() with { RoomNumber = A<Room>().RoomNumber, GuestCount = 1 }));
+            .And(new BookingInfo(A<Room>().RoomNumber, A<string>(), 1))
+            .When(_ => _.Api.PostAsJsonAsync("/bookings", A<BookingRequest>()));
 
     public class GivenTheRoomExists : WhenBookRoom
     {
@@ -23,7 +22,7 @@ public abstract class WhenBookRoom : ApiSpec<HttpResponseMessage>
         public async Task ThenReturnTheBookingWithTheSeededNumber() =>
             (await Result.Read<Booking>()).Is(new Booking(
                 10001,
-                new BookingInfo(The<Room>().RoomNumber, The<BookingRequest>().GuestName, 1),
+                The<BookingInfo>(),
                 new BookingPeriod(Tomorrow, LaterDay),
                 new BookingState(Open, [Cancel])));
 
@@ -44,12 +43,7 @@ public abstract class WhenBookRoom : ApiSpec<HttpResponseMessage>
             Having(_ => _.Restart());
             Having(_ => _.Api.PostAsJsonAsync(
                 "/bookings",
-                ASecond<BookingRequest>() with
-                {
-                    RoomNumber = The<Room>().RoomNumber,
-                    GuestCount = 1,
-                    Period = new BookingPeriod(Today, Tomorrow),
-                }));
+                ASecond<BookingRequest>() with { Period = new BookingPeriod(Today, Tomorrow) }));
             Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
         }
 
@@ -59,19 +53,14 @@ public abstract class WhenBookRoom : ApiSpec<HttpResponseMessage>
     }
 
     /// <summary>
-    /// Setups run last-declared-first, so the room exists before the earlier guest books it.
+    /// Setups run last-declared-first, so the room exists before the earlier booking is made.
     /// </summary>
     public class GivenAnOverlappingBooking : WhenBookRoom
     {
         public GivenAnOverlappingBooking() =>
             Having(_ => _.Api.PostAsJsonAsync(
                 "/bookings",
-                ASecond<BookingRequest>() with
-                {
-                    RoomNumber = The<Room>().RoomNumber,
-                    GuestCount = 1,
-                    Period = new BookingPeriod(Today, LaterDay),
-                }))
+                ASecond<BookingRequest>() with { Period = new BookingPeriod(Today, LaterDay) }))
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact] public void ThenRespondConflict() => Result.StatusCode.Is(Conflict);

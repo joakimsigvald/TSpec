@@ -6,8 +6,8 @@ public abstract class WhenBookThreeGuests : BookingServiceSpec<Booking>
 {
     protected WhenBookThreeGuests() =>
         Using(TodayIs(Today))
-            .When(_ => _.Book(
-                A<BookingRequest>() with { RoomNumber = A<Room>().RoomNumber, GuestCount = 3 }))
+            .And(A<BookingInfo>() with { RoomNumber = A<Room>().RoomNumber, GuestCount = 3 })
+            .When(_ => _.Book(A<BookingRequest>()))
             .Given<IBookingStore>().That(_ => _.Load()).Returns(Zero<StoredBooking>);
 
     public class GivenTheRoomHasTwoBeds : WhenBookThreeGuests

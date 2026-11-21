@@ -51,8 +51,8 @@ Having Api.PostAsJsonAsync("/room-categories", the RoomCategory)
 
 ### Given the room has an open booking
 ```
-Having Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+Using a BookingInfo with { RoomNumber = the Room's RoomNumber, GuestCount = 1 }
+Having Api.PostAsJsonAsync("/bookings", a BookingRequest)
   after Api.PostAsJsonAsync("/rooms", the Room)
 ```
 
@@ -70,8 +70,8 @@ Having Api.PostAsJsonAsync("/bookings",
 
 ### Given the room has an open booking
 ```
-Having Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+Using a BookingInfo with { RoomNumber = the Room's RoomNumber, GuestCount = 1 }
+Having Api.PostAsJsonAsync("/bookings", a BookingRequest)
   after Api.PostAsJsonAsync("/rooms", the Room)
 ```
 

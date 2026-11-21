@@ -5,7 +5,9 @@ namespace MyHotel.Host.Spec.Bookings;
 
 public abstract class WhenCheckOut : ApiSpec<HttpResponseMessage>
 {
-    protected WhenCheckOut() => When(_ => _.Api.PostAsync("/bookings/10001/check-out", null));
+    protected WhenCheckOut() =>
+        Using(A<BookingInfo>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 })
+            .When(_ => _.Api.PostAsync("/bookings/10001/check-out", null));
 
     /// <summary>
     /// Setups run last-declared-first: the room exists, it is booked, the guest checks in on the
@@ -18,9 +20,7 @@ public abstract class WhenCheckOut : ApiSpec<HttpResponseMessage>
             Using(new BookingPeriod(Today, Tomorrow));
             Having(_ => _.SetToday(Tomorrow));
             Having(_ => _.Api.PostAsync("/bookings/10001/check-in", null));
-            Having(_ => _.Api.PostAsJsonAsync(
-                "/bookings",
-                A<BookingRequest>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 }));
+            Having(_ => _.Api.PostAsJsonAsync("/bookings", A<BookingRequest>()));
             Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
         }
 
@@ -37,9 +37,7 @@ public abstract class WhenCheckOut : ApiSpec<HttpResponseMessage>
         {
             Using(new BookingPeriod(Today, Tomorrow));
             Having(_ => _.SetToday(Tomorrow));
-            Having(_ => _.Api.PostAsJsonAsync(
-                "/bookings",
-                A<BookingRequest>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 }));
+            Having(_ => _.Api.PostAsJsonAsync("/bookings", A<BookingRequest>()));
             Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
         }
 

@@ -19,9 +19,7 @@ export const inAlphanumericOrder = (roomNumbers: string[]) =>
 export const roomNumbersOf = (rooms: Room[]) => rooms.map(room => room.roomNumber);
 
 export const requestOf = ({ from, to, roomNumber, guestCount, guestName }: BookingEntry): BookingRequest => ({
-  roomNumber,
-  guestName,
-  guestCount: Number(guestCount),
+  info: { roomNumber, guestName, guestCount: Number(guestCount) },
   period: { from, to },
 });
 

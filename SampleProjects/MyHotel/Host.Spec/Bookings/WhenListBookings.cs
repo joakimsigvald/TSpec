@@ -18,28 +18,19 @@ public abstract class WhenListBookings : ApiSpec<HttpResponseMessage>
     }
 
     /// <summary>
-    /// Setups run last-declared-first, so the room exists before either guest books it.
+    /// Setups run last-declared-first, so the room exists before it is booked twice.
     /// </summary>
     public class GivenTwoBookings : WhenListBookings
     {
         public GivenTwoBookings()
         {
+            Using(new BookingInfo(The<Room>().RoomNumber, A<string>(), 1));
             Having(_ => _.Api.PostAsJsonAsync(
                 "/bookings",
-                ASecond<BookingRequest>() with
-                {
-                    RoomNumber = The<Room>().RoomNumber,
-                    GuestCount = 1,
-                    Period = new BookingPeriod(Tomorrow, LaterDay),
-                }));
+                ASecond<BookingRequest>() with { Period = new BookingPeriod(Tomorrow, LaterDay) }));
             Having(_ => _.Api.PostAsJsonAsync(
                 "/bookings",
-                A<BookingRequest>() with
-                {
-                    RoomNumber = The<Room>().RoomNumber,
-                    GuestCount = 1,
-                    Period = new BookingPeriod(LaterDay, LaterDay.AddDays(2)),
-                }));
+                A<BookingRequest>() with { Period = new BookingPeriod(LaterDay, LaterDay.AddDays(2)) }));
             Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
         }
 
@@ -48,12 +39,12 @@ public abstract class WhenListBookings : ApiSpec<HttpResponseMessage>
             (await Result.Read<Booking[]>()).Is().EqualTo([
                 new Booking(
                     10001,
-                    new BookingInfo(The<Room>().RoomNumber, The<BookingRequest>().GuestName, 1),
+                    The<BookingInfo>(),
                     new BookingPeriod(LaterDay, LaterDay.AddDays(2)),
                     new BookingState(Open, [Cancel])),
                 new Booking(
                     10002,
-                    new BookingInfo(The<Room>().RoomNumber, TheSecond<BookingRequest>().GuestName, 1),
+                    The<BookingInfo>(),
                     new BookingPeriod(Tomorrow, LaterDay),
                     new BookingState(Open, [Cancel]))]);
     }
