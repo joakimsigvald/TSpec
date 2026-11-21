@@ -10,7 +10,7 @@ public abstract class WhenUpdateRoomWithNineBeds : Spec<Core.Rooms.RoomService, 
         public GivenTheRoomIsStored() =>
             Given<IRoomStore>().That(_ => _.Load()).Returns(One<Room>)
                 .And<IRoomCategoryStore>().That(_ => _.Load())
-                .Returns(() => [new RoomCategory(The<Room>().RoomCategory, Any<string>())])
+                .Returns(() => [A<RoomCategory>() with { Name = The<Room>().RoomCategory }])
                 .And<IRoomBookings>().Returns(Zero<string>);
 
         [Fact] public void ThenReturnTheRoomWithNineBeds() => Result.BedCount.Is(9);

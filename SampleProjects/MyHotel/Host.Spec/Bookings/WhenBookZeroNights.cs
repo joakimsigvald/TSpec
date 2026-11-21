@@ -6,13 +6,10 @@ namespace MyHotel.Host.Spec.Bookings;
 public abstract class WhenBookZeroNights : ApiSpec<HttpResponseMessage>
 {
     protected WhenBookZeroNights() =>
-        When(_ => _.Api.PostAsJsonAsync(
-            "/bookings",
-            new BookingRequest(
-                A<Room>().RoomNumber,
-                A<string>(),
-                1,
-                new BookingPeriod(new(2026, 8, 10), new(2026, 8, 10)))));
+        Using(new BookingPeriod(Tomorrow, Tomorrow))
+            .When(_ => _.Api.PostAsJsonAsync(
+                "/bookings",
+                A<BookingRequest>() with { RoomNumber = A<Room>().RoomNumber, GuestCount = 1 }));
 
     public class GivenTheRoomExists : WhenBookZeroNights
     {

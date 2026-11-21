@@ -6,7 +6,7 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 /// Checking out keeps the booking, marked checked out. Only a checked-in booking can be checked out,
 /// and only on its departure day.
 /// </summary>
-public abstract class WhenCheckOut : Spec<Core.Bookings.BookingService>
+public abstract class WhenCheckOut : BookingServiceSpec<Core.Bookings.BookingService>
 {
     private readonly Tag<StoredBooking> _booking = new();
 

@@ -1,10 +1,9 @@
 namespace MyHotel.Core.Spec.Bookings.BookingService;
 
-public class WhenBookZeroGuests : Spec<Core.Bookings.BookingService, Booking>
+public class WhenBookZeroGuests : BookingServiceSpec<Booking>
 {
     public WhenBookZeroGuests() =>
-        When(_ => _.Book(new BookingRequest(
-            Any<string>(), Any<string>(), 0, new BookingPeriod(Today, LaterDay))));
+        When(_ => _.Book(A<BookingRequest>() with { GuestCount = 0 }));
 
     [Fact]
     public void ThenThrowInvalidGuestCount() =>

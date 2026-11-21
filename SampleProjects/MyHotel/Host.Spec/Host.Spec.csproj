@@ -22,6 +22,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Host\Host.csproj" />
+		<ProjectReference Include="..\Core.Spec\Core.Spec.csproj" />
 	</ItemGroup>
 
 </Project>

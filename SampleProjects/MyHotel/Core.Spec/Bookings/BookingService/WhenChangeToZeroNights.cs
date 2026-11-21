@@ -3,7 +3,7 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 /// <summary>
 /// No arrangement at all: the period is refused before any store is consulted, as when booking.
 /// </summary>
-public class WhenChangeToZeroNights : Spec<Core.Bookings.BookingService, Booking>
+public class WhenChangeToZeroNights : BookingServiceSpec<Booking>
 {
     public WhenChangeToZeroNights() =>
         Using(new BookingPeriod(Tomorrow, Tomorrow))

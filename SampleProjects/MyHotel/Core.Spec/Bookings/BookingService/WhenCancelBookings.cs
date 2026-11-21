@@ -4,7 +4,7 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 /// Only the room's cancellable bookings are cancelled - the open ones, and the no-shows until their
 /// departure day has passed: its other bookings are kept as they are, and so are other rooms'.
 /// </summary>
-public abstract class WhenCancelBookings : Spec<Core.Bookings.BookingService>
+public abstract class WhenCancelBookings : BookingServiceSpec<Core.Bookings.BookingService>
 {
     private readonly Tag<StoredBooking> _booking = new();
 

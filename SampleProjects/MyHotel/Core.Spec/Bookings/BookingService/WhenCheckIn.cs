@@ -6,7 +6,7 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 /// Checking in keeps the booking, marked checked in. Only an open booking can be checked in, and only
 /// on its arrival day.
 /// </summary>
-public abstract class WhenCheckIn : Spec<Core.Bookings.BookingService>
+public abstract class WhenCheckIn : BookingServiceSpec<Core.Bookings.BookingService>
 {
     private readonly Tag<StoredBooking> _booking = new();
 

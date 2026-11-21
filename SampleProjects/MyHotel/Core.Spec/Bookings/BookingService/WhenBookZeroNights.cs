@@ -4,11 +4,11 @@
 /// No arrangement at all: the period is refused before any store is consulted, so the rule holds
 /// whatever the hotel contains.
 /// </summary>
-public class WhenBookZeroNights : Spec<Core.Bookings.BookingService, Booking>
+public class WhenBookZeroNights : BookingServiceSpec<Booking>
 {
     public WhenBookZeroNights() =>
-        When(_ => _.Book(new BookingRequest(
-            Any<string>(), Any<string>(), 1, new BookingPeriod(Tomorrow, Tomorrow))));
+        Using(new BookingPeriod(Tomorrow, Tomorrow))
+            .When(_ => _.Book(A<BookingRequest>() with { GuestCount = 1 }));
 
     [Fact]
     public void ThenThrowInvalidBookingPeriod() =>

@@ -17,7 +17,7 @@ public abstract class WhenUpdateRoom : Spec<Core.Rooms.RoomService, RoomOverview
             Given(_updatedRoom).Is(The<Room>() with { BedCount = ASecond<int>() });
             Given<IRoomStore>().That(_ => _.Load()).Returns(One<Room>)
                 .And<IRoomCategoryStore>().That(_ => _.Load())
-                .Returns(() => [new RoomCategory(The<Room>().RoomCategory, Any<string>())])
+                .Returns(() => [A<RoomCategory>() with { Name = The<Room>().RoomCategory }])
                 .And<IRoomBookings>().Returns(Zero<string>);
         }
 
@@ -41,7 +41,7 @@ public abstract class WhenUpdateRoom : Spec<Core.Rooms.RoomService, RoomOverview
             Given(_updatedRoom).Is(The<Room>() with { BedCount = ASecond<int>() });
             Given<IRoomStore>().That(_ => _.Load()).Returns(() => [ASecond<Room>(), The<Room>()])
                 .And<IRoomCategoryStore>().That(_ => _.Load())
-                .Returns(() => [new RoomCategory(The<Room>().RoomCategory, Any<string>())]);
+                .Returns(() => [A<RoomCategory>() with { Name = The<Room>().RoomCategory }]);
         }
 
         [Fact]

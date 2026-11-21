@@ -24,11 +24,7 @@ public abstract class WhenGetRoom : ApiSpec<HttpResponseMessage>
         public GivenTheRoomHasAnOpenBooking() =>
             Having(_ => _.Api.PostAsJsonAsync(
                 "/bookings",
-                new BookingRequest(
-                    The<Room>().RoomNumber,
-                    A<string>(),
-                    1,
-                    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))))
+                A<BookingRequest>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 }))
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", The<Room>()));
 
         [Fact]

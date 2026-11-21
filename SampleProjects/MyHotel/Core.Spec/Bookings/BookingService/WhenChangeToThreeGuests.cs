@@ -2,13 +2,12 @@ using static TSpec.Times;
 
 namespace MyHotel.Core.Spec.Bookings.BookingService;
 
-public abstract class WhenChangeToThreeGuests : Spec<Core.Bookings.BookingService, Booking>
+public abstract class WhenChangeToThreeGuests : BookingServiceSpec<Booking>
 {
     protected WhenChangeToThreeGuests() =>
-        Using(new BookingPeriod(Today, LaterDay))
-            .When(_ => _.Change(
-                Any<int>(),
-                A<BookingRequest>() with { RoomNumber = A<Room>().RoomNumber, GuestCount = 3 }));
+        When(_ => _.Change(
+            Any<int>(),
+            A<BookingRequest>() with { RoomNumber = A<Room>().RoomNumber, GuestCount = 3 }));
 
     public class GivenTheRoomHasTwoBeds : WhenChangeToThreeGuests
     {

@@ -5,6 +5,7 @@
 Subject under test: Hotel
 Return type: HttpResponseMessage
 Using Room with RoomCategory = "Standard"
+  and new BookingPeriod(Tomorrow, LaterDay)
 ```
 
 ## [When add room category](../RoomCategories/WhenAddRoomCategory.cs)

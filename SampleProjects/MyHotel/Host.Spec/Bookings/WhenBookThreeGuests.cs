@@ -8,11 +8,7 @@ public abstract class WhenBookThreeGuests : ApiSpec<HttpResponseMessage>
     protected WhenBookThreeGuests() =>
         When(_ => _.Api.PostAsJsonAsync(
             "/bookings",
-            new BookingRequest(
-                A<Room>().RoomNumber,
-                A<string>(),
-                3,
-                new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))));
+            A<BookingRequest>() with { RoomNumber = A<Room>().RoomNumber, GuestCount = 3 }));
 
     public class GivenTheRoomHasTwoBeds : WhenBookThreeGuests
     {

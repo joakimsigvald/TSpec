@@ -8,21 +8,16 @@ public abstract class WhenCheckIn : ApiSpec<HttpResponseMessage>
     protected WhenCheckIn() => When(_ => _.Api.PostAsync("/bookings/10001/check-in", null));
 
     /// <summary>
-    /// Setups run last-declared-first: the room exists, it is booked, and today moves to the
-    /// arrival day.
+    /// Setups run last-declared-first, so the room exists before it is booked.
     /// </summary>
     public class GivenItsArrivalDay : WhenCheckIn
     {
         public GivenItsArrivalDay()
         {
-            Having(_ => _.SetToday(new(2026, 8, 10)));
+            Using(new BookingPeriod(Today, LaterDay));
             Having(_ => _.Api.PostAsJsonAsync(
                 "/bookings",
-                new BookingRequest(
-                    The<Room>().RoomNumber,
-                    A<string>(),
-                    1,
-                    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))));
+                A<BookingRequest>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 }));
             Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
         }
 
@@ -36,13 +31,10 @@ public abstract class WhenCheckIn : ApiSpec<HttpResponseMessage>
     public class GivenItsArrivalIsLater : WhenCheckIn
     {
         public GivenItsArrivalIsLater() =>
-            Having(_ => _.Api.PostAsJsonAsync(
-                "/bookings",
-                new BookingRequest(
-                    The<Room>().RoomNumber,
-                    A<string>(),
-                    1,
-                    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))))
+            Using(new BookingPeriod(Tomorrow, LaterDay))
+                .Having(_ => _.Api.PostAsJsonAsync(
+                    "/bookings",
+                    A<BookingRequest>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 }))
                 .Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
 
         [Fact] public void ThenRespondConflict() => Result.StatusCode.Is(Conflict);

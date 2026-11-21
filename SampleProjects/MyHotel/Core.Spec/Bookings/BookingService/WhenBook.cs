@@ -4,18 +4,16 @@ using static TSpec.Times;
 
 namespace MyHotel.Core.Spec.Bookings.BookingService;
 
-public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
+public abstract class WhenBook : BookingServiceSpec<Booking>
 {
     private static readonly DateOnly Arrival = LaterDay;
     private static readonly DateOnly Departure = LaterDay.AddDays(2);
 
     protected WhenBook() =>
         Using(TodayIs(Today))
-            .When(_ => _.Book(new BookingRequest(
-                A<Room>().RoomNumber,
-                A<string>(),
-                1,
-                new BookingPeriod(Arrival, Departure))));
+            .And(new BookingPeriod(Arrival, Departure))
+            .When(_ => _.Book(
+                A<BookingRequest>() with { RoomNumber = A<Room>().RoomNumber, GuestCount = 1 }));
 
     public abstract class GivenTheRoomExists : WhenBook
     {
@@ -32,7 +30,7 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
             public void ThenReturnTheBookingWithTheNumberItWasGiven() =>
                 Result.Is(new Booking(
                     The<int>(),
-                    new BookingInfo(The<Room>().RoomNumber, The<string>(), 1),
+                    new BookingInfo(The<Room>().RoomNumber, The<BookingRequest>().GuestName, 1),
                     new BookingPeriod(Arrival, Departure),
                     new BookingState(Open, [Cancel])));
 
@@ -50,11 +48,12 @@ public abstract class WhenBook : Spec<Core.Bookings.BookingService, Booking>
                 Given<IBookingNumberGenerator>().That(_ => _.Next())
                 .First().Returns(An<int>).AndNext().Returns(ASecond<int>)
                 .And<IBookingStore>().That(_ => _.Load()).Returns(Zero<StoredBooking>)
-                .Having(_ => _.Book(new BookingRequest(
-                    The<Room>().RoomNumber,
-                    ASecond<string>(),
-                    1,
-                    new BookingPeriod(Today, Arrival))));
+                .Having(_ => _.Book(ASecond<BookingRequest>() with
+                {
+                    RoomNumber = The<Room>().RoomNumber,
+                    GuestCount = 1,
+                    Period = new(Today, Arrival),
+                }));
 
             [Fact] public void ThenTakeTheSecondNumber() => Result.BookingNumber.Is(TheSecond<int>());
         }

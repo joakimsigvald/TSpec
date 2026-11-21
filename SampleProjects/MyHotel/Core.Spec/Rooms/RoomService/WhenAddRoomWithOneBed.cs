@@ -9,7 +9,7 @@ public abstract class WhenAddRoomWithOneBed : Spec<Core.Rooms.RoomService, RoomO
         public GivenNoSuchRoom() =>
             Given<IRoomStore>().That(_ => _.Load()).Returns(Zero<Room>)
                 .And<IRoomCategoryStore>().That(_ => _.Load())
-                .Returns(() => [new RoomCategory(The<Room>().RoomCategory, Any<string>())])
+                .Returns(() => [A<RoomCategory>() with { Name = The<Room>().RoomCategory }])
                 .And<IRoomBookings>().Returns(Zero<string>);
 
         [Fact] public void ThenReturnTheRoomWithOneBed() => Result.BedCount.Is(1);

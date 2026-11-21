@@ -8,20 +8,17 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 /// A change keeps the booking's number and what has happened to it, and gives it the room, guest, guest
 /// count and period asked for. What can be done with it follows the new dates: it now arrives today.
 /// </summary>
-public abstract class WhenChange : Spec<Core.Bookings.BookingService, Booking>
+public abstract class WhenChange : BookingServiceSpec<Booking>
 {
     private readonly Tag<StoredBooking> _booking = new();
     private readonly Tag<StoredBooking> _otherBooking = new();
 
     protected WhenChange() =>
         Using(TodayIs(Today))
+            .And(new BookingPeriod(Today, LaterDay))
             .When(_ => _.Change(
                 The(_booking).BookingNumber,
-                new BookingRequest(
-                    A<Room>().RoomNumber,
-                    A<string>(),
-                    1,
-                    new BookingPeriod(Today, LaterDay))));
+                A<BookingRequest>() with { RoomNumber = A<Room>().RoomNumber, GuestCount = 1 }));
 
     public abstract class GivenTheRoomExists : WhenChange
     {
@@ -44,7 +41,7 @@ public abstract class WhenChange : Spec<Core.Bookings.BookingService, Booking>
             public void ThenReturnItChanged() =>
                 Result.Is(new Booking(
                     The(_booking).BookingNumber,
-                    new BookingInfo(The<Room>().RoomNumber, The<string>(), 1),
+                    new BookingInfo(The<Room>().RoomNumber, The<BookingRequest>().GuestName, 1),
                     new BookingPeriod(Today, LaterDay),
                     new BookingState(Open, [Cancel, CheckIn])));
 
@@ -53,7 +50,7 @@ public abstract class WhenChange : Spec<Core.Bookings.BookingService, Booking>
                 Then<IBookingStore>(_ => _.Save(new[] { new StoredBooking(
                     The(_booking).BookingNumber,
                     The<Room>().RoomNumber,
-                    The<string>(),
+                    The<BookingRequest>().GuestName,
                     1,
                     new BookingPeriod(Today, LaterDay),
                     BookingStage.Booked) }));

@@ -1,6 +1,6 @@
 ﻿namespace MyHotel.Core.Spec.Bookings.BookingService;
 
-public class WhenBookDepartureBeforeArrival : Spec<Core.Bookings.BookingService, Booking>
+public class WhenBookDepartureBeforeArrival : BookingServiceSpec<Booking>
 {
     public WhenBookDepartureBeforeArrival() =>
         Using(new BookingPeriod(Tomorrow, Today))

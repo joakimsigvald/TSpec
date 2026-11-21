@@ -8,6 +8,7 @@ A small hotel booking API: rooms, bookings, and the rules that keep them consist
 Subject under test: Hotel
 Return type: HttpResponseMessage
 Using Room with RoomCategory = "Standard"
+  and new BookingPeriod(Tomorrow, LaterDay)
 ```
 
 | Specification                       | When | Given | Then |

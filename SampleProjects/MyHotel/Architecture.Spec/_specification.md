@@ -16,6 +16,7 @@ flowchart TD
     Entry --> Contract
     Host --> Entry
     Host --> Infra
+    Host_Spec -.-> Core_Spec
     Host_Spec -.-> Host
     Infra --> Core
     click Core "../Core.Spec/_specification/README.md"
@@ -41,15 +42,15 @@ flowchart TD
 
 - **Are only these and not redundant**
 
-  | Project   | May reference | May use                        |
-  | --------- | ------------- | ------------------------------ |
-  | Contract  | -             | Microsoft.*                    |
-  | Core      | Contract      | Microsoft.*                    |
-  | Core.Spec | Core          | *                              |
-  | Entry     | Contract      | Microsoft.*                    |
-  | Host      | Entry, Infra  | Scalar.AspNetCore, Microsoft.* |
-  | Host.Spec | Host          | *                              |
-  | Infra     | Core          | Microsoft.*                    |
+  | Project   | May reference   | May use                        |
+  | --------- | --------------- | ------------------------------ |
+  | Contract  | -               | Microsoft.*                    |
+  | Core      | Contract        | Microsoft.*                    |
+  | Core.Spec | Core            | *                              |
+  | Entry     | Contract        | Microsoft.*                    |
+  | Host      | Entry, Infra    | Scalar.AspNetCore, Microsoft.* |
+  | Host.Spec | Host, Core.Spec | *                              |
+  | Infra     | Core            | Microsoft.*                    |
 
   ```
   Source.Projects is within what is allowed

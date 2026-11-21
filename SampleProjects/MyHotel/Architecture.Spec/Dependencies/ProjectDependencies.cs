@@ -18,7 +18,7 @@ public class ProjectDependencies : TSpec.Spec
             "Host" => ["Entry", "Infra", "P:Scalar.AspNetCore"],
             "Entry" or "Core" => ["Contract"],
             "Infra" => ["Core"],
-            "Host.Spec" => ["Host"],
+            "Host.Spec" => ["Host", "Core.Spec"],
             "Core.Spec" => ["Core"],
             _ => [],
         };

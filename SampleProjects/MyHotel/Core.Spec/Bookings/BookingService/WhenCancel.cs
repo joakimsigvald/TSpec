@@ -6,7 +6,7 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 /// Cancelling keeps the booking as a record: it is stored again, marked cancelled. Only an open
 /// booking, or a no-show until its departure day has passed, can be cancelled.
 /// </summary>
-public abstract class WhenCancel : Spec<Core.Bookings.BookingService>
+public abstract class WhenCancel : BookingServiceSpec<Core.Bookings.BookingService>
 {
     private readonly Tag<StoredBooking> _booking = new();
 

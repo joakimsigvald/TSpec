@@ -8,7 +8,7 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 /// its dates and today's date, so what the store holds only says what has happened to it. The
 /// arrival and departure days still count: a booking turns no-show or past only the day after.
 /// </summary>
-public abstract class WhenGet : Spec<Core.Bookings.BookingService, Booking>
+public abstract class WhenGet : BookingServiceSpec<Booking>
 {
     protected WhenGet() =>
         Using(TodayIs(Today))

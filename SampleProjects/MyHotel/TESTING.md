@@ -28,8 +28,8 @@ in Core, or a domain rule over HTTP.
 - Each value shows what the precondition needs of it, never an arbitrary pick: a mention when any
   value will do, a tag when any will do but the claim names its role (`Tag<int> bedCount`), one
   derived from another when the claim rests on how they relate (`The<int>() + 1`), and the domain's
-  name for it when it has one, kept in the spec project for every spec to share, as `Time` holds
-  `Today` and `Tomorrow`. A literal only when the value itself is the claim.
+  name for it when it has one, kept in a spec project for every spec to share, as Core.Spec's `Time`
+  holds `Today` and `Tomorrow` for both suites. A literal only when the value itself is the claim.
 - Write out only what the claim rests on and what keeps the rest of the input valid. Leave the rest
   to generation, with `A<T>() with { … }` or `Using(value)`, rather than spelling it out as
   mentions, and of the forms that do this, choose the one that reads best. `new T(…)` is the last

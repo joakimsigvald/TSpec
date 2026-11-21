@@ -15,16 +15,12 @@ public abstract class WhenCheckOut : ApiSpec<HttpResponseMessage>
     {
         public GivenItsDepartureDay()
         {
-            Having(_ => _.SetToday(new(2026, 8, 12)));
+            Using(new BookingPeriod(Today, Tomorrow));
+            Having(_ => _.SetToday(Tomorrow));
             Having(_ => _.Api.PostAsync("/bookings/10001/check-in", null));
-            Having(_ => _.SetToday(new(2026, 8, 10)));
             Having(_ => _.Api.PostAsJsonAsync(
                 "/bookings",
-                new BookingRequest(
-                    The<Room>().RoomNumber,
-                    A<string>(),
-                    1,
-                    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))));
+                A<BookingRequest>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 }));
             Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
         }
 
@@ -39,14 +35,11 @@ public abstract class WhenCheckOut : ApiSpec<HttpResponseMessage>
     {
         public GivenItWasNotCheckedIn()
         {
-            Having(_ => _.SetToday(new(2026, 8, 12)));
+            Using(new BookingPeriod(Today, Tomorrow));
+            Having(_ => _.SetToday(Tomorrow));
             Having(_ => _.Api.PostAsJsonAsync(
                 "/bookings",
-                new BookingRequest(
-                    The<Room>().RoomNumber,
-                    A<string>(),
-                    1,
-                    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12)))));
+                A<BookingRequest>() with { RoomNumber = The<Room>().RoomNumber, GuestCount = 1 }));
             Having(_ => _.Api.PostAsJsonAsync("/rooms", A<Room>()));
         }
 

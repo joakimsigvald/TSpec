@@ -189,7 +189,7 @@ When Update(a Room's RoomNumber, the Room with { BedCount = 10 }), returns RoomO
 ### [When add room with nine beds](../Rooms/RoomService/WhenAddRoomWithNineBeds.cs)
 ```
 Given IRoomStore.Load() returns zero Rooms
-  and IRoomCategoryStore.Load() returns [new RoomCategory(the Room's RoomCategory, any string)]
+  and IRoomCategoryStore.Load() returns [a RoomCategory with { Name = the Room's RoomCategory }]
   and IRoomBookings returns zero strings
 When Add(a Room with { BedCount = 9 }), returns RoomOverview
 ```
@@ -201,7 +201,7 @@ When Add(a Room with { BedCount = 9 }), returns RoomOverview
 ### [When add room with one bed](../Rooms/RoomService/WhenAddRoomWithOneBed.cs)
 ```
 Given IRoomStore.Load() returns zero Rooms
-  and IRoomCategoryStore.Load() returns [new RoomCategory(the Room's RoomCategory, any string)]
+  and IRoomCategoryStore.Load() returns [a RoomCategory with { Name = the Room's RoomCategory }]
   and IRoomBookings returns zero strings
 When Add(a Room with { BedCount = 1 }), returns RoomOverview
 ```
@@ -213,7 +213,7 @@ When Add(a Room with { BedCount = 1 }), returns RoomOverview
 ### [When update room with nine beds](../Rooms/RoomService/WhenUpdateRoomWithNineBeds.cs)
 ```
 Given IRoomStore.Load() returns one Room
-  and IRoomCategoryStore.Load() returns [new RoomCategory(the Room's RoomCategory, any string)]
+  and IRoomCategoryStore.Load() returns [a RoomCategory with { Name = the Room's RoomCategory }]
   and IRoomBookings returns zero strings
 When Update(a Room's RoomNumber, the Room with { BedCount = 9 }), returns RoomOverview
 ```
@@ -225,7 +225,7 @@ When Update(a Room's RoomNumber, the Room with { BedCount = 9 }), returns RoomOv
 ### [When update room with one bed](../Rooms/RoomService/WhenUpdateRoomWithOneBed.cs)
 ```
 Given IRoomStore.Load() returns one Room
-  and IRoomCategoryStore.Load() returns [new RoomCategory(the Room's RoomCategory, any string)]
+  and IRoomCategoryStore.Load() returns [a RoomCategory with { Name = the Room's RoomCategory }]
   and IRoomBookings returns zero strings
 When Update(a Room's RoomNumber, the Room with { BedCount = 1 }), returns RoomOverview
 ```
@@ -304,7 +304,7 @@ IRoomStore.Load() returns zero Rooms
 #### Given no such room
 ```
 IRoomStore.Load() returns zero Rooms
-  and IRoomCategoryStore.Load() returns [new RoomCategory(the Room's RoomCategory, any string)]
+  and IRoomCategoryStore.Load() returns [a RoomCategory with { Name = the Room's RoomCategory }]
   and IRoomBookings returns zero strings
 ```
 
@@ -372,7 +372,7 @@ UpdatedRoom is the Room with { BedCount = a second int }
 ```
 UpdatedRoom is the Room with { BedCount = a second int }
   and IRoomStore.Load() returns [a second Room, the Room]
-  and IRoomCategoryStore.Load() returns [new RoomCategory(the Room's RoomCategory, any string)]
+  and IRoomCategoryStore.Load() returns [a RoomCategory with { Name = the Room's RoomCategory }]
 ```
 
 - **keep it where it was** — `IRoomStore.Save([the second Room, the UpdatedRoom])`
@@ -391,7 +391,7 @@ UpdatedRoom is the Room with { BedCount = a second int }
 ```
 UpdatedRoom is the Room with { BedCount = a second int }
   and IRoomStore.Load() returns one Room
-  and IRoomCategoryStore.Load() returns [new RoomCategory(the Room's RoomCategory, any string)]
+  and IRoomCategoryStore.Load() returns [a RoomCategory with { Name = the Room's RoomCategory }]
   and IRoomBookings returns zero strings
 ```
 

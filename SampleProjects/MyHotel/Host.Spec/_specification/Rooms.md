@@ -5,6 +5,7 @@
 Subject under test: Hotel
 Return type: HttpResponseMessage
 Using Room with RoomCategory = "Standard"
+  and new BookingPeriod(Tomorrow, LaterDay)
 ```
 
 ## [When add room with ten beds](../Rooms/WhenAddRoomWithTenBeds.cs)
@@ -93,8 +94,7 @@ Having Api.PostAsJsonAsync("/rooms", a second Room)
 ### Given the room has an open booking
 ```
 Having Api.PostAsJsonAsync("/bookings",
-    new BookingRequest(the Room's RoomNumber, a string, 1,
-    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12))))
+    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
   after Api.PostAsJsonAsync("/rooms", the Room)
 ```
 
@@ -127,8 +127,7 @@ Having Restart()
 ### Given the room has an open booking
 ```
 Having Api.PostAsJsonAsync("/bookings",
-    new BookingRequest(the Room's RoomNumber, a string, 1,
-    new BookingPeriod(new(2026, 8, 10), new(2026, 8, 12))))
+    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
   after Api.PostAsJsonAsync("/rooms", the Room)
 ```
 

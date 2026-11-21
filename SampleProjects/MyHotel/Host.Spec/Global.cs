@@ -4,3 +4,4 @@ global using TSpec.Assert;
 global using MyHotel.Contract;
 global using MyHotel.Contract.Bookings;
 global using MyHotel.Contract.Rooms;
+global using static MyHotel.Core.Spec.Time;
