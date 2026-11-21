@@ -28,7 +28,8 @@ public class BookingService(
         await EnsureBookable(request);
         var bookings = await store.Load();
         EnsureRoomFree(request, bookings);
-        var booked = new StoredBooking(await numbers.Next(), request.Info, request.Period, BookingStage.Booked);
+        var booked = new StoredBooking(
+            await numbers.Next(), request.Info, request.Period, BookingStage.Booked);
         await store.Save([.. bookings, booked]);
         return Sent(booked);
     }

@@ -16,23 +16,19 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>1.7.0</PackageVersion>
+		<PackageVersion>1.7.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			* A file's SourceLines: each line with its file, its number and whether it is code
-			* A file's Comments: each with its kind, its span and text, and the code it leads
-			* A member Carries a type it gives or takes
-			DEPRECATED
-			* A file's Lines: use SourceLines and a line's Text
+			* Updated TSpec package
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.12.0" />
-		<PackageReference Include="TSpec" Version="5.6.0" PrivateAssets="none" />
+		<PackageReference Include="TSpec" Version="5.7.0" PrivateAssets="none" />
 		<InternalsVisibleTo Include="TSpec.Architecture.CSharp.Test" />
 		<None Include="README.md" Pack="true" PackagePath="\" />
 		<None Include="agent-reference.md" Pack="true" PackagePath="\" />

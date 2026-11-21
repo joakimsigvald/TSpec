@@ -21,7 +21,7 @@
 
 	<!-- TSpec's working copy, built into ..\lib. -->
 	<ItemGroup>
-		<Reference Include="TSpec" HintPath="..\lib\TSpec.dll" />
+		<PackageReference Include="TSpec" Version="5.7.0" />
 		<Analyzer Include="..\lib\TSpec.Analyzers.dll" />
 	</ItemGroup>
 
