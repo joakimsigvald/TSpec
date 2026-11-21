@@ -25,6 +25,9 @@ namespace TSpec.Internal.Document;
 /// <param name="Declared">Where the test method is declared, as the run orders it: the depth of its
 /// class below the root of the hierarchy, then its place in that class; null when it is not known.</param>
 /// <param name="Table">What an assertion stated as a table, laid out under the requirement; null for most.</param>
+/// <param name="BranchDeclared">Where each class of the branch is declared, outermost first: its metadata
+/// token. The compiler numbers the classes nested in a class as declared, but not depth-first, so a token
+/// orders a class only among its siblings. Empty when it is not known.</param>
 internal sealed record SpecificationEntry(
     string Subject,
     string Branch,
@@ -37,4 +40,5 @@ internal sealed record SpecificationEntry(
     TheoryRow? Row = null,
     SourceLocation? Source = null,
     (int Depth, int Token)? Declared = null,
-    SpecificationTable? Table = null);
+    SpecificationTable? Table = null,
+    IReadOnlyList<int>? BranchDeclared = null);

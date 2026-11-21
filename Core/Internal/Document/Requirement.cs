@@ -9,8 +9,6 @@ internal sealed record Requirement(
     string Signature,
     IReadOnlyList<TheoryRow> Rows)
 {
-    internal int ArrangementCount => DocumentNode.CountArrangements(Clauses);
-
     internal string Name
     {
         get

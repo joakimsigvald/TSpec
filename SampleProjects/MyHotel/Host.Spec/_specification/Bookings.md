@@ -8,6 +8,51 @@ Using Room with RoomCategory = "Standard"
   and new BookingPeriod(Tomorrow, LaterDay)
 ```
 
+## [When book room](../Bookings/WhenBookRoom.cs)
+```
+Using new BookingPeriod(Tomorrow, LaterDay)
+When Api.PostAsJsonAsync("/bookings",
+    a BookingRequest with { RoomNumber = a Room's RoomNumber, GuestCount = 1 })
+```
+
+### Given the room exists
+`Having Api.PostAsJsonAsync("/rooms", the Room)`
+
+- **respond created** — `Result.StatusCode is Created`
+- **return the booking with the seeded number**
+  ```
+  Result.Read<Booking>() is new Booking(10001,
+      new BookingInfo(the Room's RoomNumber, the BookingRequest's GuestName, 1),
+      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel]))
+  ```
+- **point at the new booking** — `Result.Headers.Location.ToString() is "/bookings/10001"`
+
+### Given a booking was made before a restart
+```
+Having Restart()
+  after Api.PostAsJsonAsync("/bookings",
+      a second BookingRequest with
+      { RoomNumber = the Room's RoomNumber, GuestCount = 1,
+      Period = new BookingPeriod(Today, Tomorrow) })
+  after Api.PostAsJsonAsync("/rooms", the Room)
+```
+
+- **carry on from the number already issued**\
+  `Result.Read<Booking>().BookingNumber is 10002`
+
+### Given an overlapping booking
+```
+Having Api.PostAsJsonAsync("/bookings",
+    a second BookingRequest with
+    { RoomNumber = the Room's RoomNumber, GuestCount = 1,
+    Period = new BookingPeriod(Today, LaterDay) })
+  after Api.PostAsJsonAsync("/rooms", the Room)
+```
+
+- **respond conflict** — `Result.StatusCode is Conflict`
+- **say the room is already booked**\
+  `Result.Read<ErrorBody>().Code is "RoomAlreadyBooked"`
+
 ## [When book three guests](../Bookings/WhenBookThreeGuests.cs)
 ```
 Api.PostAsJsonAsync("/bookings",
@@ -46,6 +91,30 @@ Having Api.PostAsJsonAsync("/rooms", the Room)
 - **respond bad request** — `Result.StatusCode is BadRequest`
 - **say the period is invalid** — `Result.Read<ErrorBody>().Code is "InvalidBookingPeriod"`
 
+## [When cancel booking](../Bookings/WhenCancelBooking.cs)
+`Api.DeleteAsync("/bookings/10001")`
+
+### Given the booking exists
+```
+Having Api.PostAsJsonAsync("/bookings",
+    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+  after Api.PostAsJsonAsync("/rooms", a Room)
+```
+
+- **respond no content** — `Result.StatusCode is NoContent`
+
+### Given the booking was already cancelled
+```
+Having Api.DeleteAsync("/bookings/10001")
+  after Api.PostAsJsonAsync("/bookings",
+      a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+  after Api.PostAsJsonAsync("/rooms", a Room)
+```
+
+- **respond conflict** — `Result.StatusCode is Conflict`
+- **say the booking is not cancellable**\
+  `Result.Read<ErrorBody>().Code is "BookingNotCancellable"`
+
 ## [When cancel bookings](../Bookings/WhenCancelBookings.cs)
 ```
 Api.DeleteAsync("/rooms/{a Room's RoomNumber}/bookings")
@@ -80,6 +149,106 @@ Having Api.PostAsJsonAsync("/bookings",
       new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel]))
   ```
 
+## [When check in](../Bookings/WhenCheckIn.cs)
+```
+Api.PostAsync("/bookings/10001/check-in", null)
+Having Api.PostAsJsonAsync("/bookings",
+    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+  after Api.PostAsJsonAsync("/rooms", a Room)
+```
+
+### Given its arrival day
+`Using new BookingPeriod(Today, LaterDay)`
+
+- **respond no content** — `Result.StatusCode is NoContent`
+
+### Given its arrival is later
+`Using new BookingPeriod(Tomorrow, LaterDay)`
+
+- **respond conflict** — `Result.StatusCode is Conflict`
+- **say it is not due for check in**\
+  `Result.Read<ErrorBody>().Code is "NotDueForCheckIn"`
+
+## [When check out](../Bookings/WhenCheckOut.cs)
+```
+Using new BookingPeriod(Today, Tomorrow)
+When Api.PostAsync("/bookings/10001/check-out", null)
+Having SetToday(Tomorrow)
+```
+
+### Given its departure day
+```
+Having Api.PostAsync("/bookings/10001/check-in", null)
+  after Api.PostAsJsonAsync("/bookings",
+      a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+  after Api.PostAsJsonAsync("/rooms", a Room)
+```
+
+- **respond no content** — `Result.StatusCode is NoContent`
+
+### Given it was not checked in
+```
+Having Api.PostAsJsonAsync("/bookings",
+    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+  after Api.PostAsJsonAsync("/rooms", a Room)
+```
+
+- **respond conflict** — `Result.StatusCode is Conflict`
+- **say it is not due for check out**\
+  `Result.Read<ErrorBody>().Code is "NotDueForCheckOut"`
+
+## [When get booking](../Bookings/WhenGetBooking.cs)
+`Api.GetAsync("/bookings/10001")`
+
+### Given the booking exists
+```
+Using new BookingPeriod(Tomorrow, LaterDay)
+Having Api.PostAsJsonAsync("/bookings",
+    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+  after Api.PostAsJsonAsync("/rooms", a Room)
+```
+
+- **respond ok** — `Result.StatusCode is OK`
+- **return the booking**
+  ```
+  Result.Read<Booking>() is new Booking(10001,
+      new BookingInfo(the Room's RoomNumber, the BookingRequest's GuestName, 1),
+      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel]))
+  ```
+
+### Given no such booking
+
+- **respond not found** — `Result.StatusCode is NotFound`
+- **say there is no such booking** — `Result.Read<ErrorBody>().Code is "BookingNotFound"`
+
+### Given the application was restarted
+```
+Using new BookingPeriod(Tomorrow, LaterDay)
+Having Restart()
+  after Api.PostAsJsonAsync("/bookings",
+      a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+  after Api.PostAsJsonAsync("/rooms", a Room)
+```
+
+- **respond ok** — `Result.StatusCode is OK`
+- **return the booking**
+  ```
+  Result.Read<Booking>() is new Booking(10001,
+      new BookingInfo(the Room's RoomNumber, the BookingRequest's GuestName, 1),
+      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel]))
+  ```
+
+### Given the booking was cancelled
+```
+Having Api.DeleteAsync("/bookings/10001")
+  after Api.PostAsJsonAsync("/bookings",
+      a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+  after Api.PostAsJsonAsync("/rooms", a Room)
+```
+
+- **respond ok** — `Result.StatusCode is OK`
+- **say it is cancelled** — `Result.Read<Booking>().State.Status is Cancelled`
+
 ## [When list bookings](../Bookings/WhenListBookings.cs)
 `Api.GetAsync("/bookings")`
 
@@ -111,173 +280,4 @@ Having Api.PostAsJsonAsync("/bookings",
       new Booking(10002,
       new BookingInfo(the Room's RoomNumber, the second BookingRequest's GuestName, 1),
       new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel]))]
-  ```
-
-## [When check in](../Bookings/WhenCheckIn.cs)
-```
-Api.PostAsync("/bookings/10001/check-in", null)
-Having Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
-  after Api.PostAsJsonAsync("/rooms", a Room)
-```
-
-### Given its arrival day
-`Using new BookingPeriod(Today, LaterDay)`
-
-- **respond no content** — `Result.StatusCode is NoContent`
-
-### Given its arrival is later
-`Using new BookingPeriod(Tomorrow, LaterDay)`
-
-- **respond conflict** — `Result.StatusCode is Conflict`
-- **say it is not due for check in**\
-  `Result.Read<ErrorBody>().Code is "NotDueForCheckIn"`
-
-## [When cancel booking](../Bookings/WhenCancelBooking.cs)
-`Api.DeleteAsync("/bookings/10001")`
-
-### Given the booking exists
-```
-Having Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
-  after Api.PostAsJsonAsync("/rooms", a Room)
-```
-
-- **respond no content** — `Result.StatusCode is NoContent`
-
-### Given the booking was already cancelled
-```
-Having Api.DeleteAsync("/bookings/10001")
-  after Api.PostAsJsonAsync("/bookings",
-      a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
-  after Api.PostAsJsonAsync("/rooms", a Room)
-```
-
-- **respond conflict** — `Result.StatusCode is Conflict`
-- **say the booking is not cancellable**\
-  `Result.Read<ErrorBody>().Code is "BookingNotCancellable"`
-
-## [When book room](../Bookings/WhenBookRoom.cs)
-```
-Using new BookingPeriod(Tomorrow, LaterDay)
-When Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = a Room's RoomNumber, GuestCount = 1 })
-```
-
-### Given the room exists
-`Having Api.PostAsJsonAsync("/rooms", the Room)`
-
-- **respond created** — `Result.StatusCode is Created`
-- **return the booking with the seeded number**
-  ```
-  Result.Read<Booking>() is new Booking(10001,
-      new BookingInfo(the Room's RoomNumber, the BookingRequest's GuestName, 1),
-      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel]))
-  ```
-- **point at the new booking** — `Result.Headers.Location.ToString() is "/bookings/10001"`
-
-### Given an overlapping booking
-```
-Having Api.PostAsJsonAsync("/bookings",
-    a second BookingRequest with
-    { RoomNumber = the Room's RoomNumber, GuestCount = 1,
-    Period = new BookingPeriod(Today, LaterDay) })
-  after Api.PostAsJsonAsync("/rooms", the Room)
-```
-
-- **respond conflict** — `Result.StatusCode is Conflict`
-- **say the room is already booked**\
-  `Result.Read<ErrorBody>().Code is "RoomAlreadyBooked"`
-
-### Given a booking was made before a restart
-```
-Having Restart()
-  after Api.PostAsJsonAsync("/bookings",
-      a second BookingRequest with
-      { RoomNumber = the Room's RoomNumber, GuestCount = 1,
-      Period = new BookingPeriod(Today, Tomorrow) })
-  after Api.PostAsJsonAsync("/rooms", the Room)
-```
-
-- **carry on from the number already issued**\
-  `Result.Read<Booking>().BookingNumber is 10002`
-
-## [When check out](../Bookings/WhenCheckOut.cs)
-```
-Using new BookingPeriod(Today, Tomorrow)
-When Api.PostAsync("/bookings/10001/check-out", null)
-Having SetToday(Tomorrow)
-```
-
-### Given it was not checked in
-```
-Having Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
-  after Api.PostAsJsonAsync("/rooms", a Room)
-```
-
-- **respond conflict** — `Result.StatusCode is Conflict`
-- **say it is not due for check out**\
-  `Result.Read<ErrorBody>().Code is "NotDueForCheckOut"`
-
-### Given its departure day
-```
-Having Api.PostAsync("/bookings/10001/check-in", null)
-  after Api.PostAsJsonAsync("/bookings",
-      a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
-  after Api.PostAsJsonAsync("/rooms", a Room)
-```
-
-- **respond no content** — `Result.StatusCode is NoContent`
-
-## [When get booking](../Bookings/WhenGetBooking.cs)
-`Api.GetAsync("/bookings/10001")`
-
-### Given no such booking
-
-- **respond not found** — `Result.StatusCode is NotFound`
-- **say there is no such booking** — `Result.Read<ErrorBody>().Code is "BookingNotFound"`
-
-### Given the booking exists
-```
-Using new BookingPeriod(Tomorrow, LaterDay)
-Having Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
-  after Api.PostAsJsonAsync("/rooms", a Room)
-```
-
-- **respond ok** — `Result.StatusCode is OK`
-- **return the booking**
-  ```
-  Result.Read<Booking>() is new Booking(10001,
-      new BookingInfo(the Room's RoomNumber, the BookingRequest's GuestName, 1),
-      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel]))
-  ```
-
-### Given the booking was cancelled
-```
-Having Api.DeleteAsync("/bookings/10001")
-  after Api.PostAsJsonAsync("/bookings",
-      a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
-  after Api.PostAsJsonAsync("/rooms", a Room)
-```
-
-- **respond ok** — `Result.StatusCode is OK`
-- **say it is cancelled** — `Result.Read<Booking>().State.Status is Cancelled`
-
-### Given the application was restarted
-```
-Using new BookingPeriod(Tomorrow, LaterDay)
-Having Restart()
-  after Api.PostAsJsonAsync("/bookings",
-      a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
-  after Api.PostAsJsonAsync("/rooms", a Room)
-```
-
-- **respond ok** — `Result.StatusCode is OK`
-- **return the booking**
-  ```
-  Result.Read<Booking>() is new Booking(10001,
-      new BookingInfo(the Room's RoomNumber, the BookingRequest's GuestName, 1),
-      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel]))
   ```

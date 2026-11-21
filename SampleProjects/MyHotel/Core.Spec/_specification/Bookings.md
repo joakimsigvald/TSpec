@@ -12,13 +12,6 @@ Using new BookingNumberSeed(an int)
 ### [When next](../Bookings/BookingNumberGenerator/WhenNext.cs)
 `Next()`
 
-#### Given a number was issued
-`IBookingNumberStore.LoadLastUsed() returns a second int`
-
-- **issue the one after it** — `Result is the second int + 1`
-- **record it as the last used**\
-  `IBookingNumberStore.SaveLastUsed(the second int + 1) was invoked once`
-
 #### Given no number was issued yet
 `IBookingNumberStore.LoadLastUsed() returns null`
 
@@ -26,496 +19,18 @@ Using new BookingNumberSeed(an int)
 - **record it as the last used**\
   `IBookingNumberStore.SaveLastUsed(the int + 1) was invoked once`
 
-## Room Bookings
-```
-Subject under test: RoomBookings
-Return type: IReadOnlyList<string>
-Using today is Today
-```
+#### Given a number was issued
+`IBookingNumberStore.LoadLastUsed() returns a second int`
 
-### [When list held rooms](../Bookings/RoomBookings/WhenListHeldRooms.cs)
-`HeldRooms()`
-
-#### Given bookings that no longer hold their rooms
-```
-IBookingStore.Load() returns [a StoredBooking with
-    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.CheckedIn },
-    a second StoredBooking with
-    { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedOut },
-    a third StoredBooking with
-    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Cancelled },
-    a fourth StoredBooking with
-    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.Booked }]
-```
-
-- **return no rooms** — `Result is empty`
-
-#### Given bookings that still hold their rooms
-```
-IBookingStore.Load() returns [a StoredBooking with
-    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked },
-    a second StoredBooking with
-    { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedIn },
-    a third StoredBooking with
-    { Period = new(Yesterday, Today), Stage = BookingStage.Booked }]
-```
-
-- **return their rooms**
-  ```
-  Result is equal to [the first StoredBooking's RoomNumber,
-      the second StoredBooking's RoomNumber, the third StoredBooking's RoomNumber]
-  ```
-
-### [When list rooms with cancellable bookings](../Bookings/RoomBookings/WhenListRoomsWithCancellableBookings.cs)
-`RoomsWithCancellableBookings()`
-
-#### Given a cancelled booking and a no show that departed yesterday
-```
-IBookingStore.Load() returns [a StoredBooking with
-    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Cancelled },
-    a second StoredBooking with
-    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.Booked }]
-```
-
-- **return no rooms** — `Result is empty`
-
-#### Given bookings whose guests checked in
-```
-IBookingStore.Load() returns [a StoredBooking with
-    { Period = new(EarlierDay, Tomorrow), Stage = BookingStage.CheckedIn },
-    a second StoredBooking with
-    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.CheckedIn },
-    a third StoredBooking with
-    { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedOut }]
-```
-
-- **return no rooms** — `Result is empty`
-
-#### Given cancellable bookings
-```
-IBookingStore.Load() returns [a StoredBooking with
-    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked },
-    a second StoredBooking with
-    { Period = new(Yesterday, Today), Stage = BookingStage.Booked }]
-```
-
-- **return their rooms**\
-  `Result is equal to [the first StoredBooking's RoomNumber, the second StoredBooking's RoomNumber]`
+- **issue the one after it** — `Result is the second int + 1`
+- **record it as the last used**\
+  `IBookingNumberStore.SaveLastUsed(the second int + 1) was invoked once`
 
 ## Booking Service
 ```
 Subject under test: BookingService
 Using new BookingPeriod(Today, LaterDay)
 ```
-
-### [When book zero guests](../Bookings/BookingService/WhenBookZeroGuests.cs)
-`Book(a BookingRequest with { GuestCount = 0 }), returns Booking`
-
-- **throw invalid guest count**\
-  `throws InvalidGuestCount that Message contains "at least one guest"`
-
-### [When change to zero guests](../Bookings/BookingService/WhenChangeToZeroGuests.cs)
-`Change(any int, a BookingRequest with { GuestCount = 0 }), returns Booking`
-
-- **throw invalid guest count**\
-  `throws InvalidGuestCount that Message contains "at least one guest"`
-
-### [When book departure before arrival](../Bookings/BookingService/WhenBookDepartureBeforeArrival.cs)
-```
-Using new BookingPeriod(Tomorrow, Today)
-When Book(a BookingRequest with { GuestCount = 1 }), returns Booking
-```
-
-- **throw invalid booking period**\
-  `throws InvalidBookingPeriod that Message contains "at least one night"`
-
-### [When book zero nights](../Bookings/BookingService/WhenBookZeroNights.cs)
-```
-Using new BookingPeriod(Tomorrow, Tomorrow)
-When Book(a BookingRequest with { GuestCount = 1 }), returns Booking
-```
-
-- **throw invalid booking period**\
-  `throws InvalidBookingPeriod that Message contains "at least one night"`
-
-### [When change to three guests](../Bookings/BookingService/WhenChangeToThreeGuests.cs)
-```
-Given IRoomStore.Load() returns [the Room with { BedCount = 2 }]
-When Change(any int, a BookingRequest with { RoomNumber = a Room's RoomNumber, GuestCount = 3 })
-Return type: Booking
-```
-
-#### Given the room has two beds
-
-- **throw too many guests**\
-  `throws TooManyGuests that Message contains the Room's RoomNumber`
-- **store nothing** — `IBookingStore.Save was not invoked`
-
-### [When change to zero nights](../Bookings/BookingService/WhenChangeToZeroNights.cs)
-```
-Using new BookingPeriod(Tomorrow, Tomorrow)
-When Change(any int, a BookingRequest with { GuestCount = 1 }), returns Booking
-```
-
-- **throw invalid booking period**\
-  `throws InvalidBookingPeriod that Message contains "at least one night"`
-
-### [When list](../Bookings/BookingService/WhenList.cs)
-```
-Using today is Today
-When Bookings(), returns IReadOnlyList<Booking>
-```
-
-#### Given no bookings
-`IBookingStore.Load() returns zero StoredBookings`
-
-- **return no bookings** — `Result is empty`
-
-#### Given two bookings
-`IBookingStore.Load() returns two StoredBookings`
-
-- **return them in the order they were made**
-  ```
-  Result.Select(_ => _.BookingNumber) is equal to
-      [the first StoredBooking's BookingNumber, the second StoredBooking's BookingNumber]
-  ```
-
-### [When book three guests](../Bookings/BookingService/WhenBookThreeGuests.cs)
-```
-Using today is Today
-Given IBookingStore.Load() returns zero StoredBookings
-When Book(a BookingRequest with { RoomNumber = a Room's RoomNumber, GuestCount = 3 })
-Return type: Booking
-```
-
-#### Given the room has three beds
-`IRoomStore.Load() returns [the Room with { BedCount = 3 }]`
-
-- **book it for three guests** — `Result.Info.GuestCount is 3`
-
-#### Given the room has two beds
-`IRoomStore.Load() returns [the Room with { BedCount = 2 }]`
-
-- **throw too many guests**\
-  `throws TooManyGuests that Message contains the Room's RoomNumber`
-- **store nothing** — `IBookingStore.Save was not invoked`
-
-### [When cancel bookings](../Bookings/BookingService/WhenCancelBookings.cs)
-```
-Using today is Today
-Given IBookingStore.Load() returns [the Booking]
-When CancelBookings(a Room's RoomNumber)
-```
-
-#### Given a checked in booking of the room
-```
-Booking is a StoredBooking with
-    { RoomNumber = the Room's RoomNumber, Period = new(Yesterday, Tomorrow),
-    Stage = BookingStage.CheckedIn }
-```
-
-- **keep it as it is** — `IBookingStore.Save([the Booking])`
-
-#### Given a no show of the room departing today
-```
-Booking is a StoredBooking with
-    { RoomNumber = the Room's RoomNumber, Period = new(Yesterday, Today),
-    Stage = BookingStage.Booked }
-```
-
-- **mark it cancelled** — `IBookingStore.Save([MarkedCancelled(the Booking)])`
-
-#### Given a no show of the room that departed yesterday
-```
-Booking is a StoredBooking with
-    { RoomNumber = the Room's RoomNumber, Period = new(EarlierDay, Yesterday),
-    Stage = BookingStage.Booked }
-```
-
-- **keep it as it is** — `IBookingStore.Save([the Booking])`
-
-#### Given an open booking of another room
-```
-Booking is a StoredBooking with
-    { RoomNumber = a second Room's RoomNumber, Period = new(Tomorrow, LaterDay),
-    Stage = BookingStage.Booked }
-```
-
-- **keep it as it is** — `IBookingStore.Save([the Booking])`
-
-#### Given an open booking of the room
-```
-Booking is a StoredBooking with
-    { RoomNumber = the Room's RoomNumber, Period = new(Tomorrow, LaterDay),
-    Stage = BookingStage.Booked }
-```
-
-- **mark it cancelled** — `IBookingStore.Save([MarkedCancelled(the Booking)])`
-
-### [When get](../Bookings/BookingService/WhenGet.cs)
-```
-Using today is Today
-When BookingFor(a StoredBooking's BookingNumber), returns Booking
-```
-
-#### Given it is booked and arrives today
-```
-IBookingStore.Load() returns [the StoredBooking with
-    { Period = new(Today, LaterDay), Stage = BookingStage.Booked }]
-```
-
-- **return the booking** — `Result.BookingNumber is the StoredBooking's BookingNumber`
-- **say it is open and can be cancelled or checked in**\
-  `Result.State is new BookingState(Open, [Cancel, CheckIn])`
-
-#### Given it is booked and arrives tomorrow
-```
-IBookingStore.Load() returns [the StoredBooking with
-    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked }]
-```
-
-- **say it is open and can be cancelled**\
-  `Result.State is new BookingState(Open, [Cancel])`
-
-#### Given it is booked and departed yesterday
-```
-IBookingStore.Load() returns [the StoredBooking with
-    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.Booked }]
-```
-
-- **say it is a no show** — `Result.State is new BookingState(NoShow, [])`
-
-#### Given it is booked and departs today
-```
-IBookingStore.Load() returns [the StoredBooking with
-    { Period = new(Yesterday, Today), Stage = BookingStage.Booked }]
-```
-
-- **say it is a no show that can be cancelled**\
-  `Result.State is new BookingState(NoShow, [Cancel])`
-
-#### Given it is checked in and departed yesterday
-```
-IBookingStore.Load() returns [the StoredBooking with
-    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.CheckedIn }]
-```
-
-- **say it is past** — `Result.State is new BookingState(Past, [])`
-
-#### Given it is checked in and departs today
-```
-IBookingStore.Load() returns [the StoredBooking with
-    { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedIn }]
-```
-
-- **say it is checked in and can be checked out**\
-  `Result.State is new BookingState(CheckedIn, [CheckOut])`
-
-#### Given it is checked in and departs tomorrow
-```
-IBookingStore.Load() returns [the StoredBooking with
-    { Period = new(EarlierDay, Tomorrow), Stage = BookingStage.CheckedIn }]
-```
-
-- **say it is checked in** — `Result.State is new BookingState(CheckedIn, [])`
-
-#### Given it was cancelled
-```
-IBookingStore.Load() returns [the StoredBooking with
-    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Cancelled }]
-```
-
-- **say it is cancelled** — `Result.State is new BookingState(Cancelled, [])`
-
-#### Given it was checked out
-```
-IBookingStore.Load() returns [the StoredBooking with
-    { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedOut }]
-```
-
-- **say it is checked out** — `Result.State is new BookingState(CheckedOut, [])`
-
-#### Given no such booking
-`IBookingStore.Load() returns zero StoredBookings`
-
-- **throw booking not found**\
-  `throws BookingNotFound that Message contains "{the StoredBooking's BookingNumber}"`
-
-### [When cancel](../Bookings/BookingService/WhenCancel.cs)
-```
-Using today is Today
-When Cancel(the Booking's BookingNumber)
-```
-
-#### Given no such booking
-`IBookingStore.Load() returns zero StoredBookings`
-
-- **throw booking not found**\
-  `throws BookingNotFound that Message contains "{the Booking's BookingNumber}"`
-- **store nothing** — `IBookingStore.Save was not invoked`
-
-#### Given the booking is a no show departing today
-```
-Booking is a StoredBooking with { Period = new(Yesterday, Today), Stage = BookingStage.Booked }
-  and IBookingStore.Load() returns [the Booking]
-```
-
-- **keep it marked cancelled** — `IBookingStore.Save([MarkedCancelled(the Booking)])`
-
-#### Given the booking is a no show that departed yesterday
-```
-Booking is a StoredBooking with { Period = new(EarlierDay, Yesterday), Stage = BookingStage.Booked }
-  and IBookingStore.Load() returns [the Booking]
-```
-
-- **throw booking not cancellable**\
-  `throws BookingNotCancellable that Message contains "{the Booking's BookingNumber}"`
-- **store nothing** — `IBookingStore.Save was not invoked`
-
-#### Given the booking is checked in
-```
-Booking is a StoredBooking with
-    { Period = new(Yesterday, Tomorrow), Stage = BookingStage.CheckedIn }
-  and IBookingStore.Load() returns [the Booking]
-```
-
-- **throw booking not cancellable**\
-  `throws BookingNotCancellable that Message contains "{the Booking's BookingNumber}"`
-
-#### Given the booking is open
-```
-Booking is a StoredBooking with { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked }
-  and IBookingStore.Load() returns [the Booking]
-```
-
-- **keep it marked cancelled** — `IBookingStore.Save([MarkedCancelled(the Booking)])`
-
-#### Given the booking was cancelled
-```
-Booking is a StoredBooking with { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Cancelled }
-  and IBookingStore.Load() returns [the Booking]
-```
-
-- **throw booking not cancellable**\
-  `throws BookingNotCancellable that Message contains "{the Booking's BookingNumber}"`
-
-### [When check in](../Bookings/BookingService/WhenCheckIn.cs)
-```
-Using today is Today
-When CheckIn(the Booking's BookingNumber)
-```
-
-#### Given no such booking
-`IBookingStore.Load() returns zero StoredBookings`
-
-- **throw booking not found**\
-  `throws BookingNotFound that Message contains "{the Booking's BookingNumber}"`
-- **store nothing** — `IBookingStore.Save was not invoked`
-
-#### Given the booking arrived yesterday
-```
-Booking is a StoredBooking with { Period = new(Yesterday, LaterDay), Stage = BookingStage.Booked }
-  and IBookingStore.Load() returns [the Booking]
-```
-
-- **throw not due for check in**\
-  `throws NotDueForCheckIn that Message contains "{the Booking's BookingNumber}"`
-
-#### Given the booking arrives today
-```
-Booking is a StoredBooking with { Period = new(Today, LaterDay), Stage = BookingStage.Booked }
-  and IBookingStore.Load() returns [the Booking]
-```
-
-- **keep it marked checked in** — `IBookingStore.Save([MarkedCheckedIn(the Booking)])`
-
-#### Given the booking arrives tomorrow
-```
-Booking is a StoredBooking with { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked }
-  and IBookingStore.Load() returns [the Booking]
-```
-
-- **throw not due for check in**\
-  `throws NotDueForCheckIn that Message contains "{the Booking's BookingNumber}"`
-- **store nothing** — `IBookingStore.Save was not invoked`
-
-#### Given the booking is checked in
-```
-Booking is a StoredBooking with { Period = new(Today, LaterDay), Stage = BookingStage.CheckedIn }
-  and IBookingStore.Load() returns [the Booking]
-```
-
-- **throw not due for check in**\
-  `throws NotDueForCheckIn that Message contains "{the Booking's BookingNumber}"`
-
-#### Given the booking was cancelled
-```
-Booking is a StoredBooking with { Period = new(Today, LaterDay), Stage = BookingStage.Cancelled }
-  and IBookingStore.Load() returns [the Booking]
-```
-
-- **throw not due for check in**\
-  `throws NotDueForCheckIn that Message contains "{the Booking's BookingNumber}"`
-
-### [When check out](../Bookings/BookingService/WhenCheckOut.cs)
-```
-Using today is Today
-When CheckOut(the Booking's BookingNumber)
-```
-
-#### Given no such booking
-`IBookingStore.Load() returns zero StoredBookings`
-
-- **throw booking not found**\
-  `throws BookingNotFound that Message contains "{the Booking's BookingNumber}"`
-- **store nothing** — `IBookingStore.Save was not invoked`
-
-#### Given the booking is booked and departs today
-```
-Booking is a StoredBooking with { Period = new(EarlierDay, Today), Stage = BookingStage.Booked }
-  and IBookingStore.Load() returns [the Booking]
-```
-
-- **throw not due for check out**\
-  `throws NotDueForCheckOut that Message contains "{the Booking's BookingNumber}"`
-
-#### Given the booking is checked in and departs today
-```
-Booking is a StoredBooking with { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedIn }
-  and IBookingStore.Load() returns [the Booking]
-```
-
-- **keep it marked checked out** — `IBookingStore.Save([MarkedCheckedOut(the Booking)])`
-
-#### Given the booking is checked in and departs tomorrow
-```
-Booking is a StoredBooking with
-    { Period = new(EarlierDay, Tomorrow), Stage = BookingStage.CheckedIn }
-  and IBookingStore.Load() returns [the Booking]
-```
-
-- **throw not due for check out**\
-  `throws NotDueForCheckOut that Message contains "{the Booking's BookingNumber}"`
-- **store nothing** — `IBookingStore.Save was not invoked`
-
-#### Given the booking is past
-```
-Booking is a StoredBooking with
-    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.CheckedIn }
-  and IBookingStore.Load() returns [the Booking]
-```
-
-- **throw not due for check out**\
-  `throws NotDueForCheckOut that Message contains "{the Booking's BookingNumber}"`
-
-#### Given the booking was checked out
-```
-Booking is a StoredBooking with { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedOut }
-  and IBookingStore.Load() returns [the Booking]
-```
-
-- **throw not due for check out**\
-  `throws NotDueForCheckOut that Message contains "{the Booking's BookingNumber}"`
 
 ### [When book](../Bookings/BookingService/WhenBook.cs)
 ```
@@ -524,45 +39,6 @@ Using today is Today
 When Book(a BookingRequest with { RoomNumber = a Room's RoomNumber, GuestCount = 1 })
 Return type: Booking
 ```
-
-#### Given no such room
-`IRoomStore.Load() returns zero Rooms`
-
-- **throw room not found**\
-  `throws RoomNotFound that Message contains the Room's RoomNumber`
-
-#### Given the room exists, with an adjacent booking
-```
-IRoomStore.Load() returns [the Room]
-  and IBookingStore.Load() returns [a StoredBooking with
-      { RoomNumber = the Room's RoomNumber, Period = new(Today, Arrival),
-      Stage = BookingStage.Booked }]
-```
-
-- **book the room** — `Result.Info.RoomNumber is the Room's RoomNumber`
-
-#### Given the room exists, with an overlapping booking
-```
-IRoomStore.Load() returns [the Room]
-  and IBookingStore.Load() returns [a StoredBooking with
-      { RoomNumber = the Room's RoomNumber,
-      Period = new(Arrival.AddDays(1), Departure.AddDays(1)),
-      Stage = BookingStage.Booked }]
-```
-
-- **throw room already booked**\
-  `throws RoomAlreadyBooked that Message contains the Room's RoomNumber`
-
-#### Given the room exists, with an overlapping booking that was cancelled
-```
-IRoomStore.Load() returns [the Room]
-  and IBookingStore.Load() returns [a StoredBooking with
-      { RoomNumber = the Room's RoomNumber,
-      Period = new(Arrival.AddDays(1), Departure.AddDays(1)),
-      Stage = BookingStage.Cancelled }]
-```
-
-- **book the room** — `Result.Info.RoomNumber is the Room's RoomNumber`
 
 #### Given the room exists, with no bookings
 ```
@@ -592,6 +68,199 @@ Having Book(
 
 - **take the second number** — `Result.BookingNumber is the second int`
 
+#### Given the room exists, with an overlapping booking
+```
+IRoomStore.Load() returns [the Room]
+  and IBookingStore.Load() returns [a StoredBooking with
+      { RoomNumber = the Room's RoomNumber,
+      Period = new(Arrival.AddDays(1), Departure.AddDays(1)),
+      Stage = BookingStage.Booked }]
+```
+
+- **throw room already booked**\
+  `throws RoomAlreadyBooked that Message contains the Room's RoomNumber`
+
+#### Given the room exists, with an overlapping booking that was cancelled
+```
+IRoomStore.Load() returns [the Room]
+  and IBookingStore.Load() returns [a StoredBooking with
+      { RoomNumber = the Room's RoomNumber,
+      Period = new(Arrival.AddDays(1), Departure.AddDays(1)),
+      Stage = BookingStage.Cancelled }]
+```
+
+- **book the room** — `Result.Info.RoomNumber is the Room's RoomNumber`
+
+#### Given the room exists, with an adjacent booking
+```
+IRoomStore.Load() returns [the Room]
+  and IBookingStore.Load() returns [a StoredBooking with
+      { RoomNumber = the Room's RoomNumber, Period = new(Today, Arrival),
+      Stage = BookingStage.Booked }]
+```
+
+- **book the room** — `Result.Info.RoomNumber is the Room's RoomNumber`
+
+#### Given no such room
+`IRoomStore.Load() returns zero Rooms`
+
+- **throw room not found**\
+  `throws RoomNotFound that Message contains the Room's RoomNumber`
+
+### [When book departure before arrival](../Bookings/BookingService/WhenBookDepartureBeforeArrival.cs)
+```
+Using new BookingPeriod(Tomorrow, Today)
+When Book(a BookingRequest with { GuestCount = 1 }), returns Booking
+```
+
+- **throw invalid booking period**\
+  `throws InvalidBookingPeriod that Message contains "at least one night"`
+
+### [When book three guests](../Bookings/BookingService/WhenBookThreeGuests.cs)
+```
+Using today is Today
+Given IBookingStore.Load() returns zero StoredBookings
+When Book(a BookingRequest with { RoomNumber = a Room's RoomNumber, GuestCount = 3 })
+Return type: Booking
+```
+
+#### Given the room has two beds
+`IRoomStore.Load() returns [the Room with { BedCount = 2 }]`
+
+- **throw too many guests**\
+  `throws TooManyGuests that Message contains the Room's RoomNumber`
+- **store nothing** — `IBookingStore.Save was not invoked`
+
+#### Given the room has three beds
+`IRoomStore.Load() returns [the Room with { BedCount = 3 }]`
+
+- **book it for three guests** — `Result.Info.GuestCount is 3`
+
+### [When book zero guests](../Bookings/BookingService/WhenBookZeroGuests.cs)
+`Book(a BookingRequest with { GuestCount = 0 }), returns Booking`
+
+- **throw invalid guest count**\
+  `throws InvalidGuestCount that Message contains "at least one guest"`
+
+### [When book zero nights](../Bookings/BookingService/WhenBookZeroNights.cs)
+```
+Using new BookingPeriod(Tomorrow, Tomorrow)
+When Book(a BookingRequest with { GuestCount = 1 }), returns Booking
+```
+
+- **throw invalid booking period**\
+  `throws InvalidBookingPeriod that Message contains "at least one night"`
+
+### [When cancel](../Bookings/BookingService/WhenCancel.cs)
+```
+Using today is Today
+When Cancel(the Booking's BookingNumber)
+```
+
+#### Given the booking is open
+```
+Booking is a StoredBooking with { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **keep it marked cancelled** — `IBookingStore.Save([MarkedCancelled(the Booking)])`
+
+#### Given the booking is a no show departing today
+```
+Booking is a StoredBooking with { Period = new(Yesterday, Today), Stage = BookingStage.Booked }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **keep it marked cancelled** — `IBookingStore.Save([MarkedCancelled(the Booking)])`
+
+#### Given the booking is a no show that departed yesterday
+```
+Booking is a StoredBooking with { Period = new(EarlierDay, Yesterday), Stage = BookingStage.Booked }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **throw booking not cancellable**\
+  `throws BookingNotCancellable that Message contains "{the Booking's BookingNumber}"`
+- **store nothing** — `IBookingStore.Save was not invoked`
+
+#### Given the booking is checked in
+```
+Booking is a StoredBooking with
+    { Period = new(Yesterday, Tomorrow), Stage = BookingStage.CheckedIn }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **throw booking not cancellable**\
+  `throws BookingNotCancellable that Message contains "{the Booking's BookingNumber}"`
+
+#### Given the booking was cancelled
+```
+Booking is a StoredBooking with { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Cancelled }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **throw booking not cancellable**\
+  `throws BookingNotCancellable that Message contains "{the Booking's BookingNumber}"`
+
+#### Given no such booking
+`IBookingStore.Load() returns zero StoredBookings`
+
+- **throw booking not found**\
+  `throws BookingNotFound that Message contains "{the Booking's BookingNumber}"`
+- **store nothing** — `IBookingStore.Save was not invoked`
+
+### [When cancel bookings](../Bookings/BookingService/WhenCancelBookings.cs)
+```
+Using today is Today
+Given IBookingStore.Load() returns [the Booking]
+When CancelBookings(a Room's RoomNumber)
+```
+
+#### Given an open booking of the room
+```
+Booking is a StoredBooking with
+    { RoomNumber = the Room's RoomNumber, Period = new(Tomorrow, LaterDay),
+    Stage = BookingStage.Booked }
+```
+
+- **mark it cancelled** — `IBookingStore.Save([MarkedCancelled(the Booking)])`
+
+#### Given a no show of the room departing today
+```
+Booking is a StoredBooking with
+    { RoomNumber = the Room's RoomNumber, Period = new(Yesterday, Today),
+    Stage = BookingStage.Booked }
+```
+
+- **mark it cancelled** — `IBookingStore.Save([MarkedCancelled(the Booking)])`
+
+#### Given a no show of the room that departed yesterday
+```
+Booking is a StoredBooking with
+    { RoomNumber = the Room's RoomNumber, Period = new(EarlierDay, Yesterday),
+    Stage = BookingStage.Booked }
+```
+
+- **keep it as it is** — `IBookingStore.Save([the Booking])`
+
+#### Given a checked in booking of the room
+```
+Booking is a StoredBooking with
+    { RoomNumber = the Room's RoomNumber, Period = new(Yesterday, Tomorrow),
+    Stage = BookingStage.CheckedIn }
+```
+
+- **keep it as it is** — `IBookingStore.Save([the Booking])`
+
+#### Given an open booking of another room
+```
+Booking is a StoredBooking with
+    { RoomNumber = a second Room's RoomNumber, Period = new(Tomorrow, LaterDay),
+    Stage = BookingStage.Booked }
+```
+
+- **keep it as it is** — `IBookingStore.Save([the Booking])`
+
 ### [When change](../Bookings/BookingService/WhenChange.cs)
 ```
 Using today is Today
@@ -601,21 +270,26 @@ When Change(the Booking's BookingNumber,
 Return type: Booking
 ```
 
-#### Given no such room
-`IRoomStore.Load() returns zero Rooms`
-
-- **throw room not found**\
-  `throws RoomNotFound that Message contains the Room's RoomNumber`
-
-#### Given the room exists, with no such booking
+#### Given the room exists, with the booking open
 ```
-IRoomStore.Load() returns [the Room]
-  and IBookingStore.Load() returns zero StoredBookings
+Booking is a StoredBooking with { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked }
+  and IRoomStore.Load() returns [the Room]
+  and IBookingStore.Load() returns [the Booking]
 ```
 
-- **throw booking not found**\
-  `throws BookingNotFound that Message contains "{the Booking's BookingNumber}"`
-- **store nothing** — `IBookingStore.Save was not invoked`
+- **return it changed**
+  ```
+  Result is new Booking(the Booking's BookingNumber,
+      new BookingInfo(the Room's RoomNumber, the BookingRequest's GuestName, 1),
+      new BookingPeriod(Today, LaterDay), new BookingState(Open, [Cancel, CheckIn]))
+  ```
+- **store it changed**
+  ```
+  IBookingStore.Save(
+      [new StoredBooking(the Booking's BookingNumber, the Room's RoomNumber,
+      the BookingRequest's GuestName, 1, new BookingPeriod(Today, LaterDay),
+      BookingStage.Booked)])
+  ```
 
 #### Given the room exists, with the booking checked in
 ```
@@ -647,27 +321,6 @@ Booking is a StoredBooking with
 
 - **change it** — `Result.Period is new BookingPeriod(Today, LaterDay)`
 
-#### Given the room exists, with the booking open
-```
-Booking is a StoredBooking with { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked }
-  and IRoomStore.Load() returns [the Room]
-  and IBookingStore.Load() returns [the Booking]
-```
-
-- **return it changed**
-  ```
-  Result is new Booking(the Booking's BookingNumber,
-      new BookingInfo(the Room's RoomNumber, the BookingRequest's GuestName, 1),
-      new BookingPeriod(Today, LaterDay), new BookingState(Open, [Cancel, CheckIn]))
-  ```
-- **store it changed**
-  ```
-  IBookingStore.Save(
-      [new StoredBooking(the Booking's BookingNumber, the Room's RoomNumber,
-      the BookingRequest's GuestName, 1, new BookingPeriod(Today, LaterDay),
-      BookingStage.Booked)])
-  ```
-
 #### Given the room exists, with another booking holding some of the nights
 ```
 OtherBooking is a second StoredBooking with
@@ -694,3 +347,350 @@ OtherBooking is a second StoredBooking with
 
 - **move it** — `Result.Period is new BookingPeriod(Today, LaterDay)`
 - **keep it cancelled** — `Result.State is new BookingState(Cancelled, [])`
+
+#### Given the room exists, with no such booking
+```
+IRoomStore.Load() returns [the Room]
+  and IBookingStore.Load() returns zero StoredBookings
+```
+
+- **throw booking not found**\
+  `throws BookingNotFound that Message contains "{the Booking's BookingNumber}"`
+- **store nothing** — `IBookingStore.Save was not invoked`
+
+#### Given no such room
+`IRoomStore.Load() returns zero Rooms`
+
+- **throw room not found**\
+  `throws RoomNotFound that Message contains the Room's RoomNumber`
+
+### [When change to three guests](../Bookings/BookingService/WhenChangeToThreeGuests.cs)
+```
+Given IRoomStore.Load() returns [the Room with { BedCount = 2 }]
+When Change(any int, a BookingRequest with { RoomNumber = a Room's RoomNumber, GuestCount = 3 })
+Return type: Booking
+```
+
+#### Given the room has two beds
+
+- **throw too many guests**\
+  `throws TooManyGuests that Message contains the Room's RoomNumber`
+- **store nothing** — `IBookingStore.Save was not invoked`
+
+### [When change to zero guests](../Bookings/BookingService/WhenChangeToZeroGuests.cs)
+`Change(any int, a BookingRequest with { GuestCount = 0 }), returns Booking`
+
+- **throw invalid guest count**\
+  `throws InvalidGuestCount that Message contains "at least one guest"`
+
+### [When change to zero nights](../Bookings/BookingService/WhenChangeToZeroNights.cs)
+```
+Using new BookingPeriod(Tomorrow, Tomorrow)
+When Change(any int, a BookingRequest with { GuestCount = 1 }), returns Booking
+```
+
+- **throw invalid booking period**\
+  `throws InvalidBookingPeriod that Message contains "at least one night"`
+
+### [When check in](../Bookings/BookingService/WhenCheckIn.cs)
+```
+Using today is Today
+When CheckIn(the Booking's BookingNumber)
+```
+
+#### Given the booking arrives today
+```
+Booking is a StoredBooking with { Period = new(Today, LaterDay), Stage = BookingStage.Booked }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **keep it marked checked in** — `IBookingStore.Save([MarkedCheckedIn(the Booking)])`
+
+#### Given the booking arrives tomorrow
+```
+Booking is a StoredBooking with { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **throw not due for check in**\
+  `throws NotDueForCheckIn that Message contains "{the Booking's BookingNumber}"`
+- **store nothing** — `IBookingStore.Save was not invoked`
+
+#### Given the booking arrived yesterday
+```
+Booking is a StoredBooking with { Period = new(Yesterday, LaterDay), Stage = BookingStage.Booked }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **throw not due for check in**\
+  `throws NotDueForCheckIn that Message contains "{the Booking's BookingNumber}"`
+
+#### Given the booking is checked in
+```
+Booking is a StoredBooking with { Period = new(Today, LaterDay), Stage = BookingStage.CheckedIn }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **throw not due for check in**\
+  `throws NotDueForCheckIn that Message contains "{the Booking's BookingNumber}"`
+
+#### Given the booking was cancelled
+```
+Booking is a StoredBooking with { Period = new(Today, LaterDay), Stage = BookingStage.Cancelled }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **throw not due for check in**\
+  `throws NotDueForCheckIn that Message contains "{the Booking's BookingNumber}"`
+
+#### Given no such booking
+`IBookingStore.Load() returns zero StoredBookings`
+
+- **throw booking not found**\
+  `throws BookingNotFound that Message contains "{the Booking's BookingNumber}"`
+- **store nothing** — `IBookingStore.Save was not invoked`
+
+### [When check out](../Bookings/BookingService/WhenCheckOut.cs)
+```
+Using today is Today
+When CheckOut(the Booking's BookingNumber)
+```
+
+#### Given the booking is checked in and departs today
+```
+Booking is a StoredBooking with { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedIn }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **keep it marked checked out** — `IBookingStore.Save([MarkedCheckedOut(the Booking)])`
+
+#### Given the booking is checked in and departs tomorrow
+```
+Booking is a StoredBooking with
+    { Period = new(EarlierDay, Tomorrow), Stage = BookingStage.CheckedIn }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **throw not due for check out**\
+  `throws NotDueForCheckOut that Message contains "{the Booking's BookingNumber}"`
+- **store nothing** — `IBookingStore.Save was not invoked`
+
+#### Given the booking is past
+```
+Booking is a StoredBooking with
+    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.CheckedIn }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **throw not due for check out**\
+  `throws NotDueForCheckOut that Message contains "{the Booking's BookingNumber}"`
+
+#### Given the booking is booked and departs today
+```
+Booking is a StoredBooking with { Period = new(EarlierDay, Today), Stage = BookingStage.Booked }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **throw not due for check out**\
+  `throws NotDueForCheckOut that Message contains "{the Booking's BookingNumber}"`
+
+#### Given the booking was checked out
+```
+Booking is a StoredBooking with { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedOut }
+  and IBookingStore.Load() returns [the Booking]
+```
+
+- **throw not due for check out**\
+  `throws NotDueForCheckOut that Message contains "{the Booking's BookingNumber}"`
+
+#### Given no such booking
+`IBookingStore.Load() returns zero StoredBookings`
+
+- **throw booking not found**\
+  `throws BookingNotFound that Message contains "{the Booking's BookingNumber}"`
+- **store nothing** — `IBookingStore.Save was not invoked`
+
+### [When get](../Bookings/BookingService/WhenGet.cs)
+```
+Using today is Today
+When BookingFor(a StoredBooking's BookingNumber), returns Booking
+```
+
+#### Given it is booked and arrives today
+```
+IBookingStore.Load() returns [the StoredBooking with
+    { Period = new(Today, LaterDay), Stage = BookingStage.Booked }]
+```
+
+- **return the booking** — `Result.BookingNumber is the StoredBooking's BookingNumber`
+- **say it is open and can be cancelled or checked in**\
+  `Result.State is new BookingState(Open, [Cancel, CheckIn])`
+
+#### Given it is booked and arrives tomorrow
+```
+IBookingStore.Load() returns [the StoredBooking with
+    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked }]
+```
+
+- **say it is open and can be cancelled**\
+  `Result.State is new BookingState(Open, [Cancel])`
+
+#### Given it is booked and departs today
+```
+IBookingStore.Load() returns [the StoredBooking with
+    { Period = new(Yesterday, Today), Stage = BookingStage.Booked }]
+```
+
+- **say it is a no show that can be cancelled**\
+  `Result.State is new BookingState(NoShow, [Cancel])`
+
+#### Given it is booked and departed yesterday
+```
+IBookingStore.Load() returns [the StoredBooking with
+    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.Booked }]
+```
+
+- **say it is a no show** — `Result.State is new BookingState(NoShow, [])`
+
+#### Given it is checked in and departs today
+```
+IBookingStore.Load() returns [the StoredBooking with
+    { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedIn }]
+```
+
+- **say it is checked in and can be checked out**\
+  `Result.State is new BookingState(CheckedIn, [CheckOut])`
+
+#### Given it is checked in and departs tomorrow
+```
+IBookingStore.Load() returns [the StoredBooking with
+    { Period = new(EarlierDay, Tomorrow), Stage = BookingStage.CheckedIn }]
+```
+
+- **say it is checked in** — `Result.State is new BookingState(CheckedIn, [])`
+
+#### Given it is checked in and departed yesterday
+```
+IBookingStore.Load() returns [the StoredBooking with
+    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.CheckedIn }]
+```
+
+- **say it is past** — `Result.State is new BookingState(Past, [])`
+
+#### Given it was checked out
+```
+IBookingStore.Load() returns [the StoredBooking with
+    { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedOut }]
+```
+
+- **say it is checked out** — `Result.State is new BookingState(CheckedOut, [])`
+
+#### Given it was cancelled
+```
+IBookingStore.Load() returns [the StoredBooking with
+    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Cancelled }]
+```
+
+- **say it is cancelled** — `Result.State is new BookingState(Cancelled, [])`
+
+#### Given no such booking
+`IBookingStore.Load() returns zero StoredBookings`
+
+- **throw booking not found**\
+  `throws BookingNotFound that Message contains "{the StoredBooking's BookingNumber}"`
+
+### [When list](../Bookings/BookingService/WhenList.cs)
+```
+Using today is Today
+When Bookings(), returns IReadOnlyList<Booking>
+```
+
+#### Given no bookings
+`IBookingStore.Load() returns zero StoredBookings`
+
+- **return no bookings** — `Result is empty`
+
+#### Given two bookings
+`IBookingStore.Load() returns two StoredBookings`
+
+- **return them in the order they were made**
+  ```
+  Result.Select(_ => _.BookingNumber) is equal to
+      [the first StoredBooking's BookingNumber, the second StoredBooking's BookingNumber]
+  ```
+
+## Room Bookings
+```
+Subject under test: RoomBookings
+Return type: IReadOnlyList<string>
+Using today is Today
+```
+
+### [When list held rooms](../Bookings/RoomBookings/WhenListHeldRooms.cs)
+`HeldRooms()`
+
+#### Given bookings that still hold their rooms
+```
+IBookingStore.Load() returns [a StoredBooking with
+    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked },
+    a second StoredBooking with
+    { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedIn },
+    a third StoredBooking with
+    { Period = new(Yesterday, Today), Stage = BookingStage.Booked }]
+```
+
+- **return their rooms**
+  ```
+  Result is equal to [the first StoredBooking's RoomNumber,
+      the second StoredBooking's RoomNumber, the third StoredBooking's RoomNumber]
+  ```
+
+#### Given bookings that no longer hold their rooms
+```
+IBookingStore.Load() returns [a StoredBooking with
+    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.CheckedIn },
+    a second StoredBooking with
+    { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedOut },
+    a third StoredBooking with
+    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Cancelled },
+    a fourth StoredBooking with
+    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.Booked }]
+```
+
+- **return no rooms** — `Result is empty`
+
+### [When list rooms with cancellable bookings](../Bookings/RoomBookings/WhenListRoomsWithCancellableBookings.cs)
+`RoomsWithCancellableBookings()`
+
+#### Given cancellable bookings
+```
+IBookingStore.Load() returns [a StoredBooking with
+    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked },
+    a second StoredBooking with
+    { Period = new(Yesterday, Today), Stage = BookingStage.Booked }]
+```
+
+- **return their rooms**\
+  `Result is equal to [the first StoredBooking's RoomNumber, the second StoredBooking's RoomNumber]`
+
+#### Given bookings whose guests checked in
+```
+IBookingStore.Load() returns [a StoredBooking with
+    { Period = new(EarlierDay, Tomorrow), Stage = BookingStage.CheckedIn },
+    a second StoredBooking with
+    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.CheckedIn },
+    a third StoredBooking with
+    { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedOut }]
+```
+
+- **return no rooms** — `Result is empty`
+
+#### Given a cancelled booking and a no show that departed yesterday
+```
+IBookingStore.Load() returns [a StoredBooking with
+    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Cancelled },
+    a second StoredBooking with
+    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.Booked }]
+```
+
+- **return no rooms** — `Result is empty`

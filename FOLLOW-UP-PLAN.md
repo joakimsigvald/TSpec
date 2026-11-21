@@ -4,7 +4,7 @@
 
 | Id | Description | Effort | Value | Worth |
 |---|---|---|---|---|
-| A1 | **The reverse order of `Having` is unnamed in code.** `Having(c).Having(b)` runs b first, and 21 MyHotel comments explain it ("Setups run last-declared-first …"), while the page already reads "Having c after b". A continuation `.After(b)`, doing what `.Having(b)` does, would say it in code. | Small | Medium | 1 |
+| A1 | **`Having` and `Until` state their order only by rule.** `Having(c).Having(b)` runs b first, and 20 MyHotel comments explain it ("Setups run last-declared-first …"). `After` and `Before` would say it by meaning — `When(b).After(a).Before(c)` — replacing `Having` and `Until`, which are deprecated. Open: whether the page keeps "Having … after" and "Until … before", and how a delay ("Having waited 100 ms") reads. | Medium | Medium | 0 |
 
 ## B. Assert
 
@@ -34,7 +34,6 @@ Each waits for a real spec that is worse without it.
 | D11 | **A lone capital at the start of a title splits off.** `TSpec` reads `# T Spec`, `EShop` `# E Shop`. Fix it in `AsTitle` only, since `GivenASnake` must still read `given a snake` and `MyHTTPServer` `My HTTP Server`. | Small | Small | 0 |
 | D15 | **Given-headings and bullets could link to their line** once Visual Studio's Markdown preview follows a `#L` anchor. `SourceLocations` already reads lines. | Small | Small | 0 |
 | D17 | **A reader cannot tell from the index what a file states.** An agent picks what to read from the `README.md` index and the captions, but the index gives only counts: MyHotel's Host.Spec shows `[Bookings](Bookings.md) \| 6 \| 20 \| 34`, not its six acts. | Medium | Medium | 0 |
-| D18 | **Given-sections lose the author's order.** `DocumentRenderer.Order` sorts them by complexity, then by name, though Facts keep declared order: MyHotel's `WhenGet` reads "departed yesterday" before "departs today", and "no such booking" comes first under `WhenCancel` but last under `WhenGet`. Whens in separate files have no declared order. | Small | Medium | 1 |
 | D19 | **A lone Given loses its arrangement to the act.** Over a single branch `Requirement.Shared` lifts all of it, so "When add room with nine beds" holds the setup and "Given no such room" heads nothing. Lifting only the act would also sink a base class's `Using`, since the page cannot tell where a clause was written. | Small | Small | 0 |
 
 ## E. Documentation

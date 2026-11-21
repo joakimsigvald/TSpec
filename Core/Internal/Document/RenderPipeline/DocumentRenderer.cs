@@ -95,10 +95,18 @@ internal static class DocumentRenderer
             .ThenBy(requirement => requirement.Entry.Requirement, StringComparer.Ordinal)
             .ThenBy(requirement => requirement.Signature, StringComparer.Ordinal);
 
+    /// By what a change to a section leaves alone, so a reviewed diff shows the change in place.
     private static DocumentNode[] Order(IEnumerable<DocumentNode> nodes)
         => [..nodes.OrderBy(node => node.HasKey)
-            .ThenBy(node => node.ComplexityNumber)
+            .ThenBy(node => node.Declared, Comparer<IReadOnlyList<int>>.Create(CompareDeclared))
             .ThenBy(node => node.Key, StringComparer.Ordinal)];
+
+    /// One class of the path at a time, outermost first, since a class is numbered only among its siblings.
+    private static int CompareDeclared(IReadOnlyList<int> one, IReadOnlyList<int> other)
+    {
+        var differs = one.Zip(other, (a, b) => a.CompareTo(b)).FirstOrDefault(order => order != 0);
+        return differs != 0 ? differs : one.Count.CompareTo(other.Count);
+    }
 
     /// <summary>
     /// The subject's version says which release the document describes; the id says which source

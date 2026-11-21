@@ -8,12 +8,6 @@ Using Room with RoomCategory = "Standard"
   and new BookingPeriod(Tomorrow, LaterDay)
 ```
 
-## [When add room with ten beds](../Rooms/WhenAddRoomWithTenBeds.cs)
-`Api.PostAsJsonAsync("/rooms", a Room with { BedCount = 10 })`
-
-- **respond bad request** — `Result.StatusCode is BadRequest`
-- **say the bed count is invalid** — `Result.Read<ErrorBody>().Code is "InvalidBedCount"`
-
 ## [When add room](../Rooms/WhenAddRoom.cs)
 `Api.PostAsJsonAsync("/rooms", a Room)`
 
@@ -41,6 +35,84 @@ Having Api.PostAsJsonAsync("/room-categories", the RoomCategory)
 - **respond created** — `Result.StatusCode is Created`
 - **return the room in it** — `Result.Read<Room>().RoomCategory is the RoomCategory's Name`
 
+## [When add room with ten beds](../Rooms/WhenAddRoomWithTenBeds.cs)
+`Api.PostAsJsonAsync("/rooms", a Room with { BedCount = 10 })`
+
+- **respond bad request** — `Result.StatusCode is BadRequest`
+- **say the bed count is invalid** — `Result.Read<ErrorBody>().Code is "InvalidBedCount"`
+
+## [When delete room](../Rooms/WhenDeleteRoom.cs)
+`Api.DeleteAsync("/rooms/{a Room's RoomNumber}")`
+
+### Given the room exists
+`Having Api.PostAsJsonAsync("/rooms", the Room)`
+
+- **respond no content** — `Result.StatusCode is NoContent`
+
+### Given the room has an open booking
+```
+Having Api.PostAsJsonAsync("/bookings",
+    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+  after Api.PostAsJsonAsync("/rooms", the Room)
+```
+
+- **respond conflict** — `Result.StatusCode is Conflict`
+- **say the room is held** — `Result.Read<ErrorBody>().Code is "RoomHeld"`
+
+## [When get room](../Rooms/WhenGetRoom.cs)
+`Api.GetAsync("/rooms/{a Room's RoomNumber}")`
+
+### Given the room exists
+`Having Api.PostAsJsonAsync("/rooms", the Room)`
+
+- **respond ok** — `Result.StatusCode is OK`
+- **return the room** — `Result.Read<Room>() is the Room`
+
+### Given the room has an open booking
+```
+Having Api.PostAsJsonAsync("/bookings",
+    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
+  after Api.PostAsJsonAsync("/rooms", the Room)
+```
+
+- **say it is held with bookings to cancel**
+  ```
+  Result.Read<RoomOverview>() is new RoomOverview(the Room's RoomNumber,
+      the Room's BedCount, the Room's RoomCategory, true, true)
+  ```
+
+### Given no such room
+
+- **respond not found** — `Result.StatusCode is NotFound`
+- **say there is no such room** — `Result.Read<ErrorBody>().Code is "RoomNotFound"`
+
+### Given the application was restarted
+```
+Having Restart()
+  after Api.PostAsJsonAsync("/rooms", the Room)
+```
+
+- **respond ok** — `Result.StatusCode is OK`
+- **return the room** — `Result.Read<Room>() is the Room`
+
+## [When list rooms](../Rooms/WhenListRooms.cs)
+`Api.GetAsync("/rooms")`
+
+- **respond ok** — `Result.StatusCode is OK`
+
+### Given no rooms
+
+- **return no rooms** — `Result.Read<Room[]>() is empty`
+
+### Given two rooms
+```
+Having Api.PostAsJsonAsync("/rooms", a second Room)
+  after Api.PostAsJsonAsync("/rooms", a Room)
+```
+
+- **return both rooms in the order they were created**\
+  `Result.Read<Room[]>() is equal to two Rooms`
+
 ## [When renumber room](../Rooms/WhenRenumberRoom.cs)
 ```
 Api.PutAsJsonAsync("/rooms/{a Room's RoomNumber}", the Room with { RoomNumber = a second string })
@@ -64,75 +136,3 @@ Having Api.PostAsJsonAsync("/rooms", the Room)
 - **respond ok** — `Result.StatusCode is OK`
 - **return the updated room**\
   `Result.Read<Room>() is the Room with { BedCount = a second int }`
-
-## [When list rooms](../Rooms/WhenListRooms.cs)
-`Api.GetAsync("/rooms")`
-
-- **respond ok** — `Result.StatusCode is OK`
-
-### Given no rooms
-
-- **return no rooms** — `Result.Read<Room[]>() is empty`
-
-### Given two rooms
-```
-Having Api.PostAsJsonAsync("/rooms", a second Room)
-  after Api.PostAsJsonAsync("/rooms", a Room)
-```
-
-- **return both rooms in the order they were created**\
-  `Result.Read<Room[]>() is equal to two Rooms`
-
-## [When delete room](../Rooms/WhenDeleteRoom.cs)
-`Api.DeleteAsync("/rooms/{a Room's RoomNumber}")`
-
-### Given the room exists
-`Having Api.PostAsJsonAsync("/rooms", the Room)`
-
-- **respond no content** — `Result.StatusCode is NoContent`
-
-### Given the room has an open booking
-```
-Having Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
-  after Api.PostAsJsonAsync("/rooms", the Room)
-```
-
-- **respond conflict** — `Result.StatusCode is Conflict`
-- **say the room is held** — `Result.Read<ErrorBody>().Code is "RoomHeld"`
-
-## [When get room](../Rooms/WhenGetRoom.cs)
-`Api.GetAsync("/rooms/{a Room's RoomNumber}")`
-
-### Given no such room
-
-- **respond not found** — `Result.StatusCode is NotFound`
-- **say there is no such room** — `Result.Read<ErrorBody>().Code is "RoomNotFound"`
-
-### Given the room exists
-`Having Api.PostAsJsonAsync("/rooms", the Room)`
-
-- **respond ok** — `Result.StatusCode is OK`
-- **return the room** — `Result.Read<Room>() is the Room`
-
-### Given the application was restarted
-```
-Having Restart()
-  after Api.PostAsJsonAsync("/rooms", the Room)
-```
-
-- **respond ok** — `Result.StatusCode is OK`
-- **return the room** — `Result.Read<Room>() is the Room`
-
-### Given the room has an open booking
-```
-Having Api.PostAsJsonAsync("/bookings",
-    a BookingRequest with { RoomNumber = the Room's RoomNumber, GuestCount = 1 })
-  after Api.PostAsJsonAsync("/rooms", the Room)
-```
-
-- **say it is held with bookings to cancel**
-  ```
-  Result.Read<RoomOverview>() is new RoomOverview(the Room's RoomNumber,
-      the Room's BedCount, the Room's RoomCategory, true, true)
-  ```

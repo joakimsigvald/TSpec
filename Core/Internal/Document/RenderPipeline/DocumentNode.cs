@@ -27,19 +27,13 @@ internal sealed record DocumentNode(
 
     internal bool HasKey => !string.IsNullOrEmpty(Key);
 
+    /// Where the classes a branch heads are declared, outermost first; empty above the branches.
+    internal IReadOnlyList<int> Declared { get; init; } = [];
+
     /// Drops what is now listed at the heading above.
     internal DocumentNode Without(IReadOnlyList<Requirement> lifted)
         => this with
         {
             Requirements = [.. Requirements.Where(mine => !lifted.Any(mine.Restates))],
         };
-
-    /// How much a set of clauses arranges, which is every phase but the claim itself.
-    internal static int CountArrangements(IReadOnlyList<SpecificationClause> clauses)
-        => clauses.Count(clause => clause.Phase != StepPhase.Assert);
-
-    internal int ComplexityNumber
-        => CountArrangements(Shared)
-            + Requirements.Sum(requirement => requirement.ArrangementCount)
-            + Children.Sum(child => child.ComplexityNumber);
 }

@@ -718,7 +718,7 @@ public class WhenRenderDocument : Spec
     public void GivenAHeadingStatesOneLabelAlone_ThenStillWriteItWithOneSpace()
         => Render(OneSubjectManyReturnTypes()).Does().not.Contain("Return type:  ");
 
-    // ----------- Sections are ordered by how much arrangement they carry, simplest first
+    // ----------- A section keeps its place as the suite grows: a branch as declared, the rest by name
 
     /// <summary>
     /// The document's sections in the order they appear: each heading as it reads, and each
@@ -738,36 +738,56 @@ public class WhenRenderDocument : Spec
     private static string[] SubjectHeadings(string document)
         => [.. document.Split('\n').Where(line => line.StartsWith("## ", StringComparison.Ordinal))];
 
-    /// <summary>
-    /// The alphabetically first subject is the one that arranges more, and it comes last — so the
-    /// order is the rule's and not the alphabet's.
-    /// </summary>
+    /// A section a change arranges more in stays where it was, so a reviewed diff shows the change in place.
     [Fact]
-    public void GivenOneSubjectArrangesMore_ThenPlaceTheSimplerFirst()
-        => Outline(Render(
-            new("WhenAddRoom", "GivenNoSuchRoom", "ThenA", [Act("post"), Claim("then a")]),
-            new("WhenAddRoom", "GivenTheRoomExists", "ThenB", [Act("post"), Condition("post"), Claim("then b")]),
-            new("WhenGetVersion", "", "ThenC", [Act("get"), Claim("then c")])))
-            .Is().EqualTo([
-                "## When get version",
-                "- **c**",
-                "## When add room",
-                "### Given no such room",
-                "- **a**",
-                "### Given the room exists",
-                "- **b**"]);
+    public void GivenOneSubjectArrangesMore_ThenStillOrderSubjectsByName()
+        => SubjectHeadings(Render(
+            new("WhenAaa", "", "ThenA", [Act("aaa"), Condition("post"), Claim("then a")]),
+            new("WhenZzz", "", "ThenB", [Act("zzz"), Claim("then b")])))
+            .Is().EqualTo(["## When aaa", "## When zzz"]);
 
     [Fact]
-    public void GivenOneBranchArrangesMore_ThenPlaceTheSimplerFirst()
+    public void GivenBranchesDeclaredOutOfNameOrder_ThenListThemAsDeclared()
         => Outline(Render(
-            new("WhenGetRoom", "GivenAaa", "ThenA", [Act("get"), Condition("post"), Claim("then a")]),
-            new("WhenGetRoom", "GivenZzz", "ThenB", [Act("get"), Claim("then b")])))
+            new("WhenGetRoom", "GivenZzz", "ThenB", [Act("get"), Condition("post"), Claim("then b")], BranchDeclared: [1]),
+            new("WhenGetRoom", "GivenAaa", "ThenA", [Act("get"), Claim("then a")], BranchDeclared: [2])))
+            .Is().EqualTo(["## When get room", "### Given zzz", "- **b**", "### Given aaa", "- **a**"]);
+
+    /// A nested class is numbered after every sibling of the class it is nested in, so a branch is
+    /// placed by its own class, not by its nested ones.
+    [Fact]
+    public void GivenNestedBranches_ThenListThemAsDeclared()
+        => Outline(Render(
+            new("WhenGetRoom", "GivenAaa", "ThenA", [Act("get"), Claim("then a")], BranchDeclared: [2]),
+            new("WhenGetRoom", "GivenZzz.WithYyy", "ThenB", [Act("get"), Claim("then b")], BranchDeclared: [1, 10]),
+            new("WhenGetRoom", "GivenZzz.WithXxx", "ThenC", [Act("get"), Claim("then c")], BranchDeclared: [1, 11])))
             .Is().EqualTo([
                 "## When get room",
                 "### Given zzz",
+                "#### With yyy",
                 "- **b**",
+                "#### With xxx",
+                "- **c**",
                 "### Given aaa",
                 "- **a**"]);
+
+    /// Where a branch's classes read as one heading, its outer class places it first, then its inner one.
+    [Fact]
+    public void GivenBranchesReadAsOneHeading_ThenListThemAsDeclared()
+        => Outline(Render(
+                InBookingService("GivenTheRoomExists.WithZzz", "ThenA", [1, 10]),
+                InBookingService("GivenTheRoomExists.WithAaa", "ThenB", [1, 11]),
+                InBookingService("GivenNoSuchRoom", "ThenC", [2]),
+                InNamespace("MyHotel.Spec.Bookings.RoomBookings", "WhenList", "ThenD")))
+            .Where(line => line.StartsWith("#### ", StringComparison.Ordinal))
+            .Is().EqualTo([
+                "#### Given the room exists, with zzz",
+                "#### Given the room exists, with aaa",
+                "#### Given no such room"]);
+
+    private static SpecificationEntry InBookingService(string branch, string name, IReadOnlyList<int> declared)
+        => new("WhenBook", branch, name, [Act("book"), Claim(name.AsWords())],
+            Namespace: "MyHotel.Spec.Bookings.BookingService", BranchDeclared: declared);
 
     /// <summary>
     /// A class's requirements are listed as declared, which is the order they run in: the one
@@ -787,21 +807,6 @@ public class WhenRenderDocument : Spec
             new("WhenGetRoom", "GivenX", "ThenA", [Act("get"), Claim("then a")], Declared: (2, 1)),
             new("WhenGetRoom", "GivenX", "ThenZ", [Act("get"), Claim("then z")], Declared: (1, 9))))
             .Is().EqualTo(["## When get room", "### Given x", "- **z**", "- **a**"]);
-
-    /// <summary>
-    /// Assertions are not counted, and this is why: a suite grows by claiming more, and a document
-    /// that reshuffled every time it did would spend the diff it is reviewed for.
-    /// </summary>
-    [Fact]
-    public void GivenARequirementIsAdded_ThenLeaveTheOrderOfSubjectsAlone()
-    {
-        SpecificationEntry[] before = [
-            new("WhenAaa", "", "ThenA", [Act("aaa"), Condition("post"), Claim("then a")]),
-            new("WhenZzz", "", "ThenB", [Act("zzz"), Claim("then b")])];
-        SubjectHeadings(Render(before)).Is().EqualTo(["## When zzz", "## When aaa"]);
-        SubjectHeadings(Render([.. before, new("WhenZzz", "", "ThenC", [Act("zzz"), Claim("then c")])]))
-            .Is().EqualTo(["## When zzz", "## When aaa"]);
-    }
 
     // ----------- The top-level folder is the file, and what sits at the root is a file of its own
 
@@ -1034,10 +1039,6 @@ public class WhenRenderDocument : Spec
             InNamespace("A.Bookings", "WhenBook", "ThenC")), "Rooms")
             .Does().Contain("-->\n`Having post`\n").and.Contain("- **a** — `a`\n");
 
-    /// <summary>
-    /// Files are listed by name: a folder's file is found by its name, and there is no reading order
-    /// across files for complexity to decide.
-    /// </summary>
     [Fact]
     public void ThenListTheFilesByName()
         => Names(Files(

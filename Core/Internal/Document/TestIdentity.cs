@@ -28,6 +28,9 @@ internal static class TestIdentity
         return (nesting[0], string.Join(".", nesting.Skip(1)));
     }
 
+    internal static IReadOnlyList<int> BranchDeclared(Type testClass)
+        => [.. Nesting(testClass).Skip(1).Select(type => type.MetadataToken)];
+
     /// The test class and the classes it is nested in, outermost first.
     internal static IReadOnlyList<Type> Nesting(Type testClass)
     {

@@ -156,7 +156,7 @@ internal sealed record Document(
             ? ofSubject.GroupBy(requirement => Opening(requirement.Entry.Branch))
                 .Select(opening => ToBranchGroup(opening, level))
             : ofSubject.GroupBy(requirement => requirement.Entry.Branch)
-                .Select(branch => ToBranch(branch, level));
+                .Select(branch => ToBranch(branch, level, classesHeadedAbove: 0));
 
     private static DocumentNode ToBranchGroup(IGrouping<string, Requirement> group, int level)
     {
@@ -168,8 +168,11 @@ internal sealed record Document(
             [.. ofGroup
             .Select(requirement => requirement.Without(shared))
             .GroupBy(requirement => Rest(requirement.Entry.Branch))
-            .Select(branch => ToBranch(branch, level + 1))],
-            Requirements: []));
+            .Select(branch => ToBranch(branch, level + 1, classesHeadedAbove: 1))],
+            Requirements: [])
+        {
+            Declared = [.. DeclaredOf(ofGroup).Take(1)],
+        });
     }
 
     private static string Opening(string branch)
@@ -178,14 +181,20 @@ internal sealed record Document(
     private static string Rest(string branch)
         => branch.IndexOf('.') is var at && at < 0 ? string.Empty : branch[(at + 1)..];
 
-    private static DocumentNode ToBranch(IGrouping<string, Requirement> group, int level)
+    private static DocumentNode ToBranch(IGrouping<string, Requirement> group, int level, int classesHeadedAbove)
     {
         var ofBranch = group.ToArray();
         var heads = group.Key.Length > 0;
         var shared = heads ? Requirement.Shared(ofBranch) : [];
         return new(group.Key, heads ? group.Key.AsHeading() : null, level, shared,
-            [.. ofBranch.Select(requirement => requirement.Without(shared))]);
+            [.. ofBranch.Select(requirement => requirement.Without(shared))])
+        {
+            Declared = [.. DeclaredOf(ofBranch).Skip(classesHeadedAbove)],
+        };
     }
+
+    private static IReadOnlyList<int> DeclaredOf(Requirement[] ofBranch)
+        => ofBranch[0].Entry.BranchDeclared ?? [];
 
     /// <summary>
     /// The project's own namespace is the root the folders sit under, so a folder is a file even

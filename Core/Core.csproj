@@ -17,15 +17,13 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>5.6.0</PackageVersion>
+		<PackageVersion>5.7.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			CHANGED
-			* A method group as a condition reads as its name in words, as a lambda calling it does: Has().None(IsMinor) reads "has none is minor"
-			FIXED
-			* A negated Does assertion after and or or keeps its verb: "and does not contain"
+			* Sections keep their place as a suite grows: Given sections are listed as declared, the others by name
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

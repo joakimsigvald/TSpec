@@ -23,31 +23,38 @@ Using Room with RoomCategory = "Standard"
 - **say the room category already exists**\
   `Result.Read<ErrorBody>().Code is "RoomCategoryAlreadyExists"`
 
-## [When rename room category](../RoomCategories/WhenRenameRoomCategory.cs)
-```
-Api.PutAsJsonAsync("/room-categories/{a RoomCategory's Name}",
-    the RoomCategory with { Name = a second string })
-Having Api.PostAsJsonAsync("/room-categories", the RoomCategory)
-```
+## [When delete room category](../RoomCategories/WhenDeleteRoomCategory.cs)
+`Api.DeleteAsync("/room-categories/{a RoomCategory's Name}")`
 
 ### Given the room category exists
+`Having Api.PostAsJsonAsync("/room-categories", the RoomCategory)`
 
-- **respond bad request** — `Result.StatusCode is BadRequest`
-- **say a room category cannot be renamed**\
-  `Result.Read<ErrorBody>().Code is "RoomCategoryNameMismatch"`
+- **respond no content** — `Result.StatusCode is NoContent`
 
-## [When update room category](../RoomCategories/WhenUpdateRoomCategory.cs)
+### Given no such room category
+
+- **respond not found** — `Result.StatusCode is NotFound`
+- **say there is no such room category**\
+  `Result.Read<ErrorBody>().Code is "RoomCategoryNotFound"`
+
+### Given a room has it
 ```
-Api.PutAsJsonAsync("/room-categories/{a RoomCategory's Name}",
-    the RoomCategory with { Description = a second string })
-Having Api.PostAsJsonAsync("/room-categories", the RoomCategory)
+Having Api.PostAsJsonAsync("/rooms", a Room with { RoomCategory = the RoomCategory's Name })
+  after Api.PostAsJsonAsync("/room-categories", the RoomCategory)
 ```
 
-### Given the room category exists
+- **respond conflict** — `Result.StatusCode is Conflict`
+- **say the room category has rooms**\
+  `Result.Read<ErrorBody>().Code is "RoomCategoryHasRooms"`
 
-- **respond ok** — `Result.StatusCode is OK`
-- **return the updated room category**\
-  `Result.Read<RoomCategory>() is the RoomCategory with { Description = a second string }`
+### Given it is the last
+```
+Having Api.DeleteAsync("/room-categories/Standard")
+  after Api.PostAsJsonAsync("/room-categories", the RoomCategory)
+```
+
+- **respond conflict** — `Result.StatusCode is Conflict`
+- **say it is the last** — `Result.Read<ErrorBody>().Code is "RoomCategoryIsLast"`
 
 ## [When list room categories](../RoomCategories/WhenListRoomCategories.cs)
 `Api.GetAsync("/room-categories")`
@@ -79,35 +86,28 @@ Having Restart()
       [new RoomCategory("Standard", "Standardrum"), the RoomCategory]
   ```
 
-## [When delete room category](../RoomCategories/WhenDeleteRoomCategory.cs)
-`Api.DeleteAsync("/room-categories/{a RoomCategory's Name}")`
-
-### Given no such room category
-
-- **respond not found** — `Result.StatusCode is NotFound`
-- **say there is no such room category**\
-  `Result.Read<ErrorBody>().Code is "RoomCategoryNotFound"`
+## [When rename room category](../RoomCategories/WhenRenameRoomCategory.cs)
+```
+Api.PutAsJsonAsync("/room-categories/{a RoomCategory's Name}",
+    the RoomCategory with { Name = a second string })
+Having Api.PostAsJsonAsync("/room-categories", the RoomCategory)
+```
 
 ### Given the room category exists
-`Having Api.PostAsJsonAsync("/room-categories", the RoomCategory)`
 
-- **respond no content** — `Result.StatusCode is NoContent`
+- **respond bad request** — `Result.StatusCode is BadRequest`
+- **say a room category cannot be renamed**\
+  `Result.Read<ErrorBody>().Code is "RoomCategoryNameMismatch"`
 
-### Given a room has it
+## [When update room category](../RoomCategories/WhenUpdateRoomCategory.cs)
 ```
-Having Api.PostAsJsonAsync("/rooms", a Room with { RoomCategory = the RoomCategory's Name })
-  after Api.PostAsJsonAsync("/room-categories", the RoomCategory)
-```
-
-- **respond conflict** — `Result.StatusCode is Conflict`
-- **say the room category has rooms**\
-  `Result.Read<ErrorBody>().Code is "RoomCategoryHasRooms"`
-
-### Given it is the last
-```
-Having Api.DeleteAsync("/room-categories/Standard")
-  after Api.PostAsJsonAsync("/room-categories", the RoomCategory)
+Api.PutAsJsonAsync("/room-categories/{a RoomCategory's Name}",
+    the RoomCategory with { Description = a second string })
+Having Api.PostAsJsonAsync("/room-categories", the RoomCategory)
 ```
 
-- **respond conflict** — `Result.StatusCode is Conflict`
-- **say it is the last** — `Result.Read<ErrorBody>().Code is "RoomCategoryIsLast"`
+### Given the room category exists
+
+- **respond ok** — `Result.StatusCode is OK`
+- **return the updated room category**\
+  `Result.Read<RoomCategory>() is the RoomCategory with { Description = a second string }`

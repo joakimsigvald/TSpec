@@ -35,4 +35,27 @@ public class WhenReportARequirement : Spec
         var declared = GetType().GetMethod(nameof(ThenKeepWhereTheTestIsDeclared))!.MetadataToken;
         Xunit.Assert.Equal(declared, inner.Reported().Declared?.Token);
     }
+
+    [Fact]
+    public void ThenKeepWhereEachClassOfTheBranchIsDeclared()
+    {
+        using InnerSpec inner = new();
+        Xunit.Assert.Equal([typeof(InnerSpec).MetadataToken], inner.Reported().BranchDeclared!);
+    }
+
+    private sealed class Zzz
+    {
+        internal sealed class Yyy;
+        internal sealed class Xxx;
+    }
+
+    private sealed class Aaa;
+
+    /// The document orders sibling branches by these numbers, so it relies on this numbering.
+    [Fact]
+    public void ThenNumberSiblingClassesAsDeclared()
+    {
+        new[] { typeof(Zzz), typeof(Aaa) }.Select(type => type.MetadataToken).Has().Order().Ascending();
+        new[] { typeof(Zzz.Yyy), typeof(Zzz.Xxx) }.Select(type => type.MetadataToken).Has().Order().Ascending();
+    }
 }
