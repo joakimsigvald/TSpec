@@ -27,7 +27,7 @@ public class WhenReadTheFiles : Spec
     public void GivenAFailure_ThenNameEachFileByItsProjectAndPath()
         => Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
             () => Source.Projects["."].Files.Where(file => file.Path == "Internal/ProjectSources.cs").Is().Empty())
-            .Message.Does().EndWith("but found [./Internal/ProjectSources.cs]");
+            .Message.Does().EndWith("but it was [./Internal/ProjectSources.cs]");
 
     [Fact]
     public void GivenTheRunningSpecProject_ThenListItsFilesToo()

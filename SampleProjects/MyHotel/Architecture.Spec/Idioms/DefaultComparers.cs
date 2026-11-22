@@ -7,15 +7,12 @@ namespace MyHotel.Architecture.Spec.Idioms;
 
 /// <summary>CODING-STANDARD-BACKEND.md 2f as an invariant over the syntax trees and what they bind to: a set
 /// is a collection expression, and ToHashSet stays only for a comparer a collection expression cannot take.
-/// The default one it can: EqualityComparer's Default, and for a string StringComparer.Ordinal. One fact per
-/// project (Sources).</summary>
+/// The default one it can: EqualityComparer's Default, and for a string StringComparer.Ordinal.</summary>
 public class DefaultComparers : TSpec.Spec
 {
-    public static TheoryData<string> Projects => Sources.Projects;
-
-    [Theory, MemberData(nameof(Projects))]
-    public void NoToHashSetPassesTheDefaultComparer(string project) =>
-        Source.Projects[project].Nodes<ArgumentSyntax>().Has().None(DefaultComparer);
+    [Fact]
+    public void NoToHashSetPassesTheDefaultComparer() =>
+        Source.Projects.Has().All(project => project.Nodes<ArgumentSyntax>().Has().None(DefaultComparer));
 
     [Theory]
     [InlineData("words.ToHashSet(StringComparer.Ordinal)")]

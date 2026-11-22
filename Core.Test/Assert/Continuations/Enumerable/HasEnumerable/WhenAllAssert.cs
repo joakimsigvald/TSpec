@@ -76,6 +76,41 @@ public class WhenAllAssert : Spec
     }
 
     [Fact]
+    public void GivenTheItemAsAnArgument_ThenItsFailureNamesTheItem()
+    {
+        int[] arr = [1, -3];
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => arr.Has().All(it => Math.Abs(it).Is().LessThan(2)));
+        ex.HasMessage(
+            """
+            Expected arr to have all elements satisfying the assertion but found 1 that does not: [-3]
+              Expected Math.Abs(-3) to be less than 2 but it was 3
+            """,
+            """
+            For each of arr:
+                Math.Abs(it) is less than 2
+            """);
+    }
+
+    [Fact]
+    public void GivenANestedAllFails_ThenEachInnerFailureIsListedOnceBelowItsItem()
+    {
+        string[] words = ["one", "three"];
+        var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
+            () => words.Has().All(word => word.Split('e').Has().All(part => part.Length.Is().LessThan(3))));
+        ex.HasMessage(
+            """
+            Expected words to have all elements satisfying the assertion but found 1 that does not: ["three"]
+              Expected "three"'s Split('e') to have all elements satisfying the assertion but found 1 that does not: ["thr"]
+                Expected "thr"'s Length to be less than 3 but it was 3
+            """,
+            """
+            For each of words:
+                for each of its Split('e'):
+                    its Length is less than 3
+            """);
+    }
+
+    [Fact]
     public void ThenItReadsAsTheAssertionOnEachItem()
     {
         int[] arr = [1, 2];
@@ -109,6 +144,57 @@ public class WhenAllAssert : Spec
             """
             For each of words:
                 its Length is less than 4
+            """);
+    }
+
+    [Fact]
+    public void GivenAGenericMethodOfTheItem_ThenTheItemReadsAsIts()
+    {
+        object[][] rows = [[1], [2]];
+        rows.Has().All(row => row.OfType<int>().Has().None(cell => cell > 5));
+        Specification.Is(
+            """
+            For each of rows:
+                its OfType<int>() has none cell > 5
+            """);
+    }
+
+    [Fact]
+    public void GivenAnEitherEndedByAFix_ThenTheFixIsLeftOut()
+    {
+        int[][] rows = [[1], [2]];
+        rows.Has().All(row => row.Has().either.None(cell => cell > 5).or.Fix("split the row"));
+        Specification.Is(
+            """
+            For each of rows:
+                row has none cell > 5
+            """);
+    }
+
+    [Fact]
+    public void GivenAnAllOnEachItem_ThenItsForEachStandsBelow()
+    {
+        int[][] rows = [[1], [2]];
+        rows.Has().All(row => row.Has().All(cell => cell.Is().LessThan(5)));
+        Specification.Is(
+            """
+            For each of rows:
+                for each of row:
+                    cell is less than 5
+            """);
+    }
+
+    [Fact]
+    public void GivenAnAndAfterANestedAll_ThenTheAndStandsAtTheMargin()
+    {
+        int[][] rows = [[1], [2]];
+        rows.Has().All(row => row.Has().All(cell => cell.Is().LessThan(5))).and.Is().not.Empty();
+        Specification.Is(
+            """
+            For each of rows:
+                for each of row:
+                    cell is less than 5
+              and rows is not empty
             """);
     }
 

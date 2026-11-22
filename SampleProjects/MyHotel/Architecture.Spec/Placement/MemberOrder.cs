@@ -10,14 +10,13 @@ namespace MyHotel.Architecture.Spec.Placement;
 /// constants come first, then its constructors, then its other members by accessibility as written - public,
 /// protected, internal, private - the public static ones before the public instance ones. Whether a caller
 /// stands above what it calls is judgement, left to review, and a nested type has no place among the members.
-/// One fact per project (Sources); a breach is counted.</summary>
+/// A breach is counted.</summary>
 public class MemberOrder : TSpec.Spec
 {
-    public static TheoryData<string> Projects => Sources.Projects;
-
-    [Theory, MemberData(nameof(Projects))]
-    public void FieldsComeFirstThenConstructorsThenMembersByAccessibility(string project) =>
-        Source.Projects[project].Nodes<MemberDeclarationSyntax>().Has().None(StandsBelowOneItShouldPrecede);
+    [Fact]
+    public void FieldsComeFirstThenConstructorsThenMembersByAccessibility() =>
+        Source.Projects.Has().All(
+            project => project.Nodes<MemberDeclarationSyntax>().Has().None(StandsBelowOneItShouldPrecede));
 
     private static bool StandsBelowOneItShouldPrecede(SourceNode<MemberDeclarationSyntax> member) =>
         member.Syntax.Parent is TypeDeclarationSyntax type

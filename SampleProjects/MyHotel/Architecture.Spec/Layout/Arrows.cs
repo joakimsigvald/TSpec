@@ -6,15 +6,14 @@ using TSpec.Assert;
 namespace MyHotel.Architecture.Spec.Layout;
 
 /// <summary>CODING-STANDARD-BACKEND.md 11d and 11e in part, as an invariant over the syntax trees: `=>` never
-/// starts a line - neither a member's or switch arm's nor a lambda's. One fact per project (Sources); a
+/// starts a line - neither a member's or switch arm's nor a lambda's. A
 /// breach is counted. Where the body goes is MemberBodies' and LambdaBodies'.</summary>
 public class Arrows : TSpec.Spec
 {
-    public static TheoryData<string> Projects => Sources.Projects;
-
-    [Theory, MemberData(nameof(Projects))]
-    public void AnArrowNeverStartsALine(string project) =>
-        Source.Projects[project].Nodes<SyntaxNode>().Has().None(HoldsAnArrowStartingALine);
+    [Fact]
+    public void AnArrowNeverStartsALine() =>
+        Source.Projects.Has().All(
+            project => project.Nodes<SyntaxNode>().Has().None(HoldsAnArrowStartingALine));
 
     /// <summary>Every token is a child of one node, so looking at each node's own tokens sees every
     /// arrow.</summary>

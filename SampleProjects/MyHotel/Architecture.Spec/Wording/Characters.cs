@@ -8,7 +8,7 @@ namespace MyHotel.Architecture.Spec.Wording;
 
 /// <summary>CODING-STANDARD-BACKEND.md 1a as an invariant over the syntax trees: code and comments are pure
 /// ASCII. A literal is content, not code - a user's text - so a string or character literal may hold any
-/// character; an interpolation's holes are code. One fact per project (Sources).</summary>
+/// character; an interpolation's holes are code.</summary>
 public class Characters : TSpec.Spec
 {
     private static readonly SyntaxKind[] LiteralKinds =
@@ -23,11 +23,9 @@ public class Characters : TSpec.Spec
         SyntaxKind.Utf8MultiLineRawStringLiteralToken,
     ];
 
-    public static TheoryData<string> Projects => Sources.Projects;
-
-    [Theory, MemberData(nameof(Projects))]
-    public void CodeAndCommentsAreAscii(string project) =>
-        Source.Projects[project].Files.SelectMany(NonAsciiLines).Is().Empty();
+    [Fact]
+    public void CodeAndCommentsAreAscii() =>
+        Source.Projects.Has().All(project => project.Files.SelectMany(NonAsciiLines).Is().Empty());
 
     /// <summary>"file:line" for every line with a character beyond ASCII outside every literal.</summary>
     private static IEnumerable<string> NonAsciiLines(SourceFile file)

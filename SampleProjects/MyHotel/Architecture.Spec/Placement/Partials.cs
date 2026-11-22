@@ -9,12 +9,12 @@ namespace MyHotel.Architecture.Spec.Placement;
 /// forbids.</summary>
 public class Partials : TSpec.Spec
 {
-    public static TheoryData<string> Projects => Sources.Projects;
+    [Fact]
+    public void APartialTypeIsDeclaredInOneFile() =>
+        Source.Projects.Has().All(project => SplitTypesOf(project).Is().Empty());
 
-    [Theory, MemberData(nameof(Projects))]
-    public void APartialTypeIsDeclaredInOneFile(string project) =>
-        Source.Projects[project].Types
+    private static IEnumerable<string> SplitTypesOf(SourceProject project) =>
+        project.Types
             .Where(type => type.Files.Count > 1)
-            .Select(type => $"{type} in {string.Join(", ", type.Files)}")
-            .Is().Empty();
+            .Select(type => $"{type} in {string.Join(", ", type.Files)}");
 }

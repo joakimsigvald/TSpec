@@ -9,15 +9,12 @@ namespace MyHotel.Architecture.Spec.Layout;
 /// `if`, an `else`, a loop, a `using` or a `lock` holds - takes no braces when it is a simple statement, and
 /// takes them when it is a structured statement or a sequence of statements, so an `else` never moves to an
 /// `if` inside it. The `if` of an `else if` takes none; a declaration is neither, and the compiler keeps its
-/// braces. That a `using` running to the end of its block is a declaration is IDE0063's. One fact per
-/// project (Sources), and the shapes it tells apart.</summary>
+/// braces. That a `using` running to the end of its block is a declaration is IDE0063's.</summary>
 public class ClauseBraces : TSpec.Spec
 {
-    public static TheoryData<string> Projects => Sources.Projects;
-
-    [Theory, MemberData(nameof(Projects))]
-    public void AClauseTakesBracesUnlessItIsASimpleStatement(string project) =>
-        Source.Projects[project].Nodes<StatementSyntax>().Has().None(Misbraced);
+    [Fact]
+    public void AClauseTakesBracesUnlessItIsASimpleStatement() =>
+        Source.Projects.Has().All(project => project.Nodes<StatementSyntax>().Has().None(Misbraced));
 
     [Theory]
     [InlineData("if (a) F();")]

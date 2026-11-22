@@ -7,15 +7,12 @@ namespace MyHotel.Architecture.Spec.Layout;
 
 /// <summary>CODING-STANDARD-BACKEND.md 11d as an invariant over the syntax trees: an expression-bodied member
 /// and a switch arm are whole on one line, or `=>` ends the line and the body starts on the next, one level
-/// in from where the member starts (`=>` never opening a line is Arrows'). One fact per project
-/// (Sources).</summary>
+/// in from where the member starts (`=>` never opening a line is Arrows').</summary>
 public class MemberBodies : TSpec.Spec
 {
-    public static TheoryData<string> Projects => Sources.Projects;
-
-    [Theory, MemberData(nameof(Projects))]
-    public void AMemberIsOnOneLineOrItsBodyStartsBelowOneLevelIn(string project) =>
-        Source.Projects[project].Files.SelectMany(MisplacedMemberBodies).Is().Empty();
+    [Fact]
+    public void AMemberIsOnOneLineOrItsBodyStartsBelowOneLevelIn() =>
+        Source.Projects.Has().All(project => project.Files.SelectMany(MisplacedMemberBodies).Is().Empty());
 
     /// <summary>"file:line" for every member or arm whose body is neither on its line nor below it, one
     /// level in.</summary>

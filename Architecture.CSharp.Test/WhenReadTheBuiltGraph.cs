@@ -40,7 +40,7 @@ public class WhenReadTheBuiltGraph : Spec
     public void GivenAFailure_ThenNameEachProjectByItsName()
         => Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
             () => Graph.Where(project => project.Name.StartsWith('C')).Is().Empty())
-            .Message.Does().EndWith("but found [Contract, Core]");
+            .Message.Does().EndWith("but it was [Contract, Core]");
 
     [Fact]
     public void GivenTheRunningSpecProject_ThenGiveWhatItDependsOnToo()

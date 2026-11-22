@@ -7,8 +7,7 @@ namespace MyHotel.Architecture.Spec.Exposure;
 /// <summary>CODING-STANDARD-BACKEND.md 2d as an invariant over the source: no member, whatever its
 /// accessibility, takes or returns a mutable collection - an array, or a collection that can be written to. A
 /// field that is not private returns its value too; a private one only holds it. An override keeps the
-/// signature its base gave it, and an interface's implementation the interface's. One fact per project
-/// (Sources).</summary>
+/// signature its base gave it, and an interface's implementation the interface's.</summary>
 public class MutableCollections : TSpec.Spec
 {
     // The collections of System.Collections.Generic that can be written to, and the interfaces that write.
@@ -29,11 +28,9 @@ public class MutableCollections : TSpec.Spec
         typeof(IDictionary<,>),
     ];
 
-    public static TheoryData<string> Projects => Sources.Projects;
-
-    [Theory, MemberData(nameof(Projects))]
-    public void NoMemberTakesOrReturnsAMutableCollection(string project) =>
-        Source.Projects[project].Members.Has().None(PassesAMutableCollection);
+    [Fact]
+    public void NoMemberTakesOrReturnsAMutableCollection() =>
+        Source.Projects.Has().All(project => project.Members.Has().None(PassesAMutableCollection));
 
     private static bool PassesAMutableCollection(DeclaredMember member) =>
         Passes(member) && CarriesAMutableCollection(member) && member.IsOriginal;

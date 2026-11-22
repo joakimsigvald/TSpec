@@ -9,7 +9,7 @@ namespace MyHotel.Architecture.Spec.Idioms;
 /// catch names the types it handles, and a catch of `Exception` only rethrows, with any side effect in its
 /// `when`. Whatever the filter answers, the original passes on - a filter that throws is dropped by the
 /// runtime and counts as false. MyHotel has no construct that swallows all errors by design; the first one is
-/// named here. One fact per project (Sources).</summary>
+/// named here.</summary>
 public class Catches : TSpec.Spec
 {
     /// <summary>The one shape that reacts to every failure without keeping it.</summary>
@@ -18,12 +18,10 @@ public class Catches : TSpec.Spec
     private const string Instead =
         $"name the types, or only rethrow, with any side effect in the filter: {Rethrowing}";
 
-    public static TheoryData<string> Projects => Sources.Projects;
-
-    [Theory, MemberData(nameof(Projects))]
-    public void NoCatchTakesEveryException(string project) =>
-        Source.Projects[project].Nodes<CatchClauseSyntax>()
-            .Has().either.None(TakesEverything).or.Fix(Instead);
+    [Fact]
+    public void NoCatchTakesEveryException() =>
+        Source.Projects.Has().All(
+            project => project.Nodes<CatchClauseSyntax>().Has().either.None(TakesEverything).or.Fix(Instead));
 
     [Theory]
     [InlineData("catch { }")]

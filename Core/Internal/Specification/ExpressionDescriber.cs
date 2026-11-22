@@ -29,11 +29,12 @@ internal static class ExpressionDescriber
             : expr;
 
     /// <summary>
-    /// The assertion <c>Has().All</c> runs on each item, as the specification states it of the item.
+    /// The assertion <c>Has().All</c> runs on each item, as the specification states it of the item: a line
+    /// for each step down, as an All on the item takes one.
     /// </summary>
-    public static string DescribeOnEachItem(this string? expr)
-        => string.IsNullOrWhiteSpace(expr) ? string.Empty
-        : new ItemAssertionDescriber().Describe(Parser.Parse(expr.ToSingleLine()));
+    public static IReadOnlyList<string> DescribeOnEachItem(this string? expr)
+        => string.IsNullOrWhiteSpace(expr) ? []
+        : new ItemAssertionDescriber().Lines(Parser.Parse(expr.ToSingleLine()));
 
     /// <summary>
     /// The name a lambda gives the item it is called with: <c>it</c> in <c>it => it.Is(1)</c>; none for a

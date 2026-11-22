@@ -7,11 +7,11 @@ public class CoreSpecs : TSpec.Spec
 {
     [Fact]
     public void EachSpecSitsInTheFolderOfTheClassItSpecifies() =>
-        CoreSpecFiles.Has().All(file => CoreClassFolders.Contains(FolderOf(file)));
+        CoreSpecFiles.Has().All(file => CoreClassFolders.Does().Contain(FolderOf(file)));
 
     [Fact]
     public void EachSpecFileDeclaresOneSpec() =>
-        CoreSpecFiles.Has().All(file => file.Types.Count == 1);
+        CoreSpecFiles.Has().All(file => file.Types.Count.Is(1));
 
     private static IEnumerable<SourceFile> CoreSpecFiles =>
         Source.Projects["Core.Spec"].Files.Where(file => file.Types.Any(IsSpec));

@@ -22,18 +22,36 @@ internal sealed class ItemAssertionDescriber : Describer
             && receiver.Name == item
             && !assertion.Args.Any(arg => Names(arg, lambda.Params));
 
-    protected override string Render(Expr expr)
-        => expr is Lambda { Params: [var item, ..] } lambda && AssertionOf(lambda.Body) is { } assertion
-            ? Words(assertion, item)
-            : Value.Describe(expr);
+    /// <summary>
+    /// The assertion's lines, each a step below the one before: an All on the item heads a For each of its
+    /// own, the assertion on its items below it
+    /// </summary>
+    internal IReadOnlyList<string> Lines(Expr expr)
+        => expr.WithoutNoise() is Lambda { Params: [var item, ..] } lambda && AssertionOf(lambda.Body) is { } assertion
+            ? LinesOf(assertion, item)
+            : [Value.Describe(expr)];
+
+    protected override string Render(Expr expr) => string.Join(' ', Lines(expr));
+
+    private IReadOnlyList<string> LinesOf(Assertion assertion, string item)
+        => assertion is { Entry: "Has", Negated: false, Method: "All", Args: [var each] } && IsAnAssertion(each)
+            ? [$"for each of {Receiver(assertion.Receiver, item)}:", .. Lines(each)]
+            : [Words(assertion, item)];
+
+    private static bool IsAnAssertion(Expr expr)
+        => expr.WithoutNoise() is Lambda lambda && AssertionOf(lambda.Body) is not null;
 
     private static bool Names(Expr expr, IReadOnlyList<string> parameters)
         => expr.WithoutNoise() is Identifier { Name: var name } && parameters.Contains(name)
             || expr.Children.Any(child => Names(child, parameters));
 
+    // A Fix ending an either is left out, as it is of an assertion on the whole; the general call below would
+    // take it for an assertion it cannot read.
     private static Assertion? AssertionOf(Expr body)
         => body.WithoutNoise() switch
         {
+            Call { Target: Member { Name: "Fix", Target: Member { Name: "or", Target: var alternative } } }
+                => AssertionOf(alternative),
             Call { Target: Member { Name: "Is", Target: var receiver }, Args: [var value] }
                 => new(receiver, "Is", Negated: false, Method: null, [value]),
             Call { Target: Member { Name: var method, Target: var entry }, Args: var args }
@@ -41,10 +59,11 @@ internal sealed class ItemAssertionDescriber : Describer
             _ => null,
         };
 
-    // The Is(), Has() or Does() that starts an assertion, and a not after it.
+    // The Is(), Has() or Does() that starts an assertion, and a not or an either after it.
     private static Assertion? EntryOf(Expr expr)
         => expr.WithoutNoise() switch
         {
+            Member { Name: "either", Target: var entry } => EntryOf(entry),
             Member { Name: "not", Target: var entry } when EntryOf(entry) is { Negated: false } assertion
                 => assertion with { Negated = true },
             Call { Target: Member { Name: var name, Target: var receiver }, Args: [] } when _entries.Contains(name)
@@ -68,6 +87,7 @@ internal sealed class ItemAssertionDescriber : Describer
             Identifier identifier => identifier.Name,
             Member member => RootOf(member.Target),
             Call call => RootOf(call.Target),
+            Generic generic => RootOf(generic.Target),
             _ => null,
         };
 

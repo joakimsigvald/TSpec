@@ -8,7 +8,7 @@ namespace MyHotel.Architecture.Spec.Idioms;
 /// <summary>CODING-STANDARD-BACKEND.md 6j as an invariant over the syntax trees and what they bind to: a
 /// chain of `Append` and `AppendLine` calls on a StringBuilder holds at most one fixed text - a constant, or
 /// the empty line of `AppendLine()`. Two are a text over several lines, which is one raw string literal. A
-/// chain is looked at, not appends in statements of their own. One fact per project (Sources).</summary>
+/// chain is looked at, not appends in statements of their own.</summary>
 public class AppendChains : TSpec.Spec
 {
     private const int FixedTexts = 1;
@@ -16,11 +16,10 @@ public class AppendChains : TSpec.Spec
 
     private static readonly string[] Appends = ["Append", "AppendLine"];
 
-    public static TheoryData<string> Projects => Sources.Projects;
-
-    [Theory, MemberData(nameof(Projects))]
-    public void AChainOfAppendsHoldsAtMostOneFixedText(string project) =>
-        Source.Projects[project].Nodes<InvocationExpressionSyntax>().Has().None(EndsATextInParts);
+    [Fact]
+    public void AChainOfAppendsHoldsAtMostOneFixedText() =>
+        Source.Projects.Has().All(
+            project => project.Nodes<InvocationExpressionSyntax>().Has().None(EndsATextInParts));
 
     /// <summary>The last call of a chain of appends that holds more than one fixed text.</summary>
     private static bool EndsATextInParts(SourceNode<InvocationExpressionSyntax> call) =>

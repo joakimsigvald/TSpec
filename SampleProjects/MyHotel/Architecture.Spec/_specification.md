@@ -28,12 +28,19 @@ flowchart TD
 
 ### [Folder cycles](Dependencies/FolderCycles.cs)
 
-- **No top level folders use each other around a loop**\
-  `Source.Projects[project].Folders is acyclic`
+- **No top level folders use each other around a loop**
+  ```
+  For each of Source.Projects:
+      its Folders is acyclic
+  ```
 
 ### [Layers](Dependencies/Layers.cs)
 
-- **Contract declares only public types** — `Types of "Contract" has all type.IsPublic`
+- **Contract declares only public types**
+  ```
+  For each of types of "Contract":
+      its IsPublic is true
+  ```
 - **Contract nests no type** — `Types of "Contract" has none type.Nested.Count > 0`
 - **Infra declares no interface**\
   `All types of "Infra" has none type.Kind == DeclaredKind.Interface`
@@ -79,10 +86,16 @@ flowchart TD
 
 ### [Enumerable members](Exposure/EnumerableMembers.cs)
 
-- **A member another class calls returns no enumerable**\
-  `Source.Projects[project].Members has none returns an enumerable`
-- **An enumerable parameter is referenced exactly once**\
-  `Source.Projects[project].Members.SelectMany(ParametersReadOtherThanOnce) is empty`
+- **A member another class calls returns no enumerable**
+  ```
+  For each of Source.Projects:
+      its Members has none returns an enumerable
+  ```
+- **An enumerable parameter is referenced exactly once**
+  ```
+  For each of Source.Projects:
+      its Members.SelectMany(ParametersReadOtherThanOnce) is empty
+  ```
 - **The references to a parameter are the names that resolve to it**\
   `References in Method(method) is references`
 
@@ -112,18 +125,28 @@ flowchart TD
 
 ### [Mutable collections](Exposure/MutableCollections.cs)
 
-- **No member takes or returns a mutable collection**\
-  `Source.Projects[project].Members has none passes a mutable collection`
+- **No member takes or returns a mutable collection**
+  ```
+  For each of Source.Projects:
+      its Members has none passes a mutable collection
+  ```
 
 ### [Public types](Exposure/PublicTypes.cs)
 
-- **A public type is named by another project or in a public signature**\
-  `Source.Projects[project].AllTypes.Where(type => type.IsPublic) has all needed project, type`
+- **A public type is named by another project or in a public signature**
+  ```
+  For each of Source.Projects.Where(Production):
+      for each of public types of project:
+          needed project, type is true
+  ```
 
 ### [Tuple members](Exposure/TupleMembers.cs)
 
-- **A public or internal member neither returns nor takes a tuple**\
-  `Source.Projects[project].Members has none member.IsExposed && member.Carries(IsTuple)`
+- **A public or internal member neither returns nor takes a tuple**
+  ```
+  For each of Source.Projects:
+      its Members has none member.IsExposed && member.Carries(IsTuple)
+  ```
 
 ### [Wire types](Exposure/WireTypes.cs)
 
@@ -138,13 +161,19 @@ flowchart TD
 
 ### [Append chains](Idioms/AppendChains.cs)
 
-- **A chain of appends holds at most one fixed text**\
-  `Source.Projects[project].Nodes<InvocationExpressionSyntax>() has none ends a text in parts`
+- **A chain of appends holds at most one fixed text**
+  ```
+  For each of Source.Projects:
+      its Nodes<InvocationExpressionSyntax>() has none ends a text in parts
+  ```
 
 ### [Catches](Idioms/Catches.cs)
 
-- **No catch takes every exception**\
-  `Source.Projects[project].Nodes<CatchClauseSyntax>() has none takes everything`
+- **No catch takes every exception**
+  ```
+  For each of Source.Projects:
+      its Nodes<CatchClauseSyntax>() has none takes everything
+  ```
 - **A catch takes every exception** — `Takes everything CatchIn(clause) is true`
 
   | clause                                                 |
@@ -171,8 +200,11 @@ flowchart TD
 
 ### [Default comparers](Idioms/DefaultComparers.cs)
 
-- **No to hash set passes the default comparer**\
-  `Source.Projects[project].Nodes<ArgumentSyntax>() has none default comparer`
+- **No to hash set passes the default comparer**
+  ```
+  For each of Source.Projects:
+      its Nodes<ArgumentSyntax>() has none default comparer
+  ```
 - **To hash set passes the default comparer** — `Passes the default SetBy(call) is true`
 
   | call                                                  |
@@ -194,18 +226,27 @@ flowchart TD
 
 ### [Null forgiving](Idioms/NullForgiving.cs)
 
-- **An expression holds at most one null forgiving operator**\
-  `Source.Projects[project].Nodes<PostfixUnaryExpressionSyntax>() has none doubly forgiven`
+- **An expression holds at most one null forgiving operator**
+  ```
+  For each of Source.Projects:
+      its Nodes<PostfixUnaryExpressionSyntax>() has none doubly forgiven
+  ```
 
 ### [Query syntax](Idioms/QuerySyntax.cs)
 
-- **No query is written in query syntax**\
-  `Source.Projects[project].Nodes<QueryExpressionSyntax>() is empty`
+- **No query is written in query syntax**
+  ```
+  For each of Source.Projects:
+      its Nodes<QueryExpressionSyntax>() is empty
+  ```
 
 ### [Suppressions](Idioms/Suppressions.cs)
 
-- **No source switches a warning off**\
-  `Source.Projects[project].Nodes<SyntaxNode>() has none suppressing`
+- **No source switches a warning off**
+  ```
+  For each of Source.Projects:
+      its Nodes<SyntaxNode>() has none suppressing
+  ```
 - **An attribute switches a warning off** — `Suppresses OnAClass(attribute) is true`
 
   | attribute                                                                        |
@@ -224,25 +265,37 @@ flowchart TD
 
 ### [Type arguments](Idioms/TypeArguments.cs)
 
-- **A call names no type argument the compiler infers**\
-  `Source.Projects[project].Nodes<GenericNameSyntax>() has none redundant`
+- **A call names no type argument the compiler infers**
+  ```
+  For each of Source.Projects:
+      its Nodes<GenericNameSyntax>() has none redundant
+  ```
 
 ## Layout
 
 ### [Argument lists](Layout/ArgumentLists.cs)
 
-- **A list is on one line or one item per line**\
-  `Source.Projects[project].Files.SelectMany(BadlyListed) is empty`
+- **A list is on one line or one item per line**
+  ```
+  For each of Source.Projects:
+      its Files.SelectMany(BadlyListed) is empty
+  ```
 
 ### [Arrows](Layout/Arrows.cs)
 
-- **An arrow never starts a line**\
-  `Source.Projects[project].Nodes<SyntaxNode>() has none holds an arrow starting a line`
+- **An arrow never starts a line**
+  ```
+  For each of Source.Projects:
+      its Nodes<SyntaxNode>() has none holds an arrow starting a line
+  ```
 
 ### [Clause braces](Layout/ClauseBraces.cs)
 
-- **A clause takes braces unless it is a simple statement**\
-  `Source.Projects[project].Nodes<StatementSyntax>() has none misbraced`
+- **A clause takes braces unless it is a simple statement**
+  ```
+  For each of Source.Projects:
+      its Nodes<StatementSyntax>() has none misbraced
+  ```
 - **A statement braces its clauses** — `Misbraced in statement is empty`
 
   | statement                                        |
@@ -268,44 +321,72 @@ flowchart TD
 
 ### [Conditional branches](Layout/ConditionalBranches.cs)
 
-- **In a conditional each part takes one line**\
-  `Source.Projects[project].Files.SelectMany(PartsOverOneLine) is empty`
+- **In a conditional each part takes one line**
+  ```
+  For each of Source.Projects:
+      its Files.SelectMany(PartsOverOneLine) is empty
+  ```
 
 ### [Expression lines](Layout/ExpressionLines.cs)
 
-- **Each expression has a line of its own**\
-  `Source.Projects[project].Files.SelectMany(SharedLines) is empty`
+- **Each expression has a line of its own**
+  ```
+  For each of Source.Projects:
+      its Files.SelectMany(SharedLines) is empty
+  ```
 
 ### [Indentation](Layout/Indentation.cs)
 
-- **A line is at most a level deeper than the line before it**\
-  `Source.Projects[project].Files.SelectMany(OversteppingLines) is empty`
-- **A brace on a line of its own stands at the level of its construct**\
-  `Source.Projects[project].Files.SelectMany(MisbracedLines) is empty`
+- **A line is at most a level deeper than the line before it**
+  ```
+  For each of Source.Projects:
+      its Files.SelectMany(OversteppingLines) is empty
+  ```
+- **A brace on a line of its own stands at the level of its construct**
+  ```
+  For each of Source.Projects:
+      its Files.SelectMany(MisbracedLines) is empty
+  ```
 
 ### [Lambda bodies](Layout/LambdaBodies.cs)
 
-- **An expression body starts on the arrows line and a block on the next**\
-  `Source.Projects[project].Files.SelectMany(MisplacedLambdaBodies) is empty`
+- **An expression body starts on the arrows line and a block on the next**
+  ```
+  For each of Source.Projects:
+      its Files.SelectMany(MisplacedLambdaBodies) is empty
+  ```
 
 ### [Line widths](Layout/LineWidths.cs)
 
-- **A line is at most 110 characters** — `Sources.CodeLinesOf(project) has none overwide`
+- **A line is at most 110 characters**
+  ```
+  For each of Source.Projects:
+      Sources.CodeLinesOf(project) has none overwide
+  ```
 
 ### [List ends](Layout/ListEnds.cs)
 
-- **A list whose items start on one line ends on it**\
-  `Source.Projects[project].Files.SelectMany(ListsEndingBelowTheirLine) is empty`
+- **A list whose items start on one line ends on it**
+  ```
+  For each of Source.Projects:
+      its Files.SelectMany(ListsEndingBelowTheirLine) is empty
+  ```
 
 ### [Member bodies](Layout/MemberBodies.cs)
 
-- **A member is on one line or its body starts below one level in**\
-  `Source.Projects[project].Files.SelectMany(MisplacedMemberBodies) is empty`
+- **A member is on one line or its body starts below one level in**
+  ```
+  For each of Source.Projects:
+      its Files.SelectMany(MisplacedMemberBodies) is empty
+  ```
 
 ### [Member spacing](Layout/MemberSpacing.cs)
 
-- **Members are one empty line apart unless two single line ones of a kind**\
-  `Source.Projects[project].Nodes<MemberDeclarationSyntax>() has none misspaced`
+- **Members are one empty line apart unless two single line ones of a kind**
+  ```
+  For each of Source.Projects:
+      its Nodes<MemberDeclarationSyntax>() has none misspaced
+  ```
 - **These members are spaced as 1 1g says** — `Misspaced TypeOf(declaration) is empty`
 
   | declaration                                                        |
@@ -328,26 +409,49 @@ flowchart TD
 
 ### [Nesting depth](Layout/NestingDepth.cs)
 
-- **No line is indented past the fifth level**\
-  `Sources.CodeLinesOf(project) has none overnested`
-- **No line is indented with a tab** — `Sources.CodeLinesOf(project) has none tabbed`
-- **A line is indented in whole levels**\
-  `Sources.CodeLinesOf(project) has none part level`
+- **No line is indented past the fifth level**
+  ```
+  For each of Source.Projects:
+      Sources.CodeLinesOf(project) has none overnested
+  ```
+- **No line is indented with a tab**
+  ```
+  For each of Source.Projects:
+      Sources.CodeLinesOf(project) has none tabbed
+  ```
+- **A line is indented in whole levels**
+  ```
+  For each of Source.Projects:
+      Sources.CodeLinesOf(project) has none part level
+  ```
 
 ## Placement
 
 ### [Core specs](Placement/CoreSpecs.cs)
 
-- **Each spec sits in the folder of the class it specifies**\
-  `CoreSpecFiles has all CoreClassFolders.Contains(FolderOf(file))`
-- **Each spec file declares one spec** — `CoreSpecFiles has all file.Types.Count == 1`
+- **Each spec sits in the folder of the class it specifies**
+  ```
+  For each of CoreSpecFiles:
+      CoreClassFolders contains folder of file
+  ```
+- **Each spec file declares one spec**
+  ```
+  For each of CoreSpecFiles:
+      its Types.Count is 1
+  ```
 
 ### [Exception types](Placement/ExceptionTypes.cs)
 
-- **Our exception types live in an exceptions folder without the suffix**\
-  `Classes project has none misplaced exception`
-- **An exceptions folder holds only exceptions**\
-  `Classes project has none stray in the folder`
+- **Our exception types live in an exceptions folder without the suffix**
+  ```
+  For each of Source.Projects:
+      classes project has none misplaced exception
+  ```
+- **An exceptions folder holds only exceptions**
+  ```
+  For each of Source.Projects:
+      classes project has none stray in the folder
+  ```
 - **An exception type elsewhere or with the suffix breaks it**\
   `Breaks file, name is true`
 
@@ -367,81 +471,133 @@ flowchart TD
 
 - **Fields come first then constructors then members by accessibility**
   ```
-  Source.Projects[project].Nodes<MemberDeclarationSyntax>() has none
-      stands below one it should precede
+  For each of Source.Projects:
+      its Nodes<MemberDeclarationSyntax>() has none stands below one it should precede
   ```
 
 ### [Partials](Placement/Partials.cs)
 
 - **A partial type is declared in one file**
   ```
-  Source.Projects[project].Types.Where(type => type.Files.Count > 1).Select(type =>
-      $"{type} in {string.Join(", ", type.Files)}") is empty
+  For each of Source.Projects:
+      split types of project is empty
   ```
 
 ### [Types per file](Placement/TypesPerFile.cs)
 
-- **A file declares one public type**\
-  `Source.Projects[project].Files.Where(Ours) has none crowded`
-- **A file is named after its public type**\
-  `Source.Projects[project].Files.Where(Ours) has none misnamed`
+- **A file declares one public type**
+  ```
+  For each of Source.Projects:
+      its Files.Where(Ours) has none crowded
+  ```
+- **A file is named after its public type**
+  ```
+  For each of Source.Projects:
+      its Files.Where(Ours) has none misnamed
+  ```
 - **Only a test project nests a public class**
   ```
-  Source.Projects[project].AllTypes.Where(IsNested).Where(type => type.Files.All(Ours)) has none
-      public but no record
+  For each of Source.Projects.Where(Production):
+      nested types of project has none public but no record
   ```
 
 ## Sizes
 
 ### [Arities](Sizes/Arities.cs)
 
-- **A method takes at most the ceilings arguments**\
-  `Source.Projects[project].Members.Where(MethodOverTheCeiling).Select(Reported) is empty`
-- **A constructor takes at most the ceilings arguments**\
-  `Source.Projects[project].Members.Where(ConstructorOverTheCeiling).Select(Reported) is empty`
+- **A method takes at most the ceilings arguments**
+  ```
+  For each of Source.Projects:
+      its Members.Where(MethodOverTheCeiling).Select(Reported) is empty
+  ```
+- **A constructor takes at most the ceilings arguments**
+  ```
+  For each of Source.Projects:
+      its Members.Where(ConstructorOverTheCeiling).Select(Reported) is empty
+  ```
 
 ### [File lengths](Sizes/FileLengths.cs)
 
-- **A file is under 250 lines** — `Source.Projects[project].Files has none overlong`
+- **A file is under 250 lines**
+  ```
+  For each of Source.Projects:
+      its Files has none overlong
+  ```
 
 ### [Method size](Sizes/MethodSize.cs)
 
-- **A members size is limited**\
-  `Source.Projects[project].Members.Where(Oversized).Select(Reported) is empty`
-- **The top level statements size is limited**\
-  `Source.Projects[project].Files.Where(OversizedTopLevel).Select(Reported) is empty`
+- **A members size is limited**
+  ```
+  For each of Source.Projects:
+      its Members.Where(Oversized).Select(Reported) is empty
+  ```
+- **The top level statements size is limited**
+  ```
+  For each of Source.Projects:
+      its Files.Where(OversizedTopLevel).Select(Reported) is empty
+  ```
 
 ## Wording
 
 ### [Async suffixes](Wording/AsyncSuffixes.cs)
 
-- **No method carries the async suffix**\
-  `Source.Projects[project].Members has none async suffixed`
+- **No method carries the async suffix**
+  ```
+  For each of Source.Projects:
+      its Members has none async suffixed
+  ```
 
 ### [Characters](Wording/Characters.cs)
 
-- **Code and comments are ascii**\
-  `Source.Projects[project].Files.SelectMany(NonAsciiLines) is empty`
+- **Code and comments are ascii**
+  ```
+  For each of Source.Projects:
+      its Files.SelectMany(NonAsciiLines) is empty
+  ```
 
 ### [Comments](Wording/Comments.cs)
 
-- **A type or a member is described by a summary not a comment**\
-  `Comments of project has none describes a type or a member`
-- **A summary is at most ten lines** — `Comments of project has none is a long summary`
-- **A comment is at most three lines** — `Comments of project has none is a long comment`
-- **There is no block comment** — `Comments of project has none is a block comment`
+- **A type or a member is described by a summary not a comment**
+  ```
+  For each of Source.Projects:
+      comments of project has none describes a type or a member
+  ```
+- **A summary is at most ten lines**
+  ```
+  For each of Source.Projects:
+      comments of project has none is a long summary
+  ```
+- **A comment is at most three lines**
+  ```
+  For each of Source.Projects:
+      comments of project has none is a long comment
+  ```
+- **There is no block comment**
+  ```
+  For each of Source.Projects:
+      comments of project has none is a block comment
+  ```
 
 ### [Get prefixes](Wording/GetPrefixes.cs)
 
-- **No member is named get something**\
-  `Source.Projects[project].Members has none named get something`
+- **No member is named get something**
+  ```
+  For each of Source.Projects:
+      its Members has none named get something
+  ```
 
 ### [Lambda parameters](Wording/LambdaParameters.cs)
 
-- **A lambdas parameter is a word**\
-  `Source.Projects[project].Nodes<ParameterSyntax>() has none unworded`
+- **A lambdas parameter is a word**
+  ```
+  For each of Source.Projects:
+      its Nodes<ParameterSyntax>() has none unworded
+  ```
 
 ### [Using aliases](Wording/UsingAliases.cs)
 
-- **A using alias is a word not a letter**\
-  `Source.Projects[project].Nodes<UsingDirectiveSyntax>() has none is a letter`
+- **A using alias is a word not a letter**
+  ```
+  For each of Source.Projects:
+      its Nodes<UsingDirectiveSyntax>() has none is a letter
+  ```

@@ -7,14 +7,12 @@ namespace MyHotel.Architecture.Spec.Layout;
 
 /// <summary>CODING-STANDARD-BACKEND.md 11e as an invariant over the syntax trees: a lambda's expression body
 /// starts on the arrow's line, and a block body opens on the line after it (the arrow on the parameters' line
-/// is Arrows'). One fact per project (Sources).</summary>
+/// is Arrows').</summary>
 public class LambdaBodies : TSpec.Spec
 {
-    public static TheoryData<string> Projects => Sources.Projects;
-
-    [Theory, MemberData(nameof(Projects))]
-    public void AnExpressionBodyStartsOnTheArrowsLineAndABlockOnTheNext(string project) =>
-        Source.Projects[project].Files.SelectMany(MisplacedLambdaBodies).Is().Empty();
+    [Fact]
+    public void AnExpressionBodyStartsOnTheArrowsLineAndABlockOnTheNext() =>
+        Source.Projects.Has().All(project => project.Files.SelectMany(MisplacedLambdaBodies).Is().Empty());
 
     /// <summary>"file:line" for every lambda whose body opens elsewhere than its rule says.</summary>
     private static IEnumerable<string> MisplacedLambdaBodies(SourceFile file) =>

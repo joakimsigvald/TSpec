@@ -7,14 +7,13 @@ namespace MyHotel.Architecture.Spec.Layout;
 
 /// <summary>CODING-STANDARD-BACKEND.md 11b where ArgumentLists does not look: a list of arguments or
 /// parameters whose items all start on one line is on that line, so its last item ends there too - never
-/// hugged, wrapping below it. One fact per project (Sources).</summary>
+/// hugged, wrapping below it.</summary>
 public class ListEnds : TSpec.Spec
 {
-    public static TheoryData<string> Projects => Sources.Projects;
-
-    [Theory, MemberData(nameof(Projects))]
-    public void AListWhoseItemsStartOnOneLineEndsOnIt(string project) =>
-        Source.Projects[project].Files.SelectMany(ListsEndingBelowTheirLine).Is().Empty();
+    [Fact]
+    public void AListWhoseItemsStartOnOneLineEndsOnIt() =>
+        Source.Projects.Has().All(
+            project => project.Files.SelectMany(ListsEndingBelowTheirLine).Is().Empty());
 
     /// <summary>"file:line" for every list whose items start on one line while its last item ends below
     /// it.</summary>

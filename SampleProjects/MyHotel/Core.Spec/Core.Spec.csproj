@@ -21,7 +21,7 @@
 
 	<!-- TSpec's working copy, built into ..\lib. -->
 	<ItemGroup>
-		<PackageReference Include="TSpec" Version="5.7.0" />
+		<PackageReference Include="TSpec" Version="5.8.0-local.3" />
 		<Analyzer Include="..\lib\TSpec.Analyzers.dll" />
 	</ItemGroup>
 

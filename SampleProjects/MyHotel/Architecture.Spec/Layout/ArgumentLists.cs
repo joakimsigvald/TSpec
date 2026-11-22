@@ -11,11 +11,9 @@ namespace MyHotel.Architecture.Spec.Layout;
 /// last.</summary>
 public class ArgumentLists : TSpec.Spec
 {
-    public static TheoryData<string> Projects => Sources.Projects;
-
-    [Theory, MemberData(nameof(Projects))]
-    public void AListIsOnOneLineOrOneItemPerLine(string project) =>
-        Source.Projects[project].Files.SelectMany(BadlyListed).Is().Empty();
+    [Fact]
+    public void AListIsOnOneLineOrOneItemPerLine() =>
+        Source.Projects.Has().All(project => project.Files.SelectMany(BadlyListed).Is().Empty());
 
     /// <summary>"file:line" for every list that is neither on one line nor one item per line below its
     /// opening line, at the line it opens on.</summary>

@@ -7,7 +7,7 @@ public class Layers : TSpec.Spec
 {
     [Fact]
     public void ContractDeclaresOnlyPublicTypes() =>
-        TypesOf("Contract").Has().All(type => type.IsPublic);
+        TypesOf("Contract").Has().All(type => type.IsPublic.Is().True());
 
     [Fact]
     public void ContractNestsNoType() => TypesOf("Contract").Has().None(type => type.Nested.Count > 0);

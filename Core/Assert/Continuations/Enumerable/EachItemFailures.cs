@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using TSpec.Internal.Specification;
 using Xunit.Sdk;
 
@@ -37,16 +38,29 @@ internal sealed class EachItemFailures<TItem>(IReadOnlyList<(TItem Item, XunitEx
             : lines;
     }
 
-    // The item named for its parameter: it is the 3 it was, project.Files is Core's Files.
+    // The item named for its parameter: it is the 3 it was, project.Files is Core's Files, Lines(project) is
+    // Lines(Core). It replaces the message's first line only: an assertion on each item has an outcome over several
+    // lines, and the lines below the first stay the message's.
     private string? Named(FailedExpectation expectation, TItem value)
         => SubjectOf(expectation.Actual, value.FormatValue()) is { } subject
-            ? $"Expected {subject} to {expectation.Expectation}{Failure.OutcomeBeside(subject, expectation.Outcome)}"
+            ? $"Expected {subject} to {expectation.Expectation}{Failure.OutcomeBeside(subject, FirstLineOf(expectation.Outcome))}"
             : null;
+
+    private static string FirstLineOf(string text) => text.Split(Environment.NewLine)[0];
 
     private string? SubjectOf(string actual, string named)
         => actual == item ? named
         : item is not null && actual.StartsWith($"{item}.", StringComparison.Ordinal) ? $"{named}'s {actual[(item.Length + 1)..]}"
+        : item is not null && TryNameAsArgument(actual, item, named, out var subject) ? subject
         : null;
+
+    // The item where it stands as a word of its own: Math.Abs(it) is Math.Abs(3). A member of the same name, as
+    // in x.it, is not the item.
+    private static bool TryNameAsArgument(string actual, string item, string named, out string subject)
+    {
+        subject = Regex.Replace(actual, $@"(?<![\w.]){Regex.Escape(item)}(?!\w)", _ => named);
+        return subject != actual;
+    }
 
     private static FailedExpectation? ExpectationOf(XunitException failure)
         => FailedExpectation.TryRead(failure, out var expectation) ? expectation : null;

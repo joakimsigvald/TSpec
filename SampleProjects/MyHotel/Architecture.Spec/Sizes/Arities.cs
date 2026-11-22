@@ -12,15 +12,15 @@ public class Arities : TSpec.Spec
     private const int MethodArguments = 4;
     private const int ConstructorArguments = 6;
 
-    public static TheoryData<string> Projects => Sources.Projects;
+    [Fact]
+    public void AMethodTakesAtMostTheCeilingsArguments() =>
+        Source.Projects.Has().All(
+            project => project.Members.Where(MethodOverTheCeiling).Select(Reported).Is().Empty());
 
-    [Theory, MemberData(nameof(Projects))]
-    public void AMethodTakesAtMostTheCeilingsArguments(string project) =>
-        Source.Projects[project].Members.Where(MethodOverTheCeiling).Select(Reported).Is().Empty();
-
-    [Theory, MemberData(nameof(Projects))]
-    public void AConstructorTakesAtMostTheCeilingsArguments(string project) =>
-        Source.Projects[project].Members.Where(ConstructorOverTheCeiling).Select(Reported).Is().Empty();
+    [Fact]
+    public void AConstructorTakesAtMostTheCeilingsArguments() =>
+        Source.Projects.Has().All(
+            project => project.Members.Where(ConstructorOverTheCeiling).Select(Reported).Is().Empty());
 
     private static bool MethodOverTheCeiling(DeclaredMember member) =>
         member.Kind is MemberKind.Method or MemberKind.LocalFunction

@@ -7,30 +7,30 @@ namespace MyHotel.Architecture.Spec.Wording;
 /// <summary>CODING-STANDARD-BACKEND.md 9c and 9f as invariants over the comments: a type or a member is
 /// described by a `///` block of at most ten lines, never by a `//` comment - a field may have one - a `//`
 /// comment runs at most three lines, and there is no `/* */` comment, nor its `/** */` twin. `//` lines in a
-/// row are one comment, but a note after code on its line is a comment of its own. One fact per project
-/// (Sources).</summary>
+/// row are one comment, but a note after code on its line is a comment of its own.</summary>
 public class Comments : TSpec.Spec
 {
     private const int MaxSummaryLines = 10;
     private const int MaxCommentLines = 3;
 
-    public static TheoryData<string> Projects => Sources.Projects;
+    [Fact]
+    public void ATypeOrAMemberIsDescribedByASummaryNotAComment() =>
+        Source.Projects.Has().All(project => CommentsOf(project).Has().None(DescribesATypeOrAMember));
 
-    [Theory, MemberData(nameof(Projects))]
-    public void ATypeOrAMemberIsDescribedByASummaryNotAComment(string project) =>
-        CommentsOf(project).Has().None(DescribesATypeOrAMember);
+    [Fact]
+    public void ASummaryIsAtMostTenLines() =>
+        Source.Projects.Has().All(project => CommentsOf(project).Has().None(IsALongSummary));
 
-    [Theory, MemberData(nameof(Projects))]
-    public void ASummaryIsAtMostTenLines(string project) => CommentsOf(project).Has().None(IsALongSummary);
+    [Fact]
+    public void ACommentIsAtMostThreeLines() =>
+        Source.Projects.Has().All(project => CommentsOf(project).Has().None(IsALongComment));
 
-    [Theory, MemberData(nameof(Projects))]
-    public void ACommentIsAtMostThreeLines(string project) => CommentsOf(project).Has().None(IsALongComment);
+    [Fact]
+    public void ThereIsNoBlockComment() =>
+        Source.Projects.Has().All(project => CommentsOf(project).Has().None(IsABlockComment));
 
-    [Theory, MemberData(nameof(Projects))]
-    public void ThereIsNoBlockComment(string project) => CommentsOf(project).Has().None(IsABlockComment);
-
-    private static IReadOnlyList<SourceComment> CommentsOf(string project) =>
-        [.. Source.Projects[project].Files.SelectMany(file => file.Comments)];
+    private static IReadOnlyList<SourceComment> CommentsOf(SourceProject project) =>
+        [.. project.Files.SelectMany(file => file.Comments)];
 
     private static bool DescribesATypeOrAMember(SourceComment comment) =>
         comment.Kind is CommentKind.Line

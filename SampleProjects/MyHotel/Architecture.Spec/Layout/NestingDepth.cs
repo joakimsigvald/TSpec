@@ -5,23 +5,22 @@ namespace MyHotel.Architecture.Spec.Layout;
 
 /// <summary>CODING-STANDARD-BACKEND.md 11c as an invariant over the source: four spaces per level, so a line
 /// of code is indented in whole levels and never with a tab, and no line indented past the fifth level. The
-/// text of a string over several lines is no code (0e). One fact per project (Sources).</summary>
+/// text of a string over several lines is no code (0e).</summary>
 public class NestingDepth : TSpec.Spec
 {
     private const int Limit = 5;
 
-    public static TheoryData<string> Projects => Sources.Projects;
+    [Fact]
+    public void NoLineIsIndentedPastTheFifthLevel() =>
+        Source.Projects.Has().All(project => Sources.CodeLinesOf(project).Has().None(Overnested));
 
-    [Theory, MemberData(nameof(Projects))]
-    public void NoLineIsIndentedPastTheFifthLevel(string project) =>
-        Sources.CodeLinesOf(project).Has().None(Overnested);
+    [Fact]
+    public void NoLineIsIndentedWithATab() =>
+        Source.Projects.Has().All(project => Sources.CodeLinesOf(project).Has().None(Tabbed));
 
-    [Theory, MemberData(nameof(Projects))]
-    public void NoLineIsIndentedWithATab(string project) => Sources.CodeLinesOf(project).Has().None(Tabbed);
-
-    [Theory, MemberData(nameof(Projects))]
-    public void ALineIsIndentedInWholeLevels(string project) =>
-        Sources.CodeLinesOf(project).Has().None(PartLevel);
+    [Fact]
+    public void ALineIsIndentedInWholeLevels() =>
+        Source.Projects.Has().All(project => Sources.CodeLinesOf(project).Has().None(PartLevel));
 
     private static bool Overnested(SourceLine line) => Indents.LevelOf(line.Text) > Limit;
     private static bool Tabbed(SourceLine line) => line.Text.TrimStart(' ').StartsWith('\t');

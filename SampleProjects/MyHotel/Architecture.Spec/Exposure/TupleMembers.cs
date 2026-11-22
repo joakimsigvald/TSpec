@@ -8,11 +8,10 @@ namespace MyHotel.Architecture.Spec.Exposure;
 /// so a public or internal member neither returns nor takes one.</summary>
 public class TupleMembers : TSpec.Spec
 {
-    public static TheoryData<string> Projects => Sources.Projects;
-
-    [Theory, MemberData(nameof(Projects))]
-    public void APublicOrInternalMemberNeitherReturnsNorTakesATuple(string project) =>
-        Source.Projects[project].Members.Has().None(member => member.IsExposed && member.Carries(IsTuple));
+    [Fact]
+    public void APublicOrInternalMemberNeitherReturnsNorTakesATuple() =>
+        Source.Projects.Has().All(
+            project => project.Members.Has().None(member => member.IsExposed && member.Carries(IsTuple)));
 
     private static bool IsTuple(ITypeSymbol type) => type.IsTupleType;
 }

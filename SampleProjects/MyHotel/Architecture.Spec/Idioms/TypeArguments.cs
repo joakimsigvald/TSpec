@@ -9,14 +9,12 @@ namespace MyHotel.Architecture.Spec.Idioms;
 /// <summary>CODING-STANDARD-BACKEND.md 6k as an invariant over the syntax trees and what they bind to: a call
 /// names no type argument the compiler infers. The call is bound again where it stands, without its type
 /// arguments; when it reaches the same method with the same types, nullability included, they were
-/// inferred. A call after `?.` is not looked at. One fact per project (Sources).</summary>
+/// inferred. A call after `?.` is not looked at.</summary>
 public class TypeArguments : TSpec.Spec
 {
-    public static TheoryData<string> Projects => Sources.Projects;
-
-    [Theory, MemberData(nameof(Projects))]
-    public void ACallNamesNoTypeArgumentTheCompilerInfers(string project) =>
-        Source.Projects[project].Nodes<GenericNameSyntax>().Has().None(Redundant);
+    [Fact]
+    public void ACallNamesNoTypeArgumentTheCompilerInfers() =>
+        Source.Projects.Has().All(project => project.Nodes<GenericNameSyntax>().Has().None(Redundant));
 
     /// <summary>A called name whose type arguments say what the compiler infers.</summary>
     private static bool Redundant(SourceNode<GenericNameSyntax> name) =>

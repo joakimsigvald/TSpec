@@ -106,11 +106,12 @@ internal class AssertionPhrases(SpecificationRecording recording)
     }
 
     // What holds of each item is a line of its own below the items, however short, two steps in, so that a
-    // conjunction about the items as a whole can stand one step in.
+    // conjunction about the items as a whole can stand one step in. Each line below it is two steps further in.
     private void SayOfEachItem(Claim claim)
     {
         recording.Claim(new(StepLayout.Word) { Body = $"for each of {claim.Actual}:" });
-        recording.Add(new(StepLayout.Phrase) { Body = claim.Expected.DescribeOnEachItem(), Indentation = 2 });
+        foreach (var (line, depth) in claim.Expected.DescribeOnEachItem().Select((line, depth) => (line, depth)))
+            recording.Add(new(StepLayout.Phrase) { Body = line, Indentation = 2 * (depth + 1) });
     }
 
     // A comma binds the alternative to the one before it on its line; any other conjunction is a phrase of its own.

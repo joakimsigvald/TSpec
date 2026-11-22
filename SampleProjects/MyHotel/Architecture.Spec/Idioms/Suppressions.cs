@@ -10,8 +10,7 @@ namespace MyHotel.Architecture.Spec.Idioms;
 /// warning fails the build, so a switch that turns one off in the source - `#pragma warning disable`,
 /// `[SuppressMessage]` or `#nullable disable` - is the one way past every analyzer and guard, and our sources
 /// hold none. A rule that does not fit is changed where review sees it: the standard and the .editorconfig. A
-/// project file's `NoWarn` stays review's, since TSpec reads no project file. One fact per project
-/// (Sources).</summary>
+/// project file's `NoWarn` stays review's, since TSpec reads no project file.</summary>
 public class Suppressions : TSpec.Spec
 {
     private static readonly string[] SuppressionTypes =
@@ -20,11 +19,9 @@ public class Suppressions : TSpec.Spec
         "System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute",
     ];
 
-    public static TheoryData<string> Projects => Sources.Projects;
-
-    [Theory, MemberData(nameof(Projects))]
-    public void NoSourceSwitchesAWarningOff(string project) =>
-        Source.Projects[project].Nodes<SyntaxNode>().Has().None(Suppressing);
+    [Fact]
+    public void NoSourceSwitchesAWarningOff() =>
+        Source.Projects.Has().All(project => project.Nodes<SyntaxNode>().Has().None(Suppressing));
 
     [Theory]
     [InlineData("""[SuppressMessage("Style", "IDE0001")]""")]

@@ -9,14 +9,12 @@ namespace MyHotel.Architecture.Spec.Layout;
 /// <summary>CODING-STANDARD-BACKEND.md 11g as an invariant over the syntax trees: exactly one empty line
 /// stands between two members of a type, except between two single-line members of one kind, which stand
 /// together. A member runs from its first comment to its end, its attributes included, and a constant is a
-/// kind of its own, as C# names it. One fact per project (Sources); a breach is counted.</summary>
+/// kind of its own, as C# names it. A breach is counted.</summary>
 public class MemberSpacing : TSpec.Spec
 {
-    public static TheoryData<string> Projects => Sources.Projects;
-
-    [Theory, MemberData(nameof(Projects))]
-    public void MembersAreOneEmptyLineApartUnlessTwoSingleLineOnesOfAKind(string project) =>
-        Source.Projects[project].Nodes<MemberDeclarationSyntax>().Has().None(Misspaced);
+    [Fact]
+    public void MembersAreOneEmptyLineApartUnlessTwoSingleLineOnesOfAKind() =>
+        Source.Projects.Has().All(project => project.Nodes<MemberDeclarationSyntax>().Has().None(Misspaced));
 
     [Theory]
     [InlineData("class C\n{\n    int a;\n    int b;\n}")]

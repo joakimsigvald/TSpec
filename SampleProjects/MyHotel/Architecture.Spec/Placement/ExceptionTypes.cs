@@ -5,8 +5,8 @@ namespace MyHotel.Architecture.Spec.Placement;
 
 /// <summary>CODING-STANDARD-BACKEND.md 8g and 10a as invariants over the source: our exception types live in
 /// an `Exceptions` folder of their sub-domain, named for what happened without the `Exception` suffix, and
-/// such a folder holds nothing else. A class is an exception when it derives from Exception, however deep.
-/// One fact per project (Sources).</summary>
+/// such a folder holds nothing else. A class is an exception when it derives from Exception, however
+/// deep.</summary>
 public class ExceptionTypes : TSpec.Spec
 {
     private const string Folder = "Exceptions";
@@ -15,15 +15,14 @@ public class ExceptionTypes : TSpec.Spec
     private const string Instead =
         $"name it for what happened, without the suffix, in an {Folder} folder of its sub-domain";
 
-    public static TheoryData<string> Projects => Sources.Projects;
+    [Fact]
+    public void OurExceptionTypesLiveInAnExceptionsFolderWithoutTheSuffix() =>
+        Source.Projects.Has().All(
+            project => Classes(project).Has().either.None(MisplacedException).or.Fix(Instead));
 
-    [Theory, MemberData(nameof(Projects))]
-    public void OurExceptionTypesLiveInAnExceptionsFolderWithoutTheSuffix(string project) =>
-        Classes(project).Has().either.None(MisplacedException).or.Fix(Instead);
-
-    [Theory, MemberData(nameof(Projects))]
-    public void AnExceptionsFolderHoldsOnlyExceptions(string project) =>
-        Classes(project).Has().None(StrayInTheFolder);
+    [Fact]
+    public void AnExceptionsFolderHoldsOnlyExceptions() =>
+        Source.Projects.Has().All(project => Classes(project).Has().None(StrayInTheFolder));
 
     [Theory]
     [InlineData("Contract/Rooms/RoomNotFound.cs", "RoomNotFound")]
@@ -36,8 +35,8 @@ public class ExceptionTypes : TSpec.Spec
     public void OneInAnExceptionsFolderWithoutTheSuffixDoesNot(string file, string name) =>
         Breaks(file, name).Is().False();
 
-    private static IEnumerable<DeclaredType> Classes(string project) =>
-        Source.Projects[project].AllTypes.Where(type => type.Kind is DeclaredKind.Class);
+    private static IEnumerable<DeclaredType> Classes(SourceProject project) =>
+        project.AllTypes.Where(type => type.Kind is DeclaredKind.Class);
 
     private static bool MisplacedException(DeclaredType type) =>
         IsAnException(type) && Breaks(FileOf(type), type.Name);

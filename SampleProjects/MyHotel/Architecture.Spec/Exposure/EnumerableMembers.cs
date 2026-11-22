@@ -11,15 +11,14 @@ namespace MyHotel.Architecture.Spec.Exposure;
 /// returns one (IAsyncEnumerable&lt;T>, the streaming shape, is another type).</summary>
 public class EnumerableMembers : TSpec.Spec
 {
-    public static TheoryData<string> Projects => Sources.Projects;
+    [Fact]
+    public void AMemberAnotherClassCallsReturnsNoEnumerable() =>
+        Source.Projects.Has().All(project => project.Members.Has().None(ReturnsAnEnumerable));
 
-    [Theory, MemberData(nameof(Projects))]
-    public void AMemberAnotherClassCallsReturnsNoEnumerable(string project) =>
-        Source.Projects[project].Members.Has().None(ReturnsAnEnumerable);
-
-    [Theory, MemberData(nameof(Projects))]
-    public void AnEnumerableParameterIsReferencedExactlyOnce(string project) =>
-        Source.Projects[project].Members.SelectMany(ParametersReadOtherThanOnce).Is().Empty();
+    [Fact]
+    public void AnEnumerableParameterIsReferencedExactlyOnce() =>
+        Source.Projects.Has().All(
+            project => project.Members.SelectMany(ParametersReadOtherThanOnce).Is().Empty());
 
     [Theory]
     [InlineData("int Count(IEnumerable<int> rows) => rows.Count();", 1)]

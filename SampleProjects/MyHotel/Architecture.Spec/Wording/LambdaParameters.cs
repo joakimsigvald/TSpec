@@ -7,15 +7,13 @@ namespace MyHotel.Architecture.Spec.Wording;
 
 /// <summary>CODING-STANDARD-BACKEND.md 6c as an invariant over the syntax trees: every lambda's parameter is
 /// a word of 2 to 12 letters, the first lowercase. `_` is a discard and is never used; only in a spec project
-/// may a body start with `_`, the subject, and use it nowhere else (`_ => _.Load(..)`, `_ => _ with { .. }`).
-/// One fact per project (Sources).</summary>
+/// may a body start with `_`, the subject, and use it nowhere else (`_ => _.Load(..)`,
+/// `_ => _ with { .. }`).</summary>
 public class LambdaParameters : TSpec.Spec
 {
-    public static TheoryData<string> Projects => Sources.Projects;
-
-    [Theory, MemberData(nameof(Projects))]
-    public void ALambdasParameterIsAWord(string project) =>
-        Source.Projects[project].Nodes<ParameterSyntax>().Has().None(Unworded);
+    [Fact]
+    public void ALambdasParameterIsAWord() =>
+        Source.Projects.Has().All(project => project.Nodes<ParameterSyntax>().Has().None(Unworded));
 
     /// <summary>A lambda's parameter that is not a word.</summary>
     private static bool Unworded(SourceNode<ParameterSyntax> parameter) =>
