@@ -33,13 +33,11 @@ public class DefaultComparers : TSpec.Spec
     public void ToHashSetPassesAnotherOrNone(string call) => PassesTheDefault(SetBy(call)).Is().False();
 
     private static bool DefaultComparer(SourceNode<ArgumentSyntax> argument) =>
-        DefaultComparer(argument.Syntax, argument.File.Model);
+        IsToHashSetsComparer(argument.Syntax, argument.File.Model)
+        && IsTheDefault(argument.Syntax.Expression, argument.File.Model);
 
-    private static bool PassesTheDefault(SemanticModel snippet) =>
-        Snippets.Nodes<ArgumentSyntax>(snippet).Any(argument => DefaultComparer(argument, snippet));
-
-    private static bool DefaultComparer(ArgumentSyntax argument, SemanticModel model) =>
-        IsToHashSetsComparer(argument, model) && IsTheDefault(argument.Expression, model);
+    private static bool PassesTheDefault(SourceFile snippet) =>
+        snippet.Nodes<ArgumentSyntax>().Any(DefaultComparer);
 
     /// <summary>The last argument of a ToHashSet call, whether it is called as an extension or not.</summary>
     private static bool IsToHashSetsComparer(ArgumentSyntax argument, SemanticModel model) =>
@@ -57,8 +55,8 @@ public class DefaultComparers : TSpec.Spec
 
     /// <summary>A snippet making a set of `words` by the call, where `Strings` is an alias of StringComparer
     /// and its members are imported too.</summary>
-    private static SemanticModel SetBy(string call) =>
-        Snippets.Compiled($$"""
+    private static SourceFile SetBy(string call) =>
+        Source.Snippet($$"""
             using System;
             using System.Collections.Generic;
             using System.Linq;

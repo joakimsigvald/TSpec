@@ -46,13 +46,7 @@ public class Catches : TSpec.Spec
         TakesEverything(CatchIn(clause)).Is().False();
 
     private static bool TakesEverything(SourceNode<CatchClauseSyntax> clause) =>
-        TakesEverything(clause.Syntax, clause.File.Model);
-
-    private static bool TakesEverything(SemanticModel snippet) =>
-        TakesEverything(Snippets.Nodes<CatchClauseSyntax>(snippet).Single(), snippet);
-
-    private static bool TakesEverything(CatchClauseSyntax clause, SemanticModel model) =>
-        TakesAny(clause.Declaration, model) && !Rethrows(clause);
+        TakesAny(clause.Syntax.Declaration, clause.File.Model) && !Rethrows(clause.Syntax);
 
     /// <summary>A bare catch, or one of Exception however its type is written.</summary>
     private static bool TakesAny(CatchDeclarationSyntax? declaration, SemanticModel model) =>
@@ -62,14 +56,14 @@ public class Catches : TSpec.Spec
     private static bool Rethrows(CatchClauseSyntax clause) =>
         clause.Block.Statements is [ThrowStatementSyntax { Expression: null }];
 
-    /// <summary>A snippet holding the catch clause after an empty try, where `Error` is an alias of
+    /// <summary>The catch clause after an empty try in a snippet, where `Error` is an alias of
     /// Exception.</summary>
-    private static SemanticModel CatchIn(string clause) =>
-        Snippets.Compiled($$"""
+    private static SourceNode<CatchClauseSyntax> CatchIn(string clause) =>
+        Source.Snippet($$"""
             using System;
             using System.IO;
             using Error = System.Exception;
 
             class C { void M() { try { } {{clause}} } }
-            """);
+            """).Nodes<CatchClauseSyntax>().Single();
 }

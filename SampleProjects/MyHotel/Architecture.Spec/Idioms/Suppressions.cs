@@ -49,9 +49,7 @@ public class Suppressions : TSpec.Spec
         };
 
     private static bool Disables(SyntaxToken setting) => setting.IsKind(SyntaxKind.DisableKeyword);
-
-    private static bool Suppresses(SemanticModel snippet) =>
-        Suppresses(Snippets.Nodes<AttributeSyntax>(snippet).Single(), snippet);
+    private static bool Suppresses(SourceFile snippet) => snippet.Nodes<SyntaxNode>().Any(Suppressing);
 
     private static bool Suppresses(AttributeSyntax attribute, SemanticModel model) =>
         model.GetSymbolInfo(attribute).Symbol?.ContainingType.ToDisplayString() is { } type
@@ -59,8 +57,8 @@ public class Suppressions : TSpec.Spec
 
     /// <summary>A snippet with the attribute on a class, where `Quiet` is an alias of SuppressMessage and
     /// NotASuppressMessage an attribute of our own.</summary>
-    private static SemanticModel OnAClass(string attribute) =>
-        Snippets.Compiled($$"""
+    private static SourceFile OnAClass(string attribute) =>
+        Source.Snippet($$"""
             using System;
             using System.Diagnostics.CodeAnalysis;
             using Quiet = System.Diagnostics.CodeAnalysis.SuppressMessageAttribute;

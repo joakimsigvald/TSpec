@@ -57,7 +57,7 @@ internal static class ProjectSources
         => [.. debug.Documents.Select(document => debug.GetString(debug.GetDocument(document).Name))];
 
     // One object per type, so a partial type is the same type on each of its files.
-    private static void Declare(IEnumerable<DeclaredType> declared, IReadOnlyList<SourceFile> files)
+    internal static void Declare(IEnumerable<DeclaredType> declared, IReadOnlyList<SourceFile> files)
     {
         var types = declared.OrderBy(type => type.FullName, StringComparer.Ordinal).ToList();
         foreach (var file in files)

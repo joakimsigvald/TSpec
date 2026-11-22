@@ -24,11 +24,19 @@ public sealed class SourceFile
     private readonly Lazy<IReadOnlyList<int>> _levels;
 
     internal SourceFile(string project, string path, string location, CSharpParseOptions options)
+        : this(project, path, location, () => File.ReadAllText(location), options,
+            tree => CompiledProject.Of(Source.Projects[project]).ModelOf(tree))
+    {
+    }
+
+    internal SourceFile(
+        string project, string path, string location, Func<string> raw, CSharpParseOptions options,
+        Func<SyntaxTree, SemanticModel> model)
     {
         Project = project;
         Path = path;
         Location = location;
-        _raw = new(() => File.ReadAllText(location));
+        _raw = new(raw);
         _lines = new(() => LinesOf(Raw));
         _textLines = new(() => TextLines.Of(Root));
         _sourceLines = new(() => [.. _lines.Value.Select(LineAt)]);
@@ -37,7 +45,7 @@ public sealed class SourceFile
         _members = new(() => MemberDeclarations.In(this));
         _comments = new(() => FileComments.Of(this));
         _uses = new(() => BuildTypes.UsedIn(this));
-        _model = new(() => CompiledProject.Of(Source.Projects[project]).ModelOf(Root.SyntaxTree));
+        _model = new(() => model(Root.SyntaxTree));
         _dependsOn = new(() => FileDependencies.Of(this));
     }
 

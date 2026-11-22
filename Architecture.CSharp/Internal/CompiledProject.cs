@@ -15,6 +15,10 @@ internal sealed class CompiledProject
     private static readonly ConcurrentDictionary<(string Project, string Assembly), Lazy<CompiledProject>> _compiled = new();
     private static readonly Lazy<IReadOnlyList<PortableExecutableReference>> _assemblies = new(AssembliesOfTheRun);
 
+    private static readonly CSharpCompilationOptions _options
+        = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)
+            .WithMetadataImportOptions(MetadataImportOptions.Internal);
+
     private readonly CSharpCompilation _compilation;
     private readonly Lazy<IReadOnlySet<(TypeKey Owner, TypeKey Named)>> _signatures;
 
@@ -37,8 +41,10 @@ internal sealed class CompiledProject
             project.AssemblyName,
             ProjectSources.SourceOf(project).Trees,
             _assemblies.Value.Where(assembly => !IsBuiltFrom(project, assembly)),
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)
-                .WithMetadataImportOptions(MetadataImportOptions.Internal)));
+            _options));
+
+    internal static SemanticModel ModelOfSnippet(SyntaxTree tree)
+        => CSharpCompilation.Create("Snippet", [tree], _assemblies.Value, _options).GetSemanticModel(tree);
 
     // The project's own assembly would declare its types a second time.
     private static bool IsBuiltFrom(SourceProject project, PortableExecutableReference assembly)

@@ -215,6 +215,22 @@ public void Only_the_connection_calls_Dapper()
 A file is the same object every time, so an analysis TSpec doesn't have can be added to it as an
 extension member that keeps what it computes per file in a `ConditionalWeakTable<SourceFile, T>`.
 
+To test a rule's condition on examples, `Source.Snippet(code)` compiles a piece of code into a file of its
+own, the way the build's files are compiled, so its names resolve and it can use the framework's types and
+the build's. Hand its nodes or members to the same condition the rule runs. A snippet is in no project of
+the build, and a failure names it `Snippet/Snippet.cs`:
+
+```csharp
+[Theory]
+[InlineData("catch { }")]
+[InlineData("catch (Exception) { }")]
+public void A_catch_of_every_exception_breaks_the_rule(string clause)
+    => TakesEverything(Source.Snippet($$"""
+        using System;
+        class C { void M() { try { } {{clause}} } }
+        """).Nodes<CatchClauseSyntax>().Single()).Is().True();
+```
+
 ## Type
 
 A type has its `Name` (`Repository`), its `FullName` (`Data.Repository<T>`), `Namespace`, `Kind`,

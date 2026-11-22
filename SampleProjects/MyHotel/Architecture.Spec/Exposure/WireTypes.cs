@@ -1,6 +1,4 @@
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using TSpec.Architecture.CSharp;
 using TSpec.Assert;
 
@@ -38,11 +36,9 @@ public class WireTypes : TSpec.Spec
     private static bool IsRefused(ITypeSymbol type) =>
         type.SpecialType is SpecialType.System_Object
         || type.TypeKind is TypeKind.Dynamic
-        || (type.IsValueType && type.ContainingAssembly?.Name == Contract.AssemblyName && !Converted(type));
+        || (type.IsValueType && Contract.TryFind(type, out var ours) && !Converted(ours));
 
-    private static bool Converted(ITypeSymbol type) =>
-        type.GetAttributes()
-            .Any(attribute => attribute.AttributeClass?.ToDisplayString() == $"{Converter}Attribute");
+    private static bool Converted(DeclaredType type) => type.HasAttribute(Converter);
 
     /// <summary>A record's public property, a positional one too, that no converter on the record
     /// writes.</summary>
@@ -50,14 +46,14 @@ public class WireTypes : TSpec.Spec
         member.Kind is MemberKind.Property
         && member.Accessibility is Accessibility.Public
         && member.DeclaringType is { Kind: DeclaredKind.Record or DeclaredKind.RecordStruct } record
-        && !record.HasAttribute(Converter);
+        && !Converted(record);
 
     private static SourceProject Contract => Source.Projects["Contract"];
 
     /// <summary>An enum with the attribute in a snippet, where Own.JsonConverter is an attribute of our
     /// own.</summary>
-    private static ITypeSymbol EnumIn(string attribute) =>
-        EnumIn(Snippets.Compiled($$"""
+    private static DeclaredType EnumIn(string attribute) =>
+        Source.Snippet($$"""
             using System;
             using System.Text.Json.Serialization;
 
@@ -68,8 +64,5 @@ public class WireTypes : TSpec.Spec
             {
                 sealed class JsonConverterAttribute : Attribute;
             }
-            """));
-
-    private static ITypeSymbol EnumIn(SemanticModel snippet) =>
-        snippet.GetDeclaredSymbol(Snippets.Nodes<EnumDeclarationSyntax>(snippet).Single())!;
+            """).Types.Single(type => type.Kind is DeclaredKind.Enum);
 }

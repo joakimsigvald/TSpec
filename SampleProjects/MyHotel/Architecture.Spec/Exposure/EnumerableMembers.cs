@@ -51,13 +51,13 @@ public class EnumerableMembers : TSpec.Spec
         BodyOf(member.Syntax) is { } body ? Breaches(member, body) : [];
 
     private static IEnumerable<string> Breaches(DeclaredMember member, SyntaxNode body) =>
-        member.Parameters.Where(parameter => HoldsAnEnumerable(parameter, member.File.Model))
+        ParametersOf(member).Where(parameter => Holds(parameter.Type))
             .Select(parameter => Breach(member, parameter, body))
             .OfType<string>();
 
-    private static string? Breach(DeclaredMember member, ParameterSyntax parameter, SyntaxNode body) =>
+    private static string? Breach(DeclaredMember member, IParameterSymbol parameter, SyntaxNode body) =>
         Uses(body, parameter, member.File.Model) is var uses and not 1
-            ? $"{member}({parameter.Identifier.Text}) referenced {uses} times"
+            ? $"{member}({parameter.Name}) referenced {uses} times"
             : null;
 
     /// <summary>An abstract or interface method has no body and reads nothing; nor does a member of another
@@ -70,8 +70,8 @@ public class EnumerableMembers : TSpec.Spec
             _ => null,
         };
 
-    private static bool HoldsAnEnumerable(ParameterSyntax parameter, SemanticModel model) =>
-        model.GetDeclaredSymbol(parameter)?.Type is { } type && Holds(type);
+    private static IReadOnlyList<IParameterSymbol> ParametersOf(DeclaredMember member) =>
+        member.Symbol is IMethodSymbol method ? method.Parameters : [];
 
     /// <summary>An IEnumerable&lt;T> itself, or a type that has one among its type arguments or as its
     /// elements; a type that only implements one holds none.</summary>
@@ -86,38 +86,29 @@ public class EnumerableMembers : TSpec.Spec
     private static bool IsEnumerable(INamedTypeSymbol type) =>
         type.OriginalDefinition.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T;
 
-    private static int Uses(SyntaxNode body, ParameterSyntax parameter, SemanticModel model) =>
+    private static int Uses(SyntaxNode body, IParameterSymbol parameter, SemanticModel model) =>
         body.DescendantNodes().OfType<IdentifierNameSyntax>().Count(name => Names(name, parameter, model));
 
     /// <summary>Whether the name resolves to the parameter: a lambda's own parameter of that name does
     /// not.</summary>
-    private static bool Names(IdentifierNameSyntax name, ParameterSyntax parameter, SemanticModel model) =>
-        SymbolEqualityComparer.Default.Equals(
-            model.GetSymbolInfo(name).Symbol,
-            model.GetDeclaredSymbol(parameter));
+    private static bool Names(IdentifierNameSyntax name, IParameterSymbol parameter, SemanticModel model) =>
+        SymbolEqualityComparer.Default.Equals(model.GetSymbolInfo(name).Symbol, parameter);
 
-    /// <summary>A snippet with the method in a class of its own, where `Rows` is an alias of
+    /// <summary>The method in a class of its own in a snippet, where `Rows` is an alias of
     /// IEnumerable&lt;int>.</summary>
-    private static SemanticModel Method(string method) =>
-        Snippets.Compiled($$"""
+    private static DeclaredMember Method(string method) =>
+        Source.Snippet($$"""
             using System;
             using System.Collections.Generic;
             using System.Linq;
             using Rows = System.Collections.Generic.IEnumerable<int>;
 
             class C { {{method}} }
-            """);
+            """).Members.Single();
 
-    /// <summary>The references to the snippet method's first parameter.</summary>
-    private static int ReferencesIn(SemanticModel snippet) =>
-        Uses(MethodIn(snippet).ExpressionBody!, FirstParameterIn(snippet), snippet);
+    /// <summary>The references to the method's first parameter.</summary>
+    private static int ReferencesIn(DeclaredMember method) =>
+        Uses(BodyOf(method.Syntax)!, ParametersOf(method)[0], method.File.Model);
 
-    private static bool HoldsAnEnumerable(SemanticModel snippet) =>
-        HoldsAnEnumerable(FirstParameterIn(snippet), snippet);
-
-    private static MethodDeclarationSyntax MethodIn(SemanticModel snippet) =>
-        Snippets.Nodes<MethodDeclarationSyntax>(snippet).Single();
-
-    private static ParameterSyntax FirstParameterIn(SemanticModel snippet) =>
-        MethodIn(snippet).ParameterList.Parameters[0];
+    private static bool HoldsAnEnumerable(DeclaredMember method) => Holds(ParametersOf(method)[0].Type);
 }

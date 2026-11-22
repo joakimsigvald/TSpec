@@ -63,6 +63,7 @@ public void AreOnlyTheseAndNotRedundant()
 - `Uses`: the build's types its code uses, through a member too (an extension call, a constant). A nested type is one of its own.
 - `DependsOn()`: the projects and packages whose types its code uses (`Contract`, `P:Dapper`), not its own project nor the framework; one reached only through another project counts. `DependsOn(name)` asks for one, a trailing `*` matching as in `Within`.
 - To add an analysis, cache it per file in a `ConditionalWeakTable<SourceFile, T>` behind an extension member; a file is the same object every time.
+- `Source.Snippet(code)`: a piece of code compiled into a file of its own, as the build's files are, to test a rule's condition on examples: pass its `Nodes<T>()` or `Members` to the condition the rule runs. It can use the framework's types and the build's; it is in no project of the build, and a failure names it `Snippet/Snippet.cs`.
 
 ## Type
 
