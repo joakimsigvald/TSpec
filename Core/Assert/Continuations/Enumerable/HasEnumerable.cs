@@ -16,6 +16,9 @@ public record HasEnumerable<TItem, TContinuation> : EnumerableConstraint<TItem, 
     // What breaks an All or a None, which its failure lists instead of the whole enumerable.
     private string? _breaches;
 
+    // What an assertion on each item expected of every item that failed it, said in place of "the assertion".
+    private string? _sharedExpectation;
+
     /// <summary>
     /// Asserts that the enumerable contains exactly one item
     /// </summary>
@@ -240,9 +243,10 @@ public record HasEnumerable<TItem, TContinuation> : EnumerableConstraint<TItem, 
         Action<TItem, int> assert, [CallerArgumentExpression(nameof(assert))] string? assertExpr = null)
         => Assert(
             "elements satisfying the assertion",
-            NotNullAnd(actual => actual.Select((it, i) => (it, i)).ToList().ForEach(t => assert(t.it, t.i))),
+            NotNullAnd(actual => ExpectEach(actual, assert, assertExpr)),
             assertExpr!,
-            "have").And();
+            "have",
+            VerbalizationStrategy.ForEach).And();
 
     /// <summary>
     /// Asserts that all the items of the enumerable satisfy the given assertion.
@@ -254,8 +258,9 @@ public record HasEnumerable<TItem, TContinuation> : EnumerableConstraint<TItem, 
         Action<TItem> assert, [CallerArgumentExpression(nameof(assert))] string? assertExpr = null)
         => Assert(
             "elements satisfying the assertion",
-            NotNullAnd(actual => actual.ToList().ForEach(assert)), assertExpr!,
-            "have").And();
+            NotNullAnd(actual => ExpectEach(actual, (item, _) => assert(item), assertExpr)), assertExpr!,
+            "have",
+            VerbalizationStrategy.ForEach).And();
 
     /// <summary>
     /// Asserts that some item of the enumerable satisfies the given condition.
@@ -326,9 +331,25 @@ public record HasEnumerable<TItem, TContinuation> : EnumerableConstraint<TItem, 
     private void ExpectNone(IEnumerable<TItem> breaches, string relation)
     {
         TItem[] found = [.. breaches];
-        _breaches = found.Length == 0 ? null : $"{found.Length} {relation}: {found.FormatValue()}";
+        _breaches = Listed(found, relation);
         Xunit.Assert.Empty(found);
     }
+
+    /// <inheritdoc/>
+    private protected override string Expectation(object? expected)
+        => _sharedExpectation is { } shared ? $"elements {shared}" : base.Expectation(expected);
+
+    // Each item is asserted, so a failure lists every item that fails, with why below it unless all fail alike.
+    private void ExpectEach(IEnumerable<TItem> items, Action<TItem, int> assert, string? assertExpr)
+    {
+        var failures = EachItemFailures<TItem>.Of(items, assert, assertExpr);
+        _sharedExpectation = failures.Shared;
+        _breaches = Listed(failures.Items, "that does not") is { } listed ? listed + failures.Below : null;
+        Xunit.Assert.Empty(failures.Items);
+    }
+
+    private static string? Listed(TItem[] found, string relation)
+        => found.Length == 0 ? null : $"{found.Length} {relation}: {found.FormatValue()}";
 
     private static IEnumerable<(TItem Item, int Index)> Indexed(IEnumerable<TItem> items) => items.Select((item, index) => (item, index));
 }

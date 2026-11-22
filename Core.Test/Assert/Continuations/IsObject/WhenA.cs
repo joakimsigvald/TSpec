@@ -34,7 +34,7 @@ public class WhenA : Spec
         object one = new MyOtherRecord("Ada");
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => one.Is().A<MyRecord>());
         ex.HasMessage(
-            "Expected one to be a MyRecord but found MyOtherRecord { Name = Ada }",
+            "Expected one to be a MyRecord but it was MyOtherRecord { Name = Ada }",
             "One is a MyRecord");
     }
 

@@ -24,6 +24,6 @@ public class WhenNotNullableValue : Spec
         Money? expected = expectedAmount is null ? null : new Money(expectedAmount.Value, "SEK");
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => actual.Is().Not(expected));
         string expectedStr = expected?.ToString() ?? "null";
-        ex.HasMessage($"Expected actual to be not {expectedStr} but found {expectedStr}", "Actual is not expected");
+        ex.HasMessage($"Expected actual to be not {expectedStr} but it was {expectedStr}", "Actual is not expected");
     }
 }

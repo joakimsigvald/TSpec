@@ -13,6 +13,6 @@ public class WhenFalse : Spec
     {
         var actual = true;
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => actual.Is().False());
-        ex.HasMessage($"Expected actual to be false but found true", "Actual is false");
+        ex.HasMessage($"Expected actual to be false but it was true", "Actual is false");
     }
 }

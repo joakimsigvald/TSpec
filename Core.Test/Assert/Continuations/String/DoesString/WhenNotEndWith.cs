@@ -21,7 +21,7 @@ public class WhenNotEndWith : StringSpec
     public void GivenEndWithString_ThenGetException(string text, string expected)
     {
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => text.Does().not.EndWith(expected));
-        ex.HasMessage($"Expected text to not end with {Describe(expected)} but found {Describe(text)}",
+        ex.HasMessage($"Expected text to not end with {Describe(expected)} but it was {Describe(text)}",
             "Text does not end with expected");
     }
 }

@@ -19,7 +19,7 @@ public class WhenStandalone
     public void GivenFailingAssertion_ThenThrowsXunitException()
     {
         var ex = Xunit.Assert.Throws<XunitException>(() => 3.Is().GreaterThan(4));
-        ex.Message.Is("Expected 3 to be greater than 4 but found 3");
+        ex.Message.Is("Expected 3 to be greater than 4");
         ex.InnerException!.Message.Does().Contain("3 is greater than 4");
     }
 

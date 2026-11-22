@@ -46,13 +46,13 @@ public class WhenAMockIsNamedInAMessage : Spec<ParentService, IChild>
     [Fact]
     public void GivenAMentionIsExpected_ThenItIsNamedAsMentioned()
         => MessageOf(() => When(_ => _.ChildOf(1)).Then().Result.Is(TheSecond<IChild>()))
-            .Is("Expected Result to be the second IChild but found IChild from IParent.GetChild(1)");
+            .Is("Expected Result to be the second IChild but it was IChild from IParent.GetChild(1)");
 
     [Fact]
     public void GivenAnotherChildIsExpected_ThenBothAreNamedByTheCallThatMadeThem()
         => MessageOf(() => When(_ => _.ChildOf(1)).Using(The<IParent>).Then().Result.Is(The<IParent>().GetChild(2)))
             .Is("Expected Result to be IChild from the IParent.GetChild(2) "
-                + "but found IChild from the IParent.GetChild(1)");
+                + "but it was IChild from the IParent.GetChild(1)");
 
     internal static string MessageOf(Action assertion)
         => Xunit.Assert.Throws<XunitException>(assertion).Message.NormalizeLineEndings();

@@ -56,7 +56,7 @@ public class WhenRenderFailureOutput : Spec<int>
     public void GivenErrorNoInnerNoWarningNoValues()
         => AssertOutput(
             () => { int n = 1; n.Is(2); },
-            "Expected n to be 2 but found 1",
+            "Expected n to be 2 but it was 1",
             """
 
             N is 2
@@ -66,7 +66,7 @@ public class WhenRenderFailureOutput : Spec<int>
     public void GivenErrorNoInnerNoWarningWithValues()
         => AssertOutput(
             () => An<int>().Is(99),
-            "Expected an int to be 99 but found 1",
+            "Expected an int to be 99 but it was 1",
             """
 
             An int is 99
@@ -80,7 +80,7 @@ public class WhenRenderFailureOutput : Spec<int>
     public void GivenErrorNoInnerWithWarningNoValues()
         => AssertOutput(
             () => { Any<Fussy>(); int n = 1; n.Is(2); },
-            "Expected n to be 2 but found 1",
+            "Expected n to be 2 but it was 1",
             $"""
 
             N is 2
@@ -93,7 +93,7 @@ public class WhenRenderFailureOutput : Spec<int>
     public void GivenErrorNoInnerWithWarningWithValues()
         => AssertOutput(
             () => A<Fussy>().Quantity.Is(1),
-            "Expected A<Fussy>().Quantity to be 1 but found 0",
+            "Expected A<Fussy>().Quantity to be 1 but it was 0",
             $"""
 
             A<Fussy>().Quantity is 1
@@ -113,12 +113,12 @@ public class WhenRenderFailureOutput : Spec<int>
         => AssertOutput(
             () => { int[] arr = [1, 3]; arr.Has().All(it => it.Is().LessThan(3)); },
             """
-            Expected arr to have all elements satisfying the assertion but found 2: [1, 3]
-            Expected it to be less than 3 but found 3
+            Expected arr to have all elements be less than 3 but found 1 that does not: [3]
             """,
             """
 
-            Arr has all it.Is().LessThan(3)
+            For each of arr:
+                it is less than 3
             """);
 
     [Fact]
@@ -126,12 +126,12 @@ public class WhenRenderFailureOutput : Spec<int>
         => AssertOutput(
             () => Two<int>().Has().All(it => it.Is().LessThan(2)),
             """
-            Expected two ints to have all elements satisfying the assertion but found 2: [1, 2]
-            Expected it to be less than 2 but found 2
+            Expected two ints to have all elements be less than 2 but found 1 that does not: [2]
             """,
             """
 
-            Two ints has all it.Is().LessThan(2)
+            For each of two ints:
+                it is less than 2
 
             === VALUES ===
             int:1 = 1
@@ -145,12 +145,12 @@ public class WhenRenderFailureOutput : Spec<int>
         => AssertOutput(
             () => { Any<Fussy>(); int[] arr = [1, 3]; arr.Has().All(it => it.Is().LessThan(3)); },
             """
-            Expected arr to have all elements satisfying the assertion but found 2: [1, 3]
-            Expected it to be less than 3 but found 3
+            Expected arr to have all elements be less than 3 but found 1 that does not: [3]
             """,
             $"""
 
-            Arr has all it.Is().LessThan(3)
+            For each of arr:
+                it is less than 3
 
             === WARNINGS ===
             {Warning}
@@ -161,12 +161,12 @@ public class WhenRenderFailureOutput : Spec<int>
         => AssertOutput(
             () => { Any<Fussy>(); Two<int>().Has().All(it => it.Is().LessThan(2)); },
             """
-            Expected two ints to have all elements satisfying the assertion but found 2: [2, 3]
-            Expected it to be less than 2 but found 2
+            Expected two ints to have all elements be less than 2 but found 2 that does not: [2, 3]
             """,
             $"""
 
-            Two ints has all it.Is().LessThan(2)
+            For each of two ints:
+                it is less than 2
 
             === WARNINGS ===
             {Warning}
@@ -193,7 +193,7 @@ public class WhenRenderFailureOutput : Spec<int>
             """);
         AssertOutput(
             () => { int n = 1; n.Is(2); },
-            "Expected n to be 2 but found 1",
+            "Expected n to be 2 but it was 1",
             """
 
             N is 2
@@ -214,7 +214,7 @@ public class WhenRenderFailureOutput : Spec<int>
         AddWarning("Reported once");
         AssertOutput(
             () => { int n = 1; n.Is(2); },
-            "Expected n to be 2 but found 1",
+            "Expected n to be 2 but it was 1",
             """
 
             N is 2

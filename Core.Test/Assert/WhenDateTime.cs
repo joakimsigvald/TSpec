@@ -52,6 +52,6 @@ public class WhenDateTime : Spec<DateTime>
             () => When(_ => A(_)).Then().Result.Is().Before(The<DateTime>().AddDays(-1)));
         ex.Message.Is(
             $"Expected Result to occur before {The<DateTime>().AddDays(-1).InvariantText()} "
-            + $"but found {The<DateTime>().InvariantText()}");
+            + $"but it was {The<DateTime>().InvariantText()}");
     }
 }

@@ -13,6 +13,6 @@ public class WhenNull : Spec
     {
         var actual = new object();
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => actual.Is().Null());
-        ex.HasMessage($"Expected actual to be null but found {actual}", "Actual is null");
+        ex.HasMessage($"Expected actual to be null but it was {actual}", "Actual is null");
     }
 }

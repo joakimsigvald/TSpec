@@ -18,6 +18,6 @@ public class WhenLike : Spec
         var actual = new MyRecord("abc");
         var expected = new MyOtherRecord("def");
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => actual.Is().Like(expected));
-        ex.HasMessage($"Expected actual to be like {expected} but found {actual}", "Actual is like expected");
+        ex.HasMessage($"Expected actual to be like {expected} but it was {actual}", "Actual is like expected");
     }
 }

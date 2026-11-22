@@ -11,6 +11,6 @@ public class WhenNull : Spec
     {
         Money? actual = new();
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => actual.Is().Null());
-        ex.HasMessage("Expected actual to be null but found Money { Amount = 0, Currency =  }", "Actual is null");
+        ex.HasMessage("Expected actual to be null but it was Money { Amount = 0, Currency =  }", "Actual is null");
     }
 }

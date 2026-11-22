@@ -18,6 +18,6 @@ public class WhenSameAs : Spec
         var actual = new MyRecord("abc");
         var expected = new MyRecord("abc");
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => actual.Is().SameAs(expected));
-        ex.HasMessage($"Expected actual to be same as {expected} but found {actual}", "Actual is same as expected");
+        ex.HasMessage($"Expected actual to be same as {expected} but it was {actual}", "Actual is same as expected");
     }
 }

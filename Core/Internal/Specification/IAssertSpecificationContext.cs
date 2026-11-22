@@ -5,6 +5,7 @@ namespace TSpec.Internal.Specification;
 internal interface IAssertSpecificationContext 
 {
     void Assert(Action assert, string actual, string? expected, string verb);
+    void AssertEach(Action assert, string actual, string? expected);
     void AddThen();
     void SetSubject(string subjectExpr, [CallerMemberName] string? provider = null);
     void ClearSubject();

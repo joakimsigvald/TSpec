@@ -16,6 +16,10 @@ internal class AssertionPhrases(SpecificationRecording recording)
     // The alternatives of an open either, said once it ends, since a Fix ending it is left out.
     private List<Claim>? _alternatives;
 
+    // A claim after one said of each item is about the whole again, which a conjunction indented under the items
+    // would not show.
+    private bool _afterEachItem;
+
     internal void AddThen()
         => recording.Record(() => recording.Add(new(StepLayout.SentenceOrPhrase)
         {
@@ -30,10 +34,10 @@ internal class AssertionPhrases(SpecificationRecording recording)
             Introduces = true,
         }));
 
-    internal void AddAssert(string actual, string verb, string? expected)
+    internal void AddAssert(string actual, string verb, string? expected, bool ofEachItem = false)
         => recording.Record(() =>
         {
-            var claim = new Claim(actual, verb, expected, _conjunction);
+            var claim = new Claim(actual, verb, expected, _conjunction, ofEachItem);
             _conjunction = null;
             if (_alternatives is null)
                 Say(claim);
@@ -83,26 +87,44 @@ internal class AssertionPhrases(SpecificationRecording recording)
 
     private void Say(Claim claim)
     {
-        Say(claim.Conjunction);
+        var resumesTheWhole = claim.Conjunction is not null && _afterEachItem;
+        Say(claim.Conjunction, indentation: resumesTheWhole ? 1 : 2);
+        _afterEachItem = claim.OfEachItem;
+        if (claim.OfEachItem)
+            SayOfEachItem(claim);
+        else
+            SayOnce(claim, saysTheActual: claim.Conjunction is null || resumesTheWhole);
+    }
+
+    private void SayOnce(Claim claim, bool saysTheActual)
+    {
         // actual is already described text, not source code — never re-parse it. After a
         // conjunction the claim goes on about the same actual, which is not said twice.
-        recording.Claim(new(StepLayout.Word) { Body = claim.Conjunction is null ? claim.Actual : string.Empty });
+        recording.Claim(new(StepLayout.Word) { Body = saysTheActual ? claim.Actual : string.Empty });
         AddWord(claim.Verb.AsWords(), claim.Conjunction == Comma ? ", " : " ");
         AddWord(claim.Expected.Describe());
     }
 
+    // What holds of each item is a line of its own below the items, however short, two steps in, so that a
+    // conjunction about the items as a whole can stand one step in.
+    private void SayOfEachItem(Claim claim)
+    {
+        recording.Claim(new(StepLayout.Word) { Body = $"for each of {claim.Actual}:" });
+        recording.Add(new(StepLayout.Phrase) { Body = claim.Expected.DescribeOnEachItem(), Indentation = 2 });
+    }
+
     // A comma binds the alternative to the one before it on its line; any other conjunction is a phrase of its own.
-    private void Say(string? conjunction)
+    private void Say(string? conjunction, int indentation)
     {
         if (conjunction is null)
             return;
 
         recording.Add(conjunction == Comma
             ? new(StepLayout.Word) { Introduces = true }
-            : new(StepLayout.Phrase) { Body = conjunction, Indentation = 2, Introduces = true });
+            : new(StepLayout.Phrase) { Body = conjunction, Indentation = indentation, Introduces = true });
     }
 
-    private sealed record Claim(string Actual, string Verb, string? Expected, string? Conjunction);
+    private sealed record Claim(string Actual, string Verb, string? Expected, string? Conjunction, bool OfEachItem);
 
     internal void AddAssertThrows<TError>(string? binder)
         => recording.Record(() => recording.Add(new(StepLayout.Word)

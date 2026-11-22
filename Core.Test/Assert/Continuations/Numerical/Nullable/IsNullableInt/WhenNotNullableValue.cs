@@ -11,6 +11,6 @@ public class WhenNotNullableValue : Spec
     {
         int? x = 1;
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => x.Is().Not(x));
-        ex.HasMessage("Expected x to be not 1 but found 1", "X is not x");
+        ex.HasMessage("Expected x to be not 1 but it was 1", "X is not x");
     }
 }

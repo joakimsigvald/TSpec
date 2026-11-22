@@ -15,6 +15,6 @@ public class WhenPositive : Spec
     {
         var a = TimeSpan.FromDays(days);
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => a.Is().Positive());
-        ex.HasMessage($"Expected a to be positive but found {a}", "A is positive");
+        ex.HasMessage($"Expected a to be positive but it was {a}", "A is positive");
     }
 }

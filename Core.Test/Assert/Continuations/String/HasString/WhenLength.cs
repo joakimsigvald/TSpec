@@ -25,7 +25,7 @@ public class WhenLength : StringSpec
     {
         string? name = null;
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => name.Has().Length(5));
-        ex.HasMessage("Expected name to have length 5 but found null");
+        ex.HasMessage("Expected name to have length 5 but it was null");
     }
 
     [Fact]

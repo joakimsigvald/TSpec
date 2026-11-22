@@ -19,7 +19,7 @@ public class WhenCompareWithComparison : StringSpec
     {
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
             () => text.Does().Contain(expected, StringComparison.OrdinalIgnoreCase));
-        ex.HasMessage($"Expected text to contain {Describe(expected)} ignoring case but found {Describe(text)}");
+        ex.HasMessage($"Expected text to contain {Describe(expected)} ignoring case but it was {Describe(text)}");
     }
 
     [Theory]

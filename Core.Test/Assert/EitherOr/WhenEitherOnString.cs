@@ -20,7 +20,7 @@ public class WhenEitherOnString : Spec<string>
     {
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
             () => When(_ => "a").Then().Result.Is().either.Null().or.Empty());
-        ex.HasMessage("Expected Result to be null or be empty but found \"a\"",
+        ex.HasMessage("Expected Result to be null or be empty but it was \"a\"",
             """
             When "a"
             Then Result is null

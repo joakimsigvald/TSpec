@@ -24,7 +24,7 @@ public class WhenEitherIsGreaterThanOrLessThan : Spec<int>
             () => When(_ => 7)
         .Then().Result.Is().either
         .GreaterThan(10).or.LessThan(5));
-        ex.HasMessage("Expected Result to be greater than 10 or be less than 5 but found 7",
+        ex.HasMessage("Expected Result to be greater than 10 or be less than 5 but it was 7",
             """
             When 7
             Then Result is greater than 10
@@ -71,7 +71,7 @@ public class WhenEitherIsGreaterThanOrLessThan : Spec<int>
             () => When(_ => 7)
         .Then().Result.Is().either
         .GreaterThan(10).or.LessThan(10).and.LessThan(5));
-        ex.HasMessage("Expected Result to be less than 5 but found 7");
+        ex.HasMessage("Expected Result to be less than 5 but it was 7");
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public class WhenEitherIsGreaterThanOrLessThan : Spec<int>
             () => When(_ => 3)
         .Then().Result.Is().either
         .LessThan(4).or.GreaterThan(5).and.LessThan(2));
-        ex.HasMessage("Expected Result to be less than 2 but found 3");
+        ex.HasMessage("Expected Result to be less than 2 but it was 3");
     }
 
     [Fact]

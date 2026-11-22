@@ -68,7 +68,7 @@ internal abstract class Describer
     }
 
     /// A method group reads as the words of its name, as a lambda calling it does.
-    private static string Condition(Expr condition)
+    protected static string Condition(Expr condition)
         => condition is Identifier method ? method.Name.AsWords() : Value.Describe(condition);
 
     /// <summary>

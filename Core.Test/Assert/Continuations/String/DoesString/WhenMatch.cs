@@ -20,7 +20,7 @@ public class WhenMatch : StringSpec
     public void GivenNotMatchingPattern_ThenGetException(string? text, string pattern)
     {
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => text.Does().Match(pattern));
-        ex.HasMessage($"Expected text to match {Describe(pattern)} but found {Describe(text)}", "Text matches pattern");
+        ex.HasMessage($"Expected text to match {Describe(pattern)} but it was {Describe(text)}", "Text matches pattern");
     }
 
     [Fact]

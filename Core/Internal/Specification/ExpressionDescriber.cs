@@ -28,6 +28,29 @@ internal static class ExpressionDescriber
             ? method.Name.AsWords()
             : expr;
 
+    /// <summary>
+    /// The assertion <c>Has().All</c> runs on each item, as the specification states it of the item.
+    /// </summary>
+    public static string DescribeOnEachItem(this string? expr)
+        => string.IsNullOrWhiteSpace(expr) ? string.Empty
+        : new ItemAssertionDescriber().Describe(Parser.Parse(expr.ToSingleLine()));
+
+    /// <summary>
+    /// The name a lambda gives the item it is called with: <c>it</c> in <c>it => it.Is(1)</c>; none for a
+    /// method group.
+    /// </summary>
+    public static string? ItemParameter(this string? expr)
+        => !string.IsNullOrWhiteSpace(expr) && Parser.Parse(expr.ToSingleLine()) is Lambda { Params: [var item, ..] }
+            ? item
+            : null;
+
+    /// <summary>
+    /// Whether an assertion <c>Has().All</c> runs on each item expects the same of every item.
+    /// </summary>
+    public static bool ExpectsTheSameOfEachItem(this string? expr)
+        => !string.IsNullOrWhiteSpace(expr)
+            && ItemAssertionDescriber.ExpectsTheSameOfEachItem(Parser.Parse(expr.ToSingleLine()));
+
     public static string? DescribeCall(this string? expr, bool skipSubjectRef = false)
         => expr is null ? null
         : string.IsNullOrWhiteSpace(expr) ? string.Empty

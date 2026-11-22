@@ -20,7 +20,7 @@ public class WhenNotLike : StringSpec
     public void GivenLikeString_ThenGetException(string? text, string? expected)
     {
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => text.Is().not.Like(expected));
-        ex.HasMessage($"Expected text to not be like {Describe(expected)} but found {Describe(text)}",
+        ex.HasMessage($"Expected text to not be like {Describe(expected)} but it was {Describe(text)}",
             "Text is not like expected");
     }
 }

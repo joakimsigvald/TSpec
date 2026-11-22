@@ -15,6 +15,6 @@ public class WhenNotEmpty : StringSpec
     public void GivenEmpty_ThenGetException(string text)
     {
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => text.Is().not.Empty());
-        ex.HasMessage($"Expected text to not be empty but found {Describe(text)}", "Text is not empty");
+        ex.HasMessage($"Expected text to not be empty but it was {Describe(text)}", "Text is not empty");
     }
 }

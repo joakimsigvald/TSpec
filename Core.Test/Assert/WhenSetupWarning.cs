@@ -13,7 +13,7 @@ public class WhenSetupWarning : Spec<Fussy>
     public void GivenFallbackConstructor_ThenFailureListsWarning()
     {
         var ex = Xunit.Assert.Throws<XunitException>(() => A<Fussy>().Quantity.Is(1));
-        ex.Message.Is("Expected A<Fussy>().Quantity to be 1 but found 0");
+        ex.Message.Is("Expected A<Fussy>().Quantity to be 1 but it was 0");
         ex.InnerException!.Message.Does().Contain("=== WARNINGS ===")
             .and.Contain("Fussy: the constructor rejected the generated arguments (ArgumentException)")
             .and.Contain("Using<Fussy>(...)");

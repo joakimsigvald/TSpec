@@ -31,7 +31,7 @@ public class WhenEitherHasMoreAlternatives : Spec<int>
     {
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
             () => When(_ => 4).Then().Result.Is().either.LessThan(1)._.GreaterThan(5).or.LessThan(4));
-        ex.HasMessage("Expected Result to be less than 1, be greater than 5 or be less than 4 but found 4",
+        ex.HasMessage("Expected Result to be less than 1, be greater than 5 or be less than 4 but it was 4",
             """
             When 4
             Then Result is less than 1, greater than 5
@@ -55,7 +55,7 @@ public class WhenEitherHasMoreAlternatives : Spec<int>
     {
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
             () => When(_ => 4).Then().Result.Is().either.LessThan(1).or.either.GreaterThan(5).or.LessThan(4));
-        ex.HasMessage("Expected Result to be less than 1, be greater than 5 or be less than 4 but found 4");
+        ex.HasMessage("Expected Result to be less than 1, be greater than 5 or be less than 4 but it was 4");
     }
 
     [Fact]

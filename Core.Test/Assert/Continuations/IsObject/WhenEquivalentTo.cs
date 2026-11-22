@@ -18,6 +18,6 @@ public class WhenEquivalentTo : Spec
         var actual = new MyRecord("abc");
         var expected = new MyOtherRecord("def");
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => actual.Is().EquivalentTo(expected));
-        ex.HasMessage($"Expected actual to be equivalent to {expected} but found {actual}", "Actual is equivalent to expected");
+        ex.HasMessage($"Expected actual to be equivalent to {expected} but it was {actual}", "Actual is equivalent to expected");
     }
 }

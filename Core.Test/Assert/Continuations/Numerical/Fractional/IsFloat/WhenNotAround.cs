@@ -16,6 +16,6 @@ public class WhenNotAround : Spec
     public void GivenFail_ThenGetException(float a, float b, float precision)
     {
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => a.Is().not.Around(b, precision));
-        ex.HasMessage($"Expected a to not be around {b} but found {a}", "A is not around b");
+        ex.HasMessage($"Expected a to not be around {b} but it was {a}", "A is not around b");
     }
 }

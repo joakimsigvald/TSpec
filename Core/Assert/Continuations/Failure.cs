@@ -9,10 +9,24 @@ namespace TSpec.Assert.Continuations;
 internal sealed record Failure(string Expectation, string Outcome, Xunit.Sdk.XunitException? Inner)
 {
     internal static Xunit.Sdk.XunitException Of(string actual, IReadOnlyList<Failure> failures, string? fix = null)
-        => new(Message(actual, failures) + Remedy(fix), failures[0].Inner);
+    {
+        var failure = new Xunit.Sdk.XunitException(Message(actual, failures) + Remedy(fix), failures[0].Inner);
+        ExpectationOf(actual, failures).Attach(failure);
+        return failure;
+    }
+
+    private static FailedExpectation ExpectationOf(string actual, IReadOnlyList<Failure> failures)
+        => new(actual, Expected(failures).StripWrapMarkers().Filled(), failures[0].Outcome.StripWrapMarkers().Filled());
+
+    /// <summary>
+    /// What a failure says after its expectation, unless that only repeats the actual as it is named:
+    /// "Expected 3 to be less than 2", not "… but it was 3"
+    /// </summary>
+    internal static string OutcomeBeside(string actual, string outcome)
+        => outcome == $" but it was {actual}" ? string.Empty : outcome;
 
     private static string Message(string actual, IReadOnlyList<Failure> failures)
-        => $"Expected {actual} to {Expected(failures)}{failures[0].Outcome}".StripWrapMarkers().Filled();
+        => $"Expected {actual} to {Expected(failures)}{OutcomeBeside(actual, failures[0].Outcome)}".StripWrapMarkers().Filled();
 
     private static string Remedy(string? fix) => fix is null ? string.Empty : $"{Environment.NewLine}Fix: {fix}";
 

@@ -167,7 +167,8 @@ public abstract class WhenAddItem : Spec<Subjects.ShoppingServiceAsync, Shopping
                       returns new ShoppingCart { Id = CartId, Items = _cartItems ?? [] }
                   and that _cartItems = [new ShoppingCartItem("A1")]
                 When AddToCart(CartId, _newItem)
-                Then Result.Items has all it.Is().not.Null()
+                Then for each of Result.Items:
+                    it is not null
                 """);
         }
 
@@ -181,7 +182,8 @@ public abstract class WhenAddItem : Spec<Subjects.ShoppingServiceAsync, Shopping
                       returns new ShoppingCart { Id = CartId, Items = _cartItems ?? [] }
                   and that _cartItems = [new ShoppingCartItem("A1")]
                 When AddToCart(CartId, _newItem)
-                Then Result.Items has all (it, i) => it.LineNumber.Is(i + 1)
+                Then for each of Result.Items:
+                    its LineNumber is i + 1
                 """);
         }
     }

@@ -146,7 +146,7 @@ public class WhenAre : Spec
         string[] invited = ["Ann"];
         string[]? guests = null;
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(() => guests.Are(invited));
-        ex.HasMessage("Expected guests to be invited but found null");
+        ex.HasMessage("Expected guests to be invited but it was null");
     }
 
     [Fact]

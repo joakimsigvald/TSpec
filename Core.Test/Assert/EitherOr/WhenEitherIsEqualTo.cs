@@ -20,7 +20,7 @@ public class WhenEitherIsEqualTo : Spec<int>
     {
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
             () => When(_ => 4).Then().Result.Is().either.EqualTo(1).or.EqualTo(3));
-        ex.HasMessage("Expected Result to be equal to 1 or be equal to 3 but found 4");
+        ex.HasMessage("Expected Result to be equal to 1 or be equal to 3 but it was 4");
     }
 }
 

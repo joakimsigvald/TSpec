@@ -9,7 +9,7 @@ public class WhenEven : Spec<int>
     {
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
             () => When(_ => 1).Then().Result.Is().Even());
-        ex.HasMessage("Expected Result to be even but found 1", 
+        ex.HasMessage("Expected Result to be even but it was 1", 
             """
             When 1
             Then Result is even
@@ -41,7 +41,7 @@ public class WhenEven : Spec<int>
     {
         var ex = Xunit.Assert.Throws<Xunit.Sdk.XunitException>(
             () => When(_ => 2).Then().Result.Is().not.Even());
-        ex.HasMessage("Expected Result to not be even but found 2",
+        ex.HasMessage("Expected Result to not be even but it was 2",
             """
             When 2
             Then Result is not even

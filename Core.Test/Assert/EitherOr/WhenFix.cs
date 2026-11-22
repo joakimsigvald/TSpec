@@ -21,7 +21,7 @@ public class WhenFix : Spec<int>
         var ex = Xunit.Assert.Throws<XunitException>(
             () => When(_ => 5).Then().Result.Is().either.LessThan(4).or.Fix("lower it", because: "it must fit"));
         ex.HasMessage("""
-            Expected Result to be less than 4 but found 5
+            Expected Result to be less than 4 but it was 5
             Fix: lower it, because it must fit
             """,
             """
@@ -36,7 +36,7 @@ public class WhenFix : Spec<int>
         var ex = Xunit.Assert.Throws<XunitException>(
             () => When(_ => 5).Then().Result.Is().either.LessThan(4).or.Fix("lower it"));
         ex.HasMessage("""
-            Expected Result to be less than 4 but found 5
+            Expected Result to be less than 4 but it was 5
             Fix: lower it
             """);
     }
@@ -58,7 +58,7 @@ public class WhenFix : Spec<int>
         var ex = Xunit.Assert.Throws<XunitException>(
             () => When(_ => 5).Then().Result.Is().either.LessThan(1)._.LessThan(4).or.Fix("lower it"));
         ex.HasMessage("""
-            Expected Result to be less than 1 or be less than 4 but found 5
+            Expected Result to be less than 1 or be less than 4 but it was 5
             Fix: lower it
             """);
     }

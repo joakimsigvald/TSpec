@@ -247,7 +247,7 @@ public abstract record Constraint<TActual, TContinuation>
             }
         }
 
-        string GetExpectation() => $"{GetVerb()} {expected.InvariantText()}".Trim();
+        string GetExpectation() => $"{GetVerb()} {Expectation(expected)}".Trim();
 
         string GetVerb() => $"{GetAuxVerb()} {methodName!.AsWords()}".Trim();
 
@@ -259,10 +259,19 @@ public abstract record Constraint<TActual, TContinuation>
 
     private protected static string Describe(TActual? value) => value.FormatValue();
 
-    private protected virtual string Outcome(TActual? actual, string? methodName) => $" but found {Found(actual, methodName)}";
+    // What a failure says was expected, after its verb; an assertion run on each item can say it of the items.
+    private protected virtual string Expectation(object? expected) => expected.InvariantText();
+
+    private protected virtual string Outcome(TActual? actual, string? methodName)
+        => OutcomeOf(Found(actual, methodName), Describe(actual));
+
+    // The actual's own value is what it was; anything else is what the assertion found in it.
+    private static string OutcomeOf(string found, string value)
+        => found == value ? $" but it was {found}" : $" but found {found}";
 
     /// <summary>
-    /// What a failure says was found, after "but found"
+    /// What a failure says was found, after "but found"; where it is the actual's own value, the failure
+    /// says "but it was" instead
     /// </summary>
     /// <param name="actual">The value asserted on</param>
     /// <param name="methodName">The assertion that failed</param>
@@ -297,10 +306,20 @@ public abstract record Constraint<TActual, TContinuation>
         string? expected,
         VerbalizationStrategy verbalizationStrategy = VerbalizationStrategy.None)
     {
-        var verb = $"{AuxiliaryVerb} {methodName.AsWords(verbalizationStrategy)}".Trim();
-        SpecificationContext.Current.Assert(assert, ActualExpr, expected, verb);
+        Record(assert, methodName, expected, verbalizationStrategy);
         var continuation = Continued();
         continuation.WasInverted = State.HasFlag(ConstraintState.Inverted);
         return continuation;
     }
+
+    private void Record(Action assert, string methodName, string? expected, VerbalizationStrategy verbalizationStrategy)
+    {
+        if (verbalizationStrategy == VerbalizationStrategy.ForEach)
+            SpecificationContext.Current.AssertEach(assert, ActualExpr, expected);
+        else
+            SpecificationContext.Current.Assert(assert, ActualExpr, expected, Verb(methodName, verbalizationStrategy));
+    }
+
+    private string Verb(string methodName, VerbalizationStrategy verbalizationStrategy)
+        => $"{AuxiliaryVerb} {methodName.AsWords(verbalizationStrategy)}".Trim();
 }

@@ -12,7 +12,7 @@ public class WhenIsValueFail : Spec<MyModel>
         var ex = Xunit.Assert.Throws<XunitException>(()
             => When(_ => new MyModel { Id = An<int>() }).Then().Result.Is().Null());
         var theInt = The<int>();
-        ex.HasMessage($"Expected Result to be null but found MyModel {{ Id = {theInt}, Name = , Values =  }}",
+        ex.HasMessage($"Expected Result to be null but it was MyModel {{ Id = {theInt}, Name = , Values =  }}",
             """
             When new MyModel { Id = an int }
             Then Result is null
@@ -26,7 +26,7 @@ public class WhenIsValueFail : Spec<MyModel>
         var ex = Xunit.Assert.Throws<XunitException>(()
             => When(_ => new MyModel { Id = Two<int>()[1] }).Then().Result.Is().Null());
         var ints = Two<int>();
-        ex.HasMessage($"Expected Result to be null but found MyModel {{ Id = {ints[1]}, Name = , Values =  }}",
+        ex.HasMessage($"Expected Result to be null but it was MyModel {{ Id = {ints[1]}, Name = , Values =  }}",
             """
             When new MyModel { Id = Two<int>()[1] }
             Then Result is null
@@ -46,7 +46,7 @@ public class WhenIsValueFail : Spec<MyModel>
         var ex = Xunit.Assert.Throws<XunitException>(()
             => When(_ => new MyModel { Id = The(id) }).Then().Result.Is().Null());
         var theInt = The(id);
-        ex.HasMessage($"Expected Result to be null but found MyModel {{ Id = {theInt}, Name = , Values =  }}",
+        ex.HasMessage($"Expected Result to be null but it was MyModel {{ Id = {theInt}, Name = , Values =  }}",
             """
             When new MyModel { Id = the Id }
             Then Result is null
@@ -66,7 +66,7 @@ public class WhenIsValueFail : Spec<MyModel>
         var ex = Xunit.Assert.Throws<XunitException>(()
             => When(_ => new MyModel { Id = The(low) + The(high) }).Then().Result.Is().Null());
         ex.HasMessage(
-            $"Expected Result to be null but found MyModel {{ Id = {The(low) + The(high)}, Name = , Values =  }}",
+            $"Expected Result to be null but it was MyModel {{ Id = {The(low) + The(high)}, Name = , Values =  }}",
             """
             When new MyModel { Id = the Low + the High }
             Then Result is null

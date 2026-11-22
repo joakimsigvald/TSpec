@@ -84,7 +84,7 @@ public abstract record IsNullableComparableStruct<TActual, TContinuation, TValue
                 }
                 catch
                 {
-                    Xunit.Assert.Fail($"Expected {ActualExpr} to be {expected} but found {Actual}");
+                    Xunit.Assert.Fail($"Expected {ActualExpr} to be {expected} but it was {Actual}");
                 }
             }, string.Empty, expectedExpr);
         return new(ValueContinuation);

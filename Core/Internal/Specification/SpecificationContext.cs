@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using TSpec.Assert.Continuations;
 using TSpec.Internal.Document;
 using Xunit.Sdk;
 
@@ -217,6 +218,13 @@ internal class SpecificationContext : IAssertSpecificationContext
         Run(assert);
     }
 
+    public void AssertEach(Action assert, string actual, string? expected)
+    {
+        NoteAssertion();
+        _assertion.AddAssert(actual, string.Empty, expected, ofEachItem: true);
+        Run(assert);
+    }
+
     /// The Fix ending an either decides it like an assertion, but the specification leaves it out.
     public void Fix(Action decide)
     {
@@ -239,7 +247,9 @@ internal class SpecificationContext : IAssertSpecificationContext
             var innerTSpecTEx = GetExpectedException(ex.InnerException as XunitException);
             if (innerTSpecTEx is not null)
                 message = $"{message}{Environment.NewLine}{innerTSpecTEx.Message}";
-            throw new XunitException(message, new XunitException(DescribeSpecification()));
+            var failure = new XunitException(message, new XunitException(DescribeSpecification()));
+            FailedExpectation.Carry(ex, failure);
+            throw failure;
         }
     }
 
