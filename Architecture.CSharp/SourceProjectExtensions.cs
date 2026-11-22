@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using TSpec.Architecture.CSharp.Internal;
 
@@ -53,6 +54,15 @@ public static class SourceProjectExtensions
         /// </summary>
         public DependencyGraph Folders
             => ProjectFolders.Of(project);
+
+        /// <summary>
+        /// Looks up the project's own type for a Roslyn type symbol, ignoring type arguments. Finds nothing
+        /// for another project's type, the framework's, or an array
+        /// </summary>
+        /// <param name="type">The type symbol, from any project's compilation</param>
+        /// <param name="declared">The project's own type</param>
+        public bool TryFind(ITypeSymbol type, [NotNullWhen(true)] out DeclaredType? declared)
+            => BuildTypes.TryFind(project, type, out declared);
 
         /// <summary>
         /// The projects of the build its <c>InternalsVisibleTo</c> names: TSpec's own

@@ -11,6 +11,7 @@ public sealed class DeclaredType
 {
     private readonly IReadOnlyList<string> _typeParameters;
     private readonly Lazy<IReadOnlyList<DeclaredType>> _exposes;
+    private readonly Lazy<INamedTypeSymbol> _symbol;
     private readonly Lazy<IReadOnlyList<INamedTypeSymbol>> _baseTypes;
 
     internal DeclaredType(
@@ -27,7 +28,8 @@ public sealed class DeclaredType
         Declarations = declarations;
         Owner = owner;
         _exposes = new(() => BuildTypes.ExposedBy(this));
-        _baseTypes = new(() => BaseTypes.Of(this));
+        _symbol = new(SymbolOf);
+        _baseTypes = new(() => BaseTypes.Of(Symbol));
     }
 
     /// <summary>
@@ -67,6 +69,12 @@ public sealed class DeclaredType
     /// partial type
     /// </summary>
     public IReadOnlyList<SourceFile> Files { get; }
+
+    /// <summary>
+    /// The type's Roslyn symbol, for example to see which interfaces it implements. Its project is
+    /// compiled to find out, once in a run
+    /// </summary>
+    public INamedTypeSymbol Symbol => _symbol.Value;
 
     /// <summary>
     /// The types of the build the type's signature names where other assemblies see it, in the ordinal
@@ -127,4 +135,7 @@ public sealed class DeclaredType
     /// The type as a failure names it: its full name
     /// </summary>
     public override string ToString() => FullName;
+
+    private INamedTypeSymbol SymbolOf()
+        => (INamedTypeSymbol)Declarations[0].File.Model.GetDeclaredSymbol(Declarations[0].Syntax)!;
 }

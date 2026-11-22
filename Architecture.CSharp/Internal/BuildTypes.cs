@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
 namespace TSpec.Architecture.CSharp.Internal;
 
@@ -19,14 +21,24 @@ internal static class BuildTypes
         return Of(CompiledProject.Of(project).NamedBySignaturesOf(TypeKey.Of(type, project.AssemblyName)));
     }
 
+    internal static bool TryFind(SourceProject project, ITypeSymbol type, [NotNullWhen(true)] out DeclaredType? declared)
+    {
+        declared = type is INamedTypeSymbol named && named.ContainingAssembly?.Name == project.AssemblyName
+            ? Exact(TypeKey.Of(named))
+            : null;
+        return declared is not null;
+    }
+
     private static IReadOnlyList<DeclaredType> Of(IEnumerable<TypeKey> types)
         => [.. types.Distinct().Select(Find).OfType<DeclaredType>().Distinct()
             .OrderBy(type => type.FullName, StringComparer.Ordinal)];
 
     // A type no file declares, such as an extension block or what a generator wrote, counts as the one it is in.
     private static DeclaredType? Find(TypeKey type)
-        => _byAssembly.GetOrAdd(type.Assembly, Declared).GetValueOrDefault(type)
-            ?? (type.IsNested ? Find(type.Owner) : null);
+        => Exact(type) ?? (type.IsNested ? Find(type.Owner) : null);
+
+    private static DeclaredType? Exact(TypeKey type)
+        => _byAssembly.GetOrAdd(type.Assembly, Declared).GetValueOrDefault(type);
 
     // An assembly no project of the build makes, such as the framework's, declares none of the build's types.
     private static IReadOnlyDictionary<TypeKey, DeclaredType> Declared(string assembly)

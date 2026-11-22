@@ -53,6 +53,25 @@ Each waits for a real spec that is worse without it.
 | Id | Description | Effort | Value | Worth |
 |---|---|---|---|---|
 | G7 | **One fact per project costs a property per file and reads unbound.** 36 MyHotel files declare `TheoryData<string> Projects => Sources.Projects` for `[Theory, MemberData(nameof(Projects))]`, and the page reads `Source.Projects[project].Folders is acyclic`. An `[EachProject]` attribute would drop the property; reading "every project's Folders" needs an extension point in TSpec's renderer. | Medium | Medium | 0 |
+| G8 | **A rule's condition cannot be tried on a snippet.** MyHotel's `Snippets.cs` copies the package's compile against the run, and Catches, DefaultComparers and Suppressions keep two or three overloads of one condition, for a `SourceNode` and for a snippet's syntax and model. `Source.Snippet(code)`, a `SourceFile` compiled as the build's are, would let example rows call the fact's own condition. | Medium | Medium | 0 |
+| G9 | **No type knows who uses it.** PublicTypes scans every other project's files for each public type (`Files.Any(file => file.Uses.Contains(type))`), and every type's `Exposes`. `DeclaredType.UsedBy`, the files whose code uses it, would serve that and rules such as "only Entry uses X". | Small | Medium | 1 |
+| G11 | **Tokens have no `Nodes<T>()`.** Arrows walks each node's `ChildTokens()`, Indentation and Characters walk `DescendantTokens()` and format `file:line` themselves. `Tokens(SyntaxKind)`, each with `File` and `Span` and named `X/Path:line`, would let them read `Has().None(...)`. | Small | Small | 0 |
+| G12 | **A failure names a breach but not what was measured.** A dozen MyHotel facts, MethodSize and Arities among them, build `"file:line note"` strings for `Is().Empty()`, since `Has().None` would drop the size, the count or the part that broke — so the agent reference's `Has().None(member => member.Size > 240)` is the form MyHotel avoids. Likely TSpec's assertions, not the package. | Medium | Medium | 0 |
+| G13 | **A file knows only its top-level folder.** MyHotel derives the rest three ways: `ToString().Contains("/Mirrors/")`, `Path.Split('/')[..^1]` and `Split('/') is [.., "Exceptions", _]`. A file's folders as segments would serve all three, named so as not to clash with a project's `Folders` graph. | Small | Small | 0 |
+| G14 | **A type cannot say it is nested.** TypesPerFile derives it: `!type.Files.Any(file => file.Types.Contains(type))`. `IsNested`, or a declaring type as a member has. | Trivial | Small | 1 |
+| G15 | **A project has no `SourceLines` or `Comments`,** though it lifts `Members` and `Nodes<T>()` from its files; MyHotel adds `Sources.CodeLinesOf` and `Comments.CommentsOf`. | Trivial | Small | 1 |
+| G16 | **No rule reads a project's build settings.** Suppressions leaves a project file's `NoWarn` to review, though it switches a warning off as `#pragma` does. The compilation options the package reads for the language version record `nullable` too, but not `NoWarn` or warnings-as-errors, which the build would have to record. | Medium | Medium | 0 |
+
+## H. Templates
+
+All four ship in one package, `TSpec.Templates`, released whenever TSpec or TSpec.Architecture.CSharp is.
+
+| Id | Description | Effort | Value | Worth |
+|---|---|---|---|---|
+| H1 | **A Neat service starts as a copy of MyHotel.** Nothing creates the five projects, `Host.Spec`, `Core.Spec` and an `Architecture.Spec` that checks the layering, so each start strips out the hotel (`SubdomainDependencies` names Rooms and Bookings), and Neat is described only in MyHotel's `CLAUDE.md`. A `dotnet new neat-service` template, its spec projects built from H3's and H4's rather than copied. | Medium | High | 1 |
+| H2 | **A Neat web application has no template either.** `dotnet new neat-webapp` would add MyHotel's React `Web` (Vite, ESLint, `Web.esproj`) to H1's template rather than copy it. | Medium | Medium | 0 |
+| H3 | **A spec project is set up by hand.** Beside `dotnet add package TSpec` it needs `xunit.v3`, an `Exe` output, global usings for `Xunit`, `TSpec` and `TSpec.Assert`, and `[assembly: AssemblyFixture(typeof(SpecificationDocument))]`, which README gives only in §6.2. A `dotnet new tspec` template. | Small | Medium | 1 |
+| H4 | **An architecture spec project is set up by hand.** It needs the `ProjectReference` glob that excludes itself, `ArchitectureDocument` as assembly fixture and `Microsoft.CodeAnalysis.CSharp` at least the SDK's compiler, as MyHotel's `Architecture.Spec.csproj` notes. A `dotnet new tspec-architecture` template. | Small | Medium | 1 |
 
 ## Reading and updating this document
 

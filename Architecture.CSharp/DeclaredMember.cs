@@ -12,6 +12,7 @@ public sealed class DeclaredMember
     private readonly MemberDeclaration _declaration;
     private readonly Lazy<IReadOnlyList<ITypeSymbol>> _given;
     private readonly Lazy<IReadOnlyList<ITypeSymbol>> _taken;
+    private readonly Lazy<ISymbol> _symbol;
     private readonly Lazy<bool> _isOriginal;
     private readonly Lazy<DeclaredType?> _declaringType;
 
@@ -21,7 +22,8 @@ public sealed class DeclaredMember
         _declaration = declaration;
         _given = new(() => MemberTypes.GivenBy(this));
         _taken = new(() => MemberTypes.TakenBy(this));
-        _isOriginal = new(() => !MemberContracts.ImplementsOrOverrides(file, declaration));
+        _symbol = new(() => MemberSymbols.Of(file.Model, declaration));
+        _isOriginal = new(() => !MemberContracts.ImplementsOrOverrides(Symbol));
         _declaringType = new(DeclarerOf);
     }
 
@@ -73,6 +75,12 @@ public sealed class DeclaredMember
     /// The file the member is declared in
     /// </summary>
     public SourceFile File { get; }
+
+    /// <summary>
+    /// The member's Roslyn symbol. A positional property's is the property, a primary constructor's the
+    /// constructor, and a delegate's the delegate type. Its project is compiled to find out, once in a run
+    /// </summary>
+    public ISymbol Symbol => _symbol.Value;
 
     /// <summary>
     /// The type the member is declared in: its own type for a primary constructor, its class for an

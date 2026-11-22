@@ -59,6 +59,7 @@ internal static class MemberDeclarations
             EnumMemberDeclarationSyntax e => [Of(e, MemberKind.EnumMember, e.Identifier, null, null)],
             DelegateDeclarationSyntax d => [Of(d, MemberKind.Delegate, d.Identifier, d.ReturnType, d.ParameterList)],
             LocalFunctionStatementSyntax l => [LocalFunction(l)],
+            ExtensionBlockDeclarationSyntax => [],
             TypeDeclarationSyntax { ParameterList: { } parameters } type => Primary(type, parameters),
             _ => [],
         };

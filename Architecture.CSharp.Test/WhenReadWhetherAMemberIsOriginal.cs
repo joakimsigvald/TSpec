@@ -33,6 +33,10 @@ public class WhenReadWhetherAMemberIsOriginal : Spec
         => new[] { "Clean", "Describe" }.Has().All(name => MemberOf("RoomBase", name).IsOriginal);
 
     [Fact]
+    public void GivenAPrimaryConstructor_ThenItIsOriginal()
+        => new[] { "Suite", "Lobby" }.Has().All(type => MemberOf(type, type).IsOriginal);
+
+    [Fact]
     public void GivenAnInterfacesOwnMember_ThenItIsOriginal()
         => MemberOf("IRoom", "Open").IsOriginal.Is(true);
 

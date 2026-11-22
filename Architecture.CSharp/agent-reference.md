@@ -1,6 +1,6 @@
 # TSpec.Architecture.CSharp — Agent Reference
 
-Condensed reference for AI coding agents writing architecture rules with TSpec.Architecture.CSharp (covers 1.7).
+Condensed reference for AI coding agents writing architecture rules with TSpec.Architecture.CSharp (covers 1.8).
 It reads the projects of a TSpec build, their references, and the code inside them.
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec/blob/main/Architecture.CSharp/README.md).
 
@@ -8,7 +8,7 @@ Full documentation: [README.md](https://github.com/joakimsigvald/TSpec/blob/main
 - `using TSpec.Architecture.CSharp;` — not `TSpec.Architecture` too, whose `Source` and `Segment` are deprecated and would clash.
 - The architecture page: `[assembly: AssemblyFixture(typeof(TSpec.Architecture.CSharp.ArchitectureDocument))]` writes `_specification.md`, a diagram of the projects and the tests below it, on a clean full run. Only `Spec` classes count, so derive the test classes from `Spec`.
 - Group rules in folders by architecture domain (`Naming`, `Layout`, `Sizes`), not mirroring the source: a rule reads every project. The namespace follows the folder; the architecture page heads each folder.
-- `Uses`, `Exposes`, `DependsOn`, `DerivesFrom`, `HasAttribute`, `Gives` and `Takes` compile the project once a run; reflection is not seen.
+- `Uses`, `Exposes`, `DependsOn`, `DerivesFrom`, `HasAttribute`, `Gives`, `Takes`, `Symbol` and `TryFind` compile the project once a run; reflection is not seen.
 
 ## Projects
 
@@ -40,6 +40,7 @@ public void AreOnlyTheseAndNotRedundant()
 - `Files` are the source files it compiles from its own folder, leaving out what the build generates under `obj/` and files linked in from elsewhere.
 - `Types` are those of all its files, a partial type once; `Members` and `Nodes<T>()` are all its files'.
 - `AllTypes` (on a file too): its types and those nested in them, however deep. `Types` are the top-level ones only, so a rule on every public type reads `AllTypes`.
+- `TryFind(symbol, out var type)`: looks up the project's own type for a Roslyn `ITypeSymbol`, such as one a member `Gives`. Type arguments are ignored; false for another project's type, the framework's or an array.
 - `Folders`: a `DependencyGraph` of the folders directly in its own, each with the folders whose types its files use. A file at the project's root is in no folder. Assert with `Folders.Is().Within(...)`.
 
 ## Dependency graph
@@ -69,12 +70,14 @@ public void AreOnlyTheseAndNotRedundant()
 - `Exposes`: the build's types named in its signature that other assemblies see, itself included.
 - `DerivesFrom(typeof(Exception))`, `DerivesFrom("Entity")`: the given type (or name/full name) is its base type or a base's own base, however deep, type arguments ignored. An implemented interface is no base.
 - `Attributes` (written on every part of a partial) and `HasAttribute(name)`: the name counts with or without the `Attribute` suffix. Plain (`"Serializable"`), it matches that name in any namespace; qualified (`"System.Serializable"`), only that attribute — however the code wrote it.
+- `Symbol`: its Roslyn `INamedTypeSymbol`, e.g. `type.Symbol.AllInterfaces` for the interfaces it implements.
 
 ## Member
 
 - `Accessibility` is in effect: no more than the types around it allow. `Type` and `Parameters` are syntax, as written. A record's positional parameters are its constructor's and its properties.
 - `IsOriginal`: it neither implements an interface's member (explicitly or implicitly) nor overrides a base type's, so it sets its own name and signature; a naming rule reads only original members.
 - `DeclaringType`: the type it is declared in — the type itself for a primary constructor, the class for an extension block's member, null at the file's top level. `HasAttribute(name)` as a type's.
+- `Symbol`: its Roslyn symbol. A positional property's is the property, a primary constructor's the constructor, a delegate's the delegate type.
 - `Gives` is the types it returns, including those inside generic types, tuples and arrays; `Takes` is the same for its parameters. With no argument they list the types (`ITypeSymbol`). Ask if one is included with one argument that is a `TypeKind`, a `typeof(List<>)` (type arguments ignored) or a condition. A type it only implements doesn't count: `List<int>` gives no `IEnumerable<>`. `Carries` takes the same arguments: a type it gives or takes.
 - `Size`: its size, computed from line count, indentation and complexity. A rule sets only the ceiling: `Has().None(member => member.Size > 240)`.
 - A failure names it `X/Path:line Name`.

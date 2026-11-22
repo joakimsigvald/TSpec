@@ -1,11 +1,30 @@
 <Solution>
   <Folder Name="/Assets/">
+    <File Path="agent-reference.md" />
     <File Path="CLAUDE.md" />
     <File Path="FOLLOW-UP-PLAN.md" />
     <File Path="icon.png" />
     <File Path="README.md" />
-    <File Path="TSpec-agent-reference.md" />
     <File Path="TSpec-vision.md" />
+  </Folder>
+  <Folder Name="/Assets/Skills/" />
+  <Folder Name="/Assets/Skills/product-build/">
+    <File Path=".claude/skills/product-build/SKILL.md" />
+  </Folder>
+  <Folder Name="/Assets/Skills/product-check/">
+    <File Path=".claude/skills/product-check/SKILL.md" />
+  </Folder>
+  <Folder Name="/Assets/Skills/product-define/">
+    <File Path=".claude/skills/product-define/SKILL.md" />
+  </Folder>
+  <Folder Name="/Assets/Skills/product-design/">
+    <File Path=".claude/skills/product-design/SKILL.md" />
+  </Folder>
+  <Folder Name="/Assets/Skills/product-refine/">
+    <File Path=".claude/skills/product-refine/SKILL.md" />
+  </Folder>
+  <Folder Name="/Assets/Skills/product-trim-docs/">
+    <File Path=".claude/skills/product-trim-docs/SKILL.md" />
   </Folder>
   <Folder Name="/SampleProjects/" />
   <Folder Name="/SampleProjects/MyHotel/">

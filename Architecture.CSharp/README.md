@@ -30,8 +30,8 @@ read: a rule reads every project, so there is no part of the source for its fold
 architecture page heads each folder and links each rule's class to its file.
 
 Everything below is reached with `using TSpec.Architecture.CSharp;`. `Uses`, `Exposes`, `DependsOn`,
-`DerivesFrom`, `HasAttribute`, `Gives` and `Takes` compile the project with Roslyn, once in a run, and a
-use by reflection is not one the compiler sees.
+`DerivesFrom`, `HasAttribute`, `Gives`, `Takes`, `Symbol` and `TryFind` compile the project with Roslyn,
+once in a run, and a use by reflection is not one the compiler sees.
 
 ## Projects
 
@@ -88,6 +88,9 @@ These moved here from TSpec in 1.6, where the old ones are deprecated.
 A project's `Files` are those it compiles from its own folder, leaving out what the build generates
 under `obj/` and files linked in from elsewhere. Its `Types`, `Members` and `Nodes<T>()` are those of all
 its files, a partial type once. Its `AllTypes` are its types and those nested in them however deep.
+`TryFind(symbol, out var type)` looks up the project's own type for a Roslyn type symbol, such as one a
+member `Gives`. It ignores type arguments, and finds nothing for another project's type or the
+framework's.
 
 A project's `Folders` are the folders directly in its own that hold its files, each with the others it
 uses: one of its files uses a type a file of the other declares. A file at the project's root is in no
@@ -250,6 +253,9 @@ attribute it names. So `HasAttribute("Serializable")` finds both `[System.Serial
 `[MyOwn.Serializable]`, while `HasAttribute("System.Serializable")` finds only the first, however the
 code wrote it.
 
+A type's `Symbol` is its Roslyn symbol, for example to see which interfaces it implements:
+`type.Symbol.AllInterfaces`.
+
 ## Member
 
 - A file's `Members` are all the members it declares, including those of nested types and local
@@ -263,6 +269,8 @@ code wrote it.
   itself; for a member of an extension block, the class around the block; for a delegate declared at
   a file's top level, none.
 - `HasAttribute` asks for an attribute by name, as a type's does.
+- `Symbol` is its Roslyn symbol. A positional property's is the property, not the parameter, a primary
+  constructor's is the constructor, and a delegate's is the delegate type.
 - A member `IsOriginal` when it chose its own name and signature: it neither overrides a base type's
   member nor implements an interface's. A naming rule should check only original members, since an
   override of `GetHashCode` cannot rename it.

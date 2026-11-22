@@ -47,6 +47,11 @@ public class WhenReadTheMembers : Spec
             .Is().EqualTo([("Room", MemberKind.Constructor)]);
 
     [Fact]
+    public void GivenAnExtensionBlock_ThenItsParameterMakesNoConstructor()
+        => MembersOf("static class E { extension(int number) { public bool IsZero => number == 0; } }")
+            .Select(member => (member.Name, member.Kind)).Is().EqualTo([("IsZero", MemberKind.Property)]);
+
+    [Fact]
     public void ThenTellTheAccessibilityItIsDeclaredWith_OrHasByDefault()
         => MembersOf("""
             public class A

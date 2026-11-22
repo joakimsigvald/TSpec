@@ -50,3 +50,8 @@ public class Room : RoomBase, IRoom, IClosable
 }
 
 public record Suite(int Floors) : IStoried;
+
+public class Lobby(int seats)
+{
+    public int Seats => seats;
+}

@@ -8,21 +8,7 @@ namespace TSpec.Architecture.CSharp.Internal;
 /// </summary>
 internal static class MemberContracts
 {
-    internal static bool ImplementsOrOverrides(SourceFile file, MemberDeclaration declaration)
-        => SymbolOf(file.Model, declaration) is { } member && (member.IsOverride || Implements(member));
-
-    // A record's positional parameter is its property too, and the property is what an interface names; a
-    // primary constructor's token, and a nested delegate's, are a type's.
-    private static ISymbol? SymbolOf(SemanticModel model, MemberDeclaration declaration)
-        => model.GetDeclaredSymbol(declaration.At.Parent!) switch
-        {
-            IParameterSymbol { ContainingType: { } record } => PropertyOf(record, declaration.Name),
-            INamedTypeSymbol => null,
-            var symbol => symbol,
-        };
-
-    private static IPropertySymbol? PropertyOf(INamedTypeSymbol record, string name)
-        => record.GetMembers(name).OfType<IPropertySymbol>().FirstOrDefault();
+    internal static bool ImplementsOrOverrides(ISymbol member) => member.IsOverride || Implements(member);
 
     private static bool Implements(ISymbol member)
         => member.ContainingType is { } type

@@ -16,12 +16,14 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>1.7.1</PackageVersion>
+		<PackageVersion>1.8.0</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			* Updated TSpec package
+			* Types and members expose their Roslyn Symbol, e.g. to see which interfaces a type implements
+			* project.TryFind(symbol, out var type) looks up the project's own type for a Roslyn type symbol
+			* Fixed: extension blocks no longer show up as constructors in Members
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
