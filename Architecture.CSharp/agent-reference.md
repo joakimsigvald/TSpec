@@ -38,7 +38,7 @@ public void AreOnlyTheseAndNotRedundant()
 ## Project
 
 - `Files` are the source files it compiles from its own folder, leaving out what the build generates under `obj/` and files linked in from elsewhere.
-- `Types` are those of all its files, a partial type once; `Members` and `Nodes<T>()` are all its files'.
+- `Types` are those of all its files, a partial type once; `Members`, `Nodes<T>()`, `SourceLines`, `CodeLines` and `Comments` are all its files'.
 - `AllTypes` (on a file too): its types and those nested in them, however deep. `Types` are the top-level ones only, so a rule on every public type reads `AllTypes`.
 - `TryFind(symbol, out var type)`: looks up the project's own type for a Roslyn `ITypeSymbol`, such as one a member `Gives`. Type arguments are ignored; false for another project's type, the framework's or an array.
 - `Folders`: a `DependencyGraph` of the folders directly in its own, each with the folders whose types its files use. A file at the project's root is in no folder. Assert with `Folders.Is().Within(...)`.
@@ -53,7 +53,7 @@ public void AreOnlyTheseAndNotRedundant()
 ## File
 
 - `Path` in the project (written with `/`), `Raw` text and the `Types` declared at its top level. A failure names it `X/Path`.
-- `SourceLines`: each line's `File`, `Number` (from 1) and `Text`; a failure names it `X/Path:line`. `IsCode` is false on a line that continues a string or comment opened on an earlier line, such as a raw string's content. `Lines` (the text alone) is deprecated.
+- `SourceLines`: each line's `File`, `Number` (from 1) and `Text`; a failure names it `X/Path:line`. `IsCode` is false on a line that continues a string or comment opened on an earlier line, such as a raw string's content; `CodeLines` are those where it is true. `Lines` (the text alone) is deprecated.
 - `Folder`, `Name` and `Extension` are parts of `Path`: for `Stores/Cache/UserStore.cs`, `Stores` (the top-level folder, as `Folders` names it; empty at the project's root), `UserStore` and `cs`.
 - `Root` is its Roslyn syntax as the build parsed it, so code under an `#if` the build left out is not in it. `Model` is Roslyn's `SemanticModel` of that syntax; a type the spec project does not run with is unresolved. `file.SpanOf(node)` is where a node or token starts and ends: a `Start` and an `End`, each a `Line` and `Column` counted from 1.
 - `Nodes<T>()`: its syntax nodes of one kind in written order, directives included, nothing inside a documentation comment. Each has `File`, `Syntax` and `Span` (with `Lines`), and a failure names it `X/Path:line`.

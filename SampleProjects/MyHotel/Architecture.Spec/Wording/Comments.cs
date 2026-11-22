@@ -15,22 +15,19 @@ public class Comments : TSpec.Spec
 
     [Fact]
     public void ATypeOrAMemberIsDescribedByASummaryNotAComment() =>
-        Source.Projects.Has().All(project => CommentsOf(project).Has().None(DescribesATypeOrAMember));
+        Source.Projects.Has().All(project => project.Comments.Has().None(DescribesATypeOrAMember));
 
     [Fact]
     public void ASummaryIsAtMostTenLines() =>
-        Source.Projects.Has().All(project => CommentsOf(project).Has().None(IsALongSummary));
+        Source.Projects.Has().All(project => project.Comments.Has().None(IsALongSummary));
 
     [Fact]
     public void ACommentIsAtMostThreeLines() =>
-        Source.Projects.Has().All(project => CommentsOf(project).Has().None(IsALongComment));
+        Source.Projects.Has().All(project => project.Comments.Has().None(IsALongComment));
 
     [Fact]
     public void ThereIsNoBlockComment() =>
-        Source.Projects.Has().All(project => CommentsOf(project).Has().None(IsABlockComment));
-
-    private static IReadOnlyList<SourceComment> CommentsOf(SourceProject project) =>
-        [.. project.Files.SelectMany(file => file.Comments)];
+        Source.Projects.Has().All(project => project.Comments.Has().None(IsABlockComment));
 
     private static bool DescribesATypeOrAMember(SourceComment comment) =>
         comment.Kind is CommentKind.Line

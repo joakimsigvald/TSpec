@@ -12,7 +12,7 @@ public class LineWidths : TSpec.Spec
 
     [Fact]
     public void ALineIsAtMost110Characters() =>
-        Source.Projects.Has().All(project => Sources.CodeLinesOf(project).Has().None(Overwide));
+        Source.Projects.Has().All(project => project.CodeLines.Has().None(Overwide));
 
     private static bool Overwide(SourceLine line) => line.Text.Length > Limit;
 }

@@ -361,7 +361,7 @@ flowchart TD
 - **A line is at most 110 characters**
   ```
   For each of Source.Projects:
-      Sources.CodeLinesOf(project) has none overwide
+      its CodeLines has none overwide
   ```
 
 ### [List ends](Layout/ListEnds.cs)
@@ -412,17 +412,17 @@ flowchart TD
 - **No line is indented past the fifth level**
   ```
   For each of Source.Projects:
-      Sources.CodeLinesOf(project) has none overnested
+      its CodeLines has none overnested
   ```
 - **No line is indented with a tab**
   ```
   For each of Source.Projects:
-      Sources.CodeLinesOf(project) has none tabbed
+      its CodeLines has none tabbed
   ```
 - **A line is indented in whole levels**
   ```
   For each of Source.Projects:
-      Sources.CodeLinesOf(project) has none part level
+      its CodeLines has none part level
   ```
 
 ## Placement
@@ -560,22 +560,22 @@ flowchart TD
 - **A type or a member is described by a summary not a comment**
   ```
   For each of Source.Projects:
-      comments of project has none describes a type or a member
+      its Comments has none describes a type or a member
   ```
 - **A summary is at most ten lines**
   ```
   For each of Source.Projects:
-      comments of project has none is a long summary
+      its Comments has none is a long summary
   ```
 - **A comment is at most three lines**
   ```
   For each of Source.Projects:
-      comments of project has none is a long comment
+      its Comments has none is a long comment
   ```
 - **There is no block comment**
   ```
   For each of Source.Projects:
-      comments of project has none is a block comment
+      its Comments has none is a block comment
   ```
 
 ### [Get prefixes](Wording/GetPrefixes.cs)

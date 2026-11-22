@@ -102,4 +102,8 @@ public class WhenReadTheComments : Spec
         using var project = new TempProject("Entry");
         Written(project, "class A; // note").Comments.Single().Leads.Is().Null();
     }
+
+    [Fact]
+    public void GivenAProject_ThenListTheCommentsOfAllItsFiles()
+        => Source.Projects["Test"].Comments.Select(comment => comment.ToString()).Does().Contain("Test/WrittenFiles.cs:6");
 }

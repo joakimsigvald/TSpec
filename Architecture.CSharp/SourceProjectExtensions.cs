@@ -41,6 +41,24 @@ public static class SourceProjectExtensions
             => [.. project.Files.SelectMany(file => file.Members)];
 
         /// <summary>
+        /// The lines of the project's files, file by file in the order of their paths
+        /// </summary>
+        public IReadOnlyList<SourceLine> SourceLines
+            => [.. project.Files.SelectMany(file => file.SourceLines)];
+
+        /// <summary>
+        /// The lines of the project's files that are code, file by file in the order of their paths
+        /// </summary>
+        public IReadOnlyList<SourceLine> CodeLines
+            => [.. project.Files.SelectMany(file => file.CodeLines)];
+
+        /// <summary>
+        /// The comments in the project's files, file by file in the order of their paths
+        /// </summary>
+        public IReadOnlyList<SourceComment> Comments
+            => [.. project.Files.SelectMany(file => file.Comments)];
+
+        /// <summary>
         /// The nodes of the given kind in the project's files, file by file in the order of their paths
         /// </summary>
         /// <typeparam name="T">The kind of node</typeparam>

@@ -135,13 +135,14 @@ project's root; `UserStore`; and `cs`. Its `Types` are those declared at its top
 
 A file's `SourceLines` are its lines as an editor counts them. Each has its `File`, its `Number`, counted
 from 1, and its `Text`, and a failure names it by file and line. A line `IsCode` unless it continues a
-string or a comment that opens on an earlier line, such as the content of a raw string literal:
+string or a comment that opens on an earlier line, such as the content of a raw string literal, and
+`CodeLines` are those that are:
 
 ```csharp
 [Fact]
 public void A_line_of_code_is_at_most_120_characters()
-    => Source.Projects.SelectMany(project => project.Files).SelectMany(file => file.SourceLines)
-        .Has().None(line => line.IsCode && line.Text.Length > 120);
+    => Source.Projects.SelectMany(project => project.CodeLines)
+        .Has().None(line => line.Text.Length > 120);
 ```
 
 `Lines`, the same lines as text alone, is deprecated.
@@ -183,7 +184,7 @@ largest declaration or statement that starts there, its attributes included.
 ```csharp
 [Fact]
 public void A_comment_is_at_most_three_lines()
-    => Source.Projects["Core"].Files.SelectMany(file => file.Comments)
+    => Source.Projects["Core"].Comments
         .Has().None(comment => comment.Kind == CommentKind.Line && comment.Span.Lines > 3);
 ```
 

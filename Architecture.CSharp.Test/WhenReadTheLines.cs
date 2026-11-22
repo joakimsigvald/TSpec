@@ -79,5 +79,23 @@ public class WhenReadTheLines : Spec
         CodeIn(Written(project, "/* one\n   two */\nclass A;")).Is().EqualTo([true, false, true]);
     }
 
+    [Fact]
+    public void ThenItsCodeLinesAreThoseThatAreCode()
+    {
+        using var project = new TempProject("Entry");
+        var file = Written(project, "var a = \"\"\"\n    text\n    \"\"\";\nvar b = 1;");
+        file.CodeLines.Select(line => line.Number).Is().EqualTo([1, 4]);
+    }
+
+    [Fact]
+    public void GivenAProject_ThenListTheCodeLinesOfAllItsFiles()
+        => Source.Projects["Test"].CodeLines.Select(line => line.ToString())
+            .Does().Contain("Test/Declared/APartial.More.cs:5");
+
+    [Fact]
+    public void GivenAProject_ThenListTheLinesOfAllItsFiles()
+        => Source.Projects["Test"].SourceLines.Select(line => line.ToString())
+            .Does().Contain("Test/Declared/APartial.More.cs:5");
+
     private static IReadOnlyList<bool> CodeIn(SourceFile file) => [.. file.SourceLines.Select(line => line.IsCode)];
 }

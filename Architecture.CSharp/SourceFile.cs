@@ -100,6 +100,12 @@ public sealed class SourceFile
     public IReadOnlyList<SourceLine> SourceLines => _sourceLines.Value;
 
     /// <summary>
+    /// The file's lines that are code: those that do not continue a string or a comment opened on an
+    /// earlier line
+    /// </summary>
+    public IReadOnlyList<SourceLine> CodeLines => [.. SourceLines.Where(line => line.IsCode)];
+
+    /// <summary>
     /// The types declared at the file's top level, in the ordinal order of their full names; a nested
     /// type stays with its owner
     /// </summary>

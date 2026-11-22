@@ -7,9 +7,4 @@ namespace MyHotel.Architecture.Spec;
 internal static class Sources
 {
     public static IReadOnlyList<string> Names => [.. Source.Projects.Select(project => project.Name)];
-
-    /// <summary>A project's lines of code: the text of a string or a comment over several lines is
-    /// none.</summary>
-    public static IReadOnlyList<SourceLine> CodeLinesOf(SourceProject project) =>
-        [.. project.Files.SelectMany(file => file.SourceLines).Where(line => line.IsCode)];
 }

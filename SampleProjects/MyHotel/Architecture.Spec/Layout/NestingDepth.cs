@@ -12,15 +12,15 @@ public class NestingDepth : TSpec.Spec
 
     [Fact]
     public void NoLineIsIndentedPastTheFifthLevel() =>
-        Source.Projects.Has().All(project => Sources.CodeLinesOf(project).Has().None(Overnested));
+        Source.Projects.Has().All(project => project.CodeLines.Has().None(Overnested));
 
     [Fact]
     public void NoLineIsIndentedWithATab() =>
-        Source.Projects.Has().All(project => Sources.CodeLinesOf(project).Has().None(Tabbed));
+        Source.Projects.Has().All(project => project.CodeLines.Has().None(Tabbed));
 
     [Fact]
     public void ALineIsIndentedInWholeLevels() =>
-        Source.Projects.Has().All(project => Sources.CodeLinesOf(project).Has().None(PartLevel));
+        Source.Projects.Has().All(project => project.CodeLines.Has().None(PartLevel));
 
     private static bool Overnested(SourceLine line) => Indents.LevelOf(line.Text) > Limit;
     private static bool Tabbed(SourceLine line) => line.Text.TrimStart(' ').StartsWith('\t');
