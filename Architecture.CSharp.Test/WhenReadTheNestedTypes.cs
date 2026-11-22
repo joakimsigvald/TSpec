@@ -28,6 +28,18 @@ public class WhenReadTheNestedTypes : Spec
         => NestedIn("Outer").Single(type => type.Name == "Public").Nested.Select(type => type.Name).Is().EqualTo(["Deeper"]);
 
     [Fact]
+    public void ThenEachIsDeclaredInItsOwner()
+        => NestedIn("Outer").Select(type => type.DeclaringType).Distinct().Single().Is().SameAs(TypeNamed("Outer"));
+
+    [Fact]
+    public void GivenATypeNestedDeeper_ThenItIsDeclaredInTheTypeDirectlyAroundIt()
+        => PublicInOuter.Nested.Single().DeclaringType.Is().SameAs(PublicInOuter);
+
+    [Fact]
+    public void GivenATypeAtTheTopLevel_ThenItIsDeclaredInNoType()
+        => TypeNamed("Outer").DeclaringType.Is().Null();
+
+    [Fact]
     public void ThenGiveItsFullNameWithTheTypesItIsNestedIn()
         => NestedIn("Outer").Single(type => type.Name == "Public").Nested.Single().FullName
             .Is("TSpec.Architecture.CSharp.Test.Declared.Nesting.Outer.Public.Deeper");
@@ -69,6 +81,10 @@ public class WhenReadTheNestedTypes : Spec
 
     private static SourceFile NestingFile => Source.Projects["Test"].Files.Single(file => file.Path == "Declared/Nesting.cs");
 
-    private static IReadOnlyList<DeclaredType> NestedIn(string owner)
-        => Source.Projects["Test"].Types.Single(type => type.Namespace.EndsWith(".Nesting") && type.Name == owner).Nested;
+    private static DeclaredType PublicInOuter => NestedIn("Outer").Single(type => type.Name == "Public");
+
+    private static IReadOnlyList<DeclaredType> NestedIn(string owner) => TypeNamed(owner).Nested;
+
+    private static DeclaredType TypeNamed(string name)
+        => Source.Projects["Test"].Types.Single(type => type.Namespace.EndsWith(".Nesting") && type.Name == name);
 }

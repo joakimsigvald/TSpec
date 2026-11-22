@@ -25,10 +25,7 @@ public class TypesPerFile : TSpec.Spec
     private static bool Production(SourceProject project) => !project.IsSpecProject;
 
     private static IEnumerable<DeclaredType> NestedTypesOf(SourceProject project) =>
-        project.AllTypes.Where(IsNested).Where(type => type.Files.All(Ours));
-
-    /// <summary>A nested type is at the top level of none of its files.</summary>
-    private static bool IsNested(DeclaredType type) => !type.Files.Any(file => file.Types.Contains(type));
+        project.AllTypes.Where(type => type.DeclaringType is not null).Where(type => type.Files.All(Ours));
 
     private static bool Ours(SourceFile file) => !file.MirrorsASchema;
     private static bool Crowded(SourceFile file) => PublicTypesOf(file).Count > 1;

@@ -21,7 +21,7 @@ internal readonly record struct TypeKey(string Assembly, string Namespace, strin
         => type.ContainingType is { } owner ? $"{PathOf(owner)}+{type.MetadataName}" : type.MetadataName;
 
     private static string PathOf(DeclaredType type)
-        => type.Owner is { } owner ? $"{PathOf(owner)}+{MetadataName(type)}" : MetadataName(type);
+        => type.DeclaringType is { } owner ? $"{PathOf(owner)}+{MetadataName(type)}" : MetadataName(type);
 
     private static string MetadataName(DeclaredType type) => type.Arity == 0 ? type.Name : $"{type.Name}`{type.Arity}";
 

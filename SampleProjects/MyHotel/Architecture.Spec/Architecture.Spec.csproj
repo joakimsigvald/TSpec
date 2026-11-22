@@ -21,7 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="TSpec.Architecture.CSharp" Version="1.8.0-local.5" />
+		<PackageReference Include="TSpec.Architecture.CSharp" Version="1.8.0-local.6" />
 		<PackageReference Include="xunit.v3" Version="4.0.3" />
 	</ItemGroup>
 

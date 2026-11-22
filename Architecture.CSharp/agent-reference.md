@@ -67,7 +67,7 @@ public void AreOnlyTheseAndNotRedundant()
 
 ## Type
 
-- `Name` (no type parameters), `FullName`, `Namespace`, `Kind`, `IsPublic`, `Files` and `Nested` (the types declared inside it). A nested type's `IsPublic` is in effect. A failure names it by its full name.
+- `Name` (no type parameters), `FullName`, `Namespace`, `Kind`, `IsPublic`, `Files`, `Nested` (the types declared inside it) and `DeclaringType` (the type it is nested in, null at the file's top level). A nested type's `IsPublic` is in effect. A failure names it by its full name.
 - `Exposes`: the build's types named in its signature that other assemblies see, itself included.
 - `DerivesFrom(typeof(Exception))`, `DerivesFrom("Entity")`: the given type (or name/full name) is its base type or a base's own base, however deep, type arguments ignored. An implemented interface is no base.
 - `Attributes` (written on every part of a partial) and `HasAttribute(name)`: the name counts with or without the `Attribute` suffix. Plain (`"Serializable"`), it matches that name in any namespace; qualified (`"System.Serializable"`), only that attribute — however the code wrote it.

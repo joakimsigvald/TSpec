@@ -23,6 +23,7 @@
 		<PackageReleaseNotes>
 			* Types and members expose their Roslyn Symbol, e.g. to see which interfaces a type implements
 			* project.TryFind(symbol, out var type) looks up the project's own type for a Roslyn type symbol
+			* A type's DeclaringType is the type it is nested in
 			* Source.Snippet(code) compiles example code into a source file, so a rule's condition can be tested on it
 			* Fixed: extension blocks no longer show up as constructors in Members
 		</PackageReleaseNotes>
@@ -31,7 +32,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.12.0" />
-		<PackageReference Include="TSpec" Version="5.8.0-local.3" PrivateAssets="none" />
+		<PackageReference Include="TSpec" Version="5.8.0" PrivateAssets="none" />
 		<InternalsVisibleTo Include="TSpec.Architecture.CSharp.Test" />
 		<None Include="README.md" Pack="true" PackagePath="\" />
 		<None Include="agent-reference.md" Pack="true" PackagePath="\" />

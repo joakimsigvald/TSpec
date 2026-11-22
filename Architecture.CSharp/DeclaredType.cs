@@ -26,7 +26,7 @@ public sealed class DeclaredType
         IsPublic = isPublic;
         Files = files;
         Declarations = declarations;
-        Owner = owner;
+        DeclaringType = owner;
         _exposes = new(() => BuildTypes.ExposedBy(this));
         _symbol = new(SymbolOf);
         _baseTypes = new(() => BaseTypes.Of(Symbol));
@@ -47,7 +47,7 @@ public sealed class DeclaredType
     /// parameters: "Data.Repository&lt;T&gt;"
     /// </summary>
     public string FullName
-        => Owner is not null ? $"{Owner.FullName}.{Declared}"
+        => DeclaringType is not null ? $"{DeclaringType.FullName}.{Declared}"
         : Namespace.Length == 0 ? Declared
         : $"{Namespace}.{Declared}";
 
@@ -118,7 +118,10 @@ public sealed class DeclaredType
     /// </summary>
     public IReadOnlyList<DeclaredType> Nested { get; internal set; } = [];
 
-    internal DeclaredType? Owner { get; }
+    /// <summary>
+    /// The type the type is nested in, directly; none for a type at the top level of its files
+    /// </summary>
+    public DeclaredType? DeclaringType { get; }
 
     internal IReadOnlyList<SourceNode<MemberDeclarationSyntax>> Declarations { get; }
 

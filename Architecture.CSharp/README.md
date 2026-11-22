@@ -234,8 +234,8 @@ public void A_catch_of_every_exception_breaks_the_rule(string clause)
 ## Type
 
 A type has its `Name` (`Repository`), its `FullName` (`Data.Repository<T>`), `Namespace`, `Kind`,
-`IsPublic`, the `Files` it is declared in, several for a partial type, and its `Nested` types, declared
-inside it. A nested type's `IsPublic` is in effect: false inside a type that is not public. A failure
+`IsPublic`, the `Files` it is declared in, several for a partial type, its `Nested` types, declared
+inside it, and the `DeclaringType` it is nested in, none at a file's top level. A nested type's `IsPublic` is in effect: false inside a type that is not public. A failure
 names a type by its full name. `Types` are the top-level ones only, so a rule on every public type reads
 `AllTypes`. A rule of one public type per file, adopted with today's breaches listed in `Allowed`:
 
