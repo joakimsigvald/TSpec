@@ -1,6 +1,6 @@
 # TSpec.Architecture.CSharp — Agent Reference
 
-Condensed reference for AI coding agents writing architecture rules with TSpec.Architecture.CSharp (covers 1.8).
+Condensed reference for AI coding agents writing architecture rules with TSpec.Architecture.CSharp (covers 1.9).
 It reads the projects of a TSpec build, their references, and the code inside them.
 Full documentation: [README.md](https://github.com/joakimsigvald/TSpec/blob/main/Architecture.CSharp/README.md).
 
@@ -69,6 +69,7 @@ public void AreOnlyTheseAndNotRedundant()
 
 - `Name` (no type parameters), `FullName`, `Namespace`, `Kind`, `IsPublic`, `Files`, `Nested` (the types declared inside it) and `DeclaringType` (the type it is nested in, null at the file's top level). A nested type's `IsPublic` is in effect. A failure names it by its full name.
 - `Exposes`: the build's types named in its signature that other assemblies see, itself included.
+- `UsedBy`: the files whose `Uses` hold it, its own too where they name it; reading it compiles every project of the build.
 - `DerivesFrom(typeof(Exception))`, `DerivesFrom("Entity")`: the given type (or name/full name) is its base type or a base's own base, however deep, type arguments ignored. An implemented interface is no base.
 - `Attributes` (written on every part of a partial) and `HasAttribute(name)`: the name counts with or without the `Attribute` suffix. Plain (`"Serializable"`), it matches that name in any namespace; qualified (`"System.Serializable"`), only that attribute — however the code wrote it.
 - `Symbol`: its Roslyn `INamedTypeSymbol`, e.g. `type.Symbol.AllInterfaces` for the interfaces it implements.

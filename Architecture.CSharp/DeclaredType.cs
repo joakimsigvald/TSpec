@@ -85,6 +85,13 @@ public sealed class DeclaredType
     public IReadOnlyList<DeclaredType> Exposes => _exposes.Value;
 
     /// <summary>
+    /// The files of the build whose code uses the type, as their <see cref="SourceFile.Uses"/> say: its own
+    /// files too, where they name it. In the ordinal order of their projects and paths. Every project of the
+    /// build is compiled to find out, once in a run
+    /// </summary>
+    public IReadOnlyList<SourceFile> UsedBy => TypeUsers.Of(this);
+
+    /// <summary>
     /// The attributes written on the type, on every declaration of a partial type
     /// </summary>
     public IReadOnlyList<AttributeSyntax> Attributes => [.. AttributeNodes.Select(attribute => attribute.Syntax)];

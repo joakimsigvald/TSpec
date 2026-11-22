@@ -252,6 +252,9 @@ public void Only_the_listed_files_declare_more_than_one_public_type()
 A type `Exposes` the build's types its signature names where other assemblies see it: its base type,
 interfaces and constraints, and the types of its public and protected members, itself included.
 
+A type is `UsedBy` the files whose `Uses` hold it, its own files too where they name it. Reading it
+compiles every project of the build.
+
 A type `DerivesFrom` all types in its inheritance chain. For generic types, the generic argument is
 ignored. A type does not derive from an interface. All types derive from `object`. A base the spec
 project cannot reference is given by name instead, plain or fully qualified: `DerivesFrom("Entity")`.

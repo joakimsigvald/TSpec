@@ -16,18 +16,12 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>1.8.0</PackageVersion>
+		<PackageVersion>1.8.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
-			* Types and members expose their Roslyn Symbol, e.g. to see which interfaces a type implements
-			* project.TryFind(symbol, out var type) looks up the project's own type for a Roslyn type symbol
-			* A type's DeclaringType is the type it is nested in
-			* A file's CodeLines are its lines that are code
-			* A project's SourceLines, CodeLines and Comments are those of all its files
-			* Source.Snippet(code) compiles example code into a source file, so a rule's condition can be tested on it
-			* Fixed: extension blocks no longer show up as constructors in Members
+			* A type's UsedBy are the files whose code uses it
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
