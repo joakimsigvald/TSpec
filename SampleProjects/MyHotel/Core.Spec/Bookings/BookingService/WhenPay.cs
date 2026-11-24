@@ -10,9 +10,7 @@ public abstract class WhenPay : BookingServiceSpec<Core.Bookings.BookingService>
 {
     private readonly Tag<StoredBooking> _booking = new();
 
-    protected WhenPay() =>
-        Using(TodayIs(Today))
-            .When(_ => _.Pay(The(_booking).BookingNumber));
+    protected WhenPay() => When(_ => _.Pay(The(_booking).BookingNumber));
 
     public class GivenTheBookingIsOpen : WhenPay
     {

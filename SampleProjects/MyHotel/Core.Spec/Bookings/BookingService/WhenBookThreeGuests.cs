@@ -5,10 +5,9 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 public abstract class WhenBookThreeGuests : BookingServiceSpec<Booking>
 {
     protected WhenBookThreeGuests() =>
-        Using(TodayIs(Today))
-            .And(A<BookingInfo>() with { RoomNumber = A<Room>().RoomNumber, GuestCount = 3 })
-            .When(_ => _.Book(A<BookingRequest>()))
-            .Given<IBookingStore>().That(_ => _.Load()).Returns(Zero<StoredBooking>);
+        Using(A<BookingInfo>() with { RoomNumber = A<Room>().RoomNumber, GuestCount = 3 })
+        .When(_ => _.Book(A<BookingRequest>()))
+        .Given<IBookingStore>().That(_ => _.Load()).Returns(Zero<StoredBooking>);
 
     public class GivenTheRoomHasTwoBeds : WhenBookThreeGuests
     {

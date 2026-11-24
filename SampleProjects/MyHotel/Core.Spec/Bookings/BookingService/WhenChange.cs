@@ -14,10 +14,9 @@ public abstract class WhenChange : BookingServiceSpec<Booking>
     private readonly Tag<StoredBooking> _otherBooking = new();
 
     protected WhenChange() =>
-        Using(TodayIs(Today))
-            .And(new BookingPeriod(Today, LaterDay))
-            .And(new BookingInfo(A<Room>().RoomNumber, A<string>(), 1))
-            .When(_ => _.Change(The(_booking).BookingNumber, A<BookingRequest>()));
+        Using(new BookingPeriod(Today, LaterDay))
+        .And(new BookingInfo(A<Room>().RoomNumber, A<string>(), 1))
+        .When(_ => _.Change(The(_booking).BookingNumber, A<BookingRequest>()));
 
     public abstract class GivenTheRoomExists : WhenChange
     {

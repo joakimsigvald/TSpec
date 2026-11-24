@@ -9,9 +9,8 @@ public abstract class WhenCancelBookings : BookingServiceSpec<Core.Bookings.Book
     private readonly Tag<StoredBooking> _booking = new();
 
     protected WhenCancelBookings() =>
-        Using(TodayIs(Today))
-            .And(A<BookingInfo>() with { RoomNumber = A<Room>().RoomNumber })
-            .When(_ => _.CancelBookings(A<Room>().RoomNumber));
+        Using(A<BookingInfo>() with { RoomNumber = A<Room>().RoomNumber })
+        .When(_ => _.CancelBookings(A<Room>().RoomNumber));
 
     public class GivenAnOpenBookingOfTheRoom : WhenCancelBookings
     {

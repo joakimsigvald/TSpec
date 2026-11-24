@@ -9,10 +9,11 @@ public abstract class WhenBook : BookingServiceSpec<Booking>
     private static readonly DateOnly Departure = LaterDay.AddDays(2);
 
     protected WhenBook() =>
-        Using(TodayIs(Today))
-            .And(new BookingPeriod(Arrival, Departure))
-            .And(new BookingInfo(A<Room>().RoomNumber, A<string>(), 1))
-            .When(_ => _.Book(A<BookingRequest>()));
+        When(_ => _.Book(A<BookingRequest>(_ => _ with
+        {
+            Info = new(A<Room>().RoomNumber, A<string>(), A<Room>().BedCount),
+            Period = new(Arrival, Departure)
+        })));
 
     public abstract class GivenTheRoomExists : WhenBook
     {
@@ -29,17 +30,17 @@ public abstract class WhenBook : BookingServiceSpec<Booking>
             public void ThenReturnTheBookingWithTheNumberItWasGiven() =>
                 Result.Is(new Booking(
                     The<int>(),
-                    The<BookingInfo>(),
-                    The<BookingPeriod>(),
+                    The<BookingRequest>().Info,
+                    The<BookingRequest>().Period,
                     new BookingState(Open, [Cancel, Pay]),
-                    new BookingPayment(2 * The<Room>().PricePerNight, false)));
+                    new BookingPayment((Departure.DayNumber - Arrival.DayNumber) * The<Room>().PricePerNight, false)));
 
             [Fact]
             public void ThenStoreItAtThePricePerNightOfItsRoom() =>
                 Then<IBookingStore>(_ => _.Save(new[] { new StoredBooking(
                     The<int>(),
-                    The<BookingInfo>(),
-                    The<BookingPeriod>(),
+                    The<BookingRequest>().Info,
+                    The<BookingRequest>().Period,
                     The<Room>().PricePerNight,
                     BookingStage.Booked,
                     false) }));
@@ -56,7 +57,11 @@ public abstract class WhenBook : BookingServiceSpec<Booking>
                 Given<IBookingNumberGenerator>().That(_ => _.Next())
                 .First().Returns(An<int>).AndNext().Returns(ASecond<int>)
                 .And<IBookingStore>().That(_ => _.Load()).Returns(Zero<StoredBooking>)
-                .Having(_ => _.Book(ASecond<BookingRequest>() with { Period = new(Today, Arrival) }));
+                .Having(_ => _.Book(ASecond<BookingRequest>() with
+                {
+                    Info = Any<BookingInfo>() with { RoomNumber = The<Room>().RoomNumber },
+                    Period = new(Today, Arrival)
+                }));
 
             [Fact] public void ThenTakeTheSecondNumber() => Result.BookingNumber.Is(TheSecond<int>());
         }
@@ -66,7 +71,7 @@ public abstract class WhenBook : BookingServiceSpec<Booking>
             public WithAnOverlappingBooking() =>
                 Given<IBookingStore>().That(_ => _.Load()).Returns(() => [A<StoredBooking>() with
                 {
-                    Info = The<BookingInfo>(),
+                    Info = Any<BookingInfo>() with { RoomNumber = The<Room>().RoomNumber },
                     Period = new(Arrival.AddDays(1), Departure.AddDays(1)),
                     Stage = BookingStage.Booked,
                 }]);

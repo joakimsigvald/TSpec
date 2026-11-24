@@ -10,9 +10,7 @@ public abstract class WhenCheckIn : BookingServiceSpec<Core.Bookings.BookingServ
 {
     private readonly Tag<StoredBooking> _booking = new();
 
-    protected WhenCheckIn() =>
-        Using(TodayIs(Today))
-            .When(_ => _.CheckIn(The(_booking).BookingNumber));
+    protected WhenCheckIn() => When(_ => _.CheckIn(The(_booking).BookingNumber));
 
     public class GivenTheBookingArrivesToday : WhenCheckIn
     {

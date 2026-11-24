@@ -29,16 +29,17 @@ Using new BookingNumberSeed(an int)
 ## Booking Service
 ```
 Subject under test: BookingService
-Using new BookingPeriod(Today, LaterDay)
+Using today is Today
+  and new BookingPeriod(Today, LaterDay)
   and StoredBooking with Paid = false
 ```
 
 ### [When book](../Bookings/BookingService/WhenBook.cs)
 ```
-Using today is Today
-  and new BookingPeriod(Arrival, Departure)
-  and new BookingInfo(a Room's RoomNumber, a string, 1)
-When Book(a BookingRequest), returns Booking
+Book(
+    a BookingRequest
+    { Info = new(a Room's RoomNumber, a string, a Room's BedCount),
+    Period = new(Arrival, Departure) }), returns Booking
 ```
 
 #### Given the room exists, with no bookings
@@ -50,14 +51,15 @@ IRoomStore.Load() returns [the Room]
 
 - **return the booking with the number it was given**
   ```
-  Result is new Booking(the int, the BookingInfo, the BookingPeriod,
+  Result is new Booking(the int, the BookingRequest's Info, the BookingRequest's Period,
       new BookingState(Open, [Cancel, Pay]),
-      new BookingPayment(2 * the Room's PricePerNight, false))
+      new BookingPayment(
+      (Departure.DayNumber - Arrival.DayNumber) * the Room's PricePerNight, false))
   ```
 - **store it at the price per night of its room**
   ```
   IBookingStore.Save(
-      [new StoredBooking(the int, the BookingInfo, the BookingPeriod,
+      [new StoredBooking(the int, the BookingRequest's Info, the BookingRequest's Period,
       the Room's PricePerNight, BookingStage.Booked, false)])
   ```
 
@@ -67,7 +69,10 @@ IRoomStore.Load() returns [the Room]
   and IBookingNumberGenerator.Next() first returns an int
   and next returns a second int
   and IBookingStore.Load() returns zero StoredBookings
-Having Book(a second BookingRequest with { Period = new(Today, Arrival) })
+Having Book(
+    a second BookingRequest with
+    { Info = any BookingInfo with { RoomNumber = the Room's RoomNumber },
+    Period = new(Today, Arrival) })
 ```
 
 - **take the second number** — `Result.BookingNumber is the second int`
@@ -76,7 +81,8 @@ Having Book(a second BookingRequest with { Period = new(Today, Arrival) })
 ```
 IRoomStore.Load() returns [the Room]
   and IBookingStore.Load() returns [a StoredBooking with
-      { Info = the BookingInfo, Period = new(Arrival.AddDays(1), Departure.AddDays(1)),
+      { Info = any BookingInfo with { RoomNumber = the Room's RoomNumber },
+      Period = new(Arrival.AddDays(1), Departure.AddDays(1)),
       Stage = BookingStage.Booked }]
 ```
 
@@ -121,8 +127,7 @@ When Book(a BookingRequest), returns Booking
 
 ### [When book three guests](../Bookings/BookingService/WhenBookThreeGuests.cs)
 ```
-Using today is Today
-  and a BookingInfo with { RoomNumber = a Room's RoomNumber, GuestCount = 3 }
+Using a BookingInfo with { RoomNumber = a Room's RoomNumber, GuestCount = 3 }
 Given IBookingStore.Load() returns zero StoredBookings
 When Book(a BookingRequest), returns Booking
 ```
@@ -159,10 +164,7 @@ When Book(a BookingRequest), returns Booking
   `throws InvalidBookingPeriod that Message contains "at least one night"`
 
 ### [When cancel](../Bookings/BookingService/WhenCancel.cs)
-```
-Using today is Today
-When Cancel(the Booking's BookingNumber)
-```
+`Cancel(the Booking's BookingNumber)`
 
 #### Given the booking is open
 ```
@@ -227,8 +229,7 @@ Booking is a StoredBooking with { Period = new(Tomorrow, LaterDay), Stage = Book
 
 ### [When cancel bookings](../Bookings/BookingService/WhenCancelBookings.cs)
 ```
-Using today is Today
-  and a BookingInfo with { RoomNumber = a Room's RoomNumber }
+Using a BookingInfo with { RoomNumber = a Room's RoomNumber }
 Given IBookingStore.Load() returns [the Booking]
 When CancelBookings(a Room's RoomNumber)
 ```
@@ -267,8 +268,7 @@ Booking is a StoredBooking with
 
 ### [When change](../Bookings/BookingService/WhenChange.cs)
 ```
-Using today is Today
-  and new BookingPeriod(Today, LaterDay)
+Using new BookingPeriod(Today, LaterDay)
   and new BookingInfo(a Room's RoomNumber, a string, 1)
 When Change(the Booking's BookingNumber, a BookingRequest), returns Booking
 ```
@@ -396,8 +396,7 @@ When Change(any int, a BookingRequest), returns Booking
 
 ### [When change to two nights](../Bookings/BookingService/WhenChangeToTwoNights.cs)
 ```
-Using today is Today
-  and new BookingInfo(a Room's RoomNumber, a string, 1)
+Using new BookingInfo(a Room's RoomNumber, a string, 1)
 When Change(a StoredBooking's BookingNumber,
     a BookingRequest with { Period = new(Today, Today.AddDays(2)) }), returns Booking
 ```
@@ -462,10 +461,7 @@ When Change(any int, a BookingRequest), returns Booking
   `throws InvalidBookingPeriod that Message contains "at least one night"`
 
 ### [When check in](../Bookings/BookingService/WhenCheckIn.cs)
-```
-Using today is Today
-When CheckIn(the Booking's BookingNumber)
-```
+`CheckIn(the Booking's BookingNumber)`
 
 #### Given the booking arrives today
 ```
@@ -520,10 +516,7 @@ Booking is a StoredBooking with { Period = new(Today, LaterDay), Stage = Booking
 - **store nothing** — `IBookingStore.Save was not invoked`
 
 ### [When check out](../Bookings/BookingService/WhenCheckOut.cs)
-```
-Using today is Today
-When CheckOut(the Booking's BookingNumber)
-```
+`CheckOut(the Booking's BookingNumber)`
 
 #### Given the booking is checked in and departs today
 ```
@@ -580,10 +573,7 @@ Booking is a StoredBooking with { Period = new(EarlierDay, Today), Stage = Booki
 - **store nothing** — `IBookingStore.Save was not invoked`
 
 ### [When get](../Bookings/BookingService/WhenGet.cs)
-```
-Using today is Today
-When BookingFor(a StoredBooking's BookingNumber), returns Booking
-```
+`BookingFor(a StoredBooking's BookingNumber), returns Booking`
 
 #### Given it is booked and arrives today
 ```
@@ -689,10 +679,7 @@ IBookingStore.Load() returns [the StoredBooking with
   `throws BookingNotFound that Message contains "{the StoredBooking's BookingNumber}"`
 
 ### [When list](../Bookings/BookingService/WhenList.cs)
-```
-Using today is Today
-When Bookings(), returns IReadOnlyList<Booking>
-```
+`Bookings(), returns IReadOnlyList<Booking>`
 
 #### Given no bookings
 `IBookingStore.Load() returns zero StoredBookings`
@@ -709,10 +696,7 @@ When Bookings(), returns IReadOnlyList<Booking>
   ```
 
 ### [When pay](../Bookings/BookingService/WhenPay.cs)
-```
-Using today is Today
-When Pay(the Booking's BookingNumber)
-```
+`Pay(the Booking's BookingNumber)`
 
 #### Given the booking is open
 ```

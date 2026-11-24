@@ -6,6 +6,7 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 public abstract class BookingServiceSpec<TResult> : Spec<Core.Bookings.BookingService, TResult>
 {
     protected BookingServiceSpec() =>
-        Using(new BookingPeriod(Today, LaterDay))
-            .And((StoredBooking booking) => booking with { Paid = false });
+        Using(TodayIs(Today))
+        .And(new BookingPeriod(Today, LaterDay))
+        .And((StoredBooking booking) => booking with { Paid = false });
 }

@@ -7,11 +7,10 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 public abstract class WhenChangeToTwoNights : BookingServiceSpec<Booking>
 {
     protected WhenChangeToTwoNights() =>
-        Using(TodayIs(Today))
-            .And(new BookingInfo(A<Room>().RoomNumber, A<string>(), 1))
-            .When(_ => _.Change(
-                A<StoredBooking>().BookingNumber,
-                A<BookingRequest>() with { Period = new(Today, Today.AddDays(2)) }));
+        Using(new BookingInfo(A<Room>().RoomNumber, A<string>(), 1))
+        .When(_ => _.Change(
+            A<StoredBooking>().BookingNumber,
+            A<BookingRequest>() with { Period = new(Today, Today.AddDays(2)) }));
 
     public class GivenItStaysInItsRoom : WhenChangeToTwoNights
     {

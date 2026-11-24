@@ -10,9 +10,7 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 /// </summary>
 public abstract class WhenGet : BookingServiceSpec<Booking>
 {
-    protected WhenGet() =>
-        Using(TodayIs(Today))
-            .When(_ => _.BookingFor(A<StoredBooking>().BookingNumber));
+    protected WhenGet() => When(_ => _.BookingFor(A<StoredBooking>().BookingNumber));
 
     public class GivenItIsBookedAndArrivesToday : WhenGet
     {

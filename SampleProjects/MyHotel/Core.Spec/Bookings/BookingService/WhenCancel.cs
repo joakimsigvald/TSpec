@@ -10,9 +10,7 @@ public abstract class WhenCancel : BookingServiceSpec<Core.Bookings.BookingServi
 {
     private readonly Tag<StoredBooking> _booking = new();
 
-    protected WhenCancel() =>
-        Using(TodayIs(Today))
-            .When(_ => _.Cancel(The(_booking).BookingNumber));
+    protected WhenCancel() => When(_ => _.Cancel(The(_booking).BookingNumber));
 
     public class GivenTheBookingIsOpen : WhenCancel
     {
