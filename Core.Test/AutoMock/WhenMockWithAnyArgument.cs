@@ -71,8 +71,8 @@ public class WhenMockWithAnyArgument : Spec<MyValueIntService, string>
             """
             When SetValue(a MyValueInt)
             Then IMyValueIntRepo.Set(any int where i == the MyValueInt's Primitive)
-              and IMyValueIntRepo.Set(
-                    any int where i != the MyValueInt's Primitive) was not invoked
+              and IMyValueIntRepo.Set(any int
+                    where i != the MyValueInt's Primitive) was not invoked
             """);
     }
 

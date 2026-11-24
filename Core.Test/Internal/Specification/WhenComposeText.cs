@@ -27,7 +27,8 @@ public class WhenComposeText
         => Xunit.Assert.Equal(
             """
             12345
-              789012, ab
+              789012,
+              ab
             """.NormalizeLineEndings(),
             Compose(12, Statement("12345 789012"), Joined("ab")));
 

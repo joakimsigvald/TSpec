@@ -87,39 +87,77 @@ public class WhenAddText
         string? existingText, string? newText, string expected)
         => Xunit.Assert.Equal(expected.NormalizeLineEndings(), AddText(newText, existingText));
 
-    /// « enters a nesting level, » exits it, ¦ marks a break point ranked by its depth —
-    /// stand-ins for the Wrap markers, which are unprintable.
-    private static string AddMarkedText(string text)
-        => AddText(text
+    /// « opens a group, » closes it, ¦ marks a break point of the group it stands in, ¶ one that
+    /// lines up with the line the group opened on — stand-ins for the Wrap markers, which are
+    /// unprintable.
+    private static string Visible(string text)
+        => text
             .Replace('«', Wrap.Enter)
             .Replace('»', Wrap.Exit)
-            .Replace('¦', Wrap.Point));
+            .Replace('¦', Wrap.Point)
+            .Replace('¶', Wrap.Align);
+
+    private static string AddMarkedText(string text) => AddText(Visible(text));
 
     [Theory]
     [InlineData("A(«¦BC»)", "A(BC)")]
-    [InlineData("AB CD(«¦EF GH»)",
-        """
-        AB CD(
-           EF GH)
-        """)]
     [InlineData("ABC(«¦DE, ¦FG»)",
         """
-        ABC(DE,
+        ABC(
+           DE,
            FG)
+        """)]
+    [InlineData("A(«¦BB, ¦C(«¦D»)»)",
+        """
+        A(
+           BB,
+           C(D))
         """)]
     [InlineData("A(«¦BB, ¦CC(«¦DD, ¦EE»)»)",
         """
-        A(BB,
-           CC(DD,
-           EE))
+        A(
+           BB,
+           CC(
+            DD,
+            EE))
         """)]
-    [InlineData("AB with« ¦{CD}»",
+    [InlineData("ABCDE« ¦{«¦ F ¶»}»",
         """
-        AB with
-           {CD}
+        ABCDE
+           { F }
         """)]
-    public void GivenBreakPoints_ThenBreakAtLastPointOfShallowestRank(string text, string expected)
+    [InlineData("AB« ¦{«¦ CDE, ¦FGH ¶»}»",
+        """
+        AB
+           {
+            CDE,
+            FGH
+           }
+        """)]
+    [InlineData("ABCD(«¦«EF, ¶GH»»)",
+        """
+        ABCD(
+           EF, GH)
+        """)]
+    [InlineData("A(«¦«BCD, ¶EFG»»)",
+        """
+        A(
+           BCD,
+           EFG)
+        """)]
+    public void GivenBreakPoints_ThenBreakAGroupThatDoesNotFitAtEachOfItsOwn(string text, string expected)
         => Xunit.Assert.Equal(expected.NormalizeLineEndings(), AddMarkedText(text));
+
+    [Fact]
+    public void GivenAPartBroke_ThenStartTheNextPartOnALineOfItsOwn()
+    {
+        var builder = new TSpec.Internal.Specification.TextBuilder(10, 1);
+        builder.Add(TextUnit.Line(Visible("ABC(«¦DE, ¦FG»)"), 0));
+        builder.Add(TextUnit.Word("HI"));
+        Xunit.Assert.Equal(
+            "ABC(\n   DE,\n   FG)\n   HI",
+            builder.Build(opensSentence: false).NormalizeLineEndings());
+    }
 
     [Theory]
     [InlineData("ABCDE FG(H)",
@@ -137,8 +175,8 @@ public class WhenAddText
             new TSpec.Internal.Specification.TextBuilder(10, 1, wrapIndentation: 2)
                 .AddText("12345 678901").ToString().NormalizeLineEndings());
 
-    /// A continuation indents relative to the line it continues — its step plus the wrap delta —
-    /// and does not compound: every continuation of one line takes the same column.
+    /// Text without break points continues relative to the line it continues — its step plus the
+    /// wrap delta — and does not compound: every continuation takes the same column.
     [Fact]
     public void GivenIndentedLine_ThenContinuationsIndentRelativeToIt()
     {

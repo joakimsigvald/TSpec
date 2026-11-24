@@ -26,8 +26,8 @@ internal sealed class ValueDescriber : Describer
             // The copy is of something the reader was told about, so it is named: a value described
             // by its changes alone is not the value, and "BedCount = any int" is not a room.
             With w => $"{Describe(w.Target)} with{Braced(w.Init)}",
-            TupleExpr t => $"({Wrap.Enter}{DescribeAll(t.Items)}{Wrap.Exit})",
-            ArrayLit arr => $"[{Wrap.Enter}{DescribeAll(arr.Items)}{Wrap.Exit}]",
+            TupleExpr t => Listed('(', t.Items, ')'),
+            ArrayLit arr => Listed('[', arr.Items, ']'),
             Binary b => $"{Operand(b, b.Left, onRight: false)} {b.Op} {Operand(b, b.Right, onRight: true)}",
             Unary u => $"{u.Op}{Describe(u.Operand)}",
             Postfix p => $"{Describe(p.Operand)}{p.Op}",

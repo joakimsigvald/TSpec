@@ -33,8 +33,8 @@ public class WhenPlaceOrder : ShoppingServiceSpec<object>
             """
             Using (a string, a second string)
             When PlaceOrder(a ShoppingCart)
-            Then ILogger.Information(
-                  any string where s.Contains(a string) && s.Contains(a second string))
+            Then ILogger.Information(any string
+                  where s.Contains(a string) && s.Contains(a second string))
             """);
     }
 }

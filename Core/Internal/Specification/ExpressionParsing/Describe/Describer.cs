@@ -17,22 +17,35 @@ internal abstract class Describer
 
     protected abstract string Render(Expr expr);
 
-    protected static string DescribeAll(IEnumerable<Expr> exprs) =>
-        string.Join($", {Wrap.Point}", exprs.Select(Item));
+    protected static string DescribeAll(IEnumerable<Expr> exprs, char breakPoint = Wrap.Point) =>
+        string.Join($", {breakPoint}", exprs.Select(Item));
 
     /// An item of a list keeps the shape of a call, since a phrase's own commas would read as the list's.
     private static string Item(Expr expr)
         => expr.WithoutNoise() is Call call ? Link(call) : Value.Describe(expr);
 
-    /// An argument list is a nested construct: after the opening paren and after each comma the
-    /// remainder may move to a continuation line, ranked one below the construct the call sits in.
     protected static string ArgList(IReadOnlyList<Expr> args)
-        => args.Count == 0 ? "()" : $"({Wrap.Enter}{Wrap.Point}{DescribeAll(args)}{Wrap.Exit})";
+        => args.Count == 0 ? "()" : Listed('(', args, ')');
 
-    /// A brace block prefers moving whole to a continuation line — the point before the brace —
-    /// over breaking inside it, and its members rank one level deeper still.
+    /// A lone item stays on its bracket, having nothing to line up with.
+    protected static string Listed(char open, IReadOnlyList<Expr> items, char close)
+    {
+        var listed = items.Count > 1 ? LinedUp(items) : DescribeAll(items);
+        return $"{open}{Wrap.Enter}{listed}{Wrap.Exit}{close}";
+    }
+
+    /// Moves whole off the opening bracket before it breaks one item per line, lined up under the first.
+    private static string LinedUp(IReadOnlyList<Expr> items)
+        => $"{Wrap.Point}{Wrap.Enter}{DescribeAll(items, Wrap.Align)}{Wrap.Exit}";
+
+    /// A brace block moves whole to a line of its own — the point before the brace — before it
+    /// breaks as a block.
     protected static string Braced(IEnumerable<Expr> init)
-        => $"{Wrap.Enter} {Wrap.Point}{{ {Wrap.Enter}{DescribeAll(init)}{Wrap.Exit} }}{Wrap.Exit}";
+        => $"{Wrap.Enter} {Wrap.Point}{Block(init)}{Wrap.Exit}";
+
+    /// Braces on lines of their own, and one member per line between them.
+    private static string Block(IEnumerable<Expr> members)
+        => $"{{{Wrap.Enter}{Wrap.Point} {DescribeAll(members)} {Wrap.Align}{Wrap.Exit}}}";
 
     /// <summary>
     /// A dotted path — with a break point at each joint where the dot connects two calls, never at
@@ -108,7 +121,7 @@ internal abstract class Describer
     protected static string DescribeNew(New n)
     {
         if (n.Init is not null && IsArrayCreation(n))
-            return $"{n.TypeName}[{Wrap.Enter}{DescribeAll(n.Init)}{Wrap.Exit}]";
+            return $"{n.TypeName}{Listed('[', n.Init, ']')}";
 
         string head = NewHead(n);
         string init = n.Init is null ? "" : Braced(n.Init);

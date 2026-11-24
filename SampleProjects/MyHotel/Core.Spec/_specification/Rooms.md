@@ -103,10 +103,11 @@ When RoomCategories(), returns IReadOnlyList<RoomCategoryOverview>
 
 - **return them in the order they are stored**
   ```
-  Result is equal to [new RoomCategoryOverview(the first RoomCategory's Name,
-      the first RoomCategory's Description, false),
-      new RoomCategoryOverview(the second RoomCategory's Name,
-      the second RoomCategory's Description, true)]
+  Result is equal to [
+      new RoomCategoryOverview(
+        the first RoomCategory's Name, the first RoomCategory's Description, false),
+      new RoomCategoryOverview(
+        the second RoomCategory's Name, the second RoomCategory's Description, true)]
   ```
 
 ### [When update room category](../Rooms/RoomCategoryService/WhenUpdateRoomCategory.cs)
@@ -121,8 +122,8 @@ UpdatedRoomCategory is the RoomCategory with { Description = a second string }
 
 - **return the updated room category**
   ```
-  Result is new RoomCategoryOverview(the UpdatedRoomCategory's Name,
-      the UpdatedRoomCategory's Description, false)
+  Result is new RoomCategoryOverview(
+      the UpdatedRoomCategory's Name, the UpdatedRoomCategory's Description, false)
   ```
 
 #### Given another room category is stored first
@@ -164,8 +165,13 @@ IRoomStore.Load() returns zero Rooms
 
 - **return the room**
   ```
-  Result is new RoomOverview(the Room's RoomNumber, the Room's BedCount,
-      the Room's RoomCategory, the Room's PricePerNight, false, false)
+  Result is new RoomOverview(
+      the Room's RoomNumber,
+      the Room's BedCount,
+      the Room's RoomCategory,
+      the Room's PricePerNight,
+      false,
+      false)
   ```
 - **store it** — `IRoomStore.Save(one Room)`
 
@@ -280,8 +286,13 @@ IRoomStore.Load() returns one Room
 
 - **return it**
   ```
-  Result is new RoomOverview(the Room's RoomNumber, the Room's BedCount,
-      the Room's RoomCategory, the Room's PricePerNight, false, false)
+  Result is new RoomOverview(
+      the Room's RoomNumber,
+      the Room's BedCount,
+      the Room's RoomCategory,
+      the Room's PricePerNight,
+      false,
+      false)
   ```
 
 #### Given the room is held
@@ -322,11 +333,21 @@ IRoomStore.Load() returns two Rooms
 
 - **return them in the order they are stored**
   ```
-  Result is equal to [new RoomOverview(the first Room's RoomNumber,
-      the first Room's BedCount, the first Room's RoomCategory,
-      the first Room's PricePerNight, true, true),
-      new RoomOverview(the second Room's RoomNumber, the second Room's BedCount,
-      the second Room's RoomCategory, the second Room's PricePerNight, true, false)]
+  Result is equal to [
+      new RoomOverview(
+        the first Room's RoomNumber,
+        the first Room's BedCount,
+        the first Room's RoomCategory,
+        the first Room's PricePerNight,
+        true,
+        true),
+      new RoomOverview(
+        the second Room's RoomNumber,
+        the second Room's BedCount,
+        the second Room's RoomCategory,
+        the second Room's PricePerNight,
+        true,
+        false)]
   ```
 
 ### [When update room](../Rooms/RoomService/WhenUpdateRoom.cs)
@@ -342,8 +363,13 @@ UpdatedRoom is the Room with { BedCount = a second int, PricePerNight = a third 
 
 - **return the updated room**
   ```
-  Result is new RoomOverview(the UpdatedRoom's RoomNumber, the UpdatedRoom's BedCount,
-      the UpdatedRoom's RoomCategory, the UpdatedRoom's PricePerNight, false, false)
+  Result is new RoomOverview(
+      the UpdatedRoom's RoomNumber,
+      the UpdatedRoom's BedCount,
+      the UpdatedRoom's RoomCategory,
+      the UpdatedRoom's PricePerNight,
+      false,
+      false)
   ```
 
 #### Given another room is stored first

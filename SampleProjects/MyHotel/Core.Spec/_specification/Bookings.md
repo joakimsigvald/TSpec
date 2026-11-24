@@ -36,10 +36,12 @@ Using today is Today
 
 ### [When book](../Bookings/BookingService/WhenBook.cs)
 ```
-Book(
-    a BookingRequest
-    { Info = new(a Room's RoomNumber, a string, a Room's BedCount),
-    Period = new(Arrival, Departure) }), returns Booking
+Book(a BookingRequest
+    {
+      Info = new(a Room's RoomNumber, a string, a Room's BedCount),
+      Period = new(Arrival, Departure)
+    })
+Return type: Booking
 ```
 
 #### Given the room exists, with no bookings
@@ -51,16 +53,23 @@ IRoomStore.Load() returns [the Room]
 
 - **return the booking with the number it was given**
   ```
-  Result is new Booking(the int, the BookingRequest's Info, the BookingRequest's Period,
+  Result is new Booking(
+      the int,
+      the BookingRequest's Info,
+      the BookingRequest's Period,
       new BookingState(Open, [Cancel, Pay]),
       new BookingPayment(
-      (Departure.DayNumber - Arrival.DayNumber) * the Room's PricePerNight, false))
+        (Departure.DayNumber - Arrival.DayNumber) * the Room's PricePerNight, false))
   ```
 - **store it at the price per night of its room**
   ```
-  IBookingStore.Save(
-      [new StoredBooking(the int, the BookingRequest's Info, the BookingRequest's Period,
-      the Room's PricePerNight, BookingStage.Booked, false)])
+  IBookingStore.Save([new StoredBooking(
+      the int,
+      the BookingRequest's Info,
+      the BookingRequest's Period,
+      the Room's PricePerNight,
+      BookingStage.Booked,
+      false)])
   ```
 
 #### Given the room exists, but is already booked
@@ -69,10 +78,11 @@ IRoomStore.Load() returns [the Room]
   and IBookingNumberGenerator.Next() first returns an int
   and next returns a second int
   and IBookingStore.Load() returns zero StoredBookings
-Having Book(
-    a second BookingRequest with
-    { Info = any BookingInfo with { RoomNumber = the Room's RoomNumber },
-    Period = new(Today, Arrival) })
+Having Book(a second BookingRequest with
+    {
+      Info = any BookingInfo with { RoomNumber = the Room's RoomNumber },
+      Period = new(Today, Arrival)
+    })
 ```
 
 - **take the second number** — `Result.BookingNumber is the second int`
@@ -81,9 +91,11 @@ Having Book(
 ```
 IRoomStore.Load() returns [the Room]
   and IBookingStore.Load() returns [a StoredBooking with
-      { Info = any BookingInfo with { RoomNumber = the Room's RoomNumber },
-      Period = new(Arrival.AddDays(1), Departure.AddDays(1)),
-      Stage = BookingStage.Booked }]
+      {
+        Info = any BookingInfo with { RoomNumber = the Room's RoomNumber },
+        Period = new(Arrival.AddDays(1), Departure.AddDays(1)),
+        Stage = BookingStage.Booked
+      }]
 ```
 
 - **throw room already booked**\
@@ -93,8 +105,11 @@ IRoomStore.Load() returns [the Room]
 ```
 IRoomStore.Load() returns [the Room]
   and IBookingStore.Load() returns [a StoredBooking with
-      { Info = the BookingInfo, Period = new(Arrival.AddDays(1), Departure.AddDays(1)),
-      Stage = BookingStage.Cancelled }]
+      {
+        Info = the BookingInfo,
+        Period = new(Arrival.AddDays(1), Departure.AddDays(1)),
+        Stage = BookingStage.Cancelled
+      }]
 ```
 
 - **book the room** — `Result.Info.RoomNumber is the Room's RoomNumber`
@@ -103,8 +118,11 @@ IRoomStore.Load() returns [the Room]
 ```
 IRoomStore.Load() returns [the Room]
   and IBookingStore.Load() returns [a StoredBooking with
-      { Info = the BookingInfo, Period = new(Today, Arrival),
-      Stage = BookingStage.Booked }]
+      {
+        Info = the BookingInfo,
+        Period = new(Today, Arrival),
+        Stage = BookingStage.Booked
+      }]
 ```
 
 - **book the room** — `Result.Info.RoomNumber is the Room's RoomNumber`
@@ -260,8 +278,11 @@ Booking is a StoredBooking with
 #### Given an open booking of another room
 ```
 Booking is a StoredBooking with
-    { Info = a BookingInfo with { RoomNumber = a second Room's RoomNumber },
-    Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked }
+    {
+      Info = a BookingInfo with { RoomNumber = a second Room's RoomNumber },
+      Period = new(Tomorrow, LaterDay),
+      Stage = BookingStage.Booked
+    }
 ```
 
 - **keep it as it is** — `IBookingStore.Save([the Booking])`
@@ -276,31 +297,44 @@ When Change(the Booking's BookingNumber, a BookingRequest), returns Booking
 #### Given the room exists, with the booking open
 ```
 Booking is a StoredBooking with
-    { Info = new BookingInfo(a second Room's RoomNumber, a second string, 2),
-    Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked }
+    {
+      Info = new BookingInfo(a second Room's RoomNumber, a second string, 2),
+      Period = new(Tomorrow, LaterDay),
+      Stage = BookingStage.Booked
+    }
   and IRoomStore.Load() returns [the Room]
   and IBookingStore.Load() returns [the Booking]
 ```
 
 - **return it changed**
   ```
-  Result is new Booking(the Booking's BookingNumber, the BookingInfo,
-      new BookingPeriod(Today, LaterDay), new BookingState(Open, [Cancel, CheckIn, Pay]),
+  Result is new Booking(
+      the Booking's BookingNumber,
+      the BookingInfo,
+      new BookingPeriod(Today, LaterDay),
+      new BookingState(Open, [Cancel, CheckIn, Pay]),
       new BookingPayment(9 * the Room's PricePerNight, false))
   ```
 - **store it changed**
   ```
-  IBookingStore.Save(
-      [new StoredBooking(the Booking's BookingNumber, the BookingInfo,
-      new BookingPeriod(Today, LaterDay), the Room's PricePerNight, BookingStage.Booked,
+  IBookingStore.Save([new StoredBooking(
+      the Booking's BookingNumber,
+      the BookingInfo,
+      new BookingPeriod(Today, LaterDay),
+      the Room's PricePerNight,
+      BookingStage.Booked,
       false)])
   ```
 
 #### Given the room exists, with the booking paid
 ```
 Booking is a StoredBooking with
-    { Info = the BookingInfo, Period = new(Tomorrow, LaterDay),
-    Stage = BookingStage.Booked, Paid = true }
+    {
+      Info = the BookingInfo,
+      Period = new(Tomorrow, LaterDay),
+      Stage = BookingStage.Booked,
+      Paid = true
+    }
   and IRoomStore.Load() returns [the Room]
   and IBookingStore.Load() returns [the Booking]
 ```
@@ -330,8 +364,11 @@ Booking is a StoredBooking with { Period = new(EarlierDay, Today), Stage = Booki
 #### Given the room exists, with the booking holding some of the nights
 ```
 Booking is a StoredBooking with
-    { Info = the BookingInfo, Period = new(Tomorrow, LaterDay),
-    Stage = BookingStage.Booked }
+    {
+      Info = the BookingInfo,
+      Period = new(Tomorrow, LaterDay),
+      Stage = BookingStage.Booked
+    }
   and IRoomStore.Load() returns [the Room]
   and IBookingStore.Load() returns [the Booking]
 ```
@@ -341,8 +378,11 @@ Booking is a StoredBooking with
 #### Given the room exists, with another booking holding some of the nights
 ```
 OtherBooking is a second StoredBooking with
-    { Info = the BookingInfo, Period = new(Tomorrow, LaterDay),
-    Stage = BookingStage.Booked }
+    {
+      Info = the BookingInfo,
+      Period = new(Tomorrow, LaterDay),
+      Stage = BookingStage.Booked
+    }
   and Booking is a StoredBooking with { Stage = BookingStage.Booked }
   and IRoomStore.Load() returns [the Room]
   and IBookingStore.Load() returns [the Booking, the OtherBooking]
@@ -355,8 +395,11 @@ OtherBooking is a second StoredBooking with
 #### Given the room exists, with the booking cancelled and another holding some of the nights
 ```
 OtherBooking is a second StoredBooking with
-    { Info = the BookingInfo, Period = new(Tomorrow, LaterDay),
-    Stage = BookingStage.Booked }
+    {
+      Info = the BookingInfo,
+      Period = new(Tomorrow, LaterDay),
+      Stage = BookingStage.Booked
+    }
   and Booking is a StoredBooking with { Stage = BookingStage.Cancelled }
   and IRoomStore.Load() returns [the Room]
   and IBookingStore.Load() returns [the Booking, the OtherBooking]
@@ -397,8 +440,10 @@ When Change(any int, a BookingRequest), returns Booking
 ### [When change to two nights](../Bookings/BookingService/WhenChangeToTwoNights.cs)
 ```
 Using new BookingInfo(a Room's RoomNumber, a string, 1)
-When Change(a StoredBooking's BookingNumber,
-    a BookingRequest with { Period = new(Today, Today.AddDays(2)) }), returns Booking
+When Change(
+    a StoredBooking's BookingNumber,
+    a BookingRequest with { Period = new(Today, Today.AddDays(2)) })
+Return type: Booking
 ```
 
 #### Given it stays in its room
@@ -782,31 +827,34 @@ Using today is Today
 
 #### Given bookings that still hold their rooms
 ```
-IBookingStore.Load() returns [a StoredBooking with
-    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked },
+IBookingStore.Load() returns [
+    a StoredBooking with
+      { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked },
     a second StoredBooking with
-    { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedIn },
+      { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedIn },
     a third StoredBooking with
-    { Period = new(Yesterday, Today), Stage = BookingStage.Booked }]
+      { Period = new(Yesterday, Today), Stage = BookingStage.Booked }]
 ```
 
 - **return their rooms**
   ```
-  Result is equal to [the first StoredBooking's Info.RoomNumber,
+  Result is equal to [
+      the first StoredBooking's Info.RoomNumber,
       the second StoredBooking's Info.RoomNumber,
       the third StoredBooking's Info.RoomNumber]
   ```
 
 #### Given bookings that no longer hold their rooms
 ```
-IBookingStore.Load() returns [a StoredBooking with
-    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.CheckedIn },
+IBookingStore.Load() returns [
+    a StoredBooking with
+      { Period = new(EarlierDay, Yesterday), Stage = BookingStage.CheckedIn },
     a second StoredBooking with
-    { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedOut },
+      { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedOut },
     a third StoredBooking with
-    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Cancelled },
+      { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Cancelled },
     a fourth StoredBooking with
-    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.Booked }]
+      { Period = new(EarlierDay, Yesterday), Stage = BookingStage.Booked }]
 ```
 
 - **return no rooms** — `Result is empty`
@@ -816,36 +864,40 @@ IBookingStore.Load() returns [a StoredBooking with
 
 #### Given cancellable bookings
 ```
-IBookingStore.Load() returns [a StoredBooking with
-    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked },
+IBookingStore.Load() returns [
+    a StoredBooking with
+      { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Booked },
     a second StoredBooking with
-    { Period = new(Yesterday, Today), Stage = BookingStage.Booked }]
+      { Period = new(Yesterday, Today), Stage = BookingStage.Booked }]
 ```
 
 - **return their rooms**
   ```
-  Result is equal to [the first StoredBooking's Info.RoomNumber,
+  Result is equal to [
+      the first StoredBooking's Info.RoomNumber,
       the second StoredBooking's Info.RoomNumber]
   ```
 
 #### Given bookings whose guests checked in
 ```
-IBookingStore.Load() returns [a StoredBooking with
-    { Period = new(EarlierDay, Tomorrow), Stage = BookingStage.CheckedIn },
+IBookingStore.Load() returns [
+    a StoredBooking with
+      { Period = new(EarlierDay, Tomorrow), Stage = BookingStage.CheckedIn },
     a second StoredBooking with
-    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.CheckedIn },
+      { Period = new(EarlierDay, Yesterday), Stage = BookingStage.CheckedIn },
     a third StoredBooking with
-    { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedOut }]
+      { Period = new(EarlierDay, Today), Stage = BookingStage.CheckedOut }]
 ```
 
 - **return no rooms** — `Result is empty`
 
 #### Given a cancelled booking and a no show that departed yesterday
 ```
-IBookingStore.Load() returns [a StoredBooking with
-    { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Cancelled },
+IBookingStore.Load() returns [
+    a StoredBooking with
+      { Period = new(Tomorrow, LaterDay), Stage = BookingStage.Cancelled },
     a second StoredBooking with
-    { Period = new(EarlierDay, Yesterday), Stage = BookingStage.Booked }]
+      { Period = new(EarlierDay, Yesterday), Stage = BookingStage.Booked }]
 ```
 
 - **return no rooms** — `Result is empty`

@@ -88,7 +88,8 @@ Having Restart()
 
 ## [When rename room category](../RoomCategories/WhenRenameRoomCategory.cs)
 ```
-Api.PutAsJsonAsync("/room-categories/{a RoomCategory's Name}",
+Api.PutAsJsonAsync(
+    "/room-categories/{a RoomCategory's Name}",
     the RoomCategory with { Name = a second string })
 Having Api.PostAsJsonAsync("/room-categories", the RoomCategory)
 ```
@@ -101,7 +102,8 @@ Having Api.PostAsJsonAsync("/room-categories", the RoomCategory)
 
 ## [When update room category](../RoomCategories/WhenUpdateRoomCategory.cs)
 ```
-Api.PutAsJsonAsync("/room-categories/{a RoomCategory's Name}",
+Api.PutAsJsonAsync(
+    "/room-categories/{a RoomCategory's Name}",
     the RoomCategory with { Description = a second string })
 Having Api.PostAsJsonAsync("/room-categories", the RoomCategory)
 ```

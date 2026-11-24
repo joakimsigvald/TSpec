@@ -21,8 +21,11 @@ When Api.PostAsJsonAsync("/bookings", a BookingRequest)
 - **respond created** — `Result.StatusCode is Created`
 - **return the booking with the seeded number**
   ```
-  Result.Read<Booking>() is new Booking(10001, the BookingInfo,
-      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel, Pay]),
+  Result.Read<Booking>() is new Booking(
+      10001,
+      the BookingInfo,
+      new BookingPeriod(Tomorrow, LaterDay),
+      new BookingState(Open, [Cancel, Pay]),
       new BookingPayment(8 * the Room's PricePerNight, false))
   ```
 - **point at the new booking** — `Result.Headers.Location.ToString() is "/bookings/10001"`
@@ -30,7 +33,8 @@ When Api.PostAsJsonAsync("/bookings", a BookingRequest)
 ### Given a booking was made before a restart
 ```
 Having Restart()
-  after Api.PostAsJsonAsync("/bookings",
+  after Api.PostAsJsonAsync(
+      "/bookings",
       a second BookingRequest with { Period = new BookingPeriod(Today, Tomorrow) })
   after Api.PostAsJsonAsync("/rooms", the Room)
 ```
@@ -40,7 +44,8 @@ Having Restart()
 
 ### Given an overlapping booking
 ```
-Having Api.PostAsJsonAsync("/bookings",
+Having Api.PostAsJsonAsync(
+    "/bookings",
     a second BookingRequest with { Period = new BookingPeriod(Today, LaterDay) })
   after Api.PostAsJsonAsync("/rooms", the Room)
 ```
@@ -129,7 +134,8 @@ Having Api.PostAsJsonAsync("/bookings", a BookingRequest)
 Using new BookingPeriod(Tomorrow, LaterDay)
   and new BookingInfo(a Room's RoomNumber, a string, 1)
 When Api.PutAsJsonAsync("/bookings/10001", a BookingRequest)
-Having Api.PostAsJsonAsync("/bookings",
+Having Api.PostAsJsonAsync(
+    "/bookings",
     a second BookingRequest with { Period = new BookingPeriod(Today, Tomorrow) })
   after Api.PostAsJsonAsync("/rooms", the Room)
 ```
@@ -139,8 +145,11 @@ Having Api.PostAsJsonAsync("/bookings",
 - **respond ok** — `Result.StatusCode is OK`
 - **return the changed booking**
   ```
-  Result.Read<Booking>() is new Booking(10001, the BookingInfo,
-      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel, Pay]),
+  Result.Read<Booking>() is new Booking(
+      10001,
+      the BookingInfo,
+      new BookingPeriod(Tomorrow, LaterDay),
+      new BookingState(Open, [Cancel, Pay]),
       new BookingPayment(8 * the Room's PricePerNight, false))
   ```
 
@@ -207,15 +216,18 @@ Having Api.PostAsJsonAsync("/bookings", a BookingRequest)
 - **respond ok** — `Result.StatusCode is OK`
 - **return the booking**
   ```
-  Result.Read<Booking>() is new Booking(10001, the BookingInfo,
-      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel, Pay]),
+  Result.Read<Booking>() is new Booking(
+      10001,
+      the BookingInfo,
+      new BookingPeriod(Tomorrow, LaterDay),
+      new BookingState(Open, [Cancel, Pay]),
       new BookingPayment(8 * the Room's PricePerNight, false))
   ```
 
 ### Given the room got another price
 ```
-Having Api.PutAsJsonAsync("/rooms/{the Room's RoomNumber}",
-    the Room with { PricePerNight = a second int })
+Having Api.PutAsJsonAsync(
+    "/rooms/{the Room's RoomNumber}", the Room with { PricePerNight = a second int })
   after Api.PostAsJsonAsync("/bookings", a BookingRequest)
   after Api.PostAsJsonAsync("/rooms", a Room)
 ```
@@ -239,8 +251,11 @@ Having Restart()
 - **respond ok** — `Result.StatusCode is OK`
 - **return the booking**
   ```
-  Result.Read<Booking>() is new Booking(10001, the BookingInfo,
-      new BookingPeriod(Tomorrow, LaterDay), new BookingState(Open, [Cancel, Pay]),
+  Result.Read<Booking>() is new Booking(
+      10001,
+      the BookingInfo,
+      new BookingPeriod(Tomorrow, LaterDay),
+      new BookingState(Open, [Cancel, Pay]),
       new BookingPayment(8 * the Room's PricePerNight, false))
   ```
 
@@ -276,22 +291,30 @@ Having Api.PostAsync("/bookings/10001/pay", null)
 ### Given two bookings
 ```
 Using new BookingInfo(the Room's RoomNumber, a string, 1)
-Having Api.PostAsJsonAsync("/bookings",
+Having Api.PostAsJsonAsync(
+    "/bookings",
     a second BookingRequest with { Period = new BookingPeriod(Tomorrow, LaterDay) })
-  after Api.PostAsJsonAsync("/bookings",
+  after Api.PostAsJsonAsync(
+      "/bookings",
       a BookingRequest with { Period = new BookingPeriod(LaterDay, LaterDay.AddDays(2)) })
   after Api.PostAsJsonAsync("/rooms", a Room)
 ```
 
 - **return both bookings in the order they were made**
   ```
-  Result.Read<Booking[]>() is equal to [new Booking(10001, the BookingInfo,
-      new BookingPeriod(LaterDay, LaterDay.AddDays(2)),
-      new BookingState(Open, [Cancel, Pay]),
-      new BookingPayment(2 * the Room's PricePerNight, false)),
-      new Booking(10002, the BookingInfo, new BookingPeriod(Tomorrow, LaterDay),
-      new BookingState(Open, [Cancel, Pay]),
-      new BookingPayment(8 * the Room's PricePerNight, false))]
+  Result.Read<Booking[]>() is equal to [
+      new Booking(
+        10001,
+        the BookingInfo,
+        new BookingPeriod(LaterDay, LaterDay.AddDays(2)),
+        new BookingState(Open, [Cancel, Pay]),
+        new BookingPayment(2 * the Room's PricePerNight, false)),
+      new Booking(
+        10002,
+        the BookingInfo,
+        new BookingPeriod(Tomorrow, LaterDay),
+        new BookingState(Open, [Cancel, Pay]),
+        new BookingPayment(8 * the Room's PricePerNight, false))]
   ```
 
 ## [When pay booking](../Bookings/WhenPayBooking.cs)

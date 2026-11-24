@@ -84,8 +84,13 @@ Having Api.PostAsJsonAsync("/bookings", a BookingRequest)
 
 - **say it is held with bookings to cancel**
   ```
-  Result.Read<RoomOverview>() is new RoomOverview(the Room's RoomNumber,
-      the Room's BedCount, the Room's RoomCategory, the Room's PricePerNight, true, true)
+  Result.Read<RoomOverview>() is new RoomOverview(
+      the Room's RoomNumber,
+      the Room's BedCount,
+      the Room's RoomCategory,
+      the Room's PricePerNight,
+      true,
+      true)
   ```
 
 ### Given no such room
