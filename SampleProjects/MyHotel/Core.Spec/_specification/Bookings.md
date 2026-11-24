@@ -58,8 +58,7 @@ IRoomStore.Load() returns [the Room]
       the BookingRequest's Info,
       the BookingRequest's Period,
       new BookingState(Open, [Cancel, Pay]),
-      new BookingPayment(
-        (Departure.DayNumber - Arrival.DayNumber) * the Room's PricePerNight, false))
+      new BookingPayment(Nights * the Room's PricePerNight, false))
   ```
 - **store it at the price per night of its room**
   ```

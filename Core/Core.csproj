@@ -17,15 +17,13 @@
 		<PackageProjectUrl>https://github.com/joakimsigvald/TSpec</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/joakimsigvald/TSpec.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageVersion>5.8.0</PackageVersion>
+		<PackageVersion>5.8.1</PackageVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageReleaseNotes>
 			CHANGED
-			* Has().All with an assertion reads "For each of arr:", with the item's assertion below it: "it is less than 3"
-			* Has().All with an assertion fails naming only the items that fail, inline when it expects the same of each: "all elements be less than 3"
-			* A failure says "but it was" when it shows the actual's own value, and leaves it out where that repeats the actual: "Expected n to be 2 but it was 1", "Expected 3 to be less than 2"
+			* Improved structure of generated specifications
 		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

@@ -5,8 +5,10 @@ namespace MyHotel.Core.Spec.Bookings.BookingService;
 
 public abstract class WhenBook : BookingServiceSpec<Booking>
 {
+    private const int Nights = 2;
+
     private static readonly DateOnly Arrival = LaterDay;
-    private static readonly DateOnly Departure = LaterDay.AddDays(2);
+    private static readonly DateOnly Departure = Arrival.AddDays(Nights);
 
     protected WhenBook() =>
         When(_ => _.Book(A<BookingRequest>(_ => _ with
@@ -33,7 +35,7 @@ public abstract class WhenBook : BookingServiceSpec<Booking>
                     The<BookingRequest>().Info,
                     The<BookingRequest>().Period,
                     new BookingState(Open, [Cancel, Pay]),
-                    new BookingPayment((Departure.DayNumber - Arrival.DayNumber) * The<Room>().PricePerNight, false)));
+                    new BookingPayment(Nights * The<Room>().PricePerNight, false)));
 
             [Fact]
             public void ThenStoreItAtThePricePerNightOfItsRoom() =>
